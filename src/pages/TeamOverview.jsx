@@ -1,13 +1,9 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Team, TeamMember } from "@/entities/Team";
-import { User } from "@/entities/User";
-import { Match } from "@/entities/Match";
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield,
@@ -32,7 +28,7 @@ import TeamChallenges from "../components/teams/TeamChallenges";
 import TeamColorPicker from "../components/teams/TeamColorPicker";
 import RankBadge from "../components/teams/RankBadge";
 import InviteFriendsToTeamModal from "../components/teams/InviteFriendsToTeamModal";
-import CreateTeamMatchForm from "../components/teams/CreateTeamMatchForm"; // Added import
+import CreateTeamMatchForm from "../components/teams/CreateTeamMatchForm";
 
 const SKILL_LEVEL_CONFIG = {
   beginner: { 
@@ -65,13 +61,14 @@ const SKILL_LEVEL_CONFIG = {
   }
 };
 
-const TABS = [
-  { id: 'members', label: 'Medlemmar', icon: Users },
-  { id: 'stats', label: 'Statistik', icon: Trophy },
-  { id: 'chat', label: 'Chatt', icon: MessageCircle },
-  { id: 'polls', label: 'Omröstningar', icon: BarChart },
-  { id: 'highlights', label: 'Highlights', icon: ImageIcon },
-  { id: 'challenges', label: 'Utmaningar', icon: Swords }
+// Tabs - will be filtered based on team type
+const ALL_TABS = [
+  { id: 'members', label: 'Medlemmar', icon: Users, showForCupTeam: true },
+  { id: 'stats', label: 'Statistik', icon: Trophy, showForCupTeam: true },
+  { id: 'chat', label: 'Chatt', icon: MessageCircle, showForCupTeam: false },
+  { id: 'polls', label: 'Omröstningar', icon: BarChart, showForCupTeam: false },
+  { id: 'highlights', label: 'Highlights', icon: ImageIcon, showForCupTeam: false },
+  { id: 'challenges', label: 'Utmaningar', icon: Swords, showForCupTeam: false }
 ];
 
 export default function TeamOverviewPage() {
@@ -86,25 +83,25 @@ export default function TeamOverviewPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('members');
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [showCreateTeamMatch, setShowCreateTeamMatch] = useState(false); // Added state
+  const [showCreateTeamMatch, setShowCreateTeamMatch] = useState(false);
 
   const loadTeamData = useCallback(async () => {
     if (!teamId) return;
 
     try {
       const [teamData, currentUser] = await Promise.all([
-        Team.get(teamId),
-        User.me()
+        base44.entities.Team.get(teamId),
+        base44.auth.me()
       ]);
 
       setTeam(teamData);
       setUser(currentUser);
 
-      const teamMembersData = await TeamMember.filter({ team_id: teamId, status: 'active' });
+      const teamMembersData = await base44.entities.TeamMember.filter({ team_id: teamId, status: 'active' });
 
       const memberUsers = await Promise.all(
         teamMembersData.map(async (tm) => {
-          const memberUser = await User.get(tm.user_id);
+          const memberUser = await base44.entities.User.get(tm.user_id);
           return { ...memberUser, teamRole: tm.role };
         })
       );
@@ -112,16 +109,14 @@ export default function TeamOverviewPage() {
       setMembers(memberUsers);
 
       // Fetch matches where the team is team_a or team_b
-      const matchesAsTeamA = await Match.filter({ team_a_id: teamId });
-      const matchesAsTeamB = await Match.filter({ team_b_id: teamId });
+      const matchesAsTeamA = await base44.entities.Match.filter({ team_a_id: teamId });
+      const matchesAsTeamB = await base44.entities.Match.filter({ team_b_id: teamId });
       
-      // Combine and remove potential duplicates (though unlikely for team_a/team_b)
-      // and sort to get the latest matches.
       const allMatches = [...matchesAsTeamA, ...matchesAsTeamB];
       const uniqueMatches = Array.from(new Map(allMatches.map(match => [match.id, match])).values());
-      uniqueMatches.sort((a, b) => new Date(b.match_date || b.created_at) - new Date(a.match_date || a.created_at));
+      uniqueMatches.sort((a, b) => new Date(b.match_date || b.created_date) - new Date(a.match_date || a.created_date));
       
-      setTeamMatches(uniqueMatches.slice(0, 10)); // Set latest 10 matches
+      setTeamMatches(uniqueMatches.slice(0, 10));
 
     } catch (error) {
       console.error("Error loading team data:", error);
@@ -141,8 +136,7 @@ export default function TeamOverviewPage() {
     }
 
     try {
-      // Check if already has pending request or is an active member
-      const existingRequests = await TeamMember.filter({ 
+      const existingRequests = await base44.entities.TeamMember.filter({ 
         team_id: teamId, 
         user_id: user.id 
       });
@@ -158,8 +152,7 @@ export default function TeamOverviewPage() {
         }
       }
 
-      // Create join request
-      await TeamMember.create({
+      await base44.entities.TeamMember.create({
         team_id: teamId,
         user_id: user.id,
         role: 'member',
@@ -167,7 +160,7 @@ export default function TeamOverviewPage() {
       });
 
       alert('Ansökan skickad! Lagkaptenen kommer att granska din ansökan.');
-      loadTeamData(); // Reload data to potentially update the UI (e.g., disable button)
+      loadTeamData();
 
     } catch (error) {
       console.error("Error sending join request:", error);
@@ -177,10 +170,10 @@ export default function TeamOverviewPage() {
 
   const handleCreateTeamMatch = async (matchData) => {
     try {
-      await Match.create(matchData);
+      await base44.entities.Match.create(matchData);
       setShowCreateTeamMatch(false);
       alert('Rankad lagmatch skapad!');
-      loadTeamData(); // Reload data to reflect the new match
+      loadTeamData();
     } catch (error) {
       console.error("Error creating team match:", error);
       alert("Kunde inte skapa match. Försök igen.");
@@ -215,6 +208,12 @@ export default function TeamOverviewPage() {
   const isCaptain = team.captain_id === user?.id;
   const viceCapta = team.vice_captain_ids?.includes(user?.id);
   const isCaptainOrVice = isCaptain || viceCapta;
+  const isCupTeam = team.is_cup_team === true;
+
+  // Filter tabs based on team type
+  const TABS = isCupTeam 
+    ? ALL_TABS.filter(tab => tab.showForCupTeam)
+    : ALL_TABS;
 
   // Get team color config
   const getTeamColorStyle = () => {
@@ -226,9 +225,10 @@ export default function TeamOverviewPage() {
       '#FFD700': { gradient: 'from-[#FFD700] to-[#4D3A00]', lightCircle: 'bg-[#FFD700]/40', darkCircle: 'bg-[#4D3A00]/60' },
       '#DC2626': { gradient: 'from-[#DC2626] to-[#450A0A]', lightCircle: 'bg-[#DC2626]/40', darkCircle: 'bg-[#450A0A]/60' },
       '#14B8A6': { gradient: 'from-[#14B8A6] to-[#042F2E]', lightCircle: 'bg-[#14B8A6]/40', darkCircle: 'bg-[#042F2E]/60' },
-      '#EC4899': { gradient: 'from-[#EC4899] to-[#4A0E29]', lightCircle: 'bg-[#EC4899]/40', darkCircle: 'bg-[#4A0E29]/60' }
+      '#EC4899': { gradient: 'from-[#EC4899] to-[#4A0E29]', lightCircle: 'bg-[#EC4899]/40', darkCircle: 'bg-[#4A0E29]/60' },
+      '#F59E0B': { gradient: 'from-[#F59E0B] to-[#D97706]', lightCircle: 'bg-[#F59E0B]/40', darkCircle: 'bg-[#D97706]/60' }
     };
-    return colorMap[team.teamColor] || colorMap['#2BA84A']; // Default to green if color is not set or found
+    return colorMap[team.teamColor] || colorMap['#2BA84A'];
   };
 
   const teamColors = getTeamColorStyle();
@@ -246,7 +246,7 @@ export default function TeamOverviewPage() {
           <span className="hidden sm:inline">Tillbaka</span>
         </button>
 
-        {/* Hero Header Card - WITH DYNAMIC COLOR */}
+        {/* Hero Header Card */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -282,6 +282,12 @@ export default function TeamOverviewPage() {
                         Lagkapten
                       </Badge>
                     )}
+                    {isCupTeam && (
+                      <Badge className="h-7 px-3 bg-[#F59E0B] text-[#FFFFFF] font-semibold flex items-center gap-1.5 text-[12px] border-0">
+                        <Trophy className="w-3.5 h-3.5" />
+                        Cup-lag
+                      </Badge>
+                    )}
                   </div>
 
                   <h1 className="text-3xl font-bold text-[#FFFFFF] mb-3 break-words overflow-wrap-anywhere">
@@ -308,7 +314,7 @@ export default function TeamOverviewPage() {
 
                 {/* Action Buttons */}
                 <div className="w-full sm:w-auto flex flex-col gap-3">
-                  {!isUserMember && (
+                  {!isUserMember && !isCupTeam && (
                     <Button
                       onClick={handleJoinRequest}
                       className="h-12 w-full sm:w-[200px] bg-[#FFFFFF]/16 hover:bg-[#FFFFFF]/24 text-[#FFFFFF] rounded-xl font-semibold ring-1 ring-[#FFFFFF]/30 transition-all"
@@ -328,35 +334,41 @@ export default function TeamOverviewPage() {
                         Bjud in medlemmar
                       </Button>
                       
-                      <Button
-                        onClick={() => setShowCreateTeamMatch(true)} // Added button
-                        className="h-12 w-full sm:w-[200px] bg-[#9B59B6]/16 hover:bg-[#9B59B6]/24 text-[#DDA5E8] rounded-xl font-semibold ring-1 ring-[#9B59B6]/30 transition-all"
-                      >
-                        <Shield className="w-5 h-5 mr-2" />
-                        Skapa lagmatch
-                      </Button>
+                      {!isCupTeam && (
+                        <Button
+                          onClick={() => setShowCreateTeamMatch(true)}
+                          className="h-12 w-full sm:w-[200px] bg-[#9B59B6]/16 hover:bg-[#9B59B6]/24 text-[#DDA5E8] rounded-xl font-semibold ring-1 ring-[#9B59B6]/30 transition-all"
+                        >
+                          <Shield className="w-5 h-5 mr-2" />
+                          Skapa lagmatch
+                        </Button>
+                      )}
                     </>
                   )}
                 </div>
               </div>
 
-              {/* Rank Badge Section */}
-              <div className="mt-6 bg-[#FFFFFF]/10 backdrop-blur-sm rounded-xl p-4 border border-[#FFFFFF]/20">
-                <RankBadge 
-                  elo={team.elo_rating} 
-                  showProgress={true} 
-                  showTrend={true} 
-                  rankHistory={team.rank_history}
-                  size="lg"
-                />
-              </div>
+              {/* Rank Badge Section - Only for regular teams */}
+              {!isCupTeam && (
+                <div className="mt-6 bg-[#FFFFFF]/10 backdrop-blur-sm rounded-xl p-4 border border-[#FFFFFF]/20">
+                  <RankBadge 
+                    elo={team.elo_rating} 
+                    showProgress={true} 
+                    showTrend={true} 
+                    rankHistory={team.rank_history}
+                    size="lg"
+                  />
+                </div>
+              )}
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
-                <div className="bg-[#FFFFFF]/15 backdrop-blur-md rounded-xl p-3 border border-[#FFFFFF]/20 text-center">
-                  <div className="text-2xl font-bold text-[#FFFFFF] mb-1">{team.elo_rating || 1200}</div>
-                  <div className="text-xs text-[#FFFFFF]/80 font-medium">ELO Rating</div>
-                </div>
+              <div className={`grid ${isCupTeam ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'} gap-3 mt-6`}>
+                {!isCupTeam && (
+                  <div className="bg-[#FFFFFF]/15 backdrop-blur-md rounded-xl p-3 border border-[#FFFFFF]/20 text-center">
+                    <div className="text-2xl font-bold text-[#FFFFFF] mb-1">{team.elo_rating || 1200}</div>
+                    <div className="text-xs text-[#FFFFFF]/80 font-medium">ELO Rating</div>
+                  </div>
+                )}
                 <div className="bg-[#FFFFFF]/15 backdrop-blur-md rounded-xl p-3 border border-[#FFFFFF]/20 text-center">
                   <div className="text-2xl font-bold text-[#FFFFFF] mb-1">{team.matches_played || 0}</div>
                   <div className="text-xs text-[#FFFFFF]/80 font-medium">Matcher</div>
@@ -374,7 +386,7 @@ export default function TeamOverviewPage() {
           </Card>
         </motion.div>
 
-        {/* Sticky Tab Bar - Improved spacing and visibility */}
+        {/* Sticky Tab Bar */}
         <div className="sticky top-0 z-30 bg-[#0F1513]/95 backdrop-blur-md border-b border-[#223029] -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 py-2">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
@@ -399,7 +411,7 @@ export default function TeamOverviewPage() {
           </div>
         </div>
 
-        {/* Tab Content - Improved spacing */}
+        {/* Tab Content */}
         <div className="pb-8">
           <AnimatePresence mode="wait">
             {activeTab === 'members' && (
@@ -503,7 +515,7 @@ export default function TeamOverviewPage() {
                     </CardContent>
                   </Card>
 
-                  {isCaptain && (
+                  {isCaptain && !isCupTeam && (
                     <TeamColorPicker 
                       team={team} 
                       onColorChange={(color) => setTeam({...team, teamColor: color})} 
@@ -514,7 +526,7 @@ export default function TeamOverviewPage() {
               </motion.div>
             )}
 
-            {activeTab === 'chat' && (
+            {!isCupTeam && activeTab === 'chat' && (
               <motion.div
                 key="chat"
                 initial={{ opacity: 0, y: 20 }}
@@ -526,7 +538,7 @@ export default function TeamOverviewPage() {
               </motion.div>
             )}
 
-            {activeTab === 'polls' && (
+            {!isCupTeam && activeTab === 'polls' && (
               <motion.div
                 key="polls"
                 initial={{ opacity: 0, y: 20 }}
@@ -538,7 +550,7 @@ export default function TeamOverviewPage() {
               </motion.div>
             )}
 
-            {activeTab === 'highlights' && (
+            {!isCupTeam && activeTab === 'highlights' && (
               <motion.div
                 key="highlights"
                 initial={{ opacity: 0, y: 20 }}
@@ -550,7 +562,7 @@ export default function TeamOverviewPage() {
               </motion.div>
             )}
 
-            {activeTab === 'challenges' && (
+            {!isCupTeam && activeTab === 'challenges' && (
               <motion.div
                 key="challenges"
                 initial={{ opacity: 0, y: 20 }}
@@ -565,8 +577,8 @@ export default function TeamOverviewPage() {
         </div>
       </div>
 
-      {/* Create Team Match Modal */}
-      {showCreateTeamMatch && (
+      {/* Create Team Match Modal - Only for regular teams */}
+      {!isCupTeam && showCreateTeamMatch && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="max-w-2xl w-full my-8">
             <CreateTeamMatchForm

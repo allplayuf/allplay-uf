@@ -33,15 +33,16 @@ Deno.serve(async (req) => {
       name: `${team_name} (${cup.name})`,
       description: `Lag skapat för ${cup.name}`,
       city: cup.location,
-      teamColor: team_color || '#2BA84A',
+      teamColor: team_color || '#F59E0B',
       captain_id: user.id,
-      is_public: false, // Cup teams are private
+      is_public: false,
+      is_cup_team: true,
+      cup_id: cup_id,
       current_members: 1,
       matches_played: 0,
       wins: 0,
       losses: 0,
-      draws: 0,
-      elo_rating: 1000
+      draws: 0
     });
 
     // Add user as team member (captain)

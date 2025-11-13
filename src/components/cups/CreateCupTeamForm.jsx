@@ -4,17 +4,17 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, X, Sparkles, Trophy } from "lucide-react";
+import { Users, X, Sparkles, Trophy, CheckCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useCustomDialog } from "../ui/custom-dialog";
 import { CUPS_QUERY_KEY } from "../dashboard/CupsWidget";
 
 const TEAM_COLORS = [
+  { color: '#F59E0B', name: 'Guld' },
   { color: '#2BA84A', name: 'Grön' },
   { color: '#F4743B', name: 'Orange' },
   { color: '#4169E1', name: 'Blå' },
   { color: '#9370DB', name: 'Lila' },
-  { color: '#FFD700', name: 'Guld' },
   { color: '#DC2626', name: 'Röd' },
   { color: '#14B8A6', name: 'Turkos' },
   { color: '#EC4899', name: 'Rosa' }
@@ -96,7 +96,7 @@ export default function CreateCupTeamForm({ cup, onClose, onSuccess }) {
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             
             {/* Info Box */}
-            <div className="p-4 bg-[#4169E1]/10 border border-[#4169E1]/30 rounded-xl">
+            <div className="p-4 bg-[#F59E0B]/10 border border-[#F59E0B]/30 rounded-xl">
               <p className="text-sm text-[#F4F7F5] mb-2 font-semibold">💡 Vad är ett cup-lag?</p>
               <p className="text-xs text-[#B6C2BC] leading-relaxed">
                 Ett cup-lag skapas specifikt för <strong className="text-[#F4F7F5]">{cup.name}</strong>. 
@@ -142,7 +142,7 @@ export default function CreateCupTeamForm({ cup, onClose, onSuccess }) {
                   >
                     {selectedColor === color && (
                       <div className="w-full h-full flex items-center justify-center">
-                        <Trophy className="w-6 h-6 text-white drop-shadow-lg" />
+                        <CheckCircle className="w-6 h-6 text-white drop-shadow-lg" />
                       </div>
                     )}
                   </button>
