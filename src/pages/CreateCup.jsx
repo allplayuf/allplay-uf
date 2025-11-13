@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Trophy, ArrowLeft, Calendar, MapPin, Users, Target, Sparkles } from "lucide-react";
+import { Trophy, ArrowLeft, Calendar, MapPin, Users, Target, Sparkles, Upload, Image as ImageIcon } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
 import { useCustomDialog } from "../components/ui/custom-dialog";
@@ -24,6 +24,7 @@ export default function CreateCupPage() {
     description: '',
     location: '',
     venue_ids: [],
+    logo_url: '',
     start_date: '',
     end_date: '',
     start_time: '',
@@ -43,12 +44,55 @@ export default function CreateCupPage() {
     is_public: true
   });
 
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState('');
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+
   // Fetch venues
   const { data: venues = [] } = useQuery({
     queryKey: ['venues'],
     queryFn: () => base44.entities.Venue.list(),
     staleTime: 5 * 60 * 1000,
   });
+
+  // Handle logo upload
+  const handleLogoChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Ogiltigt filformat', 'Vänligen välj en bildfil.', { type: 'alert' });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Filen är för stor', 'Loggan måste vara mindre än 5MB.', { type: 'alert' });
+      return;
+    }
+
+    setLogoFile(file);
+    
+    // Show preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setLogoPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+
+    // Upload immediately
+    setUploadingLogo(true);
+    try {
+      const uploadResult = await base44.integrations.Core.UploadFile({ file });
+      setFormData(prev => ({ ...prev, logo_url: uploadResult.file_url }));
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      alert('Uppladdning misslyckades', 'Kunde inte ladda upp loggan.', { type: 'alert' });
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
 
   // Create cup mutation
   const createCupMutation = useMutation({
@@ -64,7 +108,7 @@ export default function CreateCupPage() {
     },
     onError: (error) => {
       console.error('Error creating cup:', error);
-      alert('Ett fel uppstod', error.message || 'Kunde inte skapa turneringen.', { type: 'alert' });
+      alert('Ett fel uppstod', error.response?.data?.error || error.message || 'Kunde inte skapa turneringen.', { type: 'alert' });
     }
   });
 
@@ -108,7 +152,7 @@ export default function CreateCupPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
         {/* Back Button */}
-        <Link to={createPageUrl("Community")}>
+        <Link to={createPageUrl("Community") + "?tab=cups"}>
           <Button variant="ghost" className="text-[#B6C2BC] hover:text-[#F4F7F5] gap-2">
             <ArrowLeft className="w-4 h-4" />
             Tillbaka
@@ -141,6 +185,46 @@ export default function CreateCupPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               
+              {/* Logo Upload */}
+              <div className="space-y-2">
+                <Label className="text-[#F4F7F5] font-semibold flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-[#F59E0B]" />
+                  Turneringslogga
+                </Label>
+                <div className="flex items-center gap-4">
+                  {logoPreview && (
+                    <div className="w-20 h-20 rounded-xl overflow-hidden border-2 border-[#F59E0B]/30 flex-shrink-0">
+                      <img src={logoPreview} alt="Logo preview" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoChange}
+                      className="hidden"
+                      id="logo-upload"
+                    />
+                    <label htmlFor="logo-upload">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full border-[#F59E0B]/30 text-[#F59E0B] hover:bg-[#F59E0B]/10 gap-2"
+                        disabled={uploadingLogo}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          document.getElementById('logo-upload').click();
+                        }}
+                      >
+                        <Upload className="w-4 h-4" />
+                        {uploadingLogo ? 'Laddar upp...' : logoPreview ? 'Ändra logga' : 'Ladda upp logga'}
+                      </Button>
+                    </label>
+                    <p className="text-xs text-[#B6C2BC] mt-2">Max 5MB, PNG/JPG/GIF</p>
+                  </div>
+                </div>
+              </div>
+
               {/* Name */}
               <div className="space-y-2">
                 <Label className="text-[#F4F7F5] font-semibold">Turneringsnamn *</Label>
@@ -397,7 +481,7 @@ export default function CreateCupPage() {
 
           {/* Submit */}
           <div className="flex gap-3">
-            <Link to={createPageUrl("Community")} className="flex-1">
+            <Link to={createPageUrl("Community") + "?tab=cups"} className="flex-1">
               <Button 
                 type="button" 
                 variant="outline" 
@@ -409,7 +493,7 @@ export default function CreateCupPage() {
             
             <Button 
               type="submit" 
-              disabled={createCupMutation.isPending}
+              disabled={createCupMutation.isPending || uploadingLogo}
               className="flex-1 bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white gap-2 font-semibold shadow-lg"
             >
               <Trophy className="w-4 h-4" />
