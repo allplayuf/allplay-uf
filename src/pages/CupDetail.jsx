@@ -202,12 +202,11 @@ export default function CupDetailPage() {
 
               {canManage && (
                 <Button
-                  variant="outline"
                   onClick={() => setActiveTab('admin')}
-                  className="h-10 border-[#F59E0B] text-[#FCD34D] hover:bg-[#F59E0B]/10 gap-2 flex-shrink-0"
+                  className="h-12 px-5 bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#F59E0B] text-white gap-2.5 flex-shrink-0 font-bold shadow-lg rounded-xl ring-2 ring-[#F59E0B]/20 hover:ring-[#F59E0B]/40 transition-all"
                 >
-                  <Shield className="w-4 h-4" />
-                  <span className="hidden sm:inline">Admin</span>
+                  <Shield className="w-5 h-5" strokeWidth={2.5} />
+                  Admin
                 </Button>
               )}
             </div>
@@ -292,9 +291,9 @@ export default function CupDetailPage() {
           </CardContent>
         </Card>
 
-        {/* Navigation Tabs */}
+        {/* Navigation Tabs - UTAN ADMIN TAB */}
         <div className="bg-[#121715] border border-[#223029] rounded-2xl p-2 mb-8 shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
-          <div className="grid grid-cols-4 lg:grid-cols-5 gap-2">
+          <div className="grid grid-cols-4 gap-2">
             <button
               onClick={() => setActiveTab('overview')}
               className={`h-11 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
@@ -342,20 +341,6 @@ export default function CupDetailPage() {
               <ListChecks className="w-4 h-4" />
               <span className="hidden sm:inline">Matcher</span>
             </button>
-
-            {canManage && (
-              <button
-                onClick={() => setActiveTab('admin')}
-                className={`h-11 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
-                  activeTab === 'admin'
-                    ? 'bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30'
-                    : 'bg-transparent text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
-                }`}
-              >
-                <Shield className="w-4 h-4" />
-                <span className="hidden sm:inline">Admin</span>
-              </button>
-            )}
           </div>
         </div>
 
