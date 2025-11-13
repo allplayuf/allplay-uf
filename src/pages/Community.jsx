@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -28,30 +27,40 @@ const QUERY_KEYS = {
   friendships: ['friendships'],
   teamMembers: (userId) => ['teamMembers', userId],
   teamInvites: (userId) => ['teamInvites', userId],
-  feedbackCount: ['feedbackCount'],
+  cupsCount: ['cupsCount'],
 };
 
 // Tab color config - matching AllPlay theme with individual colors per tab
 const TAB_COLORS = {
   friends: {
     active: 'bg-[#2BA84A]/16 text-[#2BA84A] ring-1 ring-[#2BA84A]/30',
-    inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
+    inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]',
+    icon: 'text-[#2BA84A]',
+    iconInactive: ''
   },
   teams: {
     active: 'bg-[#9370DB]/16 text-[#DDD6FE] ring-1 ring-[#9370DB]/30',
-    inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
+    inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]',
+    icon: 'text-[#DDD6FE]',
+    iconInactive: ''
   },
   find: {
     active: 'bg-[#2BA84A]/16 text-[#2BA84A] ring-1 ring-[#2BA84A]/30',
-    inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
+    inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]',
+    icon: 'text-[#2BA84A]',
+    iconInactive: ''
   },
   feedback: {
     active: 'bg-[#4169E1]/16 text-[#B0C4DE] ring-1 ring-[#4169E1]/30',
-    inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
+    inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]',
+    icon: 'text-[#B0C4DE]',
+    iconInactive: ''
   },
   cups: {
     active: 'bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30',
-    inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
+    inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]',
+    icon: 'text-[#FCD34D]',
+    iconInactive: ''
   }
 };
 
@@ -161,15 +170,12 @@ export default function CommunityPage() {
     enabled: !!user,
   });
 
-  // Fetch feedback posts count
-  const { data: feedbackCount = 0 } = useQuery({
-    queryKey: QUERY_KEYS.feedbackCount,
+  // Fetch cups count
+  const { data: cupsCount = 0 } = useQuery({
+    queryKey: QUERY_KEYS.cupsCount,
     queryFn: async () => {
-      const response = await base44.functions.invoke('feedback/getPosts', {
-        sort: 'top',
-        limit: 100
-      });
-      return response.data.posts?.length || 0;
+      const allCups = await base44.entities.Cup.list();
+      return allCups.length;
     },
     staleTime: 60 * 1000,
     enabled: !!user,
@@ -303,8 +309,8 @@ export default function CommunityPage() {
   };
 
   const handleStatCardClick = (destination) => {
-    if (destination === 'feedback') {
-      setActiveTab('feedback');
+    if (destination === 'cups') {
+      setActiveTab('cups');
     }
   };
 
@@ -367,10 +373,10 @@ export default function CommunityPage() {
               </div>
               <div 
                 className="p-4 bg-[#121715]/50 rounded-xl text-center cursor-pointer hover:bg-[#18221E] transition-colors"
-                onClick={() => handleStatCardClick('feedback')}
+                onClick={() => handleStatCardClick('cups')}
               >
-                <p className="text-2xl font-bold text-[#F4F7F5]">{feedbackCount}</p>
-                <p className="text-xs text-[#B6C2BC]">Feedback</p>
+                <p className="text-2xl font-bold text-[#F4F7F5]">{cupsCount}</p>
+                <p className="text-xs text-[#B6C2BC]">Cuper</p>
               </div>
             </div>
           </Card>
@@ -385,7 +391,7 @@ export default function CommunityPage() {
                 activeTab === 'friends' ? TAB_COLORS.friends.active : TAB_COLORS.friends.inactive
               }`}
             >
-              <Users className="w-4 h-4" />
+              <Users className={`w-4 h-4 ${activeTab === 'friends' ? TAB_COLORS.friends.icon : ''}`} />
               <span className="hidden sm:inline">Vänner</span>
             </TabsTrigger>
             <TabsTrigger 
@@ -394,7 +400,7 @@ export default function CommunityPage() {
                 activeTab === 'teams' ? TAB_COLORS.teams.active : TAB_COLORS.teams.inactive
               }`}
             >
-              <Target className="w-4 h-4" />
+              <Target className={`w-4 h-4 ${activeTab === 'teams' ? TAB_COLORS.teams.icon : ''}`} />
               <span className="hidden sm:inline">Lag</span>
             </TabsTrigger>
             <TabsTrigger 
@@ -403,7 +409,7 @@ export default function CommunityPage() {
                 activeTab === 'find' ? TAB_COLORS.find.active : TAB_COLORS.find.inactive
               }`}
             >
-              <Search className="w-4 h-4" />
+              <Search className={`w-4 h-4 ${activeTab === 'find' ? TAB_COLORS.find.icon : ''}`} />
               <span className="hidden sm:inline">Hitta</span>
             </TabsTrigger>
             <TabsTrigger 
@@ -412,7 +418,7 @@ export default function CommunityPage() {
                 activeTab === 'feedback' ? TAB_COLORS.feedback.active : TAB_COLORS.feedback.inactive
               }`}
             >
-              <MessageSquare className="w-4 h-4" />
+              <MessageSquare className={`w-4 h-4 ${activeTab === 'feedback' ? TAB_COLORS.feedback.icon : ''}`} />
               <span className="hidden sm:inline">Feedback</span>
             </TabsTrigger>
             <TabsTrigger 
@@ -421,7 +427,7 @@ export default function CommunityPage() {
                 activeTab === 'cups' ? TAB_COLORS.cups.active : TAB_COLORS.cups.inactive
               }`}
             >
-              <Trophy className="w-4 h-4" />
+              <Trophy className={`w-4 h-4 ${activeTab === 'cups' ? TAB_COLORS.cups.icon : ''}`} />
               <span className="hidden sm:inline">Cuper</span>
             </TabsTrigger>
           </TabsList>
@@ -506,14 +512,16 @@ export default function CommunityPage() {
                       </div>
                       <h3 className="text-2xl font-bold text-[#F4F7F5] mb-2">Feedback & Idéer</h3>
                       <p className="text-[#B6C2BC] mb-6">Dela dina tankar och hjälp oss förbättra AllPlay</p>
-                      <Badge className="bg-[#4169E1]/20 text-[#B0C4DE] border border-[#4169E1]/30 px-6 py-3 text-base font-semibold">{feedbackCount} aktiva förslag</Badge>
+                      <Button className="bg-[#4169E1] hover:bg-[#3457D5] text-white px-6 py-3 text-base font-semibold rounded-xl">
+                        Dela dina idéer
+                      </Button>
                     </div>
                   </Card>
                 </Link>
               </motion.div>
             </TabsContent>
 
-            {/* Cups Tab - NEW - Shows full overview with yellow theme */}
+            {/* Cups Tab - Shows full overview with yellow theme */}
             <TabsContent key="cups" value="cups">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
