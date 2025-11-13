@@ -18,6 +18,9 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
   const pendingParticipants = participants.filter(p => p.status === 'pending');
   const confirmedParticipants = participants.filter(p => p.status === 'confirmed');
 
+  // FIX: Kolla om MATCHER finns, inte bara grupper
+  const scheduleExists = matches.length > 0;
+
   const approveSignupMutation = useMutation({
     mutationFn: async (participantId) => {
       const response = await base44.functions.invoke('cups/manageSignup', {
@@ -198,7 +201,7 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
           </div>
         </motion.div>
 
-        {/* Quick Actions - UPPDATERAD DESIGN */}
+        {/* Quick Actions - UPPDATERAD DESIGN MED FIX */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -214,11 +217,11 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
             <CardContent className="p-6 space-y-3">
               <Button
                 onClick={handleCreateSchedule}
-                disabled={createScheduleMutation.isPending || groups.length > 0 || confirmedParticipants.length < 4}
+                disabled={createScheduleMutation.isPending || scheduleExists || confirmedParticipants.length < 4}
                 className="w-full h-12 bg-[#F59E0B] hover:bg-[#D97706] text-[#FFFFFF] gap-2 font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
               >
                 <Calendar className="w-5 h-5" />
-                {groups.length > 0 ? '✓ Schema skapat' : 
+                {scheduleExists ? '✓ Schema skapat' : 
                  confirmedParticipants.length < 4 ? `Behöver ${4 - confirmedParticipants.length} fler deltagare` : 
                  'Skapa matchschema'}
               </Button>
