@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Trophy, ArrowLeft, Calendar, MapPin, Users, Target } from "lucide-react";
+import { Trophy, ArrowLeft, Calendar, MapPin, Users, Target, Sparkles } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
 import { useCustomDialog } from "../components/ui/custom-dialog";
@@ -115,12 +115,17 @@ export default function CreateCupPage() {
           </Button>
         </Link>
 
-        {/* Header */}
-        <Card className="bg-gradient-to-br from-[#F4743B]/10 to-[#E5683A]/5 border border-[#F4743B]/30 rounded-[20px] p-6">
-          <div className="flex items-center gap-3">
-            <Trophy className="w-12 h-12 text-[#F4743B]" />
+        {/* Header with Enhanced Golden Theme */}
+        <Card className="bg-gradient-to-br from-[#F59E0B]/12 to-[#D97706]/8 border border-[#F59E0B]/40 rounded-[20px] p-6 shadow-[0_0_30px_rgba(245,158,11,0.15)]">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#F59E0B]/20 to-[#D97706]/10 flex items-center justify-center border border-[#F59E0B]/30">
+              <Trophy className="w-8 h-8 text-[#F59E0B]" />
+            </div>
             <div>
-              <h1 className="text-2xl font-bold text-[#F4F7F5]">Skapa Turnering</h1>
+              <h1 className="text-2xl font-bold text-[#F4F7F5] flex items-center gap-2">
+                Skapa Turnering
+                <Sparkles className="w-5 h-5 text-[#F59E0B]" />
+              </h1>
               <p className="text-sm text-[#B6C2BC]">Organisera en ny turnering eller cup</p>
             </div>
           </div>
@@ -138,46 +143,46 @@ export default function CreateCupPage() {
               
               {/* Name */}
               <div className="space-y-2">
-                <Label className="text-[#F4F7F5]">Turneringsnamn *</Label>
+                <Label className="text-[#F4F7F5] font-semibold">Turneringsnamn *</Label>
                 <Input
                   placeholder="t.ex. Stockholm Summer Cup 2025"
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5]"
+                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30"
                   required
                 />
               </div>
 
               {/* Description */}
               <div className="space-y-2">
-                <Label className="text-[#F4F7F5]">Beskrivning</Label>
+                <Label className="text-[#F4F7F5] font-semibold">Beskrivning</Label>
                 <Textarea
                   placeholder="Beskriv turneringen..."
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-24"
+                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-24 focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30"
                 />
               </div>
 
               {/* Location */}
               <div className="space-y-2">
-                <Label className="text-[#F4F7F5] flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-[#F4743B]" />
+                <Label className="text-[#F4F7F5] font-semibold flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-[#F59E0B]" />
                   Plats *
                 </Label>
                 <Input
                   placeholder="t.ex. Stockholm"
                   value={formData.location}
                   onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5]"
+                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30"
                   required
                 />
               </div>
 
               {/* Date and Time */}
               <div className="space-y-2">
-                <Label className="text-[#F4F7F5] flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-[#F4743B]" />
+                <Label className="text-[#F4F7F5] font-semibold flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-[#F59E0B]" />
                   Startdatum och tid *
                 </Label>
                 <DateTimePicker
@@ -200,8 +205,8 @@ export default function CreateCupPage() {
               
               {/* Format */}
               <div className="space-y-2">
-                <Label className="text-[#F4F7F5] flex items-center gap-2">
-                  <Users className="w-4 h-4 text-[#F4743B]" />
+                <Label className="text-[#F4F7F5] font-semibold flex items-center gap-2">
+                  <Users className="w-4 h-4 text-[#F59E0B]" />
                   Matchformat *
                 </Label>
                 <div className="grid grid-cols-3 gap-3">
@@ -210,9 +215,9 @@ export default function CreateCupPage() {
                       key={format}
                       type="button"
                       onClick={() => handleFormatChange(format)}
-                      className={`h-14 font-bold ${
+                      className={`h-14 font-bold transition-all ${
                         formData.format === format
-                          ? 'bg-[#F4743B] text-white hover:bg-[#E5683A]'
+                          ? 'bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-white shadow-lg'
                           : 'bg-[#18221E] text-[#B6C2BC] hover:bg-[#223029]'
                       }`}
                     >
@@ -224,26 +229,26 @@ export default function CreateCupPage() {
 
               {/* Signup Type */}
               <div className="space-y-2">
-                <Label className="text-[#F4F7F5]">Anmälningstyp *</Label>
+                <Label className="text-[#F4F7F5] font-semibold">Anmälningstyp *</Label>
                 <Select value={formData.signup_type} onValueChange={(value) => setFormData(prev => ({ ...prev, signup_type: value }))}>
-                  <SelectTrigger className="bg-[#18221E] border-[#223029] text-[#F4F7F5]">
+                  <SelectTrigger className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="team">Lag</SelectItem>
-                    <SelectItem value="solo">Solo (spelare)</SelectItem>
+                    <SelectItem value="team">👥 Lag</SelectItem>
+                    <SelectItem value="solo">⚽ Solo (spelare)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {/* Skill Level */}
               <div className="space-y-2">
-                <Label className="text-[#F4F7F5] flex items-center gap-2">
-                  <Target className="w-4 h-4 text-[#F4743B]" />
+                <Label className="text-[#F4F7F5] font-semibold flex items-center gap-2">
+                  <Target className="w-4 h-4 text-[#F59E0B]" />
                   Nivå *
                 </Label>
                 <Select value={formData.skill_level} onValueChange={(value) => setFormData(prev => ({ ...prev, skill_level: value }))}>
-                  <SelectTrigger className="bg-[#18221E] border-[#223029] text-[#F4F7F5]">
+                  <SelectTrigger className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -258,26 +263,26 @@ export default function CreateCupPage() {
 
               {/* Max Participants */}
               <div className="space-y-2">
-                <Label className="text-[#F4F7F5]">Max antal deltagare *</Label>
+                <Label className="text-[#F4F7F5] font-semibold">Max antal deltagare *</Label>
                 <Input
                   type="number"
                   min="4"
                   max="64"
                   value={formData.max_participants}
                   onChange={(e) => setFormData(prev => ({ ...prev, max_participants: parseInt(e.target.value) }))}
-                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5]"
+                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30"
                 />
               </div>
 
               {/* Entry Fee */}
               <div className="space-y-2">
-                <Label className="text-[#F4F7F5]">Anmälningsavgift (kr)</Label>
+                <Label className="text-[#F4F7F5] font-semibold">Anmälningsavgift (kr)</Label>
                 <Input
                   type="number"
                   min="0"
                   value={formData.entry_fee}
                   onChange={(e) => setFormData(prev => ({ ...prev, entry_fee: parseInt(e.target.value) }))}
-                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5]"
+                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30"
                 />
               </div>
             </CardContent>
@@ -299,14 +304,14 @@ export default function CreateCupPage() {
                 <Switch
                   checked={formData.has_group_stage}
                   onCheckedChange={(checked) => setFormData(prev => ({ ...prev, has_group_stage: checked }))}
-                  className="data-[state=checked]:bg-[#F4743B]"
+                  className="data-[state=checked]:bg-[#F59E0B]"
                 />
               </div>
 
               {formData.has_group_stage && (
                 <div className="grid grid-cols-2 gap-4 pl-4">
                   <div className="space-y-2">
-                    <Label className="text-[#F4F7F5]">Antal grupper</Label>
+                    <Label className="text-[#F4F7F5] font-semibold">Antal grupper</Label>
                     <Input
                       type="number"
                       min="2"
@@ -318,7 +323,7 @@ export default function CreateCupPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label className="text-[#F4F7F5]">Lag vidare per grupp</Label>
+                    <Label className="text-[#F4F7F5] font-semibold">Lag vidare per grupp</Label>
                     <Input
                       type="number"
                       min="1"
@@ -340,7 +345,7 @@ export default function CreateCupPage() {
                 <Switch
                   checked={formData.has_playoffs}
                   onCheckedChange={(checked) => setFormData(prev => ({ ...prev, has_playoffs: checked }))}
-                  className="data-[state=checked]:bg-[#F4743B]"
+                  className="data-[state=checked]:bg-[#F59E0B]"
                 />
               </div>
             </CardContent>
@@ -355,23 +360,23 @@ export default function CreateCupPage() {
               
               {/* Rules */}
               <div className="space-y-2">
-                <Label className="text-[#F4F7F5]">Regler</Label>
+                <Label className="text-[#F4F7F5] font-semibold">Regler</Label>
                 <Textarea
                   placeholder="Beskriv turneringens regler..."
                   value={formData.rules}
                   onChange={(e) => setFormData(prev => ({ ...prev, rules: e.target.value }))}
-                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-32"
+                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-32 focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30"
                 />
               </div>
 
               {/* Prize */}
               <div className="space-y-2">
-                <Label className="text-[#F4F7F5]">Priser</Label>
+                <Label className="text-[#F4F7F5] font-semibold">Priser</Label>
                 <Input
                   placeholder="t.ex. 10 000 kr till vinnaren"
                   value={formData.prize}
                   onChange={(e) => setFormData(prev => ({ ...prev, prize: e.target.value }))}
-                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5]"
+                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30"
                 />
               </div>
 
@@ -384,7 +389,7 @@ export default function CreateCupPage() {
                 <Switch
                   checked={formData.is_public}
                   onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_public: checked }))}
-                  className="data-[state=checked]:bg-[#F4743B]"
+                  className="data-[state=checked]:bg-[#F59E0B]"
                 />
               </div>
             </CardContent>
@@ -405,7 +410,7 @@ export default function CreateCupPage() {
             <Button 
               type="submit" 
               disabled={createCupMutation.isPending}
-              className="flex-1 bg-[#F4743B] hover:bg-[#E5683A] text-white gap-2"
+              className="flex-1 bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white gap-2 font-semibold shadow-lg"
             >
               <Trophy className="w-4 h-4" />
               {createCupMutation.isPending ? 'Skapar...' : 'Skapa Turnering'}
