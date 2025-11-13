@@ -29,6 +29,8 @@ export default function CreateCupPage() {
     start_date: '',
     end_date: '',
     start_time: '',
+    surface_type: 'grass', // New field
+    match_duration: 90, // New field
     format: '5v5',
     signup_type: 'team',
     skill_level: 'mixed',
@@ -269,7 +271,7 @@ export default function CreateCupPage() {
                 />
               </div>
 
-              {/* NYTT: Venue Selection */}
+              {/* Venue Selection */}
               <div className="space-y-2">
                 <Label className="text-[#F4F7F5] font-semibold flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-[#F59E0B]" />
@@ -291,6 +293,45 @@ export default function CreateCupPage() {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-[#B6C2BC]">Välj vilken plan matcherna ska spelas på</p>
+              </div>
+
+              {/* Surface Type & Match Duration */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[#F4F7F5] font-semibold">Underlag *</Label>
+                  <Select 
+                    value={formData.surface_type} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, surface_type: value }))}
+                  >
+                    <SelectTrigger className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="grass">🌱 Gräs</SelectItem>
+                      <SelectItem value="artificial_turf">🏟️ Konstgräs</SelectItem>
+                      <SelectItem value="futsal">🏐 Futsal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[#F4F7F5] font-semibold">Matchlängd (min) *</Label>
+                  <Select 
+                    value={formData.match_duration.toString()} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, match_duration: parseInt(value) }))}
+                  >
+                    <SelectTrigger className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="30">30 min</SelectItem>
+                      <SelectItem value="40">40 min</SelectItem>
+                      <SelectItem value="45">45 min</SelectItem>
+                      <SelectItem value="60">60 min</SelectItem>
+                      <SelectItem value="90">90 min</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Date and Time */}

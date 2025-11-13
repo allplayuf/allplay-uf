@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -74,6 +75,24 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
     }
   });
 
+  // NYTT: Simulate Results Mutation
+  const simulateResultsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await base44.functions.invoke('cups/simulateMatchResults', {
+        cup_id: cup.id
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cupDetails', cup.id] });
+      queryClient.invalidateQueries({ queryKey: CUPS_QUERY_KEY });
+      alert('Resultat simulerade! 🎲', 'Alla matcher har fått resultat och cupen är avslutad!', { type: 'success' });
+    },
+    onError: (error) => {
+      alert('Fel', error.response?.data?.error || 'Kunde inte simulera resultat.', { type: 'alert' });
+    }
+  });
+
   const handleApprove = async (participantId) => {
     const shouldApprove = await confirm(
       'Godkänn anmälan',
@@ -110,6 +129,17 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
 
     if (!shouldCreate) return;
     createScheduleMutation.mutate();
+  };
+
+  const handleSimulateResults = async () => {
+    const shouldSimulate = await confirm(
+      'Simulera matchresultat',
+      'Detta kommer att generera resultat för ALLA matcher (gruppspel + slutspel) och avsluta cupen. Är du säker?',
+      { type: 'warning', confirmText: 'Simulera', cancelText: 'Avbryt' }
+    );
+
+    if (!shouldSimulate) return;
+    simulateResultsMutation.mutate();
   };
 
   return (
@@ -201,7 +231,7 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
           </div>
         </motion.div>
 
-        {/* Quick Actions - UPPDATERAD DESIGN MED FIX */}
+        {/* Quick Actions - MED SIMULERA-KNAPP */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -225,6 +255,17 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
                  confirmedParticipants.length < 4 ? `Behöver ${4 - confirmedParticipants.length} fler deltagare` : 
                  'Skapa matchschema'}
               </Button>
+
+              {scheduleExists && cup.status !== 'completed' && (
+                <Button
+                  onClick={handleSimulateResults}
+                  disabled={simulateResultsMutation.isPending}
+                  className="w-full h-12 bg-[#9370DB] hover:bg-[#7C3AED] text-[#FFFFFF] gap-2 font-semibold shadow-lg"
+                >
+                  <Trophy className="w-5 h-5" />
+                  {simulateResultsMutation.isPending ? 'Simulerar...' : '🎲 Simulera alla matchresultat'}
+                </Button>
+              )}
 
               <Button
                 variant="outline"
