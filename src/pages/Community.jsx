@@ -17,7 +17,7 @@ const FriendsList = lazy(() => import("../components/community/FriendsList"));
 const FindPlayers = lazy(() => import("../components/community/FindPlayers"));
 const CreateTeamForm = lazy(() => import("../components/teams/CreateTeamForm"));
 const CupsOverview = lazy(() => import("../components/community/CupsOverview"));
-const TeamDiscovery = lazy(() => import("../components/community/TeamDiscovery"));
+const TeamsList = lazy(() => import("../components/community/TeamsList"));
 
 // Query keys
 const QUERY_KEYS = {
@@ -358,17 +358,17 @@ export default function CommunityPage() {
               <Users className="w-4 h-4" />
               <span className="hidden sm:inline">Vänner</span>
             </TabsTrigger>
-            <TabsTrigger value="feedback" className="gap-2">
-              <MessageSquare className="w-4 h-4" />
-              <span className="hidden sm:inline">Feedback</span>
-            </TabsTrigger>
-            <TabsTrigger value="discover-teams" className="gap-2">
+            <TabsTrigger value="teams" className="gap-2">
               <Target className="w-4 h-4" />
               <span className="hidden sm:inline">Lag</span>
             </TabsTrigger>
             <TabsTrigger value="find" className="gap-2">
               <Search className="w-4 h-4" />
-              <span className="hidden sm:inline">Spelare</span>
+              <span className="hidden sm:inline">Hitta</span>
+            </TabsTrigger>
+            <TabsTrigger value="feedback" className="gap-2">
+              <MessageSquare className="w-4 h-4" />
+              <span className="hidden sm:inline">Feedback</span>
             </TabsTrigger>
             <TabsTrigger value="cups" className="gap-2">
               <Trophy className="w-4 h-4" />
@@ -395,27 +395,7 @@ export default function CommunityPage() {
               </motion.div>
             </TabsContent>
 
-            <TabsContent key="feedback" value="feedback">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.25 }}
-              >
-                <Link to={createPageUrl("Feedback")}>
-                  <Card className="bg-[#121715] border border-[#223029] rounded-[20px] p-12 hover:border-[#2BA84A]/30 transition-all cursor-pointer">
-                    <div className="text-center">
-                      <MessageSquare className="w-16 h-16 text-[#2BA84A] mx-auto mb-4" />
-                      <h3 className="text-2xl font-bold text-[#F4F7F5] mb-2">Feedback & Idéer</h3>
-                      <p className="text-[#B6C2BC] mb-4">Dela dina tankar och hjälp oss förbättra AllPlay</p>
-                      <Badge className="bg-[#2BA84A]/20 text-[#2BA84A]">{feedbackCount} aktiva förslag</Badge>
-                    </div>
-                  </Card>
-                </Link>
-              </motion.div>
-            </TabsContent>
-
-            <TabsContent key="discover-teams" value="discover-teams">
+            <TabsContent key="teams" value="teams">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -426,10 +406,13 @@ export default function CommunityPage() {
                   {!allTeams || allTeams.length === 0 ? (
                     <NoTeamsFound onCreateTeam={() => setShowCreateTeamForm(true)} />
                   ) : (
-                    <TeamDiscovery
+                    <TeamsList
                       teams={allTeams}
                       myTeams={myTeams}
+                      teamInvites={teamInvites}
                       user={user}
+                      onCreateTeam={() => setShowCreateTeamForm(true)}
+                      onAcceptInvite={handleAcceptTeamInvite}
                     />
                   )}
                 </Suspense>
@@ -458,7 +441,27 @@ export default function CommunityPage() {
               </motion.div>
             </TabsContent>
 
-            {/* Cups Tab - Shows full overview */}
+            <TabsContent key="feedback" value="feedback">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.25 }}
+              >
+                <Link to={createPageUrl("Feedback")}>
+                  <Card className="bg-[#121715] border border-[#223029] rounded-[20px] p-12 hover:border-[#2BA84A]/30 transition-all cursor-pointer">
+                    <div className="text-center">
+                      <MessageSquare className="w-16 h-16 text-[#2BA84A] mx-auto mb-4" />
+                      <h3 className="text-2xl font-bold text-[#F4F7F5] mb-2">Feedback & Idéer</h3>
+                      <p className="text-[#B6C2BC] mb-4">Dela dina tankar och hjälp oss förbättra AllPlay</p>
+                      <Badge className="bg-[#2BA84A]/20 text-[#2BA84A]">{feedbackCount} aktiva förslag</Badge>
+                    </div>
+                  </Card>
+                </Link>
+              </motion.div>
+            </TabsContent>
+
+            {/* Cups Tab - NEW - Shows full overview with yellow theme */}
             <TabsContent key="cups" value="cups">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -476,7 +479,7 @@ export default function CommunityPage() {
       </div>
 
       {/* Floating Create Team Button (only on teams tab) */}
-      {activeTab === 'discover-teams' && (
+      {activeTab === 'teams' && (
         <motion.button
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
