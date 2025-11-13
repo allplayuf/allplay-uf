@@ -31,6 +31,7 @@ Deno.serve(async (req) => {
     const sanitizedData = {
       name: cupData.name.trim(),
       description: cupData.description?.trim() || '',
+      logo_url: cupData.logo_url || '',
       location: cupData.location.trim(),
       venue_ids: cupData.venue_ids || [],
       start_date: cupData.start_date,
