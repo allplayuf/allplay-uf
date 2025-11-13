@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -5,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, MessageSquare, UserPlus, Trophy, Plus, Search, Target, TrendingUp } from "lucide-react";
+import { Users, MessageSquare, UserPlus, Trophy, Plus, Search, Target, TrendingUp, Flame } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -343,43 +344,61 @@ export default function CommunityPage() {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Hero Header */}
+        {/* Hero Card - IMPROVED DESIGN MATCHING DASHBOARD */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="mb-6"
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="relative overflow-hidden bg-gradient-to-br from-[#1F5C34] to-[#0A1F11] rounded-[16px] lg:rounded-[20px] p-5 sm:p-6 lg:p-8 shadow-[0_6px_18px_rgba(0,0,0,0.22)]"
         >
-          <Card className="bg-gradient-to-br from-[#2BA84A]/10 to-[#0F2917]/20 border border-[#2BA84A]/30 rounded-[20px] p-6 shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-[#F4F7F5]">Community</h1>
-                <p className="text-sm text-[#B6C2BC] mt-1">Anslut, spela och ha kul tillsammans</p>
+          {/* Overlay circles - MATCHING DASHBOARD STYLE */}
+          <div className="absolute bottom-[-40px] left-[-40px] w-32 h-32 bg-[#0A1F11]/60 rounded-full opacity-60"></div>
+          <div className="absolute top-[-30px] right-[-30px] w-28 h-28 bg-[#1F5C34]/40 rounded-full opacity-60"></div>
+
+          <div className="relative z-10 space-y-5">
+            {/* Header */}
+            <div className="flex items-center gap-3">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-[#FFFFFF]/15 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-[#FFFFFF]/25 flex-shrink-0">
+                {user?.profile_image_url ? (
+                  <img src={user.profile_image_url} alt="Profile" className="w-full h-full object-cover rounded-2xl" loading="lazy" />
+                ) : (
+                  <span className="text-xl sm:text-2xl lg:text-3xl font-semibold text-[#EAF6EE]">
+                    {user?.full_name?.[0] || 'U'}
+                  </span>
+                )}
               </div>
-              <Users className="w-12 h-12 text-[#2BA84A]/40" />
+              <div className="flex-1 min-w-0">
+                <h1 className="text-xl sm:text-2xl lg:text-[28px] lg:leading-[34px] font-semibold text-[#EAF6EE] mb-1">
+                  Community 🌟
+                </h1>
+                <p className="text-[#CFE8D6] text-xs sm:text-sm lg:text-base">Anslut, spela och ha kul tillsammans</p>
+              </div>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="p-4 bg-[#121715]/50 rounded-xl text-center">
-                <p className="text-2xl font-bold text-[#F4F7F5]">{friendsAccepted.length}</p>
-                <p className="text-xs text-[#B6C2BC]">Vänner</p>
+            {/* Stats - MATCHING DASHBOARD STYLE */}
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+              <div className="bg-[#FFFFFF]/10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#FFFFFF]/20 text-center">
+                <div className="text-lg sm:text-xl font-semibold text-[#EAF6EE]">{friendsAccepted.length}</div>
+                <div className="text-[11px] sm:text-[12px] font-normal text-[#CFE8D6]/70 mt-0.5">Vänner</div>
               </div>
-              <div className="p-4 bg-[#121715]/50 rounded-xl text-center">
-                <p className="text-2xl font-bold text-[#F4F7F5]">{myTeams.length}</p>
-                <p className="text-xs text-[#B6C2BC]">Lag</p>
+              <div className="bg-[#FFFFFF]/10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#FFFFFF]/20 text-center">
+                <div className="text-lg sm:text-xl font-semibold text-[#DDD6FE]">{myTeams.length}</div>
+                <div className="text-[11px] sm:text-[12px] font-normal text-[#CFE8D6]/70 mt-0.5">Lag</div>
               </div>
               <div 
-                className="p-4 bg-[#121715]/50 rounded-xl text-center cursor-pointer hover:bg-[#18221E] transition-colors"
+                className="bg-[#FFFFFF]/10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#FFFFFF]/20 text-center cursor-pointer hover:bg-[#FFFFFF]/15 transition-colors"
                 onClick={() => handleStatCardClick('cups')}
               >
-                <p className="text-2xl font-bold text-[#F4F7F5]">{cupsCount}</p>
-                <p className="text-xs text-[#B6C2BC]">Cuper</p>
+                <div className="text-lg sm:text-xl font-semibold text-[#FCD34D] flex items-center justify-center gap-1">
+                  <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-[#FCD34D]" />
+                  {cupsCount}
+                </div>
+                <div className="text-[11px] sm:text-[12px] font-normal text-[#CFE8D6]/70 mt-0.5">Cuper</div>
               </div>
             </div>
-          </Card>
+          </div>
         </motion.div>
 
         {/* Tabs - Dynamic colors based on active tab */}
