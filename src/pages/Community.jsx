@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -30,26 +31,26 @@ const QUERY_KEYS = {
   feedbackCount: ['feedbackCount'],
 };
 
-// Tab color config - matching AllPlay theme
+// Tab color config - matching AllPlay theme with individual colors per tab
 const TAB_COLORS = {
   friends: {
-    active: 'bg-[#0F1513] text-[#2BA84A] ring-1 ring-[#2BA84A]/40',
+    active: 'bg-[#2BA84A]/16 text-[#2BA84A] ring-1 ring-[#2BA84A]/30',
     inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
   },
   teams: {
-    active: 'bg-[#0F1513] text-[#9370DB] ring-1 ring-[#9370DB]/40',
+    active: 'bg-[#9370DB]/16 text-[#DDD6FE] ring-1 ring-[#9370DB]/30',
     inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
   },
   find: {
-    active: 'bg-[#0F1513] text-[#2BA84A] ring-1 ring-[#2BA84A]/40',
+    active: 'bg-[#2BA84A]/16 text-[#2BA84A] ring-1 ring-[#2BA84A]/30',
     inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
   },
   feedback: {
-    active: 'bg-[#0F1513] text-[#4169E1] ring-1 ring-[#4169E1]/40',
+    active: 'bg-[#4169E1]/16 text-[#B0C4DE] ring-1 ring-[#4169E1]/30',
     inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
   },
   cups: {
-    active: 'bg-[#0F1513] text-[#F59E0B] ring-1 ring-[#F59E0B]/40',
+    active: 'bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30',
     inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
   }
 };
@@ -380,7 +381,7 @@ export default function CommunityPage() {
           <TabsList className="grid grid-cols-5 gap-2 bg-transparent border-0 p-0">
             <TabsTrigger 
               value="friends" 
-              className={`gap-2 h-12 rounded-xl transition-all duration-200 ${
+              className={`gap-2 h-12 rounded-xl transition-all duration-200 font-semibold ${
                 activeTab === 'friends' ? TAB_COLORS.friends.active : TAB_COLORS.friends.inactive
               }`}
             >
@@ -389,7 +390,7 @@ export default function CommunityPage() {
             </TabsTrigger>
             <TabsTrigger 
               value="teams" 
-              className={`gap-2 h-12 rounded-xl transition-all duration-200 ${
+              className={`gap-2 h-12 rounded-xl transition-all duration-200 font-semibold ${
                 activeTab === 'teams' ? TAB_COLORS.teams.active : TAB_COLORS.teams.inactive
               }`}
             >
@@ -398,7 +399,7 @@ export default function CommunityPage() {
             </TabsTrigger>
             <TabsTrigger 
               value="find" 
-              className={`gap-2 h-12 rounded-xl transition-all duration-200 ${
+              className={`gap-2 h-12 rounded-xl transition-all duration-200 font-semibold ${
                 activeTab === 'find' ? TAB_COLORS.find.active : TAB_COLORS.find.inactive
               }`}
             >
@@ -407,7 +408,7 @@ export default function CommunityPage() {
             </TabsTrigger>
             <TabsTrigger 
               value="feedback" 
-              className={`gap-2 h-12 rounded-xl transition-all duration-200 ${
+              className={`gap-2 h-12 rounded-xl transition-all duration-200 font-semibold ${
                 activeTab === 'feedback' ? TAB_COLORS.feedback.active : TAB_COLORS.feedback.inactive
               }`}
             >
@@ -416,7 +417,7 @@ export default function CommunityPage() {
             </TabsTrigger>
             <TabsTrigger 
               value="cups" 
-              className={`gap-2 h-12 rounded-xl transition-all duration-200 ${
+              className={`gap-2 h-12 rounded-xl transition-all duration-200 font-semibold ${
                 activeTab === 'cups' ? TAB_COLORS.cups.active : TAB_COLORS.cups.inactive
               }`}
             >
