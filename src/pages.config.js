@@ -10,6 +10,7 @@ import EditProfile from './pages/EditProfile';
 import Feedback from './pages/Feedback';
 import Cups from './pages/Cups';
 import CupDetail from './pages/CupDetail';
+import CreateCup from './pages/CreateCup';
 import Layout from './Layout.jsx';
 
 
@@ -26,6 +27,7 @@ export const PAGES = {
     "Feedback": Feedback,
     "Cups": Cups,
     "CupDetail": CupDetail,
+    "CreateCup": CreateCup,
 }
 
 export const pagesConfig = {
