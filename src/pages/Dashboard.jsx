@@ -22,8 +22,9 @@ import {
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
-import CreateMatchForm from "../components/matches/CreateMatchForm"; // Import the new component
-import { CACHE_STRATEGIES } from "../components/providers/QueryProvider"; // Import the new cache strategies
+import CreateMatchForm from "../components/matches/CreateMatchForm";
+import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
+import UpcomingCupsWidget from "../components/dashboard/UpcomingCupsWidget";
 
 // Query keys
 const QUERY_KEYS = {
@@ -39,7 +40,7 @@ export default function Dashboard() {
   const [friendsInUpcomingMatchesCount, setFriendsInUpcomingMatchesCount] = useState(0);
   const [errorMessage, setErrorMessage] = useState(null);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
-  const [showCreateMatchModal, setShowCreateMatchModal] = useState(false); // New state for modal
+  const [showCreateMatchModal, setShowCreateMatchModal] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch current user with OPTIMIZED caching (AUTH strategy)
@@ -49,7 +50,7 @@ export default function Dashboard() {
       const currentUser = await base44.auth.me();
       return currentUser;
     },
-    ...CACHE_STRATEGIES.AUTH, // Use AUTH cache strategy
+    ...CACHE_STRATEGIES.AUTH,
     retry: false,
   });
 
@@ -59,7 +60,7 @@ export default function Dashboard() {
     queryFn: async () => {
       return await base44.entities.Match.list('-date', 200);
     },
-    ...CACHE_STRATEGIES.SEMI_DYNAMIC, // Use SEMI_DYNAMIC strategy
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
     enabled: !!user,
   });
 
@@ -69,7 +70,7 @@ export default function Dashboard() {
     queryFn: async () => {
       return await base44.entities.Venue.list();
     },
-    ...CACHE_STRATEGIES.STATIC, // Use STATIC strategy
+    ...CACHE_STRATEGIES.STATIC,
     enabled: !!user,
   });
 
@@ -79,7 +80,7 @@ export default function Dashboard() {
     queryFn: async () => {
       return await base44.entities.MatchParticipant.list();
     },
-    ...CACHE_STRATEGIES.REALTIME, // Use REALTIME strategy - needs to be fresh
+    ...CACHE_STRATEGIES.REALTIME,
     enabled: !!user,
   });
 
@@ -727,6 +728,9 @@ export default function Dashboard() {
             transition={{ duration: 0.6, delay: 0.9, ease: "easeOut" }}
             className="space-y-5 sm:space-y-6"
           >
+            {/* Upcoming Cups Widget */}
+            <UpcomingCupsWidget />
+
             {/* Weekly Progress - NOW DYNAMIC */}
             <Card className="bg-[#121715] rounded-[16px] sm:rounded-[20px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029]">
               <CardContent className="p-5 sm:p-6">
