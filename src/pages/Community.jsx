@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -7,11 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Users, MessageSquare, UserPlus, Trophy, Plus, Search, Target, TrendingUp, Flame, Heart, Sparkles, ArrowUpRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import { NoPlayersFound, NoTeamsFound } from "../components/ui/empty-state";
+import { CUPS_QUERY_KEY } from "../components/dashboard/CupsWidget";
 
 const FriendsList = lazy(() => import("../components/community/FriendsList"));
 const FindPlayers = lazy(() => import("../components/community/FindPlayers"));
@@ -27,7 +29,6 @@ const QUERY_KEYS = {
   friendships: ['friendships'],
   teamMembers: (userId) => ['teamMembers', userId],
   teamInvites: (userId) => ['teamInvites', userId],
-  cupsCount: ['cupsCount'],
 };
 
 // Tab color config - matching AllPlay theme with individual colors per tab
@@ -65,10 +66,22 @@ const TAB_COLORS = {
 };
 
 export default function CommunityPage() {
-  const [activeTab, setActiveTab] = useState('friends');
+  const locationHook = useLocation();
+  const urlParams = new URLSearchParams(locationHook.search);
+  const initialTab = urlParams.get('tab') || 'friends';
+  
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [showCreateTeamForm, setShowCreateTeamForm] = useState(false);
   const { confirm, alert, DialogContainer } = useCustomDialog();
   const queryClient = useQueryClient();
+
+  // Update tab from URL parameter
+  useEffect(() => {
+    const tab = urlParams.get('tab');
+    if (tab && tab !== activeTab) {
+      setActiveTab(tab);
+    }
+  }, [locationHook.search, activeTab, urlParams]);
 
   // Fetch current user with aggressive caching
   const { data: user, isLoading: userLoading, error: userError } = useQuery({
@@ -170,16 +183,19 @@ export default function CommunityPage() {
     enabled: !!user,
   });
 
-  // Fetch cups count
-  const { data: cupsCount = 0 } = useQuery({
-    queryKey: QUERY_KEYS.cupsCount,
+  // Fetch cups count using shared query key
+  const { data: cupsData = [] } = useQuery({
+    queryKey: CUPS_QUERY_KEY,
     queryFn: async () => {
-      const allCups = await base44.entities.Cup.list();
-      return allCups.length;
+      const cups = await base44.entities.Cup.list('-created_date');
+      return cups.filter(c => c.is_public !== false);
     },
     staleTime: 60 * 1000,
+    cacheTime: 5 * 60 * 1000,
     enabled: !!user,
   });
+
+  const cupsCount = cupsData.length;
 
   // Process friendships data
   const friendsAccepted = (friendships || [])

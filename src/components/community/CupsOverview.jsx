@@ -14,6 +14,7 @@ import {
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { CUPS_QUERY_KEY } from "../dashboard/CupsWidget";
 
 // Golden/Yellow accent theme for cups - matching elite level
 const STATUS_CONFIG = {
@@ -55,18 +56,16 @@ export default function CupsOverview({ user }) {
   const [formatFilter, setFormatFilter] = useState('all');
   const [cityFilter, setCityFilter] = useState('all');
 
-  // Fetch cups
-  const { data: cupsData, isLoading } = useQuery({
-    queryKey: ['cups', statusFilter],
+  // Use shared query key for platform-wide sync
+  const { data: allCups = [], isLoading } = useQuery({
+    queryKey: CUPS_QUERY_KEY,
     queryFn: async () => {
-      const queryParams = statusFilter !== 'all' ? `?status=${statusFilter}` : '';
-      const response = await base44.functions.invoke('cups/getCups', queryParams);
-      return response.data;
+      const cups = await base44.entities.Cup.list('-created_date');
+      return cups.filter(c => c.is_public !== false);
     },
     staleTime: 60 * 1000,
+    cacheTime: 5 * 60 * 1000,
   });
-
-  const allCups = cupsData?.cups || [];
 
   // Categorize cups
   const upcomingCups = allCups.filter(c => 
@@ -234,10 +233,6 @@ export default function CupsOverview({ user }) {
                 <p className="text-xs text-[#B6C2BC]">Live turneringar</p>
               </div>
             </div>
-            <Link to={createPageUrl("Cups")} className="text-sm text-[#F59E0B] hover:text-[#D97706] flex items-center gap-1 font-semibold">
-              Se alla
-              <ArrowRight className="w-4 h-4" />
-            </Link>
           </div>
           
           <div className="grid sm:grid-cols-2 gap-4">
@@ -261,10 +256,6 @@ export default function CupsOverview({ user }) {
                 <p className="text-xs text-[#B6C2BC]">Anmäl dig nu</p>
               </div>
             </div>
-            <Link to={createPageUrl("Cups")} className="text-sm text-[#F59E0B] hover:text-[#D97706] flex items-center gap-1 font-semibold">
-              Se alla
-              <ArrowRight className="w-4 h-4" />
-            </Link>
           </div>
           
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -16,6 +16,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { PageLoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { useCustomDialog } from "../components/ui/custom-dialog";
+import { CUPS_QUERY_KEY } from "../components/dashboard/CupsWidget";
 
 const CupSignupModule = lazy(() => import("../components/cups/CupSignupModule"));
 const CupGroupStage = lazy(() => import("../components/cups/CupGroupStage"));
@@ -48,7 +49,7 @@ export default function CupDetailPage() {
     staleTime: 10 * 60 * 1000,
   });
 
-  // Fetch cup details
+  // Fetch cup details with shared cache
   const { data: cupData, isLoading } = useQuery({
     queryKey: ['cupDetails', cupId],
     queryFn: async () => {
@@ -67,6 +68,7 @@ export default function CupDetailPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cupDetails', cupId] });
+      queryClient.invalidateQueries({ queryKey: CUPS_QUERY_KEY });
     }
   });
 
@@ -102,7 +104,7 @@ export default function CupDetailPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
         {/* Back Button */}
-        <Link to={createPageUrl("Community")}>
+        <Link to={createPageUrl("Community") + "?tab=cups"}>
           <Button variant="ghost" className="text-[#B6C2BC] hover:text-[#F4F7F5] gap-2">
             <ArrowLeft className="w-4 h-4" />
             Tillbaka till Community

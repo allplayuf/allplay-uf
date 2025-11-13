@@ -2,10 +2,13 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent } from "@/components/ui/card";
-import { Trophy, MapPin, Calendar, Users, Clock, ArrowRight, Sparkles, TrendingUp } from 'lucide-react';
+import { Trophy, MapPin, Calendar, Users, ArrowRight, Sparkles, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { motion } from 'framer-motion';
+
+// Shared query key for cups across platform
+export const CUPS_QUERY_KEY = ['cups-list'];
 
 const STATUS_CONFIG = {
   'registration_open': { 
@@ -32,8 +35,9 @@ const STATUS_CONFIG = {
 };
 
 export default function CupsWidget() {
+  // Use shared query key for platform-wide sync
   const { data: cups = [], isLoading } = useQuery({
-    queryKey: ['cups-widget'],
+    queryKey: CUPS_QUERY_KEY,
     queryFn: async () => {
       const allCups = await base44.entities.Cup.list('-created_date');
       const today = new Date().toISOString().split('T')[0];
@@ -49,7 +53,7 @@ export default function CupsWidget() {
         .slice(0, 3);
     },
     staleTime: 60 * 1000,
-    enabled: true,
+    cacheTime: 5 * 60 * 1000,
   });
 
   if (isLoading) {
