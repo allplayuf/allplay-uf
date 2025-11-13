@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Clock, Trophy, CheckCircle } from "lucide-react";
+import { Calendar, MapPin, Clock, Trophy } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 
 export default function CupMatches({ cup, matches, canManage }) {
-  const [filter, setFilter] = useState('all'); // all, upcoming, completed
+  const [filter, setFilter] = useState('all');
 
   const filteredMatches = matches.filter(match => {
     if (filter === 'upcoming') return !match.team_a_score && match.team_a_score !== 0;
@@ -19,74 +19,72 @@ export default function CupMatches({ cup, matches, canManage }) {
   const completedCount = matches.filter(m => m.team_a_score !== null).length;
 
   return (
-    <div className="space-y-6">
-      
-      {/* Header with Clean Tab Bar */}
-      <Card className="bg-[#1F2937] border-[#374151] rounded-2xl">
-        <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <h2 className="text-xl font-bold text-[#FFFFFF] flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-[#FF7A3D]" />
-              Matcher ({filteredMatches.length})
-            </h2>
+    <Card className="bg-[#121715] border-[#223029] rounded-2xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
+      <CardContent className="p-6">
+        
+        {/* Header with Filter Tabs - PERFECTLY ALIGNED */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <h2 className="text-xl font-bold text-[#F4F7F5] flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-[#F59E0B]" />
+            Matcher ({filteredMatches.length})
+          </h2>
 
-            {/* Filter Tabs - ALIGNED & CLEAN */}
-            <div className="flex items-center gap-2 bg-[#0E0F10] p-1 rounded-xl">
-              <button
-                onClick={() => setFilter('all')}
-                className={`h-9 px-4 rounded-lg text-sm font-semibold transition-all ${
-                  filter === 'all'
-                    ? 'bg-[#FF7A3D] text-[#FFFFFF] shadow-lg'
-                    : 'text-[#9CA3AF] hover:text-[#FFFFFF]'
-                }`}
-              >
-                Alla
-              </button>
-              <button
-                onClick={() => setFilter('upcoming')}
-                className={`h-9 px-4 rounded-lg text-sm font-semibold transition-all ${
-                  filter === 'upcoming'
-                    ? 'bg-[#FF7A3D] text-[#FFFFFF] shadow-lg'
-                    : 'text-[#9CA3AF] hover:text-[#FFFFFF]'
-                }`}
-              >
-                Kommande ({upcomingCount})
-              </button>
-              <button
-                onClick={() => setFilter('completed')}
-                className={`h-9 px-4 rounded-lg text-sm font-semibold transition-all ${
-                  filter === 'completed'
-                    ? 'bg-[#FF7A3D] text-[#FFFFFF] shadow-lg'
-                    : 'text-[#9CA3AF] hover:text-[#FFFFFF]'
-                }`}
-              >
-                Spelade ({completedCount})
-              </button>
-            </div>
+          {/* Filter Tabs */}
+          <div className="flex items-center gap-2 bg-[#0F1513] p-1 rounded-xl border border-[#223029]">
+            <button
+              onClick={() => setFilter('all')}
+              className={`h-9 px-4 rounded-lg text-sm font-semibold transition-all ${
+                filter === 'all'
+                  ? 'bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30'
+                  : 'text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
+              }`}
+            >
+              Alla
+            </button>
+            <button
+              onClick={() => setFilter('upcoming')}
+              className={`h-9 px-4 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
+                filter === 'upcoming'
+                  ? 'bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30'
+                  : 'text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
+              }`}
+            >
+              Kommande <span className="hidden sm:inline">({upcomingCount})</span>
+            </button>
+            <button
+              onClick={() => setFilter('completed')}
+              className={`h-9 px-4 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
+                filter === 'completed'
+                  ? 'bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30'
+                  : 'text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
+              }`}
+            >
+              Spelade <span className="hidden sm:inline">({completedCount})</span>
+            </button>
           </div>
+        </div>
 
-          {/* Matches List */}
-          {filteredMatches.length === 0 ? (
-            <div className="text-center py-12">
-              <Trophy className="w-16 h-16 text-[#4B5563] mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-[#FFFFFF] mb-2">Inga matcher än</h3>
-              <p className="text-[#9CA3AF]">Matcher kommer att skapas när schemat genereras.</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {filteredMatches.map((match, index) => (
-                <MatchCard 
-                  key={match.id} 
-                  match={match} 
-                  index={index}
-                  canManage={canManage}
-                />
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+        {/* Matches List */}
+        {filteredMatches.length === 0 ? (
+          <div className="text-center py-12">
+            <Trophy className="w-16 h-16 text-[#7B8A83] mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-[#F4F7F5] mb-2">Inga matcher än</h3>
+            <p className="text-[#B6C2BC]">Matcher kommer att skapas när schemat genereras.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filteredMatches.map((match, index) => (
+              <MatchCard 
+                key={match.id} 
+                match={match} 
+                index={index}
+                canManage={canManage}
+              />
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -110,12 +108,12 @@ function MatchCard({ match, index, canManage }) {
       transition={{ duration: 0.2, delay: index * 0.03 }}
     >
       <Link to={match.match_id ? `${createPageUrl("MatchDetail")}?id=${match.match_id}` : '#'}>
-        <div className="bg-[#0E0F10] border border-[#374151] hover:border-[#FF7A3D]/50 rounded-xl transition-all group p-4">
+        <div className="bg-[#18221E] border border-[#223029] hover:border-[#F59E0B]/30 rounded-xl transition-all group p-4">
           
           {/* Header Row */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2 flex-wrap">
-              <Badge className="bg-[#FF7A3D]/20 text-[#FF7A3D] border-0 text-xs font-semibold h-6 px-3">
+              <Badge className="bg-[#F59E0B]/20 text-[#FCD34D] border-0 text-xs font-semibold h-6 px-3">
                 {stageLabels[match.stage] || match.stage}
               </Badge>
               {isLive && (
@@ -129,7 +127,7 @@ function MatchCard({ match, index, canManage }) {
             {hasResult && (
               <div className="flex items-center gap-2 text-xs">
                 {match.extra_time && (
-                  <span className="text-[#FFA500] font-semibold">EF</span>
+                  <span className="text-[#FCD34D] font-semibold">EF</span>
                 )}
                 {match.penalties && (
                   <span className="text-[#EF4444] font-semibold">STR</span>
@@ -140,29 +138,29 @@ function MatchCard({ match, index, canManage }) {
 
           {/* Teams */}
           <div className="space-y-2 mb-4">
-            <div className="flex items-center justify-between p-3 bg-[#1F2937] rounded-lg">
-              <span className="text-sm font-semibold text-[#FFFFFF] truncate">
+            <div className="flex items-center justify-between p-3 bg-[#0F1513] rounded-lg border border-[#223029]">
+              <span className="text-sm font-semibold text-[#F4F7F5] truncate">
                 {match.team_a_name || 'Lag A'}
               </span>
               {hasResult && (
-                <span className="text-lg font-bold text-[#FFFFFF] ml-2">{match.team_a_score}</span>
+                <span className="text-lg font-bold text-[#F4F7F5] ml-2">{match.team_a_score}</span>
               )}
             </div>
 
-            <div className="text-center text-xs text-[#6B7280] font-semibold">VS</div>
+            <div className="text-center text-xs text-[#7B8A83] font-semibold">VS</div>
 
-            <div className="flex items-center justify-between p-3 bg-[#1F2937] rounded-lg">
-              <span className="text-sm font-semibold text-[#FFFFFF] truncate">
+            <div className="flex items-center justify-between p-3 bg-[#0F1513] rounded-lg border border-[#223029]">
+              <span className="text-sm font-semibold text-[#F4F7F5] truncate">
                 {match.team_b_name || 'Lag B'}
               </span>
               {hasResult && (
-                <span className="text-lg font-bold text-[#FFFFFF] ml-2">{match.team_b_score}</span>
+                <span className="text-lg font-bold text-[#F4F7F5] ml-2">{match.team_b_score}</span>
               )}
             </div>
           </div>
 
           {/* Match Info */}
-          <div className="flex flex-wrap items-center gap-3 text-xs text-[#9CA3AF]">
+          <div className="flex flex-wrap items-center gap-3 text-xs text-[#B6C2BC]">
             {match.date && (
               <div className="flex items-center gap-1">
                 <Calendar className="w-3.5 h-3.5" />

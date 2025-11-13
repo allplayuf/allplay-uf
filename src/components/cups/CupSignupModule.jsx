@@ -79,7 +79,6 @@ export default function CupSignupModule({ cup, user, participants, userParticipa
 
   const isRegistrationOpen = cup.status === 'registration_open' || cup.status === 'upcoming';
   const isFull = cup.current_participants >= cup.max_participants;
-  const confirmedParticipants = participants.filter(p => p.status === 'confirmed');
 
   return (
     <>
@@ -101,16 +100,16 @@ export default function CupSignupModule({ cup, user, participants, userParticipa
       <div className="space-y-6">
         
         {/* Signup Form Card */}
-        <Card className="bg-[#1F2937] border-[#374151] rounded-2xl">
+        <Card className="bg-[#121715] border-[#223029] rounded-2xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
           <CardContent className="p-6 space-y-6">
             
             {userParticipant ? (
-              <div className="p-5 bg-[#10B981]/10 border border-[#10B981]/30 rounded-xl">
+              <div className="p-5 bg-[#2BA84A]/10 border border-[#2BA84A]/30 rounded-xl">
                 <div className="flex items-center gap-3">
-                  <CheckCircle className="w-6 h-6 text-[#10B981] flex-shrink-0" />
+                  <CheckCircle className="w-6 h-6 text-[#2BA84A] flex-shrink-0" />
                   <div>
-                    <h3 className="text-lg font-bold text-[#FFFFFF] mb-1">Du är anmäld!</h3>
-                    <p className="text-sm text-[#9CA3AF]">
+                    <h3 className="text-lg font-bold text-[#F4F7F5] mb-1">Du är anmäld!</h3>
+                    <p className="text-sm text-[#B6C2BC]">
                       Status: {userParticipant.status === 'confirmed' ? '✓ Bekräftad' : 
                               userParticipant.status === 'pending' ? '⏳ Väntar på godkännande' : 
                               '❌ Avböjd'}
@@ -121,26 +120,26 @@ export default function CupSignupModule({ cup, user, participants, userParticipa
             ) : (
               <>
                 {!isRegistrationOpen && (
-                  <div className="p-6 bg-[#374151] rounded-xl text-center">
-                    <XCircle className="w-12 h-12 text-[#9CA3AF] mx-auto mb-3" />
-                    <h3 className="text-lg font-bold text-[#FFFFFF] mb-1">Anmälan stängd</h3>
-                    <p className="text-sm text-[#9CA3AF]">Anmälan till denna turnering är inte längre öppen.</p>
+                  <div className="p-6 bg-[#18221E] border border-[#223029] rounded-xl text-center">
+                    <XCircle className="w-12 h-12 text-[#7B8A83] mx-auto mb-3" />
+                    <h3 className="text-lg font-bold text-[#F4F7F5] mb-1">Anmälan stängd</h3>
+                    <p className="text-sm text-[#B6C2BC]">Anmälan till denna turnering är inte längre öppen.</p>
                   </div>
                 )}
 
                 {isRegistrationOpen && isFull && (
                   <div className="p-6 bg-[#F59E0B]/10 border border-[#F59E0B]/30 rounded-xl text-center">
-                    <Clock className="w-12 h-12 text-[#F59E0B] mx-auto mb-3" />
-                    <h3 className="text-lg font-bold text-[#FFFFFF] mb-1">Fullt</h3>
-                    <p className="text-sm text-[#9CA3AF]">Turneringen har nått max antal deltagare.</p>
+                    <Clock className="w-12 h-12 text-[#FCD34D] mx-auto mb-3" />
+                    <h3 className="text-lg font-bold text-[#F4F7F5] mb-1">Fullt</h3>
+                    <p className="text-sm text-[#B6C2BC]">Turneringen har nått max antal deltagare.</p>
                   </div>
                 )}
 
                 {isRegistrationOpen && !isFull && (
                   <>
                     <div className="text-center mb-6">
-                      <h3 className="text-xl font-bold text-[#FFFFFF] mb-2">Anmäl dig nu!</h3>
-                      <p className="text-sm text-[#9CA3AF]">
+                      <h3 className="text-xl font-bold text-[#F4F7F5] mb-2">Anmäl dig nu!</h3>
+                      <p className="text-sm text-[#B6C2BC]">
                         {cup.signup_type === 'team' ? 'Välj ett av dina lag eller skapa ett nytt cup-lag' : 'Anmäl dig som spelare'}
                       </p>
                     </div>
@@ -149,17 +148,17 @@ export default function CupSignupModule({ cup, user, participants, userParticipa
                     {cup.signup_type === 'team' && (
                       <div className="space-y-4">
                         <div className="space-y-2">
-                          <label className="text-sm font-semibold text-[#FFFFFF] flex items-center gap-2">
-                            <Users className="w-4 h-4 text-[#FF7A3D]" />
+                          <label className="text-sm font-semibold text-[#F4F7F5] flex items-center gap-2">
+                            <Users className="w-4 h-4 text-[#F59E0B]" />
                             Välj lag *
                           </label>
                           <Select value={selectedTeam} onValueChange={setSelectedTeam}>
-                            <SelectTrigger className="h-11 bg-[#0E0F10] border-[#374151] text-[#FFFFFF] focus:border-[#FF7A3D] focus:ring-1 focus:ring-[#FF7A3D]/30">
+                            <SelectTrigger className="h-11 bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30">
                               <SelectValue placeholder="Välj ett lag" />
                             </SelectTrigger>
-                            <SelectContent className="bg-[#1F2937] border-[#374151]">
+                            <SelectContent className="bg-[#121715] border-[#223029]">
                               {userTeams.map(team => (
-                                <SelectItem key={team.id} value={team.id} className="text-[#FFFFFF]">
+                                <SelectItem key={team.id} value={team.id} className="text-[#F4F7F5]">
                                   {team.name}
                                 </SelectItem>
                               ))}
@@ -172,7 +171,7 @@ export default function CupSignupModule({ cup, user, participants, userParticipa
                           type="button"
                           variant="outline"
                           onClick={() => setShowCreateCupTeam(true)}
-                          className="w-full h-12 border-[#FF7A3D]/50 text-[#FF7A3D] hover:bg-[#FF7A3D]/10 gap-2 font-semibold"
+                          className="w-full h-12 border-[#F59E0B]/50 text-[#FCD34D] hover:bg-[#F59E0B]/10 gap-2 font-semibold"
                         >
                           <Plus className="w-4 h-4" />
                           <Sparkles className="w-4 h-4" />
@@ -181,7 +180,7 @@ export default function CupSignupModule({ cup, user, participants, userParticipa
 
                         {userTeams.length === 0 && (
                           <div className="p-4 bg-[#4169E1]/10 border border-[#4169E1]/30 rounded-xl">
-                            <p className="text-xs text-[#9CA3AF] text-center leading-relaxed">
+                            <p className="text-xs text-[#B6C2BC] text-center leading-relaxed">
                               💡 Inget lag? Skapa ett cup-lag ovan eller gå till{' '}
                               <Link to={createPageUrl("Community") + "?tab=teams"} className="text-[#4169E1] hover:underline font-semibold">
                                 Community
@@ -196,15 +195,15 @@ export default function CupSignupModule({ cup, user, participants, userParticipa
                     {/* Solo Signup */}
                     {cup.signup_type === 'solo' && (
                       <div className="space-y-2">
-                        <label className="text-sm font-semibold text-[#FFFFFF] flex items-center gap-2">
-                          <Target className="w-4 h-4 text-[#FF7A3D]" />
+                        <label className="text-sm font-semibold text-[#F4F7F5] flex items-center gap-2">
+                          <Target className="w-4 h-4 text-[#F59E0B]" />
                           Föredragen position
                         </label>
                         <Select value={preferredPosition} onValueChange={setPreferredPosition}>
-                          <SelectTrigger className="h-11 bg-[#0E0F10] border-[#374151] text-[#FFFFFF]">
+                          <SelectTrigger className="h-11 bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent className="bg-[#1F2937] border-[#374151]">
+                          <SelectContent className="bg-[#121715] border-[#223029]">
                             <SelectItem value="goalkeeper">Målvakt</SelectItem>
                             <SelectItem value="defender">Försvarare</SelectItem>
                             <SelectItem value="midfielder">Mittfältare</SelectItem>
@@ -217,12 +216,12 @@ export default function CupSignupModule({ cup, user, participants, userParticipa
 
                     {/* Notes */}
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold text-[#FFFFFF]">Anteckningar (valfritt)</label>
+                      <label className="text-sm font-semibold text-[#F4F7F5]">Anteckningar (valfritt)</label>
                       <Textarea
                         placeholder="Eventuella anteckningar till organisatören..."
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
-                        className="h-20 bg-[#0E0F10] border-[#374151] text-[#FFFFFF] focus:border-[#FF7A3D] focus:ring-1 focus:ring-[#FF7A3D]/30"
+                        className="h-20 bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30"
                       />
                     </div>
 
@@ -230,15 +229,15 @@ export default function CupSignupModule({ cup, user, participants, userParticipa
                     <Button
                       onClick={handleSignup}
                       disabled={signupMutation.isPending || (cup.signup_type === 'team' && !selectedTeam)}
-                      className="w-full h-12 bg-[#FF7A3D] hover:bg-[#F97316] text-[#FFFFFF] gap-2 font-semibold shadow-lg"
+                      className="w-full h-12 bg-[#F59E0B] hover:bg-[#D97706] text-[#FFFFFF] gap-2 font-semibold shadow-lg"
                     >
                       <UserPlus className="w-5 h-5" />
                       {signupMutation.isPending ? 'Anmäler...' : 'Anmäl'}
                     </Button>
 
                     {cup.entry_fee > 0 && (
-                      <p className="text-xs text-center text-[#9CA3AF]">
-                        Anmälningsavgift: <span className="font-semibold text-[#FFFFFF]">{cup.entry_fee} kr</span> (betalas senare)
+                      <p className="text-xs text-center text-[#B6C2BC]">
+                        Anmälningsavgift: <span className="font-semibold text-[#F4F7F5]">{cup.entry_fee} kr</span> (betalas senare)
                       </p>
                     )}
                   </>
@@ -249,26 +248,26 @@ export default function CupSignupModule({ cup, user, participants, userParticipa
         </Card>
 
         {/* Participants List */}
-        <Card className="bg-[#1F2937] border-[#374151] rounded-2xl">
+        <Card className="bg-[#121715] border-[#223029] rounded-2xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h4 className="text-lg font-bold text-[#FFFFFF]">
+              <h4 className="text-lg font-bold text-[#F4F7F5]">
                 Anmälda {cup.signup_type === 'team' ? 'Lag' : 'Spelare'}
               </h4>
-              <Badge className="bg-[#FF7A3D]/20 text-[#FF7A3D] border-0 font-semibold h-7 px-3">
+              <Badge className="bg-[#F59E0B]/20 text-[#FCD34D] border-0 font-semibold h-7 px-3">
                 {participants.length}/{cup.max_participants}
               </Badge>
             </div>
             
             {participants.length === 0 ? (
               <div className="text-center py-12">
-                <Users className="w-12 h-12 text-[#4B5563] mx-auto mb-3" />
-                <p className="text-sm text-[#9CA3AF]">Inga anmälningar än</p>
+                <Users className="w-12 h-12 text-[#7B8A83] mx-auto mb-3" />
+                <p className="text-sm text-[#B6C2BC]">Inga anmälningar än</p>
               </div>
             ) : (
               <div className="space-y-2 max-h-[500px] overflow-y-auto">
                 {participants.map((p, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-[#0E0F10] rounded-xl border border-[#374151]">
+                  <div key={index} className="flex items-center justify-between p-4 bg-[#18221E] rounded-xl border border-[#223029]">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       {cup.signup_type === 'team' && p.team ? (
                         <>
@@ -277,14 +276,14 @@ export default function CupSignupModule({ cup, user, participants, userParticipa
                               <img src={p.team.logo_url} alt={p.team.name} className="w-full h-full object-cover" />
                             </div>
                           ) : (
-                            <div className="w-10 h-10 bg-[#FF7A3D]/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                              <Users className="w-5 h-5 text-[#FF7A3D]" />
+                            <div className="w-10 h-10 bg-[#F59E0B]/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <Users className="w-5 h-5 text-[#F59E0B]" />
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
                             <Link to={`${createPageUrl("TeamOverview")}?id=${p.team.id}`} className="hover:underline">
-                              <p className="text-sm font-semibold text-[#FFFFFF] truncate">{p.team.name}</p>
-                              <p className="text-xs text-[#9CA3AF] flex items-center gap-1">
+                              <p className="text-sm font-semibold text-[#F4F7F5] truncate">{p.team.name}</p>
+                              <p className="text-xs text-[#B6C2BC] flex items-center gap-1">
                                 <MapPin className="w-3 h-3" />
                                 {p.team.city}
                               </p>
@@ -293,15 +292,15 @@ export default function CupSignupModule({ cup, user, participants, userParticipa
                         </>
                       ) : (
                         <>
-                          <div className="w-10 h-10 bg-gradient-to-br from-[#FF7A3D] to-[#F97316] rounded-full flex items-center justify-center flex-shrink-0">
+                          <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-full flex items-center justify-center flex-shrink-0">
                             <span className="text-white text-sm font-semibold">
                               {p.user?.full_name?.[0] || 'U'}
                             </span>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-[#FFFFFF] truncate">{p.user?.full_name || 'Spelare'}</p>
+                            <p className="text-sm font-semibold text-[#F4F7F5] truncate">{p.user?.full_name || 'Spelare'}</p>
                             {p.preferred_position && p.preferred_position !== 'any' && (
-                              <p className="text-xs text-[#9CA3AF] capitalize flex items-center gap-1">
+                              <p className="text-xs text-[#B6C2BC] capitalize flex items-center gap-1">
                                 <Target className="w-3 h-3" />
                                 {p.preferred_position === 'goalkeeper' ? 'Målvakt' :
                                  p.preferred_position === 'defender' ? 'Försvarare' :
@@ -315,10 +314,10 @@ export default function CupSignupModule({ cup, user, participants, userParticipa
                     </div>
                     <Badge className={`text-xs flex-shrink-0 h-6 px-2 border-0 ${
                       p.status === 'confirmed' 
-                        ? 'bg-[#10B981]/20 text-[#10B981]'
+                        ? 'bg-[#2BA84A]/20 text-[#2BA84A]'
                         : p.status === 'pending'
-                        ? 'bg-[#F59E0B]/20 text-[#F59E0B]'
-                        : 'bg-[#EF4444]/20 text-[#EF4444]'
+                        ? 'bg-[#F59E0B]/20 text-[#FCD34D]'
+                        : 'bg-[#DC2626]/20 text-[#FCA5A5]'
                     }`}>
                       {p.status === 'confirmed' ? '✓' : 
                        p.status === 'pending' ? '⏳' : '❌'}
