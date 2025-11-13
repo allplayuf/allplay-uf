@@ -24,7 +24,7 @@ import { createPageUrl } from "@/utils";
 import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
 import CreateMatchForm from "../components/matches/CreateMatchForm";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
-import UpcomingCupsWidget from "../components/dashboard/UpcomingCupsWidget";
+import CupsWidget from "../components/dashboard/CupsWidget";
 
 // Query keys
 const QUERY_KEYS = {
@@ -728,8 +728,8 @@ export default function Dashboard() {
             transition={{ duration: 0.6, delay: 0.9, ease: "easeOut" }}
             className="space-y-5 sm:space-y-6"
           >
-            {/* Upcoming Cups Widget */}
-            <UpcomingCupsWidget />
+            {/* NEW: Cups Widget */}
+            <CupsWidget />
 
             {/* Weekly Progress - NOW DYNAMIC */}
             <Card className="bg-[#121715] rounded-[16px] sm:rounded-[20px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029]">
