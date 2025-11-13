@@ -1,0 +1,112 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { canManageCupSignups } from '../utils/cupPermissions.js';
+
+Deno.serve(async (req) => {
+  try {
+    const base44 = createClientFromRequest(req);
+    
+    // Verify user is authenticated
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { participant_id, action, group_id } = await req.json();
+
+    if (!participant_id || !action) {
+      return Response.json({ 
+        error: 'Participant ID and action are required' 
+      }, { status: 400 });
+    }
+
+    // Get participant
+    const participant = await base44.entities.CupParticipant.get(participant_id);
+    
+    // Check permissions
+    const hasPermission = await canManageCupSignups(base44, user, participant.cup_id);
+    if (!hasPermission) {
+      return Response.json({ 
+        error: 'Forbidden',
+        details: 'You do not have permission to manage signups' 
+      }, { status: 403 });
+    }
+
+    // Perform action
+    switch (action) {
+      case 'approve':
+        await base44.entities.CupParticipant.update(participant_id, { 
+          status: 'confirmed' 
+        });
+        
+        // Update cup participant count
+        const cup = await base44.entities.Cup.get(participant.cup_id);
+        const confirmedCount = await base44.entities.CupParticipant.filter({
+          cup_id: participant.cup_id,
+          status: 'confirmed'
+        });
+        
+        await base44.entities.Cup.update(participant.cup_id, {
+          current_participants: confirmedCount.length
+        });
+        
+        // Send notification
+        if (cup.notifications_enabled) {
+          await base44.entities.CupNotification.create({
+            cup_id: participant.cup_id,
+            recipient_id: participant.user_id || participant.team_id,
+            recipient_type: participant.signup_type === 'solo' ? 'user' : 'team',
+            type: 'announcement',
+            title: 'Anmälan godkänd!',
+            message: `Din anmälan till ${cup.name} har godkänts!`
+          });
+        }
+        break;
+
+      case 'reject':
+        await base44.entities.CupParticipant.update(participant_id, { 
+          status: 'rejected' 
+        });
+        break;
+
+      case 'assign_group':
+        if (!group_id) {
+          return Response.json({ 
+            error: 'Group ID required for assign_group action' 
+          }, { status: 400 });
+        }
+        
+        await base44.entities.CupParticipant.update(participant_id, { 
+          group_id 
+        });
+        
+        // Update group's team_ids
+        const group = await base44.entities.CupGroup.get(group_id);
+        const updatedTeamIds = [...(group.team_ids || [])];
+        
+        if (participant.team_id && !updatedTeamIds.includes(participant.team_id)) {
+          updatedTeamIds.push(participant.team_id);
+          await base44.entities.CupGroup.update(group_id, {
+            team_ids: updatedTeamIds
+          });
+        }
+        break;
+
+      default:
+        return Response.json({ 
+          error: 'Invalid action',
+          valid_actions: ['approve', 'reject', 'assign_group']
+        }, { status: 400 });
+    }
+
+    return Response.json({ 
+      success: true,
+      message: `Action ${action} completed successfully`
+    });
+
+  } catch (error) {
+    console.error('Error managing signup:', error);
+    return Response.json({ 
+      error: error.message || 'Internal server error' 
+    }, { status: 500 });
+  }
+});
