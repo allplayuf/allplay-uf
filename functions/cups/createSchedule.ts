@@ -31,6 +31,14 @@ Deno.serve(async (req) => {
       }, { status: 403 });
     }
 
+    // CHECK: Venue måste finnas
+    if (!cup.venue_ids || cup.venue_ids.length === 0) {
+      return Response.json({ 
+        error: 'No venue selected',
+        details: 'Du måste välja en plan för turneringen först. Gå till Redigera och välj en plan.'
+      }, { status: 400 });
+    }
+
     // Get groups and confirmed participants using service role
     const groups = await base44.asServiceRole.entities.CupGroup.filter({ cup_id });
     const participants = await base44.asServiceRole.entities.CupParticipant.filter({
@@ -111,10 +119,10 @@ Deno.serve(async (req) => {
         const teamAName = teamAParticipant?.team?.name || teamAParticipant?.user?.full_name || 'Lag A';
         const teamBName = teamBParticipant?.team?.name || teamBParticipant?.user?.full_name || 'Lag B';
 
-        // Create regular match first using service role
+        // Create regular match first using service role - FIX: Använd första venue_id som STRING
         const match = await base44.asServiceRole.entities.Match.create({
           title: `${cup.name} - ${groups[i].name}`,
-          venue_id: cup.venue_ids?.[0] || null,
+          venue_id: cup.venue_ids[0], // FIX: Alltid en string nu
           organizer_id: cup.organizer_id,
           date: matchDate.toISOString().split('T')[0],
           time: cup.start_time || '10:00',

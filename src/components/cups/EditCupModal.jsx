@@ -1,12 +1,13 @@
 import React, { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { X, Trophy, Save, Upload, ImageIcon } from "lucide-react";
+import { X, Trophy, Save, Upload, ImageIcon, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
 import { useCustomDialog } from "../ui/custom-dialog";
 import { CUPS_QUERY_KEY } from "../dashboard/CupsWidget";
@@ -19,6 +20,7 @@ export default function EditCupModal({ cup, onClose }) {
     name: cup.name || '',
     description: cup.description || '',
     location: cup.location || '',
+    venue_ids: cup.venue_ids || [],
     logo_url: cup.logo_url || '',
     start_date: cup.start_date || '',
     end_date: cup.end_date || '',
@@ -32,6 +34,13 @@ export default function EditCupModal({ cup, onClose }) {
 
   const [logoPreview, setLogoPreview] = useState(cup.logo_url || '');
   const [uploadingLogo, setUploadingLogo] = useState(false);
+
+  // Fetch venues
+  const { data: venues = [] } = useQuery({
+    queryKey: ['venues'],
+    queryFn: () => base44.entities.Venue.list(),
+    staleTime: 5 * 60 * 1000,
+  });
 
   const handleLogoChange = async (e) => {
     const file = e.target.files?.[0];
@@ -89,6 +98,11 @@ export default function EditCupModal({ cup, onClose }) {
     
     if (!formData.name || !formData.location || !formData.start_date || !formData.start_time) {
       alert('Saknade fält', 'Vänligen fyll i alla obligatoriska fält.', { type: 'alert' });
+      return;
+    }
+
+    if (formData.venue_ids.length === 0) {
+      alert('Ingen plan vald', 'Du måste välja minst en plan för turneringen.', { type: 'alert' });
       return;
     }
 
@@ -197,6 +211,30 @@ export default function EditCupModal({ cup, onClose }) {
                 className="h-11 bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30"
                 required
               />
+            </div>
+
+            {/* NYTT: Venue Selection */}
+            <div className="space-y-2">
+              <Label className="text-[#F4F7F5] font-semibold flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-[#F59E0B]" />
+                Plan för matcher *
+              </Label>
+              <Select 
+                value={formData.venue_ids[0] || ''} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, venue_ids: [value] }))}
+              >
+                <SelectTrigger className="h-11 bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30">
+                  <SelectValue placeholder="Välj en plan..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {venues.map((venue) => (
+                    <SelectItem key={venue.id} value={venue.id}>
+                      {venue.name} - {venue.city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-[#B6C2BC]">Välj vilken plan matcherna ska spelas på</p>
             </div>
 
             {/* Date & Time */}

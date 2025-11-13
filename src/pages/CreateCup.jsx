@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -118,6 +119,11 @@ export default function CreateCupPage() {
     // Validation
     if (!formData.name || !formData.location || !formData.start_date || !formData.start_time) {
       alert('Saknade fält', 'Vänligen fyll i alla obligatoriska fält.', { type: 'alert' });
+      return;
+    }
+
+    if (formData.venue_ids.length === 0) {
+      alert('Ingen plan vald', 'Du måste välja minst en plan för turneringen.', { type: 'alert' });
       return;
     }
 
@@ -261,6 +267,30 @@ export default function CreateCupPage() {
                   className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30"
                   required
                 />
+              </div>
+
+              {/* NYTT: Venue Selection */}
+              <div className="space-y-2">
+                <Label className="text-[#F4F7F5] font-semibold flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-[#F59E0B]" />
+                  Plan för matcher *
+                </Label>
+                <Select 
+                  value={formData.venue_ids[0] || ''} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, venue_ids: [value] }))}
+                >
+                  <SelectTrigger className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30">
+                    <SelectValue placeholder="Välj en plan..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {venues.map((venue) => (
+                      <SelectItem key={venue.id} value={venue.id}>
+                        {venue.name} - {venue.city}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-[#B6C2BC]">Välj vilken plan matcherna ska spelas på</p>
               </div>
 
               {/* Date and Time */}
