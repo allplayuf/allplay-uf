@@ -8,9 +8,6 @@ import MatchDetail from './pages/MatchDetail';
 import TeamOverview from './pages/TeamOverview';
 import EditProfile from './pages/EditProfile';
 import Feedback from './pages/Feedback';
-import Cups from './pages/Cups';
-import CupDetail from './pages/CupDetail';
-import CreateCup from './pages/CreateCup';
 import Layout from './Layout.jsx';
 
 
@@ -25,9 +22,6 @@ export const PAGES = {
     "TeamOverview": TeamOverview,
     "EditProfile": EditProfile,
     "Feedback": Feedback,
-    "Cups": Cups,
-    "CupDetail": CupDetail,
-    "CreateCup": CreateCup,
 }
 
 export const pagesConfig = {

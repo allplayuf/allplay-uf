@@ -1,22 +1,25 @@
+
 import React, { useState, useEffect, Suspense, lazy } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+// Removed direct import of Friendship and TeamMember as they will now be accessed via base44.entities
+// import { Friendship } from "@/entities/Friendship";
+// import { TeamMember } from "@/entities/Team";
+import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Users, MessageSquare, UserPlus, Trophy, Plus, Search, Target, TrendingUp } from "lucide-react";
+import { Users, UserPlus, Search, Shield, Trophy, Plus, MessageSquare } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
-import { PageLoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { useCustomDialog } from "../components/ui/custom-dialog";
+import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
 import { NoPlayersFound, NoTeamsFound } from "../components/ui/empty-state";
 
+// Lazy load heavy components
 const FriendsList = lazy(() => import("../components/community/FriendsList"));
-const TeamDiscovery = lazy(() => import("../components/community/TeamDiscovery"));
+const TeamsList = lazy(() => import("../components/community/TeamsList"));
 const FindPlayers = lazy(() => import("../components/community/FindPlayers"));
+const TeamDiscovery = lazy(() => import("../components/teams/TeamDiscovery"));
 const CreateTeamForm = lazy(() => import("../components/teams/CreateTeamForm"));
+const FeedbackPage = lazy(() => import("../pages/Feedback"));
 
 // Query keys
 const QUERY_KEYS = {
@@ -81,7 +84,7 @@ export default function CommunityPage() {
     enabled: !!user,
   });
 
-  // Fetch public teams via backend (cached)
+  // Fetch public teams via backend (cached) - RESTORED TO ORIGINAL
   const { data: allTeams = [], isLoading: teamsLoading } = useQuery({
     queryKey: QUERY_KEYS.publicTeams,
     queryFn: async () => {
@@ -98,7 +101,7 @@ export default function CommunityPage() {
   const { data: friendships = [], isLoading: friendshipsLoading } = useQuery({
     queryKey: QUERY_KEYS.friendships,
     queryFn: async () => {
-      const allFriendships = await base44.entities.Friendship.list();
+      const allFriendships = await base44.entities.Friendship.list(); // Updated to use base44.entities.Friendship
       return allFriendships.filter(f => 
         f.requester_id === user.id || f.addressee_id === user.id
       );
@@ -111,7 +114,7 @@ export default function CommunityPage() {
   const { data: myTeams = [], isLoading: myTeamsLoading } = useQuery({
     queryKey: QUERY_KEYS.teamMembers(user?.id),
     queryFn: async () => {
-      const teamMemberships = await base44.entities.TeamMember.filter({ 
+      const teamMemberships = await base44.entities.TeamMember.filter({ // Updated to use base44.entities.TeamMember
         user_id: user.id, 
         status: 'active' 
       });
@@ -126,7 +129,7 @@ export default function CommunityPage() {
   const { data: teamInvites = [], isLoading: invitesLoading } = useQuery({
     queryKey: QUERY_KEYS.teamInvites(user?.id),
     queryFn: async () => {
-      return await base44.entities.TeamMember.filter({ 
+      return await base44.entities.TeamMember.filter({ // Updated to use base44.entities.TeamMember
         user_id: user.id, 
         status: 'pending' 
       });
@@ -149,7 +152,7 @@ export default function CommunityPage() {
     enabled: !!user,
   });
 
-  // Process friendships data
+  // Process friendships data - ADD SAFETY CHECKS
   const friendsAccepted = (friendships || [])
     .filter(f => f && f.status === 'accepted')
     .map(f => {
@@ -186,7 +189,7 @@ export default function CommunityPage() {
               { type: 'confirm', confirmText: 'Acceptera', cancelText: 'Senare' }
             );
             if (shouldAccept) {
-              await base44.entities.Friendship.update(existing.id, { status: 'accepted' });
+              await base44.entities.Friendship.update(existing.id, { status: 'accepted' }); // Updated
               queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
               
               await alert(
@@ -200,7 +203,7 @@ export default function CommunityPage() {
         }
       }
 
-      await base44.entities.Friendship.create({
+      await base44.entities.Friendship.create({ // Updated
         requester_id: user.id,
         addressee_id: targetId,
         status: 'pending'
@@ -220,66 +223,82 @@ export default function CommunityPage() {
     }
   };
 
-  const handleAcceptFriend = async (requestId) => {
+  const handleAcceptFriend = async (friendshipId) => {
     try {
-      await base44.entities.Friendship.update(requestId, { status: 'accepted' });
+      await base44.entities.Friendship.update(friendshipId, { status: 'accepted' }); // Updated
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
       
-      await alert('Nya vänner! 🎉', 'Ni är nu vänner!', { type: 'success' });
+      await alert(
+        'Nya vänner! 🎉',
+        'Ni är nu vänner!',
+        { type: 'success' }
+      );
     } catch (error) {
-      console.error("Error accepting friend:", error);
-      await alert('Ett fel uppstod', 'Kunde inte acceptera förfrågan.', { type: 'alert' });
+      console.error('Error accepting friend:', error);
+      await alert('Kunde inte acceptera', 'Försök igen.', { type: 'alert' });
     }
   };
 
-  const handleDeclineFriend = async (requestId) => {
+  const handleDeclineFriend = async (friendshipId) => {
     const shouldDecline = await confirm(
       'Neka vänförfrågan',
-      'Är du säker på att du vill neka denna vänförfrågan?',
-      { type: 'warning', confirmText: 'Neka', cancelText: 'Avbryt' }
+      'Är du säker?',
+      { type: 'warning', confirmText: 'Ja, neka', cancelText: 'Avbryt' }
     );
 
-    if (!shouldDecline) return;
-
-    try {
-      await base44.entities.Friendship.delete(requestId);
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
-    } catch (error) {
-      console.error("Error declining friend:", error);
-      await alert('Ett fel uppstod', 'Kunde inte neka förfrågan.', { type: 'alert' });
+    if (shouldDecline) {
+      try {
+        await base44.entities.Friendship.delete(friendshipId); // Updated
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
+      } catch (error) {
+        console.error('Error declining friend:', error);
+      }
     }
   };
 
   const handleCreateTeam = async (teamData) => {
     try {
-      const response = await base44.functions.invoke('teams/createTeam', teamData);
-      
+      const newTeam = await base44.entities.Team.create({
+        ...teamData,
+        captain_id: user.id,
+        current_members: 1,
+        matches_played: 0,
+        wins: 0,
+        losses: 0,
+        draws: 0
+      });
+
+      await base44.entities.TeamMember.create({ // Updated
+        team_id: newTeam.id,
+        user_id: user.id,
+        role: 'captain',
+        status: 'active'
+      });
+
       setShowCreateTeamForm(false);
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.publicTeams });
       
-      await alert('Lag skapat! 🎉', `${teamData.name} har skapats!`, { type: 'success' });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.publicTeams });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamMembers(user.id) });
     } catch (error) {
       console.error("Error creating team:", error);
-      await alert('Ett fel uppstod', 'Kunde inte skapa laget.', { type: 'alert' });
+      await alert('Kunde inte skapa lag', 'Försök igen.', { type: 'alert' });
     }
   };
 
   const handleAcceptTeamInvite = async (inviteId) => {
     try {
-      await base44.entities.TeamMember.update(inviteId, { status: 'active' });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamInvites(user.id) });
+      await base44.entities.TeamMember.update(inviteId, { status: 'active' }); // Updated
       
-      await alert('Välkommen till laget! 🎉', 'Du är nu medlem i laget!', { type: 'success' });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamInvites(user.id) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamMembers(user.id) });
     } catch (error) {
       console.error("Error accepting team invite:", error);
-      await alert('Ett fel uppstod', 'Kunde inte acceptera inbjudan.', { type: 'alert' });
+      await alert('Kunde inte acceptera', 'Försök igen.', { type: 'alert' });
     }
   };
 
-  const handleStatCardClick = (destination) => {
-    if (destination === 'feedback') {
-      setActiveTab('feedback');
-    }
+  const handleStatCardClick = (tab) => {
+    setActiveTab(tab);
   };
 
   if (isLoading) {
@@ -290,88 +309,122 @@ export default function CommunityPage() {
     <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
       <DialogContainer />
       
-      {/* Create Team Modal */}
-      {showCreateTeamForm && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-end lg:items-center justify-center z-50 p-0">
-          <motion.div
-            initial={{ opacity: 0, y: 100, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 100, scale: 0.95 }}
-            transition={{ duration: 0.3 }}
-            className="bg-[#121715] rounded-t-[20px] lg:rounded-[20px] w-full lg:max-w-2xl border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] h-[85vh] lg:h-auto lg:max-h-[85vh] mb-16 lg:mb-0 overflow-hidden"
-          >
-            <Suspense fallback={<PageLoadingSkeleton />}>
-              <CreateTeamForm
-                user={user}
-                onSubmit={handleCreateTeam}
-                onCancel={() => setShowCreateTeamForm(false)}
-              />
-            </Suspense>
-          </motion.div>
-        </div>
-      )}
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        
         {/* Hero Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="mb-6"
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="relative overflow-hidden bg-gradient-to-br from-[#2BA84A] to-[#0F2917] rounded-[16px] lg:rounded-[20px] p-5 sm:p-6 lg:p-8 shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029] mb-6 lg:mb-8"
         >
-          <Card className="bg-gradient-to-br from-[#2BA84A]/10 to-[#0F2917]/20 border border-[#2BA84A]/30 rounded-[20px] p-6 shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-[#F4F7F5]">Community</h1>
-                <p className="text-sm text-[#B6C2BC] mt-1">Anslut, spela och ha kul tillsammans</p>
-              </div>
-              <Users className="w-12 h-12 text-[#2BA84A]/40" />
+          <div className="absolute top-[-30px] right-[-30px] w-28 h-28 bg-[#2BA84A]/40 rounded-full"></div>
+          <div className="absolute bottom-[-40px] left-[-40px] w-32 h-32 bg-[#0F2917]/60 rounded-full"></div>
+          
+          <div className="relative z-10 space-y-5">
+            <div>
+              <h1 className="text-xl sm:text-2xl lg:text-[28px] lg:leading-[34px] font-semibold text-[#EAF6EE] mb-2 flex items-center gap-3">
+                <Users className="w-7 h-7 sm:w-8 sm:h-8 text-[#EAF6EE]" />
+                Community
+              </h1>
+              <p className="text-[13px] leading-[18px] sm:text-[14px] sm:leading-[20px] text-[#CFE8D6]">
+                Anslut med spelare, hitta vänner och gå med i lag. Tillsammans är vi starkare! ⚽
+              </p>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="p-4 bg-[#121715]/50 rounded-xl text-center">
-                <p className="text-2xl font-bold text-[#F4F7F5]">{friendsAccepted.length}</p>
-                <p className="text-xs text-[#B6C2BC]">Vänner</p>
-              </div>
-              <div className="p-4 bg-[#121715]/50 rounded-xl text-center">
-                <p className="text-2xl font-bold text-[#F4F7F5]">{myTeams.length}</p>
-                <p className="text-xs text-[#B6C2BC]">Lag</p>
-              </div>
-              <div 
-                className="p-4 bg-[#121715]/50 rounded-xl text-center cursor-pointer hover:bg-[#18221E] transition-colors"
-                onClick={() => handleStatCardClick('feedback')}
+            {/* Integrated Stats */}
+            <div className="grid grid-cols-3 gap-3 sm:gap-4">
+              <motion.button
+                onClick={() => handleStatCardClick('friends')}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+                className="group"
               >
-                <p className="text-2xl font-bold text-[#F4F7F5]">{feedbackCount}</p>
-                <p className="text-xs text-[#B6C2BC]">Feedback</p>
-              </div>
+                <div className="bg-[#FFFFFF]/10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#FFFFFF]/20 text-center transition-all hover:bg-[#FFFFFF]/15 hover:border-[#FFFFFF]/30">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#FFFFFF]/15 rounded-xl flex items-center justify-center mx-auto mb-2 ring-1 ring-[#FFFFFF]/30 group-hover:scale-110 transition-transform">
+                    <UserPlus className="w-5 h-5 sm:w-6 sm:h-6 text-[#EAF6EE]" />
+                  </div>
+                  <div className="text-xl sm:text-2xl lg:text-3xl font-semibold text-[#EAF6EE] mb-1">{friendsAccepted.length}</div>
+                  <div className="text-[11px] leading-[16px] sm:text-[12px] text-[#CFE8D6]/70 font-medium">Vänner</div>
+                </div>
+              </motion.button>
+
+              <motion.button
+                onClick={() => handleStatCardClick('feedback')}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+                className="group"
+              >
+                <div className="bg-[#FFFFFF]/10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#FFFFFF]/20 text-center transition-all hover:bg-[#FFFFFF]/15 hover:border-[#FFFFFF]/30">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#FFFFFF]/15 rounded-xl flex items-center justify-center mx-auto mb-2 ring-1 ring-[#FFFFFF]/30 group-hover:scale-110 transition-transform">
+                    <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-[#EAF6EE]" />
+                  </div>
+                  <div className="text-xl sm:text-2xl lg:text-3xl font-semibold text-[#EAF6EE] mb-1">{feedbackCount}</div>
+                  <div className="text-[11px] leading-[16px] sm:text-[12px] text-[#CFE8D6]/70 font-medium">Feedback</div>
+                </div>
+              </motion.button>
+
+              <motion.button
+                onClick={() => handleStatCardClick('find')}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+                className="group"
+              >
+                <div className="bg-[#FFFFFF]/10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#FFFFFF]/20 text-center transition-all hover:bg-[#FFFFFF]/15 hover:border-[#FFFFFF]/30">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#FFFFFF]/15 rounded-xl flex items-center justify-center mx-auto mb-2 ring-1 ring-[#FFFFFF]/30 group-hover:scale-110 transition-transform">
+                    <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-[#F4743B]" />
+                  </div>
+                  <div className="text-xl sm:text-2xl lg:text-3xl font-semibold text-[#EAF6EE] mb-1">{allUsers.length}</div>
+                  <div className="text-[11px] leading-[16px] sm:text-[12px] text-[#CFE8D6]/70 font-medium">Aktiva</div>
+                </div>
+              </motion.button>
             </div>
-          </Card>
+          </div>
         </motion.div>
+
+        {/* Create Team Modal */}
+        <AnimatePresence>
+          {showCreateTeamForm && (
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-end lg:items-center justify-center z-50 p-0 overflow-hidden">
+              <motion.div
+                initial={{ opacity: 0, y: 100, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 100, scale: 0.95 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="bg-[#121715] rounded-t-[20px] lg:rounded-[20px] w-full lg:max-w-2xl border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] h-[80vh] lg:h-auto lg:max-h-[85vh] mb-16 lg:mb-0 lg:my-8 overflow-hidden flex flex-col"
+              >
+                <Suspense fallback={<PageLoadingSkeleton />}>
+                  <CreateTeamForm
+                    user={user}
+                    onSubmit={handleCreateTeam}
+                    onCancel={() => setShowCreateTeamForm(false)}
+                  />
+                </Suspense>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-5 gap-2 bg-[#121715] border border-[#223029] p-2 rounded-xl">
-            <TabsTrigger value="friends" className="gap-2">
-              <Users className="w-4 h-4" />
+          <TabsList className="bg-[#121715] p-1 border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] grid grid-cols-4 w-full rounded-[16px]">
+            <TabsTrigger value="friends" className="flex items-center justify-center gap-1 sm:gap-2 data-[state=active]:bg-[#2BA84A]/16 data-[state=active]:text-[#EAF6EE] data-[state=active]:ring-1 data-[state=active]:ring-[#2BA84A]/30 text-[#B6C2BC] font-semibold text-[12px] leading-[16px] sm:text-[13px] sm:leading-[18px] px-2 rounded-[14px] transition-all">
+              <UserPlus className="w-4 h-4" />
               <span className="hidden sm:inline">Vänner</span>
             </TabsTrigger>
-            <TabsTrigger value="feedback" className="gap-2">
+            
+            <TabsTrigger value="feedback" className="flex items-center justify-center gap-1 sm:gap-2 data-[state=active]:bg-[#2BA84A]/16 data-[state=active]:text-[#EAF6EE] data-[state=active]:ring-1 data-[state=active]:ring-[#2BA84A]/30 text-[#B6C2BC] font-semibold text-[12px] leading-[16px] sm:text-[13px] sm:leading-[18px] px-2 rounded-[14px] transition-all">
               <MessageSquare className="w-4 h-4" />
               <span className="hidden sm:inline">Feedback</span>
             </TabsTrigger>
-            <TabsTrigger value="discover-teams" className="gap-2">
-              <Target className="w-4 h-4" />
-              <span className="hidden sm:inline">Lag</span>
+
+            <TabsTrigger value="discover-teams" className="flex items-center justify-center gap-1 sm:gap-2 data-[state=active]:bg-[#2BA84A]/16 data-[state=active]:text-[#EAF6EE] data-[state=active]:ring-1 data-[state=active]:ring-[#2BA84A]/30 text-[#B6C2BC] font-semibold text-[12px] leading-[16px] sm:text-[13px] sm:leading-[18px] px-2 rounded-[14px] transition-all">
+              <Shield className="w-4 h-4" /> {/* Changed from Search to Shield */}
+              <span className="hidden sm:inline">Lag</span> {/* Changed from Hitta lag to Lag */}
             </TabsTrigger>
-            <TabsTrigger value="find" className="gap-2">
+            
+            <TabsTrigger value="find" className="flex items-center justify-center gap-1 sm:gap-2 data-[state=active]:bg-[#2BA84A]/16 data-[state=active]:text-[#EAF6EE] data-[state=active]:ring-1 data-[state=active]:ring-[#2BA84A]/30 text-[#B6C2BC] font-semibold text-[12px] leading-[16px] sm:text-[13px] sm:leading-[18px] px-2 rounded-[14px] transition-all">
               <Search className="w-4 h-4" />
               <span className="hidden sm:inline">Spelare</span>
-            </TabsTrigger>
-            <TabsTrigger value="cups" className="gap-2">
-              <Trophy className="w-4 h-4" />
-              <span className="hidden sm:inline">Cuper</span>
             </TabsTrigger>
           </TabsList>
 
@@ -384,11 +437,13 @@ export default function CommunityPage() {
                 transition={{ duration: 0.25 }}
               >
                 <Suspense fallback={<PageLoadingSkeleton />}>
-                  <FriendsList
-                    friends={friendsAccepted}
-                    incomingRequests={incomingRequests}
-                    onAcceptRequest={handleAcceptFriend}
-                    onDeclineRequest={handleDeclineFriend}
+                  <FriendsList 
+                    friends={friendsAccepted} 
+                    user={user} 
+                    onRefresh={() => queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships })}
+                    incomingFriendships={incomingRequests}
+                    onAcceptFriend={handleAcceptFriend}
+                    onDeclineFriend={handleDeclineFriend}
                   />
                 </Suspense>
               </motion.div>
@@ -401,16 +456,9 @@ export default function CommunityPage() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.25 }}
               >
-                <Link to={createPageUrl("Feedback")}>
-                  <Card className="bg-[#121715] border border-[#223029] rounded-[20px] p-12 hover:border-[#2BA84A]/30 transition-all cursor-pointer">
-                    <div className="text-center">
-                      <MessageSquare className="w-16 h-16 text-[#2BA84A] mx-auto mb-4" />
-                      <h3 className="text-2xl font-bold text-[#F4F7F5] mb-2">Feedback & Idéer</h3>
-                      <p className="text-[#B6C2BC] mb-4">Dela dina tankar och hjälp oss förbättra AllPlay</p>
-                      <Badge className="bg-[#2BA84A]/20 text-[#2BA84A]">{feedbackCount} aktiva förslag</Badge>
-                    </div>
-                  </Card>
-                </Link>
+                <Suspense fallback={<PageLoadingSkeleton />}>
+                  <FeedbackPage />
+                </Suspense>
               </motion.div>
             </TabsContent>
 
@@ -425,7 +473,7 @@ export default function CommunityPage() {
                   {!allTeams || allTeams.length === 0 ? (
                     <NoTeamsFound onCreateTeam={() => setShowCreateTeamForm(true)} />
                   ) : (
-                    <TeamDiscovery
+                    <TeamDiscovery 
                       teams={allTeams}
                       myTeams={myTeams}
                       user={user}
@@ -446,51 +494,31 @@ export default function CommunityPage() {
                   {!allUsers || allUsers.length === 0 ? (
                     <NoPlayersFound />
                   ) : (
-                    <FindPlayers
-                      allUsers={allUsers}
+                    <FindPlayers 
+                      allUsers={allUsers} 
                       friendships={friendships}
-                      currentUser={user}
+                      currentUser={user} 
                       onAddFriend={handleAddFriend}
                     />
                   )}
                 </Suspense>
               </motion.div>
             </TabsContent>
-
-            {/* NEW: Cups Tab */}
-            <TabsContent key="cups" value="cups">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.25 }}
-              >
-                <Link to={createPageUrl("Cups")}>
-                  <Card className="bg-[#121715] border border-[#223029] rounded-[20px] p-12 hover:border-[#F4743B]/30 transition-all cursor-pointer">
-                    <div className="text-center">
-                      <Trophy className="w-16 h-16 text-[#F4743B] mx-auto mb-4" />
-                      <h3 className="text-2xl font-bold text-[#F4F7F5] mb-2">Turneringar</h3>
-                      <p className="text-[#B6C2BC] mb-4">Tävla i organiserade turneringar och cuper</p>
-                      <Badge className="bg-[#F4743B]/20 text-[#F4743B]">Upptäck turneringar</Badge>
-                    </div>
-                  </Card>
-                </Link>
-              </motion.div>
-            </TabsContent>
           </AnimatePresence>
         </Tabs>
       </div>
 
-      {/* Floating Create Team Button (only on teams tab) */}
+      {/* Floating "+ Skapa nytt lag" Button */}
       {activeTab === 'discover-teams' && (
         <motion.button
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 260, damping: 20 }}
+          exit={{ scale: 0 }}
+          transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.2 }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowCreateTeamForm(true)}
-          className="fixed bottom-20 lg:bottom-8 right-4 lg:right-8 w-14 h-14 lg:w-16 lg:h-16 bg-[#2BA84A] hover:bg-[#248232] text-white rounded-full shadow-[0_8px_24px_rgba(43,168,74,0.4)] flex items-center justify-center z-40"
+          className="fixed bottom-20 lg:bottom-8 right-4 lg:right-8 w-14 h-14 lg:w-16 lg:h-16 bg-gradient-to-r from-[#9B59B6] to-[#8E44AD] hover:from-[#A569C6] hover:to-[#9E44AD] text-white rounded-full shadow-[0_8px_24px_rgba(155,89,182,0.4)] flex items-center justify-center z-[60] transition-all"
         >
           <Plus className="w-6 h-6 lg:w-7 lg:h-7" strokeWidth={2.5} />
         </motion.button>
