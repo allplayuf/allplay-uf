@@ -4,12 +4,16 @@ import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Shield, CheckCircle, XCircle, Users, Calendar, Bell } from "lucide-react";
+import { Shield, CheckCircle, XCircle, Users, Calendar, Bell, Edit } from "lucide-react";
 import { useCustomDialog } from "../ui/custom-dialog";
+import { CUPS_QUERY_KEY } from "../dashboard/CupsWidget";
+import EditCupModal from "./EditCupModal";
+import { AnimatePresence } from "framer-motion";
 
 export default function CupAdminPanel({ cup, participants, groups, matches }) {
   const { confirm, alert, DialogContainer } = useCustomDialog();
   const queryClient = useQueryClient();
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const pendingParticipants = participants.filter(p => p.status === 'pending');
 
@@ -24,10 +28,11 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cupDetails', cup.id] });
+      queryClient.invalidateQueries({ queryKey: CUPS_QUERY_KEY });
       alert('Anmälan godkänd! ✅', 'Deltagaren har godkänts.', { type: 'success' });
     },
     onError: (error) => {
-      alert('Fel', error.message || 'Kunde inte godkänna anmälan.', { type: 'alert' });
+      alert('Fel', error.response?.data?.error || 'Kunde inte godkänna anmälan.', { type: 'alert' });
     }
   });
 
@@ -42,10 +47,11 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cupDetails', cup.id] });
+      queryClient.invalidateQueries({ queryKey: CUPS_QUERY_KEY });
       alert('Anmälan nekad', 'Deltagaren har nekats.', { type: 'info' });
     },
     onError: (error) => {
-      alert('Fel', error.message || 'Kunde inte neka anmälan.', { type: 'alert' });
+      alert('Fel', error.response?.data?.error || 'Kunde inte neka anmälan.', { type: 'alert' });
     }
   });
 
@@ -59,10 +65,11 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cupDetails', cup.id] });
+      queryClient.invalidateQueries({ queryKey: CUPS_QUERY_KEY });
       alert('Schema skapat! 📅', 'Matchschemat har skapats framgångsrikt!', { type: 'success' });
     },
     onError: (error) => {
-      alert('Fel', error.message || 'Kunde inte skapa schema.', { type: 'alert' });
+      alert('Fel', error.response?.data?.error || 'Kunde inte skapa schema.', { type: 'alert' });
     }
   });
 
@@ -103,15 +110,34 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
     <>
       <DialogContainer />
       
+      {/* Edit Modal */}
+      <AnimatePresence>
+        {showEditModal && (
+          <EditCupModal
+            cup={cup}
+            onClose={() => setShowEditModal(false)}
+          />
+        )}
+      </AnimatePresence>
+      
       <div className="space-y-6">
         {/* Header */}
-        <Card className="bg-gradient-to-r from-[#F4743B]/10 to-[#E5683A]/5 border border-[#F4743B]/30 rounded-[20px] p-6">
-          <div className="flex items-center gap-3">
-            <Shield className="w-8 h-8 text-[#F4743B]" />
-            <div>
-              <h2 className="text-xl font-bold text-[#F4F7F5]">Admin Panel</h2>
-              <p className="text-sm text-[#B6C2BC]">Hantera turneringen</p>
+        <Card className="bg-gradient-to-r from-[#F59E0B]/10 to-[#D97706]/5 border border-[#F59E0B]/30 rounded-[20px] p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Shield className="w-8 h-8 text-[#F59E0B]" />
+              <div>
+                <h2 className="text-xl font-bold text-[#F4F7F5]">Admin Panel</h2>
+                <p className="text-sm text-[#B6C2BC]">Hantera turneringen</p>
+              </div>
             </div>
+            <Button
+              onClick={() => setShowEditModal(true)}
+              className="bg-[#F59E0B] hover:bg-[#D97706] text-white gap-2"
+            >
+              <Edit className="w-4 h-4" />
+              Redigera
+            </Button>
           </div>
         </Card>
 
@@ -124,15 +150,15 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
             <Button
               onClick={handleCreateSchedule}
               disabled={createScheduleMutation.isPending || groups.length > 0}
-              className="w-full bg-[#F4743B] hover:bg-[#E5683A] text-white gap-2"
+              className="w-full bg-[#F59E0B] hover:bg-[#D97706] text-white gap-2 h-11"
             >
               <Calendar className="w-4 h-4" />
-              {groups.length > 0 ? 'Schema skapat' : 'Skapa matchschema'}
+              {groups.length > 0 ? 'Schema skapat ✓' : 'Skapa matchschema'}
             </Button>
 
             <Button
               variant="outline"
-              className="w-full border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] gap-2"
+              className="w-full border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] gap-2 h-11"
             >
               <Bell className="w-4 h-4" />
               Skicka meddelande
@@ -144,7 +170,7 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
         <Card className="bg-[#121715] border border-[#223029] rounded-[20px]">
           <CardHeader>
             <CardTitle className="text-lg font-bold text-[#F4F7F5] flex items-center gap-2">
-              <Users className="w-5 h-5 text-[#F4743B]" />
+              <Users className="w-5 h-5 text-[#F59E0B]" />
               Väntande anmälningar ({pendingParticipants.length})
             </CardTitle>
           </CardHeader>
@@ -161,26 +187,26 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
                     key={participant.id}
                     className="flex items-center justify-between p-4 bg-[#18221E] rounded-xl border border-[#223029]"
                   >
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-semibold text-[#F4F7F5]">
+                        <span className="text-sm font-semibold text-[#F4F7F5] truncate">
                           {participant.team?.name || participant.user?.full_name || 'Deltagare'}
                         </span>
-                        <Badge className="bg-[#F4743B]/20 text-[#F4743B] border-[#F4743B]/30 text-xs">
+                        <Badge className="bg-[#F59E0B]/20 text-[#FCD34D] border-[#F59E0B]/30 text-xs flex-shrink-0">
                           {participant.signup_type === 'team' ? 'Lag' : 'Solo'}
                         </Badge>
                       </div>
                       {participant.notes && (
-                        <p className="text-xs text-[#B6C2BC]">{participant.notes}</p>
+                        <p className="text-xs text-[#B6C2BC] truncate">{participant.notes}</p>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 ml-3">
                       <Button
                         size="sm"
                         onClick={() => handleApprove(participant.id)}
                         disabled={approveSignupMutation.isPending}
-                        className="bg-[#2BA84A] hover:bg-[#248232] text-white"
+                        className="bg-[#2BA84A] hover:bg-[#248232] text-white h-9"
                       >
                         <CheckCircle className="w-4 h-4" />
                       </Button>
@@ -189,7 +215,7 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
                         variant="outline"
                         onClick={() => handleReject(participant.id)}
                         disabled={rejectSignupMutation.isPending}
-                        className="border-[#223029] text-[#B6C2BC] hover:bg-[#18221E]"
+                        className="border-[#DC2626] text-[#DC2626] hover:bg-[#DC2626]/10 h-9"
                       >
                         <XCircle className="w-4 h-4" />
                       </Button>

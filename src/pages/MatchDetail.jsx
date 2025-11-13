@@ -28,30 +28,30 @@ import InviteFriendsModal from "../components/matches/InviteFriendsModal";
 
 // CONSISTENT SKILL LEVEL CONFIG - WCAG AA compliant colors
 const SKILL_LEVEL_CONFIG = {
-  beginner: { 
-    label: 'Nybörjare', 
-    icon: Target, 
+  beginner: {
+    label: 'Nybörjare',
+    icon: Target,
     bgColor: 'bg-[#059669]',
     textColor: 'text-[#FFFFFF]',
     ringColor: 'ring-[#10B981]/40'
   },
-  intermediate: { 
-    label: 'Medel', 
-    icon: TrendingUp, 
+  intermediate: {
+    label: 'Medel',
+    icon: TrendingUp,
     bgColor: 'bg-[#0D9488]',
     textColor: 'text-[#FFFFFF]',
     ringColor: 'ring-[#14B8A6]/40'
   },
-  advanced: { 
-    label: 'Avancerad', 
-    icon: Shield, 
+  advanced: {
+    label: 'Avancerad',
+    icon: Shield,
     bgColor: 'bg-[#7C3AED]',
     textColor: 'text-[#FFFFFF]',
     ringColor: 'ring-[#8B5CF6]/40'
   },
-  elite: { 
-    label: 'Elit', 
-    icon: Crown, 
+  elite: {
+    label: 'Elit',
+    icon: Crown,
     bgColor: 'bg-[#D97706]',
     textColor: 'text-[#FFFFFF]',
     ringColor: 'ring-[#F59E0B]/40'
@@ -99,7 +99,7 @@ export default function MatchDetailPage() {
   const [showEndModal, setShowEndModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [friendships, setFriendships] = useState([]);
-  
+
   const { confirm, alert, DialogContainer } = useCustomDialog();
 
   useEffect(() => {
@@ -148,7 +148,7 @@ export default function MatchDetailPage() {
   const handleJoinMatch = async () => {
     try {
       const existingParticipation = participants.find(p => p.id === user.id);
-      
+
       if (existingParticipation) {
         await alert(
           'Redan anmäld',
@@ -180,7 +180,7 @@ export default function MatchDetailPage() {
       }
 
       loadMatchData();
-      
+
       // Success popup
       await alert(
         'Anmäld! 🎉',
@@ -201,7 +201,7 @@ export default function MatchDetailPage() {
   const handleLeaveMatch = async () => {
     try {
       const myParticipation = participants.find(p => p.id === user.id);
-      
+
       if (!myParticipation) return;
 
       const shouldLeave = await confirm(
@@ -225,7 +225,7 @@ export default function MatchDetailPage() {
       }
 
       loadMatchData();
-      
+
       await alert(
         'Match lämnad',
         'Du har lämnat matchen',
@@ -298,7 +298,7 @@ export default function MatchDetailPage() {
         'Din vänförfrågan har skickats!',
         { type: 'success' }
       );
-      
+
       loadMatchData();
 
     } catch (error) {
@@ -314,7 +314,7 @@ export default function MatchDetailPage() {
   // New function to determine friendship status
   const getFriendStatus = (participantId) => {
     if (!friendships || participantId === user.id) return null;
-    
+
     const friendship = friendships.find(f =>
       (f.requester_id === user.id && f.addressee_id === participantId) ||
       (f.requester_id === participantId && f.addressee_id === user.id)
@@ -361,7 +361,7 @@ export default function MatchDetailPage() {
   const isParticipant = participants.some(p => p.id === user?.id);
   const canJoin = !isParticipant && match.status === 'upcoming' && (match.is_spontaneous || participants.length < match.max_players);
   const isCompleted = match.status === 'completed';
-  
+
   const statusConfig = STATUS_CONFIG[match.status] || STATUS_CONFIG.upcoming;
   const skillConfig = match.skill_bracket ? SKILL_LEVEL_CONFIG[match.skill_bracket] : null;
   const SkillIcon = skillConfig?.icon;
@@ -369,9 +369,9 @@ export default function MatchDetailPage() {
   return (
     <div className="min-h-screen bg-[#0F1513] p-4 lg:p-8 pb-24 lg:pb-8">
       <DialogContainer />
-      
+
       <div className="max-w-7xl mx-auto space-y-6">
-        
+
         {/* Back Button */}
         <button
           onClick={() => navigate(createPageUrl("Matches"))}
@@ -381,17 +381,17 @@ export default function MatchDetailPage() {
           Tillbaka
         </button>
 
-        {/* Match Header */}
+        {/* Match Header - IMPROVED SPACING */}
         <Card className="bg-gradient-to-br from-[#2BA84A] to-[#0F2917] rounded-[20px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029]">
           <CardContent className="p-6 lg:p-8">
             <div className="flex flex-col lg:flex-row gap-6">
               <div className="flex-1">
-                <div className="flex flex-wrap items-center gap-2 mb-4">
+                <div className="flex flex-wrap items-center gap-3 mb-4">
                   {/* Status Badge - WCAG AA compliant */}
                   <Badge className={`h-8 px-4 ${statusConfig.bgColor} ${statusConfig.textColor} ring-1 ${statusConfig.ringColor} font-semibold`}>
                     {statusConfig.label}
                   </Badge>
-                  
+
                   {/* Skill Level Badge - WCAG AA compliant */}
                   {skillConfig && (
                     <Badge className={`h-8 px-4 ${skillConfig.bgColor} ${skillConfig.textColor} ring-1 ${skillConfig.ringColor} font-semibold flex items-center gap-1.5`}>
@@ -399,7 +399,7 @@ export default function MatchDetailPage() {
                       {skillConfig.label}
                     </Badge>
                   )}
-                  
+
                   {isOrganizer && (
                     <Badge className="h-8 px-4 bg-[#F4743B] text-[#FFFFFF] ring-1 ring-[#F4743B]/40 font-semibold">
                       Arrangör
@@ -407,7 +407,7 @@ export default function MatchDetailPage() {
                   )}
                 </div>
 
-                <h1 className="text-[28px] leading-[34px] lg:text-[32px] lg:leading-[40px] font-semibold text-[#EAF6EE] mb-4">
+                <h1 className="text-[28px] leading-[34px] lg:text-[32px] lg:leading-[40px] font-semibold text-[#EAF6EE] mb-6">
                   {match.title}
                 </h1>
 
@@ -427,7 +427,7 @@ export default function MatchDetailPage() {
                   <div className="flex items-center gap-2">
                     <Users className="w-5 h-5 flex-shrink-0" />
                     <span className="text-[14px] leading-[20px]">
-                      {match.is_spontaneous 
+                      {match.is_spontaneous
                         ? `${participants.length} anmälda (spontan match)`
                         : `${participants.length}/${match.max_players} spelare`
                       }
@@ -436,8 +436,8 @@ export default function MatchDetailPage() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col gap-3 w-full lg:w-auto">
+              {/* Action Buttons - IMPROVED SPACING */}
+              <div className="flex flex-col gap-3 w-full lg:w-auto lg:min-w-[220px]">
                 {canJoin && (
                   <button
                     onClick={handleJoinMatch}
@@ -457,7 +457,7 @@ export default function MatchDetailPage() {
                       <Share2 className="w-5 h-5" />
                       Bjud in vänner
                     </button>
-                    
+
                     <button
                       onClick={handleLeaveMatch}
                       className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] border border-[#FFFFFF]/30 px-6 text-[#FFFFFF] font-semibold hover:bg-[#FFFFFF]/10 transition-all"
@@ -484,15 +484,15 @@ export default function MatchDetailPage() {
         {/* Tabs */}
         <Tabs defaultValue="participants" className="space-y-6">
           <TabsList className="bg-[#121715] p-1 border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] grid grid-cols-2 w-full rounded-[16px]">
-            <TabsTrigger 
-              value="participants" 
+            <TabsTrigger
+              value="participants"
               className="flex items-center justify-center gap-2 data-[state=active]:bg-[#2BA84A]/16 data-[state=active]:text-[#EAF6EE] data-[state=active]:ring-1 data-[state=active]:ring-[#2BA84A]/30 text-[#B6C2BC] font-semibold rounded-[14px] transition-all"
             >
               <Users className="w-4 h-4" />
               Deltagare ({participants.length})
             </TabsTrigger>
-            <TabsTrigger 
-              value="details" 
+            <TabsTrigger
+              value="details"
               className="flex items-center justify-center gap-2 data-[state=active]:bg-[#2BA84A]/16 data-[state=active]:text-[#EAF6EE] data-[state=active]:ring-1 data-[state=active]:ring-[#2BA84A]/30 text-[#B6C2BC] font-semibold rounded-[14px] transition-all"
             >
               <Flag className="w-4 h-4" />
@@ -514,14 +514,14 @@ export default function MatchDetailPage() {
                 {participants.map((participant) => {
                   const participantSkill = participant.skill_level ? SKILL_LEVEL_CONFIG[participant.skill_level] : null;
                   const ParticipantSkillIcon = participantSkill?.icon;
-                  const friendStatus = getFriendStatus(participant.id); // New
-                  const isCurrentUser = participant.id === user.id; // New
-                  
+                  const friendStatus = getFriendStatus(participant.id);
+                  const isCurrentUser = participant.id === user.id;
+
                   return (
                     <Card key={participant.id} className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[16px] hover:scale-[1.02] hover:border-[#2BA84A]/30 transition-all">
                       <CardContent className="p-4">
                         {/* Clickable profile area */}
-                        <Link 
+                        <Link
                           to={`${createPageUrl("Profile")}?userId=${participant.id}`}
                           className="block mb-3 group"
                         >
@@ -560,7 +560,7 @@ export default function MatchDetailPage() {
 
                         {/* Add Friend Button for completed matches */}
                         {isCompleted && !isCurrentUser && (
-                          <div className="pt-2 border-t border-[#223029]">
+                          <div className="pt-3 mt-3 border-t border-[#223029]">
                             {friendStatus === 'none' && (
                               <button
                                 onClick={() => handleAddFriend(participant.id)}

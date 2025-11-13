@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { UserPlus, Users, CheckCircle, Clock, XCircle, Shield, MapPin, Target } from "lucide-react";
+import { UserPlus, Users, CheckCircle, Clock, XCircle, Shield, MapPin, Target, Plus, Sparkles } from "lucide-react";
 import { useCustomDialog } from "../ui/custom-dialog";
 import { CUPS_QUERY_KEY } from "../dashboard/CupsWidget";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import CreateCupTeamForm from "./CreateCupTeamForm";
+import { AnimatePresence } from "framer-motion";
 
 export default function CupSignupModule({ cup, user, participants, userParticipant }) {
   const { confirm, alert, DialogContainer } = useCustomDialog();
@@ -18,6 +20,7 @@ export default function CupSignupModule({ cup, user, participants, userParticipa
   const [selectedTeam, setSelectedTeam] = useState('');
   const [preferredPosition, setPreferredPosition] = useState('any');
   const [notes, setNotes] = useState('');
+  const [showCreateCupTeam, setShowCreateCupTeam] = useState(false);
 
   // Fetch user's teams
   const { data: userTeams = [] } = useQuery({
@@ -29,7 +32,7 @@ export default function CupSignupModule({ cup, user, participants, userParticipa
       });
       const teamIds = memberships.map(m => m.team_id);
       const allTeams = await base44.entities.Team.list();
-      return allTeams.filter(t => teamIds.includes(t.id));
+      return allTeams.filter(t => teamIds.includes(t.id) && t.is_active !== false);
     },
     enabled: !!user && cup.signup_type === 'team',
   });
@@ -86,6 +89,20 @@ export default function CupSignupModule({ cup, user, participants, userParticipa
     <>
       <DialogContainer />
       
+      {/* Create Cup Team Modal */}
+      <AnimatePresence>
+        {showCreateCupTeam && (
+          <CreateCupTeamForm
+            cup={cup}
+            onClose={() => setShowCreateCupTeam(false)}
+            onSuccess={(team) => {
+              setShowCreateCupTeam(false);
+              setSelectedTeam(team.id);
+            }}
+          />
+        )}
+      </AnimatePresence>
+      
       <div className="space-y-6">
         {/* Signup Form Card */}
         <Card className="bg-[#121715] border border-[#223029] rounded-[20px]">
@@ -108,7 +125,7 @@ export default function CupSignupModule({ cup, user, participants, userParticipa
                 
                 {userParticipant.status === 'confirmed' && userParticipant.group_id && (
                   <Badge className="bg-[#F59E0B]/20 text-[#FCD34D] border-[#F59E0B]/30">
-                    Grupp {groups.find(g => g.id === userParticipant.group_id)?.name?.slice(-1) || '?'}
+                    Tilldelad grupp
                   </Badge>
                 )}
               </div>
@@ -136,7 +153,7 @@ export default function CupSignupModule({ cup, user, participants, userParticipa
                     <div className="text-center mb-6">
                       <h3 className="text-xl font-bold text-[#F4F7F5] mb-2">Anmäl dig nu!</h3>
                       <p className="text-sm text-[#B6C2BC]">
-                        {cup.signup_type === 'team' ? 'Välj ett av dina lag att anmäla' : 'Anmäl dig som spelare'}
+                        {cup.signup_type === 'team' ? 'Välj ett av dina lag eller skapa ett nytt cup-lag' : 'Anmäl dig som spelare'}
                       </p>
                     </div>
 
@@ -160,12 +177,27 @@ export default function CupSignupModule({ cup, user, participants, userParticipa
                               ))}
                             </SelectContent>
                           </Select>
-                          {userTeams.length === 0 && (
-                            <p className="text-xs text-[#B6C2BC]">
-                              Du har inga lag. <Link to={createPageUrl("Community") + "?tab=teams"} className="text-[#F59E0B] hover:underline">Skapa ett lag först!</Link>
-                            </p>
-                          )}
                         </div>
+
+                        {/* Create Cup Team Button */}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setShowCreateCupTeam(true)}
+                          className="w-full border-[#F59E0B]/30 text-[#F59E0B] hover:bg-[#F59E0B]/10 gap-2 h-11"
+                        >
+                          <Plus className="w-4 h-4" />
+                          <Sparkles className="w-4 h-4" />
+                          Skapa nytt cup-lag
+                        </Button>
+
+                        {userTeams.length === 0 && (
+                          <div className="p-3 bg-[#4169E1]/10 border border-[#4169E1]/30 rounded-xl">
+                            <p className="text-xs text-[#B6C2BC] text-center">
+                              💡 Inget lag? Skapa ett cup-lag ovan eller gå till <Link to={createPageUrl("Community") + "?tab=teams"} className="text-[#4169E1] hover:underline font-semibold">Community</Link> för att skapa ett permanent lag!
+                            </p>
+                          </div>
+                        )}
                       </div>
                     )}
 
