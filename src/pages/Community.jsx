@@ -30,6 +30,30 @@ const QUERY_KEYS = {
   feedbackCount: ['feedbackCount'],
 };
 
+// Tab color config - matching AllPlay theme
+const TAB_COLORS = {
+  friends: {
+    active: 'bg-[#0F1513] text-[#2BA84A] ring-1 ring-[#2BA84A]/40',
+    inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
+  },
+  teams: {
+    active: 'bg-[#0F1513] text-[#9370DB] ring-1 ring-[#9370DB]/40',
+    inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
+  },
+  find: {
+    active: 'bg-[#0F1513] text-[#2BA84A] ring-1 ring-[#2BA84A]/40',
+    inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
+  },
+  feedback: {
+    active: 'bg-[#0F1513] text-[#4169E1] ring-1 ring-[#4169E1]/40',
+    inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
+  },
+  cups: {
+    active: 'bg-[#0F1513] text-[#F59E0B] ring-1 ring-[#F59E0B]/40',
+    inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
+  }
+};
+
 export default function CommunityPage() {
   const [activeTab, setActiveTab] = useState('friends');
   const [showCreateTeamForm, setShowCreateTeamForm] = useState(false);
@@ -351,15 +375,13 @@ export default function CommunityPage() {
           </Card>
         </motion.div>
 
-        {/* Tabs - UPDATED: Minimalist dark design with subtle green outline */}
+        {/* Tabs - Dynamic colors based on active tab */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid grid-cols-5 gap-2 bg-transparent border-0 p-0">
             <TabsTrigger 
               value="friends" 
               className={`gap-2 h-12 rounded-xl transition-all duration-200 ${
-                activeTab === 'friends'
-                  ? 'bg-[#0F1513] text-[#2BA84A] ring-1 ring-[#2BA84A]/40'
-                  : 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
+                activeTab === 'friends' ? TAB_COLORS.friends.active : TAB_COLORS.friends.inactive
               }`}
             >
               <Users className="w-4 h-4" />
@@ -368,9 +390,7 @@ export default function CommunityPage() {
             <TabsTrigger 
               value="teams" 
               className={`gap-2 h-12 rounded-xl transition-all duration-200 ${
-                activeTab === 'teams'
-                  ? 'bg-[#0F1513] text-[#2BA84A] ring-1 ring-[#2BA84A]/40'
-                  : 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
+                activeTab === 'teams' ? TAB_COLORS.teams.active : TAB_COLORS.teams.inactive
               }`}
             >
               <Target className="w-4 h-4" />
@@ -379,9 +399,7 @@ export default function CommunityPage() {
             <TabsTrigger 
               value="find" 
               className={`gap-2 h-12 rounded-xl transition-all duration-200 ${
-                activeTab === 'find'
-                  ? 'bg-[#0F1513] text-[#2BA84A] ring-1 ring-[#2BA84A]/40'
-                  : 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
+                activeTab === 'find' ? TAB_COLORS.find.active : TAB_COLORS.find.inactive
               }`}
             >
               <Search className="w-4 h-4" />
@@ -390,9 +408,7 @@ export default function CommunityPage() {
             <TabsTrigger 
               value="feedback" 
               className={`gap-2 h-12 rounded-xl transition-all duration-200 ${
-                activeTab === 'feedback'
-                  ? 'bg-[#0F1513] text-[#2BA84A] ring-1 ring-[#2BA84A]/40'
-                  : 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
+                activeTab === 'feedback' ? TAB_COLORS.feedback.active : TAB_COLORS.feedback.inactive
               }`}
             >
               <MessageSquare className="w-4 h-4" />
@@ -401,9 +417,7 @@ export default function CommunityPage() {
             <TabsTrigger 
               value="cups" 
               className={`gap-2 h-12 rounded-xl transition-all duration-200 ${
-                activeTab === 'cups'
-                  ? 'bg-[#0F1513] text-[#F59E0B] ring-1 ring-[#F59E0B]/40'
-                  : 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
+                activeTab === 'cups' ? TAB_COLORS.cups.active : TAB_COLORS.cups.inactive
               }`}
             >
               <Trophy className="w-4 h-4" />
@@ -484,12 +498,14 @@ export default function CommunityPage() {
                 transition={{ duration: 0.25 }}
               >
                 <Link to={createPageUrl("Feedback")}>
-                  <Card className="bg-[#121715] border border-[#223029] rounded-[20px] p-12 hover:border-[#2BA84A]/30 transition-all cursor-pointer">
+                  <Card className="bg-[#121715] border border-[#223029] rounded-[20px] p-12 hover:border-[#4169E1]/30 transition-all cursor-pointer">
                     <div className="text-center">
-                      <MessageSquare className="w-16 h-16 text-[#2BA84A] mx-auto mb-4" />
+                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#4169E1]/20 to-[#3457D5]/10 flex items-center justify-center mx-auto mb-6">
+                        <MessageSquare className="w-10 h-10 text-[#4169E1]" />
+                      </div>
                       <h3 className="text-2xl font-bold text-[#F4F7F5] mb-2">Feedback & Idéer</h3>
                       <p className="text-[#B6C2BC] mb-6">Dela dina tankar och hjälp oss förbättra AllPlay</p>
-                      <Badge className="bg-[#2BA84A]/20 text-[#2BA84A] px-6 py-3 text-base font-semibold">{feedbackCount} aktiva förslag</Badge>
+                      <Badge className="bg-[#4169E1]/20 text-[#B0C4DE] border border-[#4169E1]/30 px-6 py-3 text-base font-semibold">{feedbackCount} aktiva förslag</Badge>
                     </div>
                   </Card>
                 </Link>
@@ -513,7 +529,7 @@ export default function CommunityPage() {
         </Tabs>
       </div>
 
-      {/* Floating Create Team Button - UPDATED: Better styling with subtle outline */}
+      {/* Floating Create Team Button - Dynamic color based on active tab */}
       {activeTab === 'teams' && (
         <motion.button
           initial={{ scale: 0 }}
@@ -522,7 +538,7 @@ export default function CommunityPage() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowCreateTeamForm(true)}
-          className="fixed bottom-20 lg:bottom-8 right-4 lg:right-8 w-14 h-14 lg:w-16 lg:h-16 bg-[#2BA84A] hover:bg-[#248232] text-white rounded-full shadow-[0_4px_16px_rgba(43,168,74,0.3)] ring-2 ring-[#2BA84A]/20 hover:ring-[#2BA84A]/40 flex items-center justify-center z-40 transition-all duration-200"
+          className="fixed bottom-20 lg:bottom-8 right-4 lg:right-8 w-14 h-14 lg:w-16 lg:h-16 bg-[#9370DB] hover:bg-[#7C3AED] text-white rounded-full shadow-[0_4px_16px_rgba(147,112,219,0.4)] ring-2 ring-[#9370DB]/20 hover:ring-[#9370DB]/40 flex items-center justify-center z-40 transition-all duration-200"
         >
           <Plus className="w-6 h-6 lg:w-7 lg:h-7" strokeWidth={2.5} />
         </motion.button>
