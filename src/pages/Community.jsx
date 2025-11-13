@@ -351,26 +351,61 @@ export default function CommunityPage() {
           </Card>
         </motion.div>
 
-        {/* Tabs */}
+        {/* Tabs - UPDATED: Minimalist dark design with subtle green outline */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-5 gap-2 bg-[#121715] border border-[#223029] p-2 rounded-xl">
-            <TabsTrigger value="friends" className="gap-2">
+          <TabsList className="grid grid-cols-5 gap-2 bg-transparent border-0 p-0">
+            <TabsTrigger 
+              value="friends" 
+              className={`gap-2 h-12 rounded-xl transition-all duration-200 ${
+                activeTab === 'friends'
+                  ? 'bg-[#0F1513] text-[#2BA84A] ring-1 ring-[#2BA84A]/40'
+                  : 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
+              }`}
+            >
               <Users className="w-4 h-4" />
               <span className="hidden sm:inline">Vänner</span>
             </TabsTrigger>
-            <TabsTrigger value="teams" className="gap-2">
+            <TabsTrigger 
+              value="teams" 
+              className={`gap-2 h-12 rounded-xl transition-all duration-200 ${
+                activeTab === 'teams'
+                  ? 'bg-[#0F1513] text-[#2BA84A] ring-1 ring-[#2BA84A]/40'
+                  : 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
+              }`}
+            >
               <Target className="w-4 h-4" />
               <span className="hidden sm:inline">Lag</span>
             </TabsTrigger>
-            <TabsTrigger value="find" className="gap-2">
+            <TabsTrigger 
+              value="find" 
+              className={`gap-2 h-12 rounded-xl transition-all duration-200 ${
+                activeTab === 'find'
+                  ? 'bg-[#0F1513] text-[#2BA84A] ring-1 ring-[#2BA84A]/40'
+                  : 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
+              }`}
+            >
               <Search className="w-4 h-4" />
               <span className="hidden sm:inline">Hitta</span>
             </TabsTrigger>
-            <TabsTrigger value="feedback" className="gap-2">
+            <TabsTrigger 
+              value="feedback" 
+              className={`gap-2 h-12 rounded-xl transition-all duration-200 ${
+                activeTab === 'feedback'
+                  ? 'bg-[#0F1513] text-[#2BA84A] ring-1 ring-[#2BA84A]/40'
+                  : 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
+              }`}
+            >
               <MessageSquare className="w-4 h-4" />
               <span className="hidden sm:inline">Feedback</span>
             </TabsTrigger>
-            <TabsTrigger value="cups" className="gap-2">
+            <TabsTrigger 
+              value="cups" 
+              className={`gap-2 h-12 rounded-xl transition-all duration-200 ${
+                activeTab === 'cups'
+                  ? 'bg-[#0F1513] text-[#F59E0B] ring-1 ring-[#F59E0B]/40'
+                  : 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]'
+              }`}
+            >
               <Trophy className="w-4 h-4" />
               <span className="hidden sm:inline">Cuper</span>
             </TabsTrigger>
@@ -453,8 +488,8 @@ export default function CommunityPage() {
                     <div className="text-center">
                       <MessageSquare className="w-16 h-16 text-[#2BA84A] mx-auto mb-4" />
                       <h3 className="text-2xl font-bold text-[#F4F7F5] mb-2">Feedback & Idéer</h3>
-                      <p className="text-[#B6C2BC] mb-4">Dela dina tankar och hjälp oss förbättra AllPlay</p>
-                      <Badge className="bg-[#2BA84A]/20 text-[#2BA84A]">{feedbackCount} aktiva förslag</Badge>
+                      <p className="text-[#B6C2BC] mb-6">Dela dina tankar och hjälp oss förbättra AllPlay</p>
+                      <Badge className="bg-[#2BA84A]/20 text-[#2BA84A] px-6 py-3 text-base font-semibold">{feedbackCount} aktiva förslag</Badge>
                     </div>
                   </Card>
                 </Link>
@@ -478,7 +513,7 @@ export default function CommunityPage() {
         </Tabs>
       </div>
 
-      {/* Floating Create Team Button (only on teams tab) */}
+      {/* Floating Create Team Button - UPDATED: Better styling with subtle outline */}
       {activeTab === 'teams' && (
         <motion.button
           initial={{ scale: 0 }}
@@ -487,7 +522,7 @@ export default function CommunityPage() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowCreateTeamForm(true)}
-          className="fixed bottom-20 lg:bottom-8 right-4 lg:right-8 w-14 h-14 lg:w-16 lg:h-16 bg-[#2BA84A] hover:bg-[#248232] text-white rounded-full shadow-[0_8px_24px_rgba(43,168,74,0.4)] flex items-center justify-center z-40"
+          className="fixed bottom-20 lg:bottom-8 right-4 lg:right-8 w-14 h-14 lg:w-16 lg:h-16 bg-[#2BA84A] hover:bg-[#248232] text-white rounded-full shadow-[0_4px_16px_rgba(43,168,74,0.3)] ring-2 ring-[#2BA84A]/20 hover:ring-[#2BA84A]/40 flex items-center justify-center z-40 transition-all duration-200"
         >
           <Plus className="w-6 h-6 lg:w-7 lg:h-7" strokeWidth={2.5} />
         </motion.button>
