@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -15,10 +14,10 @@ import { useCustomDialog } from "../components/ui/custom-dialog";
 import { NoPlayersFound, NoTeamsFound } from "../components/ui/empty-state";
 
 const FriendsList = lazy(() => import("../components/community/FriendsList"));
-const TeamDiscovery = lazy(() => import("../components/community/TeamDiscovery"));
 const FindPlayers = lazy(() => import("../components/community/FindPlayers"));
 const CreateTeamForm = lazy(() => import("../components/teams/CreateTeamForm"));
 const CupsOverview = lazy(() => import("../components/community/CupsOverview"));
+const TeamDiscovery = lazy(() => import("../components/community/TeamDiscovery"));
 
 // Query keys
 const QUERY_KEYS = {
@@ -459,7 +458,7 @@ export default function CommunityPage() {
               </motion.div>
             </TabsContent>
 
-            {/* UPDATED: Cups Tab - Now shows full overview instead of link */}
+            {/* Cups Tab - Shows full overview */}
             <TabsContent key="cups" value="cups">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
