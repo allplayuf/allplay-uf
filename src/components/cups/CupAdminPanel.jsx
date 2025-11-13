@@ -17,7 +17,6 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
 
   const pendingParticipants = participants.filter(p => p.status === 'pending');
 
-  // Approve signup mutation
   const approveSignupMutation = useMutation({
     mutationFn: async (participantId) => {
       const response = await base44.functions.invoke('cups/manageSignup', {
@@ -36,7 +35,6 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
     }
   });
 
-  // Reject signup mutation
   const rejectSignupMutation = useMutation({
     mutationFn: async (participantId) => {
       const response = await base44.functions.invoke('cups/manageSignup', {
@@ -55,7 +53,6 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
     }
   });
 
-  // Create schedule mutation
   const createScheduleMutation = useMutation({
     mutationFn: async () => {
       const response = await base44.functions.invoke('cups/createSchedule', {
@@ -110,7 +107,6 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
     <>
       <DialogContainer />
       
-      {/* Edit Modal */}
       <AnimatePresence>
         {showEditModal && (
           <EditCupModal
@@ -121,103 +117,110 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
       </AnimatePresence>
       
       <div className="space-y-6">
-        {/* Header */}
-        <Card className="bg-gradient-to-r from-[#F59E0B]/10 to-[#D97706]/5 border border-[#F59E0B]/30 rounded-[20px] p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Shield className="w-8 h-8 text-[#F59E0B]" />
-              <div>
-                <h2 className="text-xl font-bold text-[#F4F7F5]">Admin Panel</h2>
-                <p className="text-sm text-[#B6C2BC]">Hantera turneringen</p>
+        
+        {/* Header with Edit Button */}
+        <Card className="bg-gradient-to-r from-[#FF7A3D]/10 to-[#F97316]/5 border-[#FF7A3D]/30 rounded-2xl">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-[#FF7A3D]/20 rounded-xl flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-[#FF7A3D]" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-[#FFFFFF]">Admin Panel</h2>
+                  <p className="text-sm text-[#9CA3AF]">Hantera turneringen</p>
+                </div>
               </div>
+              <Button
+                onClick={() => setShowEditModal(true)}
+                className="h-11 bg-[#FF7A3D] hover:bg-[#F97316] text-[#FFFFFF] gap-2 font-semibold"
+              >
+                <Edit className="w-4 h-4" />
+                <span className="hidden sm:inline">Redigera</span>
+              </Button>
             </div>
-            <Button
-              onClick={() => setShowEditModal(true)}
-              className="bg-[#F59E0B] hover:bg-[#D97706] text-white gap-2"
-            >
-              <Edit className="w-4 h-4" />
-              Redigera
-            </Button>
-          </div>
+          </CardContent>
         </Card>
 
         {/* Quick Actions */}
-        <Card className="bg-[#121715] border border-[#223029] rounded-[20px]">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold text-[#F4F7F5]">Snabbåtgärder</CardTitle>
+        <Card className="bg-[#1F2937] border-[#374151] rounded-2xl">
+          <CardHeader className="border-b border-[#374151]">
+            <CardTitle className="text-lg font-bold text-[#FFFFFF]">Snabbåtgärder</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="p-6 space-y-3">
             <Button
               onClick={handleCreateSchedule}
               disabled={createScheduleMutation.isPending || groups.length > 0}
-              className="w-full bg-[#F59E0B] hover:bg-[#D97706] text-white gap-2 h-11"
+              className="w-full h-12 bg-[#FF7A3D] hover:bg-[#F97316] text-[#FFFFFF] gap-2 font-semibold"
             >
-              <Calendar className="w-4 h-4" />
+              <Calendar className="w-5 h-5" />
               {groups.length > 0 ? 'Schema skapat ✓' : 'Skapa matchschema'}
             </Button>
 
             <Button
               variant="outline"
-              className="w-full border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] gap-2 h-11"
+              className="w-full h-12 border-[#374151] text-[#9CA3AF] hover:bg-[#374151] hover:text-[#FFFFFF] gap-2 font-semibold"
             >
-              <Bell className="w-4 h-4" />
+              <Bell className="w-5 h-5" />
               Skicka meddelande
             </Button>
           </CardContent>
         </Card>
 
         {/* Pending Signups */}
-        <Card className="bg-[#121715] border border-[#223029] rounded-[20px]">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold text-[#F4F7F5] flex items-center gap-2">
-              <Users className="w-5 h-5 text-[#F59E0B]" />
+        <Card className="bg-[#1F2937] border-[#374151] rounded-2xl">
+          <CardHeader className="border-b border-[#374151]">
+            <CardTitle className="text-lg font-bold text-[#FFFFFF] flex items-center gap-2">
+              <Users className="w-5 h-5 text-[#FF7A3D]" />
               Väntande anmälningar ({pendingParticipants.length})
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             {pendingParticipants.length === 0 ? (
               <div className="text-center py-8">
-                <CheckCircle className="w-12 h-12 text-[#2BA84A] mx-auto mb-3" />
-                <p className="text-sm text-[#B6C2BC]">Inga väntande anmälningar</p>
+                <CheckCircle className="w-12 h-12 text-[#10B981] mx-auto mb-3" />
+                <p className="text-sm text-[#9CA3AF]">Inga väntande anmälningar</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {pendingParticipants.map((participant) => (
                   <div 
                     key={participant.id}
-                    className="flex items-center justify-between p-4 bg-[#18221E] rounded-xl border border-[#223029]"
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-[#0E0F10] rounded-xl border border-[#374151]"
                   >
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-semibold text-[#F4F7F5] truncate">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="text-sm font-semibold text-[#FFFFFF] truncate">
                           {participant.team?.name || participant.user?.full_name || 'Deltagare'}
                         </span>
-                        <Badge className="bg-[#F59E0B]/20 text-[#FCD34D] border-[#F59E0B]/30 text-xs flex-shrink-0">
+                        <Badge className="bg-[#FF7A3D]/20 text-[#FF7A3D] border-0 text-xs flex-shrink-0 h-5 px-2">
                           {participant.signup_type === 'team' ? 'Lag' : 'Solo'}
                         </Badge>
                       </div>
                       {participant.notes && (
-                        <p className="text-xs text-[#B6C2BC] truncate">{participant.notes}</p>
+                        <p className="text-xs text-[#9CA3AF] line-clamp-2">{participant.notes}</p>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2 ml-3">
+                    <div className="flex items-center gap-3">
                       <Button
                         size="sm"
                         onClick={() => handleApprove(participant.id)}
                         disabled={approveSignupMutation.isPending}
-                        className="bg-[#2BA84A] hover:bg-[#248232] text-white h-9"
+                        className="h-10 bg-[#10B981] hover:bg-[#059669] text-[#FFFFFF] font-semibold flex-1 sm:flex-initial"
                       >
-                        <CheckCircle className="w-4 h-4" />
+                        <CheckCircle className="w-4 h-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Godkänn</span>
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => handleReject(participant.id)}
                         disabled={rejectSignupMutation.isPending}
-                        className="border-[#DC2626] text-[#DC2626] hover:bg-[#DC2626]/10 h-9"
+                        className="h-10 border-[#EF4444] text-[#EF4444] hover:bg-[#EF4444]/10 font-semibold flex-1 sm:flex-initial"
                       >
-                        <XCircle className="w-4 h-4" />
+                        <XCircle className="w-4 h-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Neka</span>
                       </Button>
                     </div>
                   </div>
@@ -228,32 +231,32 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
         </Card>
 
         {/* Tournament Stats */}
-        <Card className="bg-[#121715] border border-[#223029] rounded-[20px]">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold text-[#F4F7F5]">Statistik</CardTitle>
+        <Card className="bg-[#1F2937] border-[#374151] rounded-2xl">
+          <CardHeader className="border-b border-[#374151]">
+            <CardTitle className="text-lg font-bold text-[#FFFFFF]">Statistik</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-[#18221E] rounded-xl text-center">
-                <p className="text-2xl font-bold text-[#F4F7F5]">{participants.length}</p>
-                <p className="text-xs text-[#B6C2BC]">Totalt anmälda</p>
+              <div className="p-4 bg-[#0E0F10] rounded-xl text-center border border-[#374151]">
+                <p className="text-2xl font-bold text-[#FFFFFF] mb-1">{participants.length}</p>
+                <p className="text-xs text-[#9CA3AF] font-medium">Totalt anmälda</p>
               </div>
               
-              <div className="p-4 bg-[#18221E] rounded-xl text-center">
-                <p className="text-2xl font-bold text-[#2BA84A]">
+              <div className="p-4 bg-[#0E0F10] rounded-xl text-center border border-[#374151]">
+                <p className="text-2xl font-bold text-[#10B981] mb-1">
                   {participants.filter(p => p.status === 'confirmed').length}
                 </p>
-                <p className="text-xs text-[#B6C2BC]">Bekräftade</p>
+                <p className="text-xs text-[#9CA3AF] font-medium">Bekräftade</p>
               </div>
               
-              <div className="p-4 bg-[#18221E] rounded-xl text-center">
-                <p className="text-2xl font-bold text-[#F4F7F5]">{groups.length}</p>
-                <p className="text-xs text-[#B6C2BC]">Grupper</p>
+              <div className="p-4 bg-[#0E0F10] rounded-xl text-center border border-[#374151]">
+                <p className="text-2xl font-bold text-[#FFFFFF] mb-1">{groups.length}</p>
+                <p className="text-xs text-[#9CA3AF] font-medium">Grupper</p>
               </div>
               
-              <div className="p-4 bg-[#18221E] rounded-xl text-center">
-                <p className="text-2xl font-bold text-[#F4F7F5]">{matches.length}</p>
-                <p className="text-xs text-[#B6C2BC]">Matcher</p>
+              <div className="p-4 bg-[#0E0F10] rounded-xl text-center border border-[#374151]">
+                <p className="text-2xl font-bold text-[#FFFFFF] mb-1">{matches.length}</p>
+                <p className="text-xs text-[#9CA3AF] font-medium">Matcher</p>
               </div>
             </div>
           </CardContent>

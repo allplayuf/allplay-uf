@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,7 +33,6 @@ export default function EditCupModal({ cup, onClose }) {
   const [logoPreview, setLogoPreview] = useState(cup.logo_url || '');
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
-  // Handle logo upload
   const handleLogoChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -67,7 +65,6 @@ export default function EditCupModal({ cup, onClose }) {
     }
   };
 
-  // Update cup mutation
   const updateCupMutation = useMutation({
     mutationFn: async (updates) => {
       const response = await base44.functions.invoke('cups/updateCup', {
@@ -101,45 +98,45 @@ export default function EditCupModal({ cup, onClose }) {
   return (
     <>
       <DialogContainer />
-      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-end lg:items-center justify-center z-50 p-0">
+      <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-end lg:items-center justify-center z-[60] p-0">
         <motion.div
           initial={{ opacity: 0, y: 100, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 100, scale: 0.95 }}
           transition={{ duration: 0.3 }}
-          className="bg-[#121715] rounded-t-[20px] lg:rounded-[20px] w-full lg:max-w-3xl border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] h-[85vh] lg:h-auto lg:max-h-[85vh] mb-16 lg:mb-0 overflow-hidden"
+          className="bg-[#1F2937] rounded-t-[20px] lg:rounded-2xl w-full lg:max-w-2xl border border-[#374151] shadow-2xl h-[90vh] lg:h-auto lg:max-h-[90vh] mb-16 lg:mb-0 overflow-hidden flex flex-col"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-[#223029] bg-gradient-to-r from-[#F59E0B]/10 to-[#D97706]/5">
+          <div className="flex items-center justify-between p-6 border-b border-[#374151] bg-gradient-to-r from-[#FF7A3D]/10 to-[#F97316]/5 flex-shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#F59E0B]/20 rounded-xl flex items-center justify-center">
-                <Trophy className="w-5 h-5 text-[#F59E0B]" />
+              <div className="w-12 h-12 bg-[#FF7A3D]/20 rounded-xl flex items-center justify-center">
+                <Trophy className="w-6 h-6 text-[#FF7A3D]" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-[#F4F7F5]">Redigera Turnering</h2>
-                <p className="text-xs text-[#B6C2BC]">Uppdatera turneringsinformation</p>
+                <h2 className="text-lg font-bold text-[#FFFFFF]">Redigera Turnering</h2>
+                <p className="text-xs text-[#9CA3AF]">Uppdatera turneringsinformation</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#18221E] transition-colors text-[#B6C2BC] hover:text-[#F4F7F5]"
+              className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-[#374151] transition-colors text-[#9CA3AF] hover:text-[#FFFFFF]"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[calc(85vh-140px)] lg:max-h-[calc(85vh-80px)] space-y-6">
+          {/* Form - Scrollable */}
+          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
             
             {/* Logo */}
-            <div className="space-y-2">
-              <Label className="text-[#F4F7F5] font-semibold flex items-center gap-2">
-                <ImageIcon className="w-4 h-4 text-[#F59E0B]" />
+            <div className="space-y-3">
+              <Label className="text-[#FFFFFF] font-semibold flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-[#FF7A3D]" />
                 Turneringslogga
               </Label>
               <div className="flex items-center gap-4">
                 {logoPreview && (
-                  <div className="w-20 h-20 rounded-xl overflow-hidden border-2 border-[#F59E0B]/30 flex-shrink-0">
+                  <div className="w-20 h-20 rounded-xl overflow-hidden border-2 border-[#FF7A3D]/30 flex-shrink-0">
                     <img src={logoPreview} alt="Logo" className="w-full h-full object-cover" />
                   </div>
                 )}
@@ -155,7 +152,7 @@ export default function EditCupModal({ cup, onClose }) {
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full border-[#F59E0B]/30 text-[#F59E0B] hover:bg-[#F59E0B]/10 gap-2"
+                      className="w-full h-11 border-[#FF7A3D]/50 text-[#FF7A3D] hover:bg-[#FF7A3D]/10 gap-2 font-semibold"
                       disabled={uploadingLogo}
                       onClick={(e) => {
                         e.preventDefault();
@@ -172,32 +169,32 @@ export default function EditCupModal({ cup, onClose }) {
 
             {/* Name */}
             <div className="space-y-2">
-              <Label className="text-[#F4F7F5] font-semibold">Turneringsnamn *</Label>
+              <Label className="text-[#FFFFFF] font-semibold">Turneringsnamn *</Label>
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30"
+                className="h-11 bg-[#0E0F10] border-[#374151] text-[#FFFFFF] focus:border-[#FF7A3D] focus:ring-1 focus:ring-[#FF7A3D]/30"
                 required
               />
             </div>
 
             {/* Description */}
             <div className="space-y-2">
-              <Label className="text-[#F4F7F5] font-semibold">Beskrivning</Label>
+              <Label className="text-[#FFFFFF] font-semibold">Beskrivning</Label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-24 focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30"
+                className="h-24 bg-[#0E0F10] border-[#374151] text-[#FFFFFF] focus:border-[#FF7A3D] focus:ring-1 focus:ring-[#FF7A3D]/30"
               />
             </div>
 
             {/* Location */}
             <div className="space-y-2">
-              <Label className="text-[#F4F7F5] font-semibold">Plats *</Label>
+              <Label className="text-[#FFFFFF] font-semibold">Plats *</Label>
               <Input
                 value={formData.location}
                 onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30"
+                className="h-11 bg-[#0E0F10] border-[#374151] text-[#FFFFFF] focus:border-[#FF7A3D] focus:ring-1 focus:ring-[#FF7A3D]/30"
                 required
               />
             </div>
@@ -205,22 +202,22 @@ export default function EditCupModal({ cup, onClose }) {
             {/* Date & Time */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[#F4F7F5] font-semibold">Startdatum *</Label>
+                <Label className="text-[#FFFFFF] font-semibold">Startdatum *</Label>
                 <Input
                   type="date"
                   value={formData.start_date}
                   onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
-                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30"
+                  className="h-11 bg-[#0E0F10] border-[#374151] text-[#FFFFFF] focus:border-[#FF7A3D] focus:ring-1 focus:ring-[#FF7A3D]/30"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-[#F4F7F5] font-semibold">Starttid *</Label>
+                <Label className="text-[#FFFFFF] font-semibold">Starttid *</Label>
                 <Input
                   type="time"
                   value={formData.start_time}
                   onChange={(e) => setFormData(prev => ({ ...prev, start_time: e.target.value }))}
-                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30"
+                  className="h-11 bg-[#0E0F10] border-[#374151] text-[#FFFFFF] focus:border-[#FF7A3D] focus:ring-1 focus:ring-[#FF7A3D]/30"
                   required
                 />
               </div>
@@ -229,81 +226,81 @@ export default function EditCupModal({ cup, onClose }) {
             {/* Max Participants & Entry Fee */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[#F4F7F5] font-semibold">Max deltagare</Label>
+                <Label className="text-[#FFFFFF] font-semibold">Max deltagare</Label>
                 <Input
                   type="number"
                   min="4"
                   max="64"
                   value={formData.max_participants}
                   onChange={(e) => setFormData(prev => ({ ...prev, max_participants: parseInt(e.target.value) }))}
-                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30"
+                  className="h-11 bg-[#0E0F10] border-[#374151] text-[#FFFFFF] focus:border-[#FF7A3D] focus:ring-1 focus:ring-[#FF7A3D]/30"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-[#F4F7F5] font-semibold">Avgift (kr)</Label>
+                <Label className="text-[#FFFFFF] font-semibold">Avgift (kr)</Label>
                 <Input
                   type="number"
                   min="0"
                   value={formData.entry_fee}
                   onChange={(e) => setFormData(prev => ({ ...prev, entry_fee: parseInt(e.target.value) }))}
-                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30"
+                  className="h-11 bg-[#0E0F10] border-[#374151] text-[#FFFFFF] focus:border-[#FF7A3D] focus:ring-1 focus:ring-[#FF7A3D]/30"
                 />
               </div>
             </div>
 
             {/* Rules */}
             <div className="space-y-2">
-              <Label className="text-[#F4F7F5] font-semibold">Regler</Label>
+              <Label className="text-[#FFFFFF] font-semibold">Regler</Label>
               <Textarea
                 value={formData.rules}
                 onChange={(e) => setFormData(prev => ({ ...prev, rules: e.target.value }))}
-                className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-32 focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30"
+                className="h-32 bg-[#0E0F10] border-[#374151] text-[#FFFFFF] focus:border-[#FF7A3D] focus:ring-1 focus:ring-[#FF7A3D]/30"
               />
             </div>
 
             {/* Prize */}
             <div className="space-y-2">
-              <Label className="text-[#F4F7F5] font-semibold">Priser</Label>
+              <Label className="text-[#FFFFFF] font-semibold">Priser</Label>
               <Input
                 value={formData.prize}
                 onChange={(e) => setFormData(prev => ({ ...prev, prize: e.target.value }))}
-                className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30"
+                className="h-11 bg-[#0E0F10] border-[#374151] text-[#FFFFFF] focus:border-[#FF7A3D] focus:ring-1 focus:ring-[#FF7A3D]/30"
               />
             </div>
 
             {/* Public Switch */}
-            <div className="flex items-center justify-between p-4 bg-[#18221E] rounded-xl">
+            <div className="flex items-center justify-between p-4 bg-[#0E0F10] rounded-xl border border-[#374151]">
               <div>
-                <Label className="text-[#F4F7F5] font-semibold">Publik turnering</Label>
-                <p className="text-sm text-[#B6C2BC]">Synlig för alla användare</p>
+                <Label className="text-[#FFFFFF] font-semibold">Publik turnering</Label>
+                <p className="text-sm text-[#9CA3AF]">Synlig för alla användare</p>
               </div>
               <Switch
                 checked={formData.is_public}
                 onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_public: checked }))}
-                className="data-[state=checked]:bg-[#F59E0B]"
+                className="data-[state=checked]:bg-[#FF7A3D]"
               />
             </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-3 pt-4 border-t border-[#223029]">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                className="flex-1 border-[#223029] text-[#B6C2BC] hover:bg-[#18221E]"
-              >
-                Avbryt
-              </Button>
-              <Button
-                type="submit"
-                disabled={updateCupMutation.isPending || uploadingLogo}
-                className="flex-1 bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white gap-2 font-semibold"
-              >
-                <Save className="w-4 h-4" />
-                {updateCupMutation.isPending ? 'Sparar...' : 'Spara ändringar'}
-              </Button>
-            </div>
           </form>
+
+          {/* Footer Buttons */}
+          <div className="flex gap-3 p-6 border-t border-[#374151] flex-shrink-0 bg-[#1F2937]">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="flex-1 h-12 border-[#374151] text-[#9CA3AF] hover:bg-[#374151] hover:text-[#FFFFFF] font-semibold"
+            >
+              Avbryt
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={updateCupMutation.isPending || uploadingLogo}
+              className="flex-1 h-12 bg-[#FF7A3D] hover:bg-[#F97316] text-[#FFFFFF] gap-2 font-semibold shadow-lg"
+            >
+              <Save className="w-4 h-4" />
+              {updateCupMutation.isPending ? 'Sparar...' : 'Spara ändringar'}
+            </Button>
+          </div>
         </motion.div>
       </div>
     </>

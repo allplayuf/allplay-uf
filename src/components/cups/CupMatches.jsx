@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Clock, Trophy, Filter } from "lucide-react";
+import { Calendar, MapPin, Clock, Trophy, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
@@ -21,60 +20,72 @@ export default function CupMatches({ cup, matches, canManage }) {
 
   return (
     <div className="space-y-6">
-      {/* Header & Filters */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-[#F4F7F5] flex items-center gap-2">
-          <Trophy className="w-5 h-5 text-[#F4743B]" />
-          Matcher ({filteredMatches.length})
-        </h2>
+      
+      {/* Header with Clean Tab Bar */}
+      <Card className="bg-[#1F2937] border-[#374151] rounded-2xl">
+        <CardContent className="p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <h2 className="text-xl font-bold text-[#FFFFFF] flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-[#FF7A3D]" />
+              Matcher ({filteredMatches.length})
+            </h2>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant={filter === 'all' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setFilter('all')}
-            className={filter === 'all' ? 'bg-[#F4743B] hover:bg-[#E5683A]' : 'border-[#223029] text-[#B6C2BC]'}
-          >
-            Alla
-          </Button>
-          <Button
-            variant={filter === 'upcoming' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setFilter('upcoming')}
-            className={filter === 'upcoming' ? 'bg-[#F4743B] hover:bg-[#E5683A]' : 'border-[#223029] text-[#B6C2BC]'}
-          >
-            Kommande ({upcomingCount})
-          </Button>
-          <Button
-            variant={filter === 'completed' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setFilter('completed')}
-            className={filter === 'completed' ? 'bg-[#F4743B] hover:bg-[#E5683A]' : 'border-[#223029] text-[#B6C2BC]'}
-          >
-            Spelade ({completedCount})
-          </Button>
-        </div>
-      </div>
+            {/* Filter Tabs - ALIGNED & CLEAN */}
+            <div className="flex items-center gap-2 bg-[#0E0F10] p-1 rounded-xl">
+              <button
+                onClick={() => setFilter('all')}
+                className={`h-9 px-4 rounded-lg text-sm font-semibold transition-all ${
+                  filter === 'all'
+                    ? 'bg-[#FF7A3D] text-[#FFFFFF] shadow-lg'
+                    : 'text-[#9CA3AF] hover:text-[#FFFFFF]'
+                }`}
+              >
+                Alla
+              </button>
+              <button
+                onClick={() => setFilter('upcoming')}
+                className={`h-9 px-4 rounded-lg text-sm font-semibold transition-all ${
+                  filter === 'upcoming'
+                    ? 'bg-[#FF7A3D] text-[#FFFFFF] shadow-lg'
+                    : 'text-[#9CA3AF] hover:text-[#FFFFFF]'
+                }`}
+              >
+                Kommande ({upcomingCount})
+              </button>
+              <button
+                onClick={() => setFilter('completed')}
+                className={`h-9 px-4 rounded-lg text-sm font-semibold transition-all ${
+                  filter === 'completed'
+                    ? 'bg-[#FF7A3D] text-[#FFFFFF] shadow-lg'
+                    : 'text-[#9CA3AF] hover:text-[#FFFFFF]'
+                }`}
+              >
+                Spelade ({completedCount})
+              </button>
+            </div>
+          </div>
 
-      {/* Matches List */}
-      {filteredMatches.length === 0 ? (
-        <Card className="bg-[#121715] border border-[#223029] rounded-[20px] p-12 text-center">
-          <Trophy className="w-16 h-16 text-[#7B8A83] mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-[#F4F7F5] mb-2">Inga matcher än</h3>
-          <p className="text-[#B6C2BC]">Matcher kommer att skapas när schemat genereras.</p>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {filteredMatches.map((match, index) => (
-            <MatchCard 
-              key={match.id} 
-              match={match} 
-              index={index}
-              canManage={canManage}
-            />
-          ))}
-        </div>
-      )}
+          {/* Matches List */}
+          {filteredMatches.length === 0 ? (
+            <div className="text-center py-12">
+              <Trophy className="w-16 h-16 text-[#4B5563] mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-[#FFFFFF] mb-2">Inga matcher än</h3>
+              <p className="text-[#9CA3AF]">Matcher kommer att skapas när schemat genereras.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredMatches.map((match, index) => (
+                <MatchCard 
+                  key={match.id} 
+                  match={match} 
+                  index={index}
+                  canManage={canManage}
+                />
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -85,6 +96,7 @@ function MatchCard({ match, index, canManage }) {
 
   const stageLabels = {
     group: 'Grupp',
+    round_of_16: 'Åttondelsfinal',
     quarterfinal: 'Kvartsfinal',
     semifinal: 'Semifinal',
     final: 'Final',
@@ -93,83 +105,84 @@ function MatchCard({ match, index, canManage }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.05 }}
+      transition={{ duration: 0.2, delay: index * 0.03 }}
     >
-      <Link to={`${createPageUrl("MatchDetail")}?id=${match.match_id}`}>
-        <Card className="bg-[#121715] border border-[#223029] hover:border-[#F4743B]/30 rounded-[16px] transition-all group">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2 flex-wrap">
-                <Badge className="bg-[#F4743B]/20 text-[#F4743B] border-[#F4743B]/30 text-xs">
-                  {stageLabels[match.stage] || match.stage}
+      <Link to={match.match_id ? `${createPageUrl("MatchDetail")}?id=${match.match_id}` : '#'}>
+        <div className="bg-[#0E0F10] border border-[#374151] hover:border-[#FF7A3D]/50 rounded-xl transition-all group p-4">
+          
+          {/* Header Row */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge className="bg-[#FF7A3D]/20 text-[#FF7A3D] border-0 text-xs font-semibold h-6 px-3">
+                {stageLabels[match.stage] || match.stage}
+              </Badge>
+              {isLive && (
+                <Badge className="bg-[#EF4444]/20 text-[#EF4444] border-0 text-xs font-semibold h-6 px-3 flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 bg-[#EF4444] rounded-full animate-pulse"></div>
+                  LIVE
                 </Badge>
-                {isLive && (
-                  <Badge className="bg-[#FF6B35]/20 text-[#FF6B35] border-[#FF6B35]/30 text-xs animate-pulse">
-                    🔴 LIVE
-                  </Badge>
+              )}
+            </div>
+
+            {hasResult && (
+              <div className="flex items-center gap-2 text-xs">
+                {match.extra_time && (
+                  <span className="text-[#FFA500] font-semibold">EF</span>
+                )}
+                {match.penalties && (
+                  <span className="text-[#EF4444] font-semibold">STR</span>
                 )}
               </div>
+            )}
+          </div>
 
+          {/* Teams */}
+          <div className="space-y-2 mb-4">
+            <div className="flex items-center justify-between p-3 bg-[#1F2937] rounded-lg">
+              <span className="text-sm font-semibold text-[#FFFFFF] truncate">
+                {match.team_a_name || 'Lag A'}
+              </span>
               {hasResult && (
-                <div className="flex items-center gap-2">
-                  {match.extra_time && (
-                    <span className="text-xs text-[#FFA500]">EF</span>
-                  )}
-                  {match.penalties && (
-                    <span className="text-xs text-[#FF6B35]">STR</span>
-                  )}
-                </div>
+                <span className="text-lg font-bold text-[#FFFFFF] ml-2">{match.team_a_score}</span>
               )}
             </div>
 
-            {/* Teams */}
-            <div className="space-y-2 mb-3">
-              <div className="flex items-center justify-between p-3 bg-[#18221E] rounded-lg">
-                <span className="text-sm font-semibold text-[#F4F7F5]">
-                  {match.team_a_name || 'Lag A'}
-                </span>
-                {hasResult && (
-                  <span className="text-lg font-bold text-[#F4F7F5]">{match.team_a_score}</span>
-                )}
+            <div className="text-center text-xs text-[#6B7280] font-semibold">VS</div>
+
+            <div className="flex items-center justify-between p-3 bg-[#1F2937] rounded-lg">
+              <span className="text-sm font-semibold text-[#FFFFFF] truncate">
+                {match.team_b_name || 'Lag B'}
+              </span>
+              {hasResult && (
+                <span className="text-lg font-bold text-[#FFFFFF] ml-2">{match.team_b_score}</span>
+              )}
+            </div>
+          </div>
+
+          {/* Match Info */}
+          <div className="flex flex-wrap items-center gap-3 text-xs text-[#9CA3AF]">
+            {match.date && (
+              <div className="flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5" />
+                {new Date(match.date).toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' })}
               </div>
-
-              <div className="text-center text-xs text-[#7B8A83]">vs</div>
-
-              <div className="flex items-center justify-between p-3 bg-[#18221E] rounded-lg">
-                <span className="text-sm font-semibold text-[#F4F7F5]">
-                  {match.team_b_name || 'Lag B'}
-                </span>
-                {hasResult && (
-                  <span className="text-lg font-bold text-[#F4F7F5]">{match.team_b_score}</span>
-                )}
+            )}
+            {match.time && (
+              <div className="flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5" />
+                {match.time}
               </div>
-            </div>
-
-            {/* Match Info */}
-            <div className="flex flex-wrap items-center gap-3 text-xs text-[#B6C2BC]">
-              {match.date && (
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  {new Date(match.date).toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' })}
-                </div>
-              )}
-              {match.time && (
-                <div className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  {match.time}
-                </div>
-              )}
-              {match.venue_name && (
-                <div className="flex items-center gap-1">
-                  <MapPin className="w-3 h-3" />
-                  {match.venue_name}
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+            )}
+            {match.venue_name && (
+              <div className="flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5" />
+                <span className="truncate">{match.venue_name}</span>
+              </div>
+            )}
+          </div>
+        </div>
       </Link>
     </motion.div>
   );
