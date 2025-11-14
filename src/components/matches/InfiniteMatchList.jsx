@@ -2,8 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import MatchCard from './MatchCard';
 import { MatchCardSkeleton } from '../ui/loading-skeleton';
-import { StaggeredList } from '../ui/page-transition';
-import { motion } from 'framer-motion';
 
 export default function InfiniteMatchList({ 
   data, 
@@ -19,7 +17,6 @@ export default function InfiniteMatchList({
 }) {
   const loadMoreRef = useRef(null);
 
-  // Intersection Observer for infinite scroll
   useEffect(() => {
     if (!loadMoreRef.current || !hasNextPage || isFetchingNextPage) return;
 
@@ -59,7 +56,7 @@ export default function InfiniteMatchList({
 
   return (
     <div className="space-y-4">
-      <StaggeredList className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {allMatches.map((match, index) => {
           if (!match) return null;
           
@@ -76,25 +73,14 @@ export default function InfiniteMatchList({
             />
           );
         })}
-      </StaggeredList>
+      </div>
 
-      {/* Enhanced Load more trigger with skeleton preview */}
       <div ref={loadMoreRef} className="py-8" style={{ minHeight: '64px' }}>
         {isFetchingNextPage && (
-          <div className="space-y-4">
-            {/* Skeleton loader for next matches */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[...Array(2)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: i * 0.1 }}
-                >
-                  <MatchCardSkeleton />
-                </motion.div>
-              ))}
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[...Array(2)].map((_, i) => (
+              <MatchCardSkeleton key={i} />
+            ))}
           </div>
         )}
         
