@@ -191,7 +191,7 @@ export default function MapView({
           />
         )}
 
-        {/* Venue markers - ENHANCED POP-UP */}
+        {/* Venue markers - ULTIMATE ENHANCED POP-UP */}
         {validVenues.map((venue) => {
           const { status, hasUserMatch } = venueStatuses[venue.id] || { status: 'available', hasUserMatch: false };
           const venueMatches = matches.filter(m => m.venue_id === venue.id && m.status === 'upcoming');
@@ -208,8 +208,8 @@ export default function MapView({
             >
               <Popup 
                 className="venue-popup"
-                maxWidth={320}
-                minWidth={280}
+                maxWidth={340}
+                minWidth={300}
                 closeButton={true}
                 autoPan={true}
                 autoPanPadding={[50, 50]}
@@ -295,18 +295,25 @@ export default function MapView({
                     </div>
                   </div>
 
-                  {/* Action Buttons - MATCHING DESIGN FROM IMAGE */}
+                  {/* Action Buttons - REDESIGNED & IMPROVED */}
                   <div className="action-buttons">
                     <button
                       onClick={() => handleMarkerClick(venue)}
                       className="btn-details"
                     >
+                      <svg className="btn-icon" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                      </svg>
                       Visa detaljer
                     </button>
                     <Link
                       to={`${createPageUrl("Matches")}?create=true&venue=${venue.id}`}
                       className="btn-create"
                     >
+                      <svg className="btn-icon-create" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                      </svg>
                       Skapa match
                     </Link>
                   </div>
@@ -317,20 +324,22 @@ export default function MapView({
         })}
       </MapContainer>
 
-      {/* Enhanced CSS for popup matching the design */}
+      {/* ULTIMATE Enhanced CSS for popup */}
       <style jsx global>{`
         .custom-map-marker {
           background: none;
           border: none;
         }
         
-        /* Popup container */
+        /* Popup container - Enhanced shadow & border */
         .venue-popup .leaflet-popup-content-wrapper {
-          background: #1a1f1e;
-          border: none;
-          border-radius: 20px;
+          background: linear-gradient(145deg, #1F2421 0%, #161A18 100%);
+          border: 1px solid rgba(43, 168, 74, 0.15);
+          border-radius: 24px;
           padding: 0;
-          box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+          box-shadow: 
+            0 20px 60px rgba(0,0,0,0.7),
+            0 0 0 1px rgba(255,255,255,0.05) inset;
           overflow: hidden;
         }
         
@@ -340,221 +349,343 @@ export default function MapView({
         }
         
         .venue-popup .leaflet-popup-tip {
-          background: #1a1f1e;
+          background: linear-gradient(145deg, #1F2421 0%, #161A18 100%);
+          border: 1px solid rgba(43, 168, 74, 0.15);
         }
         
         .venue-popup a.leaflet-popup-close-button {
-          color: #9CA3AF;
-          font-size: 24px;
-          padding: 12px 16px;
+          color: #6B7280;
+          font-size: 26px;
+          padding: 14px 18px;
           font-weight: 300;
           z-index: 10;
+          transition: all 0.2s;
         }
         
         .venue-popup a.leaflet-popup-close-button:hover {
           color: #FFFFFF;
+          transform: rotate(90deg);
         }
         
-        /* Content */
+        /* Content - Better spacing */
         .venue-popup-content {
-          padding: 20px;
-          padding-top: 16px;
+          padding: 24px;
+          padding-top: 20px;
         }
         
         /* Header */
         .venue-header {
-          margin-bottom: 16px;
+          margin-bottom: 20px;
         }
         
         .venue-title-row {
           display: flex;
           align-items: flex-start;
           justify-content: space-between;
-          gap: 8px;
-          margin-bottom: 10px;
+          gap: 10px;
+          margin-bottom: 12px;
         }
         
         .venue-name {
-          font-size: 20px;
-          font-weight: 700;
+          font-size: 22px;
+          font-weight: 800;
           color: #FFFFFF;
-          line-height: 1.3;
+          line-height: 1.2;
           flex: 1;
+          letter-spacing: -0.02em;
         }
         
         .verified-badge {
           display: flex;
           align-items: center;
-          gap: 4px;
-          padding: 4px 8px;
-          background: rgba(34, 197, 94, 0.2);
-          border-radius: 12px;
+          gap: 5px;
+          padding: 5px 10px;
+          background: linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(34, 197, 94, 0.15));
+          border: 1px solid rgba(34, 197, 94, 0.3);
+          border-radius: 14px;
           flex-shrink: 0;
+          box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
         }
         
         .verified-icon {
-          width: 12px;
-          height: 12px;
+          width: 13px;
+          height: 13px;
           color: #22C55E;
         }
         
         .verified-badge span {
           font-size: 9px;
-          font-weight: 700;
-          color: #22C55E;
+          font-weight: 800;
+          color: #4ADE80;
           letter-spacing: 0.5px;
         }
         
         .venue-address {
           display: flex;
           align-items: center;
-          gap: 6px;
-          margin-bottom: 12px;
+          gap: 8px;
+          margin-bottom: 14px;
+          padding: 8px 12px;
+          background: rgba(255, 255, 255, 0.03);
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.05);
         }
         
         .address-icon {
-          width: 14px;
-          height: 14px;
-          color: #9CA3AF;
+          width: 15px;
+          height: 15px;
+          color: #6EE7B7;
           flex-shrink: 0;
         }
         
         .venue-address span {
           font-size: 13px;
-          color: #9CA3AF;
+          color: #D1D5DB;
           line-height: 1.4;
+          font-weight: 500;
         }
         
-        /* Facilities */
+        /* Facilities - Better design */
         .facilities {
           display: flex;
           flex-wrap: wrap;
           gap: 8px;
-          margin-bottom: 12px;
+          margin-bottom: 14px;
         }
         
         .facility-item {
           display: flex;
           align-items: center;
-          gap: 4px;
-          padding: 4px 10px;
-          background: rgba(255, 255, 255, 0.05);
-          border-radius: 8px;
+          gap: 5px;
+          padding: 6px 12px;
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 10px;
           font-size: 12px;
-          color: #D1D5DB;
+          color: #E5E7EB;
+          font-weight: 500;
+          transition: all 0.2s;
         }
         
-        /* Status Badge */
+        .facility-item:hover {
+          background: rgba(255, 255, 255, 0.1);
+          transform: translateY(-1px);
+        }
+        
+        /* Status Badge - Enhanced */
         .status-badge-container {
-          margin-top: 12px;
+          margin-top: 14px;
         }
         
         .status-badge {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          padding: 8px 14px;
-          border-radius: 12px;
+          gap: 7px;
+          padding: 10px 16px;
+          border-radius: 14px;
           font-size: 13px;
-          font-weight: 600;
+          font-weight: 700;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+          border: 1px solid;
         }
         
         .status-icon {
-          width: 14px;
-          height: 14px;
+          width: 15px;
+          height: 15px;
         }
         
         .status-ongoing {
-          background: rgba(251, 191, 36, 0.15);
+          background: linear-gradient(135deg, rgba(251, 191, 36, 0.20), rgba(251, 191, 36, 0.10));
           color: #FCD34D;
+          border-color: rgba(251, 191, 36, 0.3);
         }
         
         .status-pulse {
-          width: 8px;
-          height: 8px;
+          width: 9px;
+          height: 9px;
           background: #FCD34D;
           border-radius: 50%;
           animation: pulse 2s infinite;
+          box-shadow: 0 0 8px rgba(252, 211, 77, 0.6);
         }
         
         .status-user-match {
-          background: rgba(59, 130, 246, 0.15);
+          background: linear-gradient(135deg, rgba(59, 130, 246, 0.20), rgba(59, 130, 246, 0.10));
           color: #93C5FD;
+          border-color: rgba(59, 130, 246, 0.3);
         }
         
         .status-has-matches {
-          background: rgba(249, 115, 22, 0.15);
+          background: linear-gradient(135deg, rgba(249, 115, 22, 0.20), rgba(249, 115, 22, 0.10));
           color: #FB923C;
+          border-color: rgba(249, 115, 22, 0.3);
         }
         
         .status-available {
-          background: rgba(34, 197, 94, 0.15);
+          background: linear-gradient(135deg, rgba(34, 197, 94, 0.20), rgba(34, 197, 94, 0.10));
           color: #86EFAC;
+          border-color: rgba(34, 197, 94, 0.3);
         }
         
         @keyframes pulse {
           0%, 100% {
             opacity: 1;
+            transform: scale(1);
           }
           50% {
-            opacity: 0.5;
+            opacity: 0.6;
+            transform: scale(0.9);
           }
         }
         
-        /* Action Buttons - MATCHING DESIGN */
+        /* Action Buttons - ULTIMATE REDESIGN */
         .action-buttons {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 10px;
-          margin-top: 16px;
+          gap: 12px;
+          margin-top: 20px;
         }
         
         .btn-details {
-          padding: 12px 16px;
-          background: #2BA84A;
+          position: relative;
+          padding: 14px 18px;
+          background: linear-gradient(135deg, #2BA84A 0%, #248232 100%);
           color: #FFFFFF;
           border: none;
-          border-radius: 12px;
+          border-radius: 16px;
           font-size: 14px;
-          font-weight: 600;
+          font-weight: 700;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           text-align: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          box-shadow: 
+            0 4px 14px rgba(43, 168, 74, 0.4),
+            0 2px 4px rgba(0, 0, 0, 0.2) inset;
+          overflow: hidden;
+        }
+        
+        .btn-details::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
+          opacity: 0;
+          transition: opacity 0.3s;
+        }
+        
+        .btn-details:hover::before {
+          opacity: 1;
         }
         
         .btn-details:hover {
-          background: #248232;
-          transform: translateY(-1px);
+          transform: translateY(-2px);
+          box-shadow: 
+            0 6px 20px rgba(43, 168, 74, 0.5),
+            0 2px 4px rgba(0, 0, 0, 0.2) inset;
         }
         
         .btn-details:active {
           transform: translateY(0);
         }
         
+        .btn-icon {
+          width: 16px;
+          height: 16px;
+          transition: transform 0.3s;
+        }
+        
+        .btn-details:hover .btn-icon {
+          transform: rotate(12deg) scale(1.1);
+        }
+        
         .btn-create {
-          padding: 12px 16px;
-          background: #F4743B;
+          position: relative;
+          padding: 14px 18px;
+          background: linear-gradient(135deg, #F4743B 0%, #E5683A 100%);
           color: #FFFFFF;
           border: none;
-          border-radius: 12px;
+          border-radius: 16px;
           font-size: 14px;
-          font-weight: 600;
+          font-weight: 700;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           text-align: center;
           text-decoration: none;
           display: flex;
           align-items: center;
           justify-content: center;
+          gap: 8px;
+          box-shadow: 
+            0 4px 14px rgba(244, 116, 59, 0.5),
+            0 2px 4px rgba(0, 0, 0, 0.2) inset,
+            0 0 0 2px rgba(255, 255, 255, 0.1) inset;
+          overflow: hidden;
+        }
+        
+        .btn-create::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 100%);
+          opacity: 0;
+          transition: opacity 0.3s;
+        }
+        
+        .btn-create:hover::before {
+          opacity: 1;
+        }
+        
+        .btn-create::after {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 0;
+          height: 0;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.3);
+          transform: translate(-50%, -50%);
+          transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn-create:active::after {
+          width: 300px;
+          height: 300px;
+          opacity: 0;
+          transition: 0s;
         }
         
         .btn-create:hover {
-          background: #E5683A;
-          transform: translateY(-1px);
+          transform: translateY(-2px) scale(1.02);
+          box-shadow: 
+            0 8px 24px rgba(244, 116, 59, 0.6),
+            0 2px 4px rgba(0, 0, 0, 0.2) inset,
+            0 0 0 2px rgba(255, 255, 255, 0.15) inset;
         }
         
         .btn-create:active {
-          transform: translateY(0);
+          transform: translateY(0) scale(0.98);
+        }
+        
+        .btn-icon-create {
+          width: 18px;
+          height: 18px;
+          transition: transform 0.3s;
+          filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+        }
+        
+        .btn-create:hover .btn-icon-create {
+          transform: rotate(90deg) scale(1.1);
         }
         
         /* Mobile optimizations */
@@ -564,26 +695,34 @@ export default function MapView({
           }
           
           .venue-popup .leaflet-popup-content-wrapper {
-            max-width: 90vw;
-            border-radius: 16px;
+            max-width: 92vw;
+            border-radius: 20px;
           }
           
           .venue-popup-content {
-            padding: 16px;
+            padding: 20px;
+            padding-top: 16px;
           }
           
           .venue-name {
-            font-size: 18px;
+            font-size: 19px;
           }
           
           .action-buttons {
-            gap: 8px;
+            gap: 10px;
           }
           
           .btn-details,
           .btn-create {
-            padding: 10px 12px;
+            padding: 12px 14px;
             font-size: 13px;
+            border-radius: 14px;
+          }
+          
+          .btn-icon,
+          .btn-icon-create {
+            width: 15px;
+            height: 15px;
           }
         }
       `}</style>
