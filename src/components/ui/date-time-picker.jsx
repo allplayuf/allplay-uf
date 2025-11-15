@@ -37,7 +37,7 @@ export function DatePicker({ value, onChange, minDate, maxDate, disabled = false
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 bg-[#121715] border border-[#223029] rounded-[16px]" align="start">
+      <PopoverContent className="w-auto p-0 bg-[#121715] border border-[#223029] rounded-[16px] calendar-white-text" align="start">
         <Calendar
           mode="single"
           selected={selectedDate}
@@ -56,12 +56,12 @@ export function DatePicker({ value, onChange, minDate, maxDate, disabled = false
   );
 }
 
-export function TimePicker({ value, onChange, disabled = false, placeholder = "Välj tid", minTime, maxTime }) {
+export function TimePicker({ value, onChange, disabled = false, placeholder = "Välj tid", minTime = "07:00", maxTime = "23:00" }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  // Generate time options (every 15 minutes)
+  // Generate time options (every 15 minutes) between 07:00 and 23:00
   const timeOptions = [];
-  for (let hour = 0; hour < 24; hour++) {
+  for (let hour = 7; hour <= 23; hour++) {
     for (let minute = 0; minute < 60; minute += 15) {
       const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
       
@@ -111,29 +111,139 @@ export function TimePicker({ value, onChange, disabled = false, placeholder = "V
   );
 }
 
-export function DateTimePicker({ date, time, onDateChange, onTimeChange, minDate, maxDate, minTime, maxTime, disabled = false }) {
+export function DateTimePicker({ date, time, onDateChange, onTimeChange, minDate, maxDate, minTime = "07:00", maxTime = "23:00", disabled = false }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <div className="space-y-2">
-        <DatePicker
-          value={date}
-          onChange={onDateChange}
-          minDate={minDate}
-          maxDate={maxDate}
-          disabled={disabled}
-          placeholder="Välj datum"
-        />
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-2">
+          <DatePicker
+            value={date}
+            onChange={onDateChange}
+            minDate={minDate}
+            maxDate={maxDate}
+            disabled={disabled}
+            placeholder="Välj datum"
+          />
+        </div>
+        <div className="space-y-2">
+          <TimePicker
+            value={time}
+            onChange={onTimeChange}
+            minTime={minTime}
+            maxTime={maxTime}
+            disabled={disabled}
+            placeholder="Välj tid"
+          />
+        </div>
       </div>
-      <div className="space-y-2">
-        <TimePicker
-          value={time}
-          onChange={onTimeChange}
-          minTime={minTime}
-          maxTime={maxTime}
-          disabled={disabled}
-          placeholder="Välj tid"
-        />
-      </div>
-    </div>
+
+      {/* Calendar white text styling */}
+      <style jsx global>{`
+        .calendar-white-text .rdp {
+          --rdp-cell-size: 40px;
+          --rdp-accent-color: #2BA84A;
+          --rdp-background-color: rgba(43, 168, 74, 0.1);
+        }
+
+        .calendar-white-text .rdp-months {
+          display: flex;
+          justify-content: center;
+        }
+
+        .calendar-white-text .rdp-month {
+          margin: 1rem;
+        }
+
+        .calendar-white-text .rdp-caption {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding: 0.5rem 0;
+          margin-bottom: 0.5rem;
+        }
+
+        .calendar-white-text .rdp-caption_label {
+          font-size: 0.9rem;
+          font-weight: 600;
+          color: #F4F7F5;
+        }
+
+        .calendar-white-text .rdp-nav {
+          display: flex;
+          gap: 0.5rem;
+        }
+
+        .calendar-white-text .rdp-nav_button {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          color: #F4F7F5;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .calendar-white-text .rdp-nav_button:hover {
+          background: rgba(43, 168, 74, 0.1);
+          color: #2BA84A;
+        }
+
+        .calendar-white-text .rdp-head_cell {
+          font-size: 0.75rem;
+          font-weight: 600;
+          text-align: center;
+          padding: 0.5rem 0;
+          color: #F4F7F5;
+          text-transform: uppercase;
+        }
+
+        .calendar-white-text .rdp-cell {
+          text-align: center;
+          padding: 0;
+        }
+
+        .calendar-white-text .rdp-day {
+          width: var(--rdp-cell-size);
+          height: var(--rdp-cell-size);
+          border-radius: 8px;
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #F4F7F5;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .calendar-white-text .rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled) {
+          background: rgba(43, 168, 74, 0.1);
+          color: #2BA84A;
+        }
+
+        .calendar-white-text .rdp-day_selected {
+          background: #2BA84A !important;
+          color: #FFFFFF !important;
+          font-weight: 600;
+        }
+
+        .calendar-white-text .rdp-day_today:not(.rdp-day_selected) {
+          background: rgba(43, 168, 74, 0.15);
+          color: #2BA84A;
+          font-weight: 600;
+        }
+
+        .calendar-white-text .rdp-day_disabled {
+          color: #4B5563;
+          cursor: not-allowed;
+          opacity: 0.4;
+        }
+
+        .calendar-white-text .rdp-day_outside {
+          color: #6B7280;
+          opacity: 0.5;
+        }
+      `}</style>
+    </>
   );
 }
