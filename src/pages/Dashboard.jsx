@@ -17,7 +17,11 @@ import {
   Target,
   Clock,
   X,
-  Plus
+  Plus,
+  Zap,
+  TrendingUp,
+  Star,
+  Sparkles
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -165,7 +169,6 @@ export default function Dashboard() {
 
       setShowCreateMatchModal(false);
       
-      // Invalidate relevant queries to refetch data
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.matches });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.participants });
       
@@ -348,161 +351,313 @@ export default function Dashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        {/* Hero Card with Animation */}
+        {/* ULTIMATE HERO CARD - REDESIGNED */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative overflow-hidden bg-gradient-to-br from-[#2BA84A] to-[#0F2917] rounded-[16px] lg:rounded-[20px] p-5 sm:p-6 lg:p-8 shadow-[0_6px_18px_rgba(0,0,0,0.22)]"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+          className="relative overflow-hidden rounded-[24px] shadow-[0_20px_60px_rgba(0,0,0,0.4)]"
         >
-          {/* Overlay circles */}
-          <div className="absolute bottom-[-40px] left-[-40px] w-32 h-32 bg-[#0F2917]/60 rounded-full"></div>
-          <div className="absolute top-[-30px] right-[-30px] w-28 h-28 bg-[#2BA84A]/40 rounded-full"></div>
+          {/* Animated Background Gradient */}
+          <motion.div
+            className="absolute inset-0"
+            animate={{
+              background: [
+                'linear-gradient(135deg, #2BA84A 0%, #0F2917 100%)',
+                'linear-gradient(135deg, #248232 0%, #1A5C2E 100%)',
+                'linear-gradient(135deg, #2BA84A 0%, #0F2917 100%)',
+              ]
+            }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          />
 
-          <div className="relative z-10 space-y-5">
-            {/* Welcome */}
-            <div className="flex items-center gap-3">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-[#FFFFFF]/15 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-[#FFFFFF]/25 flex-shrink-0">
-                {user?.profile_image_url ? (
-                  <img src={user.profile_image_url} alt="Profile" className="w-full h-full object-cover rounded-2xl" loading="lazy" />
-                ) : (
-                  <span className="text-xl sm:text-2xl lg:text-3xl font-semibold text-[#EAF6EE]">
-                    {user?.full_name?.[0] || 'U'}
-                  </span>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h1 className="text-xl sm:text-2xl lg:text-[28px] lg:leading-[34px] font-semibold text-[#EAF6EE] mb-1">
-                  Hej {user?.full_name?.split(' ')[0]}! ⚽
-                </h1>
-                <p className="text-[#CFE8D6] text-xs sm:text-sm lg:text-base">Redo för nästa match?</p>
-              </div>
-            </div>
+          {/* Animated Orbs */}
+          <motion.div
+            className="absolute top-[-100px] right-[-100px] w-64 h-64 rounded-full"
+            style={{ background: 'radial-gradient(circle, rgba(43,168,74,0.4) 0%, transparent 70%)' }}
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.5, 0.3],
+            }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="absolute bottom-[-80px] left-[-80px] w-48 h-48 rounded-full"
+            style={{ background: 'radial-gradient(circle, rgba(15,41,23,0.6) 0%, transparent 70%)' }}
+            animate={{
+              scale: [1, 1.3, 1],
+              opacity: [0.4, 0.6, 0.4],
+            }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          />
 
-            {/* Stats - OPTIMIZED FOR MOBILE */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-3">
-              <div className="bg-[#FFFFFF]/10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#FFFFFF]/20 text-center">
-                <div className="text-lg sm:text-xl font-semibold text-[#EAF6EE]">{user?.matches_played || 0}</div>
-                <div className="text-[11px] sm:text-[12px] font-normal text-[#CFE8D6]/70 mt-0.5">Matcher</div>
-              </div>
-              <div className="bg-[#FFFFFF]/10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#FFFFFF]/20 text-center">
-                <div className="text-lg sm:text-xl font-semibold text-[#F4743B]">{user?.mvp_count || 0}</div>
-                <div className="text-[11px] sm:text-[12px] font-normal text-[#CFE8D6]/70 mt-0.5">MVPs</div>
-              </div>
-              <div className="bg-[#FFFFFF]/10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-[#FFFFFF]/20 text-center">
-                <div className="text-lg sm:text-xl font-semibold text-[#EAF6EE] flex items-center justify-center gap-1">
-                  <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-[#F4743B]" />
-                  {user?.current_streak || 0}
+          {/* Floating Particles */}
+          {[...Array(6)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-white/20 rounded-full"
+              style={{
+                left: `${20 + i * 15}%`,
+                top: `${30 + (i % 3) * 20}%`,
+              }}
+              animate={{
+                y: [0, -30, 0],
+                opacity: [0.2, 0.5, 0.2],
+              }}
+              transition={{
+                duration: 3 + i * 0.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: i * 0.3,
+              }}
+            />
+          ))}
+
+          <div className="relative z-10 p-6 sm:p-8 lg:p-10">
+            {/* Profile Section */}
+            <div className="flex items-start gap-4 mb-6">
+              <motion.div
+                whileHover={{ scale: 1.05, rotate: 5 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                className="relative"
+              >
+                <div className="absolute inset-0 bg-white/30 rounded-3xl blur-xl"></div>
+                <div className="relative w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center border-2 border-white/40 shadow-2xl overflow-hidden">
+                  {user?.profile_image_url ? (
+                    <img src={user.profile_image_url} alt="Profile" className="w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <span className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white drop-shadow-lg">
+                      {user?.full_name?.[0] || 'U'}
+                    </span>
+                  )}
                 </div>
-                <div className="text-[11px] sm:text-[12px] font-normal text-[#CFE8D6]/70 mt-0.5">Streak</div>
+                {/* Online Pulse */}
+                <motion.div
+                  className="absolute -bottom-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 bg-[#10B981] rounded-full border-3 border-white shadow-lg"
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
+              </motion.div>
+
+              <div className="flex-1 min-w-0">
+                <motion.h1
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-2xl sm:text-3xl lg:text-[36px] lg:leading-[44px] font-bold text-white mb-2 drop-shadow-lg flex items-center gap-2 flex-wrap"
+                >
+                  Välkommen tillbaka, {user?.full_name?.split(' ')[0]}!
+                  <motion.span
+                    animate={{ rotate: [0, 20, -20, 20, 0] }}
+                    transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 3 }}
+                  >
+                    ⚽
+                  </motion.span>
+                </motion.h1>
+                <motion.p
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-white/90 text-sm sm:text-base lg:text-lg font-medium drop-shadow"
+                >
+                  Dags att dominera planen idag! 🔥
+                </motion.p>
               </div>
             </div>
 
-            {/* Primary CTA */}
-            <div className="pt-3 sm:pt-4">
-              <Link to={createPageUrl("Matches")} className="block">
-                <button className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-[14px] sm:rounded-[16px] bg-[#2BA84A]/16 px-5 sm:px-6 text-sm sm:text-base font-semibold text-[#EAF6EE] ring-1 ring-[#2BA84A]/30 transition-all hover:bg-[#2BA84A]/24 hover:ring-[#2BA84A]/45 hover:scale-[1.02] active:scale-100">
-                  <PlayCircle className="w-5 h-5" />
-                  Hitta spontana matcher
-                  <ChevronRight className="w-5 h-5" />
-                </button>
+            {/* Stats Grid - ENHANCED */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="grid grid-cols-3 gap-3 sm:gap-4 mb-6"
+            >
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                className="relative group"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-white/10 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative bg-white/15 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/30 shadow-xl hover:border-white/50 transition-all">
+                  <div className="flex items-center justify-between mb-2">
+                    <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-white/80" strokeWidth={2.5} />
+                    <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-white/60" />
+                  </div>
+                  <div className="text-3xl sm:text-4xl font-bold text-white mb-1 drop-shadow-lg">
+                    {user?.matches_played || 0}
+                  </div>
+                  <div className="text-xs sm:text-sm font-semibold text-white/80 uppercase tracking-wide">
+                    Matcher
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                transition={{ delay: 0.1 }}
+                className="relative group"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-[#F4743B]/30 to-[#F4743B]/10 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative bg-white/15 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/30 shadow-xl hover:border-[#F4743B]/50 transition-all">
+                  <div className="flex items-center justify-between mb-2">
+                    <Star className="w-5 h-5 sm:w-6 sm:h-6 text-[#F4743B]" strokeWidth={2.5} fill="#F4743B" />
+                    <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-[#F4743B]/80" />
+                  </div>
+                  <div className="text-3xl sm:text-4xl font-bold text-white mb-1 drop-shadow-lg">
+                    {user?.mvp_count || 0}
+                  </div>
+                  <div className="text-xs sm:text-sm font-semibold text-white/80 uppercase tracking-wide">
+                    MVPs
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                transition={{ delay: 0.2 }}
+                className="relative group"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-[#F4743B]/30 to-[#F4743B]/10 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative bg-white/15 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/30 shadow-xl hover:border-[#F4743B]/50 transition-all">
+                  <div className="flex items-center justify-between mb-2">
+                    <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-[#F4743B]" strokeWidth={2.5} />
+                    <Zap className="w-3 h-3 sm:w-4 sm:h-4 text-[#F4743B]/80" />
+                  </div>
+                  <div className="text-3xl sm:text-4xl font-bold text-white mb-1 drop-shadow-lg flex items-center gap-2">
+                    {user?.current_streak || 0}
+                    {(user?.current_streak || 0) > 0 && (
+                      <motion.span
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 1, repeat: Infinity }}
+                        className="text-2xl"
+                      >
+                        🔥
+                      </motion.span>
+                    )}
+                  </div>
+                  <div className="text-xs sm:text-sm font-semibold text-white/80 uppercase tracking-wide">
+                    Streak
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+
+            {/* Primary CTA - ENHANCED */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <Link to={createPageUrl("Matches")}>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="relative w-full h-14 sm:h-16 rounded-2xl overflow-hidden group"
+                >
+                  <div className="absolute inset-0 bg-white/20 backdrop-blur-sm"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <motion.div
+                    className="absolute inset-0 bg-white/10"
+                    animate={{
+                      x: ['-100%', '100%'],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                    style={{
+                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
+                    }}
+                  />
+                  <div className="relative h-full flex items-center justify-center gap-3 px-6">
+                    <PlayCircle className="w-6 h-6 text-white" strokeWidth={2.5} />
+                    <span className="text-base sm:text-lg font-bold text-white">
+                      Hitta spontana matcher nu
+                    </span>
+                    <motion.div
+                      animate={{ x: [0, 5, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    >
+                      <ChevronRight className="w-6 h-6 text-white" strokeWidth={2.5} />
+                    </motion.div>
+                  </div>
+                </motion.button>
               </Link>
-            </div>
+            </motion.div>
           </div>
         </motion.div>
 
-        {/* Quick Access Cards - UPDATED WITH BETTER ANIMATIONS */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
-          {/* Hitta matcher */}
+        {/* Quick Access Cards - REDESIGNED */}
+        <div className="grid grid-cols-3 gap-3 sm:gap-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.3 }}
-            whileHover={{ 
-              scale: 1.05,
-              transition: { duration: 0.2, ease: "easeOut" }
-            }}
-            whileTap={{ 
-              scale: 0.97,
-              transition: { duration: 0.1 }
-            }}
+            whileHover={{ scale: 1.05, y: -5 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <Link to={createPageUrl('Map')} className="block">
-              <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[16px] hover:shadow-[0_12px_32px_rgba(0,0,0,0.3)] transition-all duration-200">
-                <CardContent className="p-3 sm:p-4 min-h-[80px] sm:min-h-[90px] flex flex-col items-center justify-center">
-                  <motion.div 
-                    className="w-10 h-10 sm:w-12 sm:h-12 bg-[#2BA84A]/20 rounded-xl flex items-center justify-center mb-2 ring-1 ring-[#2BA84A]/30"
-                    whileHover={{ rotate: [0, -10, 10, -10, 0], transition: { duration: 0.5 } }}
-                  >
-                    <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-[#2BA84A]" />
-                  </motion.div>
-                  <div className="text-center">
-                    <div className="text-xs sm:text-[13px] font-semibold text-[#F4F7F5]">Hitta matcher</div>
-                  </div>
-                </CardContent>
-              </Card>
+            <Link to={createPageUrl('Map')}>
+              <div className="relative overflow-hidden bg-gradient-to-br from-[#121715] to-[#18221E] border border-[#223029] shadow-[0_8px_24px_rgba(0,0,0,0.3)] rounded-[20px] p-4 sm:p-5 min-h-[110px] sm:min-h-[120px] flex flex-col items-center justify-center group hover:border-[#2BA84A]/30 transition-all">
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+                />
+                <motion.div
+                  whileHover={{ rotate: [0, -10, 10, -10, 0] }}
+                  transition={{ duration: 0.5 }}
+                  className="relative w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center mb-3 shadow-[0_4px_16px_rgba(43,168,74,0.4)] group-hover:shadow-[0_6px_24px_rgba(43,168,74,0.6)] transition-all"
+                >
+                  <MapPin className="w-7 h-7 sm:w-8 sm:h-8 text-white" strokeWidth={2.5} />
+                </motion.div>
+                <span className="text-sm sm:text-base font-bold text-[#F4F7F5] text-center">Hitta matcher</span>
+              </div>
             </Link>
           </motion.div>
 
-          {/* Skapa match */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.4 }}
-            whileHover={{ 
-              scale: 1.05,
-              transition: { duration: 0.2, ease: "easeOut" }
-            }}
-            whileTap={{ 
-              scale: 0.97,
-              transition: { duration: 0.1 }
-            }}
+            whileHover={{ scale: 1.05, y: -5 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <button onClick={() => setShowCreateMatchModal(true)} className="block w-full">
-              <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[16px] hover:shadow-[0_12px_32px_rgba(0,0,0,0.3)] transition-all duration-200">
-                <CardContent className="p-3 sm:p-4 min-h-[80px] sm:min-h-[90px] flex flex-col items-center justify-center">
-                  <motion.div 
-                    className="w-10 h-10 sm:w-12 sm:h-12 bg-[#F4743B]/20 rounded-xl flex items-center justify-center mb-2 ring-1 ring-[#F4743B]/30"
-                    whileHover={{ rotate: 90, transition: { duration: 0.3 } }}
-                  >
-                    <Plus className="w-5 h-5 sm:w-6 sm:h-6 text-[#F4743B]" />
-                  </motion.div>
-                  <div className="text-center">
-                    <div className="text-xs sm:text-[13px] font-semibold text-[#F4F7F5]">Skapa match</div>
-                  </div>
-                </CardContent>
-              </Card>
+            <button onClick={() => setShowCreateMatchModal(true)} className="w-full">
+              <div className="relative overflow-hidden bg-gradient-to-br from-[#121715] to-[#18221E] border border-[#223029] shadow-[0_8px_24px_rgba(0,0,0,0.3)] rounded-[20px] p-4 sm:p-5 min-h-[110px] sm:min-h-[120px] flex flex-col items-center justify-center group hover:border-[#F4743B]/30 transition-all">
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-br from-[#F4743B]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+                />
+                <motion.div
+                  whileHover={{ rotate: 90 }}
+                  transition={{ duration: 0.3 }}
+                  className="relative w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#F4743B] to-[#E5683A] rounded-2xl flex items-center justify-center mb-3 shadow-[0_4px_16px_rgba(244,116,59,0.4)] group-hover:shadow-[0_6px_24px_rgba(244,116,59,0.6)] transition-all"
+                >
+                  <Plus className="w-7 h-7 sm:w-8 sm:h-8 text-white" strokeWidth={2.5} />
+                </motion.div>
+                <span className="text-sm sm:text-base font-bold text-[#F4F7F5] text-center">Skapa match</span>
+              </div>
             </button>
           </motion.div>
 
-          {/* Vänner & lag */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.5 }}
-            whileHover={{ 
-              scale: 1.05,
-              transition: { duration: 0.2, ease: "easeOut" }
-            }}
-            whileTap={{ 
-              scale: 0.97,
-              transition: { duration: 0.1 }
-            }}
+            whileHover={{ scale: 1.05, y: -5 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <Link to={createPageUrl('Community')} className="block">
-              <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[16px] hover:shadow-[0_12px_32px_rgba(0,0,0,0.3)] transition-all duration-200">
-                <CardContent className="p-3 sm:p-4 min-h-[80px] sm:min-h-[90px] flex flex-col items-center justify-center">
-                  <motion.div 
-                    className="w-10 h-10 sm:w-12 sm:h-12 bg-[#2BA84A]/20 rounded-xl flex items-center justify-center mb-2 ring-1 ring-[#2BA84A]/30"
-                    whileHover={{ scale: [1, 1.1, 1], transition: { duration: 0.4, repeat: Infinity } }}
-                  >
-                    <Users className="w-5 h-5 sm:w-6 sm:h-6 text-[#2BA84A]" />
-                  </motion.div>
-                  <div className="text-center">
-                    <div className="text-xs sm:text-[13px] font-semibold text-[#F4F7F5]">Vänner & lag</div>
-                  </div>
-                </CardContent>
-              </Card>
+            <Link to={createPageUrl('Community')}>
+              <div className="relative overflow-hidden bg-gradient-to-br from-[#121715] to-[#18221E] border border-[#223029] shadow-[0_8px_24px_rgba(0,0,0,0.3)] rounded-[20px] p-4 sm:p-5 min-h-[110px] sm:min-h-[120px] flex flex-col items-center justify-center group hover:border-[#2BA84A]/30 transition-all">
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+                />
+                <motion.div
+                  whileHover={{ scale: [1, 1.1, 1] }}
+                  transition={{ duration: 0.4, repeat: Infinity }}
+                  className="relative w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center mb-3 shadow-[0_4px_16px_rgba(43,168,74,0.4)] group-hover:shadow-[0_6px_24px_rgba(43,168,74,0.6)] transition-all"
+                >
+                  <Users className="w-7 h-7 sm:w-8 sm:h-8 text-white" strokeWidth={2.5} />
+                </motion.div>
+                <span className="text-sm sm:text-base font-bold text-[#F4F7F5] text-center">Vänner & lag</span>
+              </div>
             </Link>
           </motion.div>
         </div>
@@ -516,33 +671,40 @@ export default function Dashboard() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.5, ease: "easeOut" }}
             >
-              <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-[#9FC9AC]" />
-                  <h2 className="text-base sm:text-[18px] sm:leading-[24px] font-semibold text-[#F4F7F5]">Kommande matcher</h2>
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
+                    <Calendar className="w-5 h-5 text-[#2BA84A]" strokeWidth={2.5} />
+                  </div>
+                  <h2 className="text-lg sm:text-xl font-bold text-[#F4F7F5]">Kommande matcher</h2>
                 </div>
-                <Link to={createPageUrl("Matches")} className="text-[12px] sm:text-[13px] leading-[18px] font-medium text-[#9FC9AC] hover:text-[#CFE8D6] hover:underline flex items-center gap-1 transition-colors">
+                <Link to={createPageUrl("Matches")} className="text-sm font-semibold text-[#2BA84A] hover:text-[#CFE8D6] flex items-center gap-1 transition-colors group">
                   Visa alla
-                  <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <motion.div
+                    animate={{ x: [0, 3, 0] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                  </motion.div>
                 </Link>
               </div>
 
               {myUpcomingMatches.length === 0 ? (
-                <Card className="bg-[#121715] rounded-[16px] sm:rounded-[20px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029]">
-                  <CardContent className="p-6 sm:p-8 text-center">
-                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                      <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-[#9FC9AC]" />
+                <Card className="bg-[#121715] rounded-[20px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029]">
+                  <CardContent className="p-8 text-center">
+                    <div className="w-16 h-16 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Calendar className="w-8 h-8 text-[#9FC9AC]" />
                     </div>
-                    <p className="text-[13px] sm:text-[14px] leading-[20px] text-[#B6C2BC] mb-4 sm:mb-6">Inga kommande matcher</p>
+                    <p className="text-sm text-[#B6C2BC] mb-6">Inga kommande matcher</p>
                     <Link to={createPageUrl("Matches")}>
-                      <button className="inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border border-[#2BA84A]/35 px-5 text-[13px] sm:text-[14px] font-semibold text-[#CFE8D6] transition-all hover:bg-[#2BA84A]/10 active:bg-[#2BA84A]/16">
+                      <button className="inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border border-[#2BA84A]/35 px-5 text-sm font-semibold text-[#CFE8D6] transition-all hover:bg-[#2BA84A]/10 active:bg-[#2BA84A]/16">
                         Hitta matcher
                       </button>
                     </Link>
                   </CardContent>
                 </Card>
               ) : (
-                <div className="space-y-2 sm:space-y-3">
+                <div className="space-y-3">
                   {myUpcomingMatches.map((match, index) => {
                     const venue = venues.find(v => v.id === match.venue_id);
                     return (
@@ -551,34 +713,35 @@ export default function Dashboard() {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.4, delay: index * 0.1, ease: "easeOut" }}
+                        whileHover={{ scale: 1.02, y: -2 }}
                       >
                         <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`}>
-                          <div className="bg-[#121715] rounded-[14px] sm:rounded-[16px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029] p-3 sm:p-4 hover:shadow-[0_10px_28px_rgba(0,0,0,0.28)] transition-all min-h-[84px] flex items-center gap-3 group">
+                          <div className="bg-gradient-to-br from-[#121715] to-[#18221E] rounded-[18px] shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#223029] p-4 hover:shadow-[0_12px_32px_rgba(0,0,0,0.4)] hover:border-[#2BA84A]/30 transition-all min-h-[90px] flex items-center gap-3 group">
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                                <h4 className="text-[14px] sm:text-[16px] leading-[20px] sm:leading-[24px] font-semibold text-[#F4F7F5] group-hover:text-[#9FC9AC] transition-colors">{match.title}</h4>
-                                <span className="inline-flex h-6 items-center rounded-full bg-[#2BA84A]/18 px-2.5 text-[11px] sm:text-[12px] font-medium text-[#CFE8D6] ring-1 ring-[#2BA84A]/25">
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                <h4 className="text-base font-bold text-[#F4F7F5] group-hover:text-[#2BA84A] transition-colors">{match.title}</h4>
+                                <span className="inline-flex h-6 items-center rounded-full bg-[#2BA84A]/18 px-3 text-xs font-bold text-[#CFE8D6] ring-1 ring-[#2BA84A]/25">
                                   {match.format}
                                 </span>
                               </div>
-                              <div className="flex items-center gap-3 text-[11px] sm:text-[12px] text-[#B6C2BC] flex-wrap">
+                              <div className="flex items-center gap-3 text-xs text-[#B6C2BC] flex-wrap">
                                 <span className="flex items-center gap-1">
-                                  <MapPin className="w-3 h-3" />
+                                  <MapPin className="w-3.5 h-3.5" />
                                   {venue?.name || 'Okänd'}
                                 </span>
                                 <span className="flex items-center gap-1">
-                                  <Clock className="w-3 h-3" />
+                                  <Clock className="w-3.5 h-3.5" />
                                   {match.date} {match.time}
                                 </span>
                               </div>
                             </div>
                             <div className="flex-shrink-0">
                               {match.is_spontaneous ? (
-                                <span className="text-[12px] sm:text-[13px] font-medium text-[#B6C2BC]">
+                                <span className="text-sm font-semibold text-[#B6C2BC]">
                                   {match.current_players || 0} anmälda
                                 </span>
                               ) : (
-                                <span className="inline-flex h-7 items-center rounded-full bg-[#18221E] px-3 text-[12px] sm:text-[13px] font-medium text-[#9FC9AC] ring-1 ring-[#2BA84A]/25">
+                                <span className="inline-flex h-8 items-center rounded-full bg-[#18221E] px-4 text-sm font-bold text-[#2BA84A] ring-1 ring-[#2BA84A]/25">
                                   {match.current_players || 0}/{match.max_players}
                                 </span>
                               )}
@@ -592,24 +755,25 @@ export default function Dashboard() {
               )}
             </motion.div>
 
-            {/* Nearby Matches */}
             {nearbyMatches.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
               >
-                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-[#9FC9AC]" />
-                    <h2 className="text-base sm:text-[18px] sm:leading-[24px] font-semibold text-[#F4F7F5]">Nära dig</h2>
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
+                      <MapPin className="w-5 h-5 text-[#2BA84A]" strokeWidth={2.5} />
+                    </div>
+                    <h2 className="text-lg sm:text-xl font-bold text-[#F4F7F5]">Nära dig</h2>
                   </div>
-                  <Link to={createPageUrl("Map")} className="text-[12px] sm:text-[13px] leading-[18px] font-medium text-[#9FC9AC] hover:text-[#CFE8D6] hover:underline flex items-center gap-1 transition-colors">
+                  <Link to={createPageUrl("Map")} className="text-sm font-semibold text-[#2BA84A] hover:text-[#CFE8D6] flex items-center gap-1 transition-colors">
                     Se karta
-                    <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
-                <div className="space-y-2 sm:space-y-3">
+                <div className="space-y-3">
                   {nearbyMatches.map((match, index) => {
                     const venue = match.venue;
                     return (
@@ -618,34 +782,35 @@ export default function Dashboard() {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.4, delay: index * 0.1, ease: "easeOut" }}
+                        whileHover={{ scale: 1.02, y: -2 }}
                       >
                         <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`}>
-                          <div className="bg-[#121715] rounded-[14px] sm:rounded-[16px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029] p-3 sm:p-4 hover:shadow-[0_10px_28px_rgba(0,0,0,0.28)] transition-all min-h-[84px] flex items-center gap-3 group">
+                          <div className="bg-gradient-to-br from-[#121715] to-[#18221E] rounded-[18px] shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#223029] p-4 hover:shadow-[0_12px_32px_rgba(0,0,0,0.4)] hover:border-[#2BA84A]/30 transition-all min-h-[90px] flex items-center gap-3 group">
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                                <h4 className="text-[14px] sm:text-[16px] leading-[20px] sm:leading-[24px] font-semibold text-[#F4F7F5] group-hover:text-[#9FC9AC] transition-colors">{match.title}</h4>
-                                <span className="inline-flex h-6 items-center rounded-full bg-[#2BA84A]/18 px-2.5 text-[11px] sm:text-[12px] font-medium text-[#CFE8D6] ring-1 ring-[#2BA84A]/25">
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                <h4 className="text-base font-bold text-[#F4F7F5] group-hover:text-[#2BA84A] transition-colors">{match.title}</h4>
+                                <span className="inline-flex h-6 items-center rounded-full bg-[#2BA84A]/18 px-3 text-xs font-bold text-[#CFE8D6] ring-1 ring-[#2BA84A]/25">
                                   {match.format}
                                 </span>
                               </div>
-                              <div className="flex items-center gap-3 text-[11px] sm:text-[12px] text-[#B6C2BC] flex-wrap">
+                              <div className="flex items-center gap-3 text-xs text-[#B6C2BC] flex-wrap">
                                 <span className="flex items-center gap-1">
-                                  <MapPin className="w-3 h-3" />
+                                  <MapPin className="w-3.5 h-3.5" />
                                   {venue?.name || 'Okänd'} ({match.distance?.toFixed(1)}km)
                                 </span>
                                 <span className="flex items-center gap-1">
-                                  <Clock className="w-3 h-3" />
+                                  <Clock className="w-3.5 h-3.5" />
                                   {match.date} {match.time}
                                 </span>
                               </div>
                             </div>
                             <div className="flex-shrink-0">
                               {match.is_spontaneous ? (
-                                <span className="text-[12px] sm:text-[13px] font-medium text-[#B6C2BC]">
+                                <span className="text-sm font-semibold text-[#B6C2BC]">
                                   {match.current_players || 0} anmälda
                                 </span>
                               ) : (
-                                <span className="inline-flex h-7 items-center rounded-full bg-[#18221E] px-3 text-[12px] sm:text-[13px] font-medium text-[#9FC9AC] ring-1 ring-[#2BA84A]/25">
+                                <span className="inline-flex h-8 items-center rounded-full bg-[#18221E] px-4 text-sm font-bold text-[#2BA84A] ring-1 ring-[#2BA84A]/25">
                                   {match.current_players || 0}/{match.max_players}
                                 </span>
                               )}
@@ -659,24 +824,25 @@ export default function Dashboard() {
               </motion.div>
             )}
 
-            {/* Quick Play Matches */}
             {quickPlayMatches.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.8, ease: "easeOut" }}
               >
-                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#9FC9AC]" />
-                    <h2 className="text-base sm:text-[18px] sm:leading-[24px] font-semibold text-[#F4F7F5]">Snabbspel</h2>
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#F4743B]/20 to-[#F4743B]/10 rounded-xl flex items-center justify-center">
+                      <PlayCircle className="w-5 h-5 text-[#F4743B]" strokeWidth={2.5} />
+                    </div>
+                    <h2 className="text-lg sm:text-xl font-bold text-[#F4F7F5]">Snabbspel</h2>
                   </div>
-                  <Link to={createPageUrl("Matches")} className="text-[12px] sm:text-[13px] leading-[18px] font-medium text-[#9FC9AC] hover:text-[#CFE8D6] hover:underline flex items-center gap-1 transition-colors">
+                  <Link to={createPageUrl("Matches")} className="text-sm font-semibold text-[#F4743B] hover:text-[#FDE3D2] flex items-center gap-1 transition-colors">
                     Se alla
-                    <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
-                <div className="space-y-2 sm:space-y-3">
+                <div className="space-y-3">
                   {quickPlayMatches.slice(0, 3).map((match, index) => {
                     const venue = venues.find(v => v.id === match.venue_id);
                     return (
@@ -685,29 +851,30 @@ export default function Dashboard() {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.4, delay: index * 0.1, ease: "easeOut" }}
+                        whileHover={{ scale: 1.02, y: -2 }}
                       >
                         <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`}>
-                          <div className="bg-[#121715] rounded-[14px] sm:rounded-[16px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029] p-3 sm:p-4 hover:shadow-[0_10px_28px_rgba(0,0,0,0.28)] transition-all min-h-[84px] flex items-center gap-3 group">
+                          <div className="bg-gradient-to-br from-[#121715] to-[#18221E] rounded-[18px] shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#223029] p-4 hover:shadow-[0_12px_32px_rgba(0,0,0,0.4)] hover:border-[#F4743B]/30 transition-all min-h-[90px] flex items-center gap-3 group">
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                                <h4 className="text-[14px] sm:text-[16px] leading-[20px] sm:leading-[24px] font-semibold text-[#F4F7F5] group-hover:text-[#9FC9AC] transition-colors">{match.title}</h4>
-                                <span className="inline-flex h-6 items-center rounded-full bg-[#2BA84A]/18 px-2.5 text-[11px] sm:text-[12px] font-medium text-[#CFE8D6] ring-1 ring-[#2BA84A]/25">
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                <h4 className="text-base font-bold text-[#F4F7F5] group-hover:text-[#F4743B] transition-colors">{match.title}</h4>
+                                <span className="inline-flex h-6 items-center rounded-full bg-[#F4743B]/18 px-3 text-xs font-bold text-[#FDE3D2] ring-1 ring-[#F4743B]/25">
                                   {match.format}
                                 </span>
                               </div>
-                              <div className="flex items-center gap-3 text-[11px] sm:text-[12px] text-[#B6C2BC]">
+                              <div className="flex items-center gap-3 text-xs text-[#B6C2BC]">
                                 <span className="flex items-center gap-1">
-                                  <MapPin className="w-3 h-3" />
+                                  <MapPin className="w-3.5 h-3.5" />
                                   {venue?.name || 'Okänd'}
                                 </span>
                                 <span className="flex items-center gap-1">
-                                  <Clock className="w-3 h-3" />
+                                  <Clock className="w-3.5 h-3.5" />
                                   {match.date} {match.time}
                                 </span>
                               </div>
                             </div>
                             <div className="flex-shrink-0">
-                              <span className="inline-flex h-7 items-center rounded-full bg-[#18221E] px-3 text-[12px] sm:text-[13px] font-medium text-[#9FC9AC] ring-1 ring-[#2BA84A]/25">
+                              <span className="inline-flex h-8 items-center rounded-full bg-[#18221E] px-4 text-sm font-bold text-[#F4743B] ring-1 ring-[#F4743B]/25">
                                 {match.current_players || 0}/{match.max_players}
                               </span>
                             </div>
@@ -732,36 +899,48 @@ export default function Dashboard() {
             <CupsWidget />
 
             {/* Weekly Progress - NOW DYNAMIC */}
-            <Card className="bg-[#121715] rounded-[16px] sm:rounded-[20px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029]">
-              <CardContent className="p-5 sm:p-6">
-                <div className="flex items-center gap-2 mb-5 sm:mb-6">
-                  <Target className="w-5 h-5 text-[#9FC9AC]" />
-                  <h3 className="text-[16px] leading-[24px] font-semibold text-[#F4F7F5]">Denna vecka</h3>
+            <Card className="bg-gradient-to-br from-[#121715] to-[#18221E] rounded-[20px] shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#223029]">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
+                    <Target className="w-5 h-5 text-[#2BA84A]" strokeWidth={2.5} />
+                  </div>
+                  <h3 className="text-lg font-bold text-[#F4F7F5]">Denna vecka</h3>
                 </div>
                 <div className="space-y-4">
                   <div>
                     <div className="flex justify-between mb-2">
-                      <span className="text-[12px] sm:text-[13px] leading-[18px] font-normal text-[#B6C2BC]">Matcher spelade</span>
-                      <span className="text-[14px] leading-[20px] font-semibold text-[#F4F7F5]">{weeklyStats.matchesPlayed}/{weeklyStats.goal}</span>
+                      <span className="text-sm font-medium text-[#B6C2BC]">Matcher spelade</span>
+                      <span className="text-base font-bold text-[#F4F7F5]">{weeklyStats.matchesPlayed}/{weeklyStats.goal}</span>
                     </div>
                     <div className="h-2 bg-[#18221E] rounded-full overflow-hidden border border-[#223029]">
-                      <div className="h-full bg-[#2BA84A] rounded-full transition-all duration-500" style={{ width: `${(weeklyStats.matchesPlayed / weeklyStats.goal) * 100}%` }}></div>
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(weeklyStats.matchesPlayed / weeklyStats.goal) * 100}%` }}
+                        transition={{ duration: 1, ease: "easeOut" }}
+                        className="h-full bg-gradient-to-r from-[#2BA84A] to-[#248232] rounded-full"
+                      />
                     </div>
                   </div>
                   <div>
                     <div className="flex justify-between mb-2">
-                      <span className="text-[12px] sm:text-[13px] leading-[18px] font-normal text-[#B6C2BC]">MVPs</span>
-                      <span className="text-[14px] leading-[20px] font-semibold text-[#F4F7F5]">{weeklyStats.mvps}</span>
+                      <span className="text-sm font-medium text-[#B6C2BC]">MVPs</span>
+                      <span className="text-base font-bold text-[#F4F7F5]">{weeklyStats.mvps}</span>
                     </div>
                     <div className="h-2 bg-[#18221E] rounded-full overflow-hidden border border-[#223029]">
-                      <div className="h-full bg-[#F4743B] rounded-full transition-all duration-500" style={{ width: `${Math.min((weeklyStats.mvps / 3) * 100, 100)}%` }}></div>
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min((weeklyStats.mvps / 3) * 100, 100)}%` }}
+                        transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
+                        className="h-full bg-gradient-to-r from-[#F4743B] to-[#E5683A] rounded-full"
+                      />
                     </div>
                   </div>
                   <div className="pt-2 border-t border-[#223029]">
                     <div className="flex items-center justify-between">
-                      <span className="text-[12px] sm:text-[13px] leading-[18px] font-normal text-[#B6C2BC]">Streak</span>
-                      <span className="text-[14px] leading-[20px] font-semibold text-[#F4F7F5] flex items-center gap-1">
-                        <Flame className="w-4 h-4" />
+                      <span className="text-sm font-medium text-[#B6C2BC]">Streak</span>
+                      <span className="text-base font-bold text-[#F4F7F5] flex items-center gap-1">
+                        <Flame className="w-4 h-4 text-[#F4743B]" />
                         {user?.current_streak || 0} dagar
                       </span>
                     </div>
@@ -771,26 +950,34 @@ export default function Dashboard() {
             </Card>
 
             {/* Recent Activity - NOW DYNAMIC */}
-            <Card className="bg-[#121715] rounded-[16px] sm:rounded-[20px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029]">
-              <CardContent className="p-5 sm:p-6">
-                <div className="flex items-center gap-2 mb-5 sm:mb-6">
-                  <Award className="w-5 h-5 text-[#9FC9AC]" />
-                  <h3 className="text-[16px] leading-[24px] font-semibold text-[#F4F7F5]">Aktivitet</h3>
+            <Card className="bg-gradient-to-br from-[#121715] to-[#18221E] rounded-[20px] shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#223029]">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#F4743B]/20 to-[#F4743B]/10 rounded-xl flex items-center justify-center">
+                    <Award className="w-5 h-5 text-[#F4743B]" strokeWidth={2.5} />
+                  </div>
+                  <h3 className="text-lg font-bold text-[#F4F7F5]">Aktivitet</h3>
                 </div>
                 {recentActivity.length > 0 ? (
                   <div className="space-y-3">
                     {recentActivity.slice(0, 2).map((activity, index) => {
                       const Icon = activity.icon;
                       return (
-                        <div key={index} className="flex gap-3 p-3 bg-[#18221E] rounded-xl border border-[#223029]">
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="flex gap-3 p-3 bg-[#18221E] rounded-xl border border-[#223029] hover:border-[#2BA84A]/30 transition-all"
+                        >
                           <div className="w-10 h-10 bg-[#2BA84A]/15 rounded-lg flex items-center justify-center flex-shrink-0 ring-1 ring-[#2BA84A]/25">
-                            <Icon className="w-5 h-5 text-[#9FC9AC]" />
+                            <Icon className="w-5 h-5 text-[#2BA84A]" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-[13px] sm:text-[14px] leading-[20px] text-[#F4F7F5]">{activity.text}</p>
-                            <p className="text-[11px] sm:text-[12px] text-[#B6C2BC] mt-1">{activity.time}</p>
+                            <p className="text-sm font-medium text-[#F4F7F5]">{activity.text}</p>
+                            <p className="text-xs text-[#B6C2BC] mt-1">{activity.time}</p>
                           </div>
-                        </div>
+                        </motion.div>
                       );
                     })}
                   </div>
@@ -805,40 +992,57 @@ export default function Dashboard() {
           </motion.div>
         </div>
 
-        {/* Bottom CTA */}
+        {/* Bottom CTA - REDESIGNED */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 1.1, ease: "easeOut" }}
         >
-          <Card className="bg-gradient-to-r from-[#2BA84A] to-[#248232] rounded-[16px] sm:rounded-[20px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029]">
-            <CardContent className="relative overflow-hidden bg-gradient-to-br from-[#2BA84A] to-[#0F2917] rounded-[16px] lg:rounded-[20px] p-5 sm:p-6 lg:p-8 shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
-              <div className="flex flex-col lg:flex-row items-center justify-between gap-5 sm:gap-6">
-                <div className="flex-1 text-center lg:text-left">
-                  <h3 className="text-lg sm:text-[20px] sm:leading-[28px] lg:text-[28px] lg:leading-[34px] font-semibold text-[#EAF6EE] mb-2">
-                    Ingen match idag?
-                  </h3>
-                  <p className="text-[13px] sm:text-[14px] leading-[20px] text-[#CFE8D6]">
-                    Skapa eller hitta en spontan match och spela med nya vänner!
-                  </p>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                  <Link to={createPageUrl("Map")} className="w-full sm:w-auto">
-                    <button className="inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-[14px] border border-[#EAF6EE]/35 px-5 text-[13px] sm:text-[14px] font-semibold text-[#EAF6EE] transition-all hover:bg-[#FFFFFF]/10 active:bg-[#FFFFFF]/16">
-                      <MapPin className="w-4 h-4" />
-                      Hitta planer
-                    </button>
-                  </Link>
-                  <Link to={createPageUrl("Matches")} className="w-full sm:w-auto">
-                    <button className="inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-[14px] bg-[#FFFFFF]/16 px-5 text-[13px] sm:text-[14px] font-semibold text-[#EAF6EE] ring-1 ring-[#FFFFFF]/30 transition-all hover:bg-[#FFFFFF]/24 hover:ring-[#FFFFFF]/45">
-                      <PlayCircle className="w-4 h-4" />
-                      Spontan match
-                    </button>
-                  </Link>
-                </div>
+          <div className="relative overflow-hidden bg-gradient-to-br from-[#2BA84A] to-[#0F2917] rounded-[24px] shadow-[0_12px_40px_rgba(0,0,0,0.4)] border border-[#223029] p-6 sm:p-8">
+            <motion.div
+              className="absolute inset-0"
+              animate={{
+                background: [
+                  'radial-gradient(circle at 20% 50%, rgba(43,168,74,0.3) 0%, transparent 50%)',
+                  'radial-gradient(circle at 80% 50%, rgba(43,168,74,0.3) 0%, transparent 50%)',
+                  'radial-gradient(circle at 20% 50%, rgba(43,168,74,0.3) 0%, transparent 50%)',
+                ]
+              }}
+              transition={{ duration: 8, repeat: Infinity }}
+            />
+            <div className="relative flex flex-col lg:flex-row items-center justify-between gap-6">
+              <div className="flex-1 text-center lg:text-left">
+                <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+                  Ingen match idag?
+                </h3>
+                <p className="text-sm sm:text-base text-white/90">
+                  Skapa eller hitta en spontan match och spela med nya vänner!
+                </p>
               </div>
-            </CardContent>
-          </Card>
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                <Link to={createPageUrl("Map")} className="w-full sm:w-auto">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="inline-flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-[16px] border-2 border-white/40 px-6 text-sm font-bold text-white transition-all hover:bg-white/10"
+                  >
+                    <MapPin className="w-5 h-5" />
+                    Hitta planer
+                  </motion.button>
+                </Link>
+                <Link to={createPageUrl("Matches")} className="w-full sm:w-auto">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="inline-flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-[16px] bg-white/20 backdrop-blur-sm px-6 text-sm font-bold text-white ring-2 ring-white/40 transition-all hover:bg-white/30"
+                  >
+                    <PlayCircle className="w-5 h-5" />
+                    Spontan match
+                  </motion.button>
+                </Link>
+              </div>
+            </div>
+          </div>
         </motion.div>
 
       </div>
