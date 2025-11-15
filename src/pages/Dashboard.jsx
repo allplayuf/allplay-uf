@@ -590,7 +590,7 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
-        {/* Quick Access Cards - REDESIGNED & MOBILE OPTIMIZED */}
+        {/* Quick Access Cards - REDESIGNED WITH TEXT WRAP */}
         <div className="grid grid-cols-3 gap-3 sm:gap-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -600,7 +600,7 @@ export default function Dashboard() {
             whileTap={{ scale: 0.95 }}
           >
             <Link to={createPageUrl('Map')}>
-              <div className="relative overflow-hidden bg-gradient-to-br from-[#121715] to-[#18221E] border border-[#223029] shadow-[0_8px_24px_rgba(0,0,0,0.3)] rounded-[20px] p-4 sm:p-5 aspect-square flex flex-col items-center justify-center group hover:border-[#2BA84A]/30 transition-all">
+              <div className="relative overflow-hidden bg-gradient-to-br from-[#121715] to-[#18221E] border border-[#223029] shadow-[0_8px_24px_rgba(0,0,0,0.3)] rounded-[20px] p-4 sm:p-5 min-h-[110px] sm:min-h-[120px] flex flex-col items-center justify-center group hover:border-[#2BA84A]/30 transition-all">
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
                 />
@@ -611,7 +611,7 @@ export default function Dashboard() {
                 >
                   <MapPin className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" strokeWidth={2.5} />
                 </motion.div>
-                <span className="text-xs sm:text-sm font-bold text-[#F4F7F5] text-center">Hitta matcher</span>
+                <span className="text-xs sm:text-sm font-bold text-[#F4F7F5] text-center leading-tight">Hitta<br className="sm:hidden" /> matcher</span>
               </div>
             </Link>
           </motion.div>
@@ -623,8 +623,8 @@ export default function Dashboard() {
             whileHover={{ scale: 1.05, y: -5 }}
             whileTap={{ scale: 0.95 }}
           >
-            <button onClick={() => setShowCreateMatchModal(true)} className="w-full h-full">
-              <div className="relative overflow-hidden bg-gradient-to-br from-[#121715] to-[#18221E] border border-[#223029] shadow-[0_8px_24px_rgba(0,0,0,0.3)] rounded-[20px] p-4 sm:p-5 aspect-square flex flex-col items-center justify-center group hover:border-[#F4743B]/30 transition-all">
+            <button onClick={() => setShowCreateMatchModal(true)} className="w-full">
+              <div className="relative overflow-hidden bg-gradient-to-br from-[#121715] to-[#18221E] border border-[#223029] shadow-[0_8px_24px_rgba(0,0,0,0.3)] rounded-[20px] p-4 sm:p-5 min-h-[110px] sm:min-h-[120px] flex flex-col items-center justify-center group hover:border-[#F4743B]/30 transition-all">
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-br from-[#F4743B]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
                 />
@@ -648,7 +648,7 @@ export default function Dashboard() {
             whileTap={{ scale: 0.95 }}
           >
             <Link to={createPageUrl('Community')}>
-              <div className="relative overflow-hidden bg-gradient-to-br from-[#121715] to-[#18221E] border border-[#223029] shadow-[0_8px_24px_rgba(0,0,0,0.3)] rounded-[20px] p-4 sm:p-5 aspect-square flex flex-col items-center justify-center group hover:border-[#2BA84A]/30 transition-all">
+              <div className="relative overflow-hidden bg-gradient-to-br from-[#121715] to-[#18221E] border border-[#223029] shadow-[0_8px_24px_rgba(0,0,0,0.3)] rounded-[20px] p-4 sm:p-5 min-h-[110px] sm:min-h-[120px] flex flex-col items-center justify-center group hover:border-[#2BA84A]/30 transition-all">
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
                 />

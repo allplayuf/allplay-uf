@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, Suspense, lazy } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +13,7 @@ import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import { NoPlayersFound, NoTeamsFound } from "../components/ui/empty-state";
 import { CUPS_QUERY_KEY } from "../components/dashboard/CupsWidget";
+import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 
 const FriendsList = lazy(() => import("../components/community/FriendsList"));
 const FindPlayers = lazy(() => import("../components/community/FindPlayers"));
@@ -31,7 +31,7 @@ const QUERY_KEYS = {
   teamInvites: (userId) => ['teamInvites', userId],
 };
 
-// Tab color config - matching AllPlay theme with individual colors per tab
+// Tab color config
 const TAB_COLORS = {
   friends: {
     active: 'bg-[#2BA84A]/16 text-[#2BA84A] ring-1 ring-[#2BA84A]/30',
@@ -83,13 +83,12 @@ export default function CommunityPage() {
     }
   }, [locationHook.search, activeTab, urlParams]);
 
-  // Fetch current user with aggressive caching
+  // Fetch current user with OPTIMIZED caching (same as Dashboard)
   const { data: user, isLoading: userLoading, error: userError } = useQuery({
     queryKey: QUERY_KEYS.user,
     queryFn: async () => {
       const currentUser = await base44.auth.me();
       
-      // Update cityNormalized if needed
       if (currentUser.city && !currentUser.cityNormalized) {
         try {
           await base44.auth.updateMe({
@@ -103,10 +102,7 @@ export default function CommunityPage() {
       
       return currentUser;
     },
-    staleTime: 10 * 60 * 1000,
-    cacheTime: 30 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    ...CACHE_STRATEGIES.AUTH,
     retry: false,
   });
 
@@ -117,19 +113,18 @@ export default function CommunityPage() {
     }
   }, [userError, alert]);
 
-  // Fetch public users via backend (cached)
+  // Fetch public users via backend with OPTIMIZED caching
   const { data: allUsers = [], isLoading: usersLoading } = useQuery({
     queryKey: QUERY_KEYS.publicUsers,
     queryFn: async () => {
       const response = await base44.functions.invoke('getPublicUsers');
       return response.data.users || [];
     },
-    staleTime: 60 * 1000,
-    cacheTime: 5 * 60 * 1000,
+    ...CACHE_STRATEGIES.STATIC,
     enabled: !!user,
   });
 
-  // Fetch public teams via backend (cached)
+  // Fetch public teams via backend with OPTIMIZED caching
   const { data: allTeams = [], isLoading: teamsLoading } = useQuery({
     queryKey: QUERY_KEYS.publicTeams,
     queryFn: async () => {
@@ -137,12 +132,11 @@ export default function CommunityPage() {
       const teams = response.data.teams || [];
       return user?.role === 'admin' ? teams : teams.filter(t => t.is_active !== false);
     },
-    staleTime: 60 * 1000,
-    cacheTime: 5 * 60 * 1000,
+    ...CACHE_STRATEGIES.STATIC,
     enabled: !!user,
   });
 
-  // Fetch friendships (cached)
+  // Fetch friendships with OPTIMIZED caching
   const { data: friendships = [], isLoading: friendshipsLoading } = useQuery({
     queryKey: QUERY_KEYS.friendships,
     queryFn: async () => {
@@ -151,11 +145,11 @@ export default function CommunityPage() {
         f.requester_id === user.id || f.addressee_id === user.id
       );
     },
-    staleTime: 30 * 1000,
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
     enabled: !!user,
   });
 
-  // Fetch user's teams (cached)
+  // Fetch user's teams with OPTIMIZED caching
   const { data: myTeams = [], isLoading: myTeamsLoading } = useQuery({
     queryKey: QUERY_KEYS.teamMembers(user?.id),
     queryFn: async () => {
@@ -166,11 +160,11 @@ export default function CommunityPage() {
       const teamIds = teamMemberships.map(tm => tm.team_id);
       return allTeams.filter(t => teamIds.includes(t.id));
     },
-    staleTime: 60 * 1000,
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
     enabled: !!user && allTeams.length > 0,
   });
 
-  // Fetch team invites (cached)
+  // Fetch team invites with OPTIMIZED caching
   const { data: teamInvites = [], isLoading: invitesLoading } = useQuery({
     queryKey: QUERY_KEYS.teamInvites(user?.id),
     queryFn: async () => {
@@ -179,19 +173,18 @@ export default function CommunityPage() {
         status: 'pending' 
       });
     },
-    staleTime: 30 * 1000,
+    ...CACHE_STRATEGIES.REALTIME,
     enabled: !!user,
   });
 
-  // Fetch cups count using shared query key
+  // Fetch cups count using shared query key with OPTIMIZED caching
   const { data: cupsData = [] } = useQuery({
     queryKey: CUPS_QUERY_KEY,
     queryFn: async () => {
       const cups = await base44.entities.Cup.list('-created_date');
       return cups.filter(c => c.is_public !== false);
     },
-    staleTime: 60 * 1000,
-    cacheTime: 5 * 60 * 1000,
+    ...CACHE_STRATEGIES.STATIC,
     enabled: !!user,
   });
 
@@ -727,7 +720,6 @@ export default function CommunityPage() {
               </motion.div>
             </TabsContent>
 
-            {/* Cups Tab - Shows full overview with yellow theme */}
             <TabsContent key="cups" value="cups">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
