@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -104,12 +103,12 @@ export default function Dashboard() {
         (error) => {
           console.error('Error getting location:', error);
           displayError('Kunde inte hämta din plats. Kontrollera dina platsinställningar.');
-          setUserLocation({ lat: 59.3293, lng: 18.0686 }); // Stockholm fallback
+          setUserLocation({ lat: 59.3293, lng: 18.0686 });
         }
       );
     } else {
       displayError('Din webbläsare stöder inte geolokalisering. Använder standardplats.');
-      setUserLocation({ lat: 59.3293, lng: 18.0686 }); // Stockholm fallback
+      setUserLocation({ lat: 59.3293, lng: 18.0686 });
     }
   };
 
@@ -351,7 +350,7 @@ export default function Dashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        {/* ULTIMATE HERO CARD - REDESIGNED */}
+        {/* ULTIMATE HERO CARD - REDESIGNED WITH RINGS */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -370,6 +369,10 @@ export default function Dashboard() {
             }}
             transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
           />
+
+          {/* GREEN RINGS - Same as Profile */}
+          <div className="absolute top-[-30px] right-[-30px] w-28 h-28 bg-[#2BA84A]/40 rounded-full opacity-50"></div>
+          <div className="absolute bottom-[-40px] left-[-40px] w-32 h-32 bg-[#0F2917]/60 rounded-full opacity-50"></div>
 
           {/* Animated Orbs */}
           <motion.div
@@ -587,7 +590,7 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
-        {/* Quick Access Cards - REDESIGNED */}
+        {/* Quick Access Cards - REDESIGNED & MOBILE OPTIMIZED */}
         <div className="grid grid-cols-3 gap-3 sm:gap-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -597,18 +600,18 @@ export default function Dashboard() {
             whileTap={{ scale: 0.95 }}
           >
             <Link to={createPageUrl('Map')}>
-              <div className="relative overflow-hidden bg-gradient-to-br from-[#121715] to-[#18221E] border border-[#223029] shadow-[0_8px_24px_rgba(0,0,0,0.3)] rounded-[20px] p-4 sm:p-5 min-h-[110px] sm:min-h-[120px] flex flex-col items-center justify-center group hover:border-[#2BA84A]/30 transition-all">
+              <div className="relative overflow-hidden bg-gradient-to-br from-[#121715] to-[#18221E] border border-[#223029] shadow-[0_8px_24px_rgba(0,0,0,0.3)] rounded-[20px] p-4 sm:p-5 aspect-square flex flex-col items-center justify-center group hover:border-[#2BA84A]/30 transition-all">
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
                 />
                 <motion.div
                   whileHover={{ rotate: [0, -10, 10, -10, 0] }}
                   transition={{ duration: 0.5 }}
-                  className="relative w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center mb-3 shadow-[0_4px_16px_rgba(43,168,74,0.4)] group-hover:shadow-[0_6px_24px_rgba(43,168,74,0.6)] transition-all"
+                  className="relative w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center mb-3 shadow-[0_4px_16px_rgba(43,168,74,0.4)] group-hover:shadow-[0_6px_24px_rgba(43,168,74,0.6)] transition-all"
                 >
-                  <MapPin className="w-7 h-7 sm:w-8 sm:h-8 text-white" strokeWidth={2.5} />
+                  <MapPin className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" strokeWidth={2.5} />
                 </motion.div>
-                <span className="text-sm sm:text-base font-bold text-[#F4F7F5] text-center">Hitta matcher</span>
+                <span className="text-xs sm:text-sm font-bold text-[#F4F7F5] text-center">Hitta matcher</span>
               </div>
             </Link>
           </motion.div>
@@ -620,19 +623,19 @@ export default function Dashboard() {
             whileHover={{ scale: 1.05, y: -5 }}
             whileTap={{ scale: 0.95 }}
           >
-            <button onClick={() => setShowCreateMatchModal(true)} className="w-full">
-              <div className="relative overflow-hidden bg-gradient-to-br from-[#121715] to-[#18221E] border border-[#223029] shadow-[0_8px_24px_rgba(0,0,0,0.3)] rounded-[20px] p-4 sm:p-5 min-h-[110px] sm:min-h-[120px] flex flex-col items-center justify-center group hover:border-[#F4743B]/30 transition-all">
+            <button onClick={() => setShowCreateMatchModal(true)} className="w-full h-full">
+              <div className="relative overflow-hidden bg-gradient-to-br from-[#121715] to-[#18221E] border border-[#223029] shadow-[0_8px_24px_rgba(0,0,0,0.3)] rounded-[20px] p-4 sm:p-5 aspect-square flex flex-col items-center justify-center group hover:border-[#F4743B]/30 transition-all">
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-br from-[#F4743B]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
                 />
                 <motion.div
                   whileHover={{ rotate: 90 }}
                   transition={{ duration: 0.3 }}
-                  className="relative w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#F4743B] to-[#E5683A] rounded-2xl flex items-center justify-center mb-3 shadow-[0_4px_16px_rgba(244,116,59,0.4)] group-hover:shadow-[0_6px_24px_rgba(244,116,59,0.6)] transition-all"
+                  className="relative w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-[#F4743B] to-[#E5683A] rounded-2xl flex items-center justify-center mb-3 shadow-[0_4px_16px_rgba(244,116,59,0.4)] group-hover:shadow-[0_6px_24px_rgba(244,116,59,0.6)] transition-all"
                 >
-                  <Plus className="w-7 h-7 sm:w-8 sm:h-8 text-white" strokeWidth={2.5} />
+                  <Plus className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" strokeWidth={2.5} />
                 </motion.div>
-                <span className="text-sm sm:text-base font-bold text-[#F4F7F5] text-center">Skapa match</span>
+                <span className="text-xs sm:text-sm font-bold text-[#F4F7F5] text-center">Skapa match</span>
               </div>
             </button>
           </motion.div>
@@ -645,18 +648,18 @@ export default function Dashboard() {
             whileTap={{ scale: 0.95 }}
           >
             <Link to={createPageUrl('Community')}>
-              <div className="relative overflow-hidden bg-gradient-to-br from-[#121715] to-[#18221E] border border-[#223029] shadow-[0_8px_24px_rgba(0,0,0,0.3)] rounded-[20px] p-4 sm:p-5 min-h-[110px] sm:min-h-[120px] flex flex-col items-center justify-center group hover:border-[#2BA84A]/30 transition-all">
+              <div className="relative overflow-hidden bg-gradient-to-br from-[#121715] to-[#18221E] border border-[#223029] shadow-[0_8px_24px_rgba(0,0,0,0.3)] rounded-[20px] p-4 sm:p-5 aspect-square flex flex-col items-center justify-center group hover:border-[#2BA84A]/30 transition-all">
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
                 />
                 <motion.div
                   whileHover={{ scale: [1, 1.1, 1] }}
                   transition={{ duration: 0.4, repeat: Infinity }}
-                  className="relative w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center mb-3 shadow-[0_4px_16px_rgba(43,168,74,0.4)] group-hover:shadow-[0_6px_24px_rgba(43,168,74,0.6)] transition-all"
+                  className="relative w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center mb-3 shadow-[0_4px_16px_rgba(43,168,74,0.4)] group-hover:shadow-[0_6px_24px_rgba(43,168,74,0.6)] transition-all"
                 >
-                  <Users className="w-7 h-7 sm:w-8 sm:h-8 text-white" strokeWidth={2.5} />
+                  <Users className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" strokeWidth={2.5} />
                 </motion.div>
-                <span className="text-sm sm:text-base font-bold text-[#F4F7F5] text-center">Vänner & lag</span>
+                <span className="text-xs sm:text-sm font-bold text-[#F4F7F5] text-center">Vänner & lag</span>
               </div>
             </Link>
           </motion.div>
@@ -898,7 +901,6 @@ export default function Dashboard() {
             {/* NEW: Cups Widget */}
             <CupsWidget />
 
-            {/* Weekly Progress - NOW DYNAMIC */}
             <Card className="bg-gradient-to-br from-[#121715] to-[#18221E] rounded-[20px] shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#223029]">
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-6">
@@ -949,7 +951,6 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            {/* Recent Activity - NOW DYNAMIC */}
             <Card className="bg-gradient-to-br from-[#121715] to-[#18221E] rounded-[20px] shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#223029]">
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-6">
