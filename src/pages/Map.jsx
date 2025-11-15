@@ -237,6 +237,9 @@ export default function MapPage() {
 
   const handleVenueClick = (venue) => {
     setSelectedVenue(venue);
+  };
+
+  const handleShowDetails = (venue) => {
     setSelectedVenueForModal(venue);
     setShowVenueModal(true);
   };
@@ -330,7 +333,7 @@ export default function MapPage() {
                   venue={venue}
                   matches={venue.upcoming_matches || []}
                   isSelected={selectedVenue?.id === venue.id}
-                  onClick={() => handleVenueClick(venue)}
+                  onClick={() => handleShowDetails(venue)}
                   onMatchClick={handleMatchClick}
                   userMatchIds={userMatchIds}
                 />
@@ -358,6 +361,7 @@ export default function MapPage() {
                 selectedVenue={selectedVenue}
                 userLocation={userLocation}
                 onVenueSelect={handleVenueClick}
+                onShowDetails={handleShowDetails}
                 onMatchClick={handleMatchClick}
                 userMatchIds={userMatchIds}
               />
@@ -444,7 +448,7 @@ export default function MapPage() {
                 venue={venue}
                 matches={venue.upcoming_matches || []}
                 isSelected={selectedVenue?.id === venue.id}
-                onClick={() => handleVenueClick(venue)}
+                onClick={() => handleShowDetails(venue)}
                 onMatchClick={handleMatchClick}
                 userMatchIds={userMatchIds}
               />
@@ -473,6 +477,7 @@ export default function MapPage() {
             selectedVenue={selectedVenue}
             userLocation={userLocation}
             onVenueSelect={handleVenueClick}
+            onShowDetails={handleShowDetails}
             onMatchClick={handleMatchClick}
             userMatchIds={userMatchIds}
           />

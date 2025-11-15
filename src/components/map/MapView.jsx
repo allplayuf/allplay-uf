@@ -74,6 +74,7 @@ export default function MapView({
   selectedVenue, 
   userLocation, 
   onVenueSelect,
+  onShowDetails,
   onMatchClick,
   userMatchIds = []
 }) {
@@ -88,11 +89,11 @@ export default function MapView({
       const hasUserMatch = venueMatches.some(m => userMatchIds.includes(m.id));
       
       if (ongoingMatch) {
-        statusMap[venue.id] = { status: 'ongoing', hasUserMatch };
+        statusMap[venue.id] = { status: 'ongoing', hasUserMatch, matchCount: venueMatches.length };
       } else if (venueMatches.length > 0) {
-        statusMap[venue.id] = { status: 'has_matches', hasUserMatch };
+        statusMap[venue.id] = { status: 'has_matches', hasUserMatch, matchCount: venueMatches.length };
       } else {
-        statusMap[venue.id] = { status: 'available', hasUserMatch };
+        statusMap[venue.id] = { status: 'available', hasUserMatch, matchCount: 0 };
       }
     });
     return statusMap;
@@ -125,6 +126,20 @@ export default function MapView({
       }
     } catch (error) {
       console.error('Error handling marker click:', error);
+    }
+  };
+
+  const handleShowDetailsClick = (venue, e) => {
+    try {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      if (onShowDetails && typeof onShowDetails === 'function') {
+        onShowDetails(venue);
+      }
+    } catch (error) {
+      console.error('Error handling show details click:', error);
     }
   };
 
@@ -191,10 +206,9 @@ export default function MapView({
           />
         )}
 
-        {/* Venue markers - ULTIMATE ENHANCED POP-UP */}
+        {/* Venue markers - POPUP ONLY */}
         {validVenues.map((venue) => {
-          const { status, hasUserMatch } = venueStatuses[venue.id] || { status: 'available', hasUserMatch: false };
-          const venueMatches = matches.filter(m => m.venue_id === venue.id && m.status === 'upcoming');
+          const { status, hasUserMatch, matchCount } = venueStatuses[venue.id] || { status: 'available', hasUserMatch: false, matchCount: 0 };
           const isSelected = selectedVenue && selectedVenue.id === venue.id;
 
           return (
@@ -272,7 +286,7 @@ export default function MapView({
                             <path fillRule="evenodd" d="M5.216 14A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216z"/>
                             <path d="M4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/>
                           </svg>
-                          Du spelar här
+                          Du spelar här · {matchCount} match{matchCount === 1 ? '' : 'er'}
                         </div>
                       )}
                       {status === 'has_matches' && !hasUserMatch && (
@@ -281,7 +295,7 @@ export default function MapView({
                             <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"/>
                             <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
                           </svg>
-                          {venueMatches.length} match{venueMatches.length === 1 ? '' : 'er'}
+                          {matchCount} match{matchCount === 1 ? '' : 'er'}
                         </div>
                       )}
                       {status === 'available' && (
@@ -295,10 +309,10 @@ export default function MapView({
                     </div>
                   </div>
 
-                  {/* Action Buttons - REDESIGNED & IMPROVED */}
+                  {/* Action Buttons */}
                   <div className="action-buttons">
                     <button
-                      onClick={() => handleMarkerClick(venue)}
+                      onClick={(e) => handleShowDetailsClick(venue, e)}
                       className="btn-details"
                     >
                       <svg className="btn-icon" viewBox="0 0 16 16" fill="currentColor">
@@ -324,14 +338,13 @@ export default function MapView({
         })}
       </MapContainer>
 
-      {/* ULTIMATE Enhanced CSS for popup */}
+      {/* Enhanced CSS for popup */}
       <style jsx global>{`
         .custom-map-marker {
           background: none;
           border: none;
         }
         
-        /* Popup container - Enhanced shadow & border */
         .venue-popup .leaflet-popup-content-wrapper {
           background: linear-gradient(145deg, #1F2421 0%, #161A18 100%);
           border: 1px solid rgba(43, 168, 74, 0.15);
@@ -367,13 +380,11 @@ export default function MapView({
           transform: rotate(90deg);
         }
         
-        /* Content - Better spacing */
         .venue-popup-content {
           padding: 24px;
           padding-top: 20px;
         }
         
-        /* Header */
         .venue-header {
           margin-bottom: 20px;
         }
@@ -445,7 +456,6 @@ export default function MapView({
           font-weight: 500;
         }
         
-        /* Facilities - Better design */
         .facilities {
           display: flex;
           flex-wrap: wrap;
@@ -472,7 +482,6 @@ export default function MapView({
           transform: translateY(-1px);
         }
         
-        /* Status Badge - Enhanced */
         .status-badge-container {
           margin-top: 14px;
         }
@@ -538,7 +547,6 @@ export default function MapView({
           }
         }
         
-        /* Action Buttons - ULTIMATE REDESIGN */
         .action-buttons {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -688,7 +696,6 @@ export default function MapView({
           transform: rotate(90deg) scale(1.1);
         }
         
-        /* Mobile optimizations */
         @media (max-width: 768px) {
           .leaflet-container {
             touch-action: pan-x pan-y;
