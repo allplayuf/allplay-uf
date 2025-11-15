@@ -15,10 +15,11 @@ import {
   X,
   CheckCircle,
   Map as MapIcon,
-  List
+  List,
+  Keyboard
 } from "lucide-react";
 import { Venue } from "@/entities/Venue";
-import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -91,20 +92,32 @@ function DraggableMarker({ venue, onPositionChange }) {
   );
 }
 
-// Right-click context menu handler
-function MapRightClickHandler({ onRightClick }) {
-  const [contextMenu, setContextMenu] = useState(null);
+// Keyboard handler for 'M' key
+function KeyboardHandler({ onKeyPress, isAddingMode }) {
+  const map = useMap();
+  const [mousePos, setMousePos] = useState(null);
 
   useMapEvents({
-    contextmenu(e) {
-      e.originalEvent.preventDefault();
-      onRightClick(e.latlng.lat, e.latlng.lng, {
-        x: e.originalEvent.clientX,
-        y: e.originalEvent.clientY
-      });
+    mousemove(e) {
+      setMousePos(e.latlng);
     }
   });
-  
+
+  useEffect(() => {
+    if (!isAddingMode) return;
+
+    const handleKeyPress = (e) => {
+      if (e.key === 'm' || e.key === 'M') {
+        if (mousePos) {
+          onKeyPress(mousePos.lat, mousePos.lng);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, [mousePos, onKeyPress, isAddingMode]);
+
   return null;
 }
 
@@ -117,44 +130,28 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
   const [activeTab, setActiveTab] = useState('map');
   const [mapCenter, setMapCenter] = useState([59.3293, 18.0686]);
   const [sortBy, setSortBy] = useState('name');
-  const [contextMenu, setContextMenu] = useState(null);
-  const contextMenuRef = useRef(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [pendingPosition, setPendingPosition] = useState(null);
 
   useEffect(() => {
     setVenues(initialVenues);
   }, [initialVenues]);
 
-  // Close context menu on click outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (contextMenuRef.current && !contextMenuRef.current.contains(event.target)) {
-        setContextMenu(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+  const handleKeyPress = useCallback((lat, lng) => {
+    setPendingPosition({ lat, lng });
+    setShowCreateModal(true);
   }, []);
 
-  const handleRightClick = useCallback((lat, lng, position) => {
-    setContextMenu({
-      lat,
-      lng,
-      x: position.x,
-      y: position.y
-    });
-  }, []);
-
-  const handleCreateVenueFromContextMenu = useCallback(() => {
-    if (!contextMenu) return;
+  const handleConfirmCreate = useCallback(() => {
+    if (!pendingPosition) return;
     
-    setNewVenuePosition({ lat: contextMenu.lat, lng: contextMenu.lng });
+    setNewVenuePosition({ lat: pendingPosition.lat, lng: pendingPosition.lng });
     setEditingVenue({
       name: '',
       address: '',
       city: '',
-      latitude: contextMenu.lat,
-      longitude: contextMenu.lng,
+      latitude: pendingPosition.lat,
+      longitude: pendingPosition.lng,
       type: 'public',
       formats_supported: ['5v5'],
       facilities: [],
@@ -162,9 +159,14 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
       is_verified: false,
       added_by_admin: true
     });
-    setIsAddingNew(true);
-    setContextMenu(null);
-  }, [contextMenu]);
+    setShowCreateModal(false);
+    setPendingPosition(null);
+  }, [pendingPosition]);
+
+  const handleCancelCreate = useCallback(() => {
+    setShowCreateModal(false);
+    setPendingPosition(null);
+  }, []);
 
   const handlePositionChange = async (venueId, lat, lng) => {
     try {
@@ -262,14 +264,26 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
             </div>
             <Button
               onClick={() => {
-                setIsAddingNew(true);
+                setIsAddingNew(!isAddingNew);
                 setActiveTab('map');
-                alert('Högerklicka på kartan för att placera ny plan');
               }}
-              className="bg-[#2BA84A] hover:bg-[#248232] text-white w-full sm:w-auto rounded-xl h-11"
+              className={`${
+                isAddingNew 
+                  ? 'bg-[#F4743B] hover:bg-[#E5683A]' 
+                  : 'bg-[#2BA84A] hover:bg-[#248232]'
+              } text-white w-full sm:w-auto rounded-xl h-11`}
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Lägg till plan
+              {isAddingNew ? (
+                <>
+                  <X className="w-4 h-4 mr-2" />
+                  Avsluta läggningsläge
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Lägg till plan
+                </>
+              )}
             </Button>
           </div>
         </CardContent>
@@ -290,6 +304,22 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
 
         {/* Map View */}
         <TabsContent value="map" className="space-y-4">
+          {isAddingNew && (
+            <Card className="bg-gradient-to-r from-[#2BA84A]/20 to-[#248232]/20 border border-[#2BA84A]/30 rounded-xl">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="w-12 h-12 bg-[#2BA84A] rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Keyboard className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-[#F4F7F5] mb-1">Läggningsläge aktiverat</h3>
+                  <p className="text-sm text-[#B6C2BC]">
+                    Håll muspekaren över kartan och tryck <kbd className="px-2 py-1 bg-[#18221E] border border-[#223029] rounded text-[#2BA84A] font-mono text-xs">M</kbd> för att skapa en ny plan
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <Card className="bg-[#121715] border border-[#223029] shadow-xl rounded-2xl overflow-hidden">
             <CardHeader className="border-b border-[#223029]">
               <CardTitle className="flex items-center gap-2 text-[#F4F7F5]">
@@ -297,9 +327,7 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
                 Justera planpositioner
               </CardTitle>
               <p className="text-sm text-[#B6C2BC] mt-2">
-                {isAddingNew 
-                  ? '📍 Högerklicka på kartan för att skapa ny plan' 
-                  : 'Dra och släpp pins för att justera position, eller högerklicka för att skapa ny plan'}
+                Dra och släpp pins för att justera position
               </p>
             </CardHeader>
             <CardContent className="p-0 relative">
@@ -315,7 +343,7 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   />
                   
-                  <MapRightClickHandler onRightClick={handleRightClick} />
+                  <KeyboardHandler onKeyPress={handleKeyPress} isAddingMode={isAddingNew} />
                   
                   {filteredVenues.map(venue => (
                     <DraggableMarker
@@ -354,25 +382,57 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
                 </MapContainer>
               </div>
 
-              {/* Context Menu */}
-              {contextMenu && (
-                <div
-                  ref={contextMenuRef}
-                  className="fixed bg-[#121715] border border-[#223029] rounded-xl shadow-2xl p-2 z-[9999]"
-                  style={{
-                    left: `${contextMenu.x}px`,
-                    top: `${contextMenu.y}px`,
-                  }}
-                >
-                  <button
-                    onClick={handleCreateVenueFromContextMenu}
-                    className="w-full text-left px-4 py-2 hover:bg-[#18221E] rounded-lg text-[#F4F7F5] flex items-center gap-2 transition-colors"
-                  >
-                    <Plus className="w-4 h-4 text-[#2BA84A]" />
-                    <span>Skapa plan här</span>
-                  </button>
-                  <div className="px-4 py-1 text-xs text-[#7B8A83] mt-1 border-t border-[#223029] pt-2">
-                    {contextMenu.lat.toFixed(5)}, {contextMenu.lng.toFixed(5)}
+              {/* Enhanced Create Modal */}
+              {showCreateModal && pendingPosition && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+                  <div className="bg-[#121715] border-2 border-[#2BA84A] rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+                    <div className="flex items-start gap-4 mb-6">
+                      <div className="w-14 h-14 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0">
+                        <MapPin className="w-7 h-7 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-[#F4F7F5] mb-2">Skapa ny plan</h3>
+                        <p className="text-sm text-[#B6C2BC]">
+                          Vill du skapa en ny fotbollsplan här?
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-[#18221E] border border-[#223029] rounded-xl p-4 mb-6">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold text-[#7B8A83] uppercase tracking-wide">Koordinater</span>
+                        <Badge className="bg-[#2BA84A]/20 text-[#2BA84A] border-0">
+                          Exakt position
+                        </Badge>
+                      </div>
+                      <div className="font-mono text-[#F4F7F5] text-sm">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[#7B8A83]">Lat:</span>
+                          <span className="font-semibold">{pendingPosition.lat.toFixed(6)}</span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[#7B8A83]">Lng:</span>
+                          <span className="font-semibold">{pendingPosition.lng.toFixed(6)}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={handleCancelCreate}
+                        variant="outline"
+                        className="flex-1 border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] hover:text-[#F4F7F5]"
+                      >
+                        Avbryt
+                      </Button>
+                      <Button
+                        onClick={handleConfirmCreate}
+                        className="flex-1 bg-gradient-to-r from-[#2BA84A] to-[#248232] hover:from-[#248232] hover:to-[#2BA84A] text-white shadow-lg"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Fortsätt
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -384,7 +444,7 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
             <Card className="bg-[#121715] border border-[#223029] shadow-xl rounded-2xl">
               <CardHeader className="border-b border-[#223029]">
                 <CardTitle className="text-[#F4F7F5]">
-                  {isAddingNew ? 'Lägg till ny plan' : 'Redigera plan'}
+                  Lägg till ny plan
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
