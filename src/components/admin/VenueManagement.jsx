@@ -142,26 +142,26 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
     setShowCreateModal(true);
   }, []);
 
-  const handleConfirmCreate = useCallback(() => {
-    if (!pendingPosition) return;
-    
-    setNewVenuePosition({ lat: pendingPosition.lat, lng: pendingPosition.lng });
-    setEditingVenue({
-      name: '',
-      address: '',
-      city: '',
-      latitude: pendingPosition.lat,
-      longitude: pendingPosition.lng,
-      type: 'public',
-      formats_supported: ['5v5'],
-      facilities: [],
-      is_active: true,
-      is_verified: false,
-      added_by_admin: true
-    });
-    setShowCreateModal(false);
-    setPendingPosition(null);
-  }, [pendingPosition]);
+  const handleCreateVenue = useCallback(async (venueData) => {
+    try {
+      await Venue.create({
+        ...venueData,
+        latitude: pendingPosition.lat,
+        longitude: pendingPosition.lng,
+        is_active: true,
+        is_verified: true,
+        added_by_admin: true
+      });
+      
+      setShowCreateModal(false);
+      setPendingPosition(null);
+      alert('Plan skapad!');
+      onRefresh();
+    } catch (error) {
+      console.error("Error creating venue:", error);
+      alert('Kunde inte skapa plan. Försök igen.');
+    }
+  }, [pendingPosition, onRefresh]);
 
   const handleCancelCreate = useCallback(() => {
     setShowCreateModal(false);
@@ -352,89 +352,16 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
                       onPositionChange={handlePositionChange}
                     />
                   ))}
-                  
-                  {newVenuePosition && (
-                    <Marker
-                      position={[newVenuePosition.lat, newVenuePosition.lng]}
-                      icon={L.divIcon({
-                        html: `
-                          <div style="
-                            width: 32px;
-                            height: 40px;
-                            position: relative;
-                            animation: bounce 0.5s infinite;
-                          ">
-                            <svg width="32" height="40" viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M16 2C9.373 2 4 7.373 4 14c0 9 12 22 12 22s12-13 12-22c0-6.627-5.373-12-12-12z" 
-                                    fill="#2BA84A" 
-                                    stroke="#FFFFFF" 
-                                    stroke-width="2"/>
-                              <circle cx="16" cy="14" r="5" fill="#FFFFFF"/>
-                            </svg>
-                          </div>
-                        `,
-                        className: 'new-venue-marker',
-                        iconSize: [32, 40],
-                        iconAnchor: [16, 40]
-                      })}
-                    />
-                  )}
                 </MapContainer>
               </div>
 
               {/* Enhanced Create Modal */}
               {showCreateModal && pendingPosition && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
-                  <div className="bg-[#121715] border-2 border-[#2BA84A] rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
-                    <div className="flex items-start gap-4 mb-6">
-                      <div className="w-14 h-14 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0">
-                        <MapPin className="w-7 h-7 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold text-[#F4F7F5] mb-2">Skapa ny plan</h3>
-                        <p className="text-sm text-[#B6C2BC]">
-                          Vill du skapa en ny fotbollsplan här?
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="bg-[#18221E] border border-[#223029] rounded-xl p-4 mb-6">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-semibold text-[#7B8A83] uppercase tracking-wide">Koordinater</span>
-                        <Badge className="bg-[#2BA84A]/20 text-[#2BA84A] border-0">
-                          Exakt position
-                        </Badge>
-                      </div>
-                      <div className="font-mono text-[#F4F7F5] text-sm">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[#7B8A83]">Lat:</span>
-                          <span className="font-semibold">{pendingPosition.lat.toFixed(6)}</span>
-                        </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[#7B8A83]">Lng:</span>
-                          <span className="font-semibold">{pendingPosition.lng.toFixed(6)}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3">
-                      <Button
-                        onClick={handleCancelCreate}
-                        variant="outline"
-                        className="flex-1 border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] hover:text-[#F4F7F5]"
-                      >
-                        Avbryt
-                      </Button>
-                      <Button
-                        onClick={handleConfirmCreate}
-                        className="flex-1 bg-gradient-to-r from-[#2BA84A] to-[#248232] hover:from-[#248232] hover:to-[#2BA84A] text-white shadow-lg"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Fortsätt
-                      </Button>
-                    </div>
-                  </div>
-                </div>
+                <QuickCreateModal
+                  position={pendingPosition}
+                  onConfirm={handleCreateVenue}
+                  onCancel={handleCancelCreate}
+                />
               )}
             </CardContent>
           </Card>
@@ -552,6 +479,221 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
           animation: bounce 0.5s infinite;
         }
       `}</style>
+    </div>
+  );
+}
+
+// Quick Create Modal Component
+function QuickCreateModal({ position, onConfirm, onCancel }) {
+  const [formData, setFormData] = useState({
+    name: '',
+    address: '',
+    city: '',
+    surface_type: 'grass',
+    formats_supported: ['5v5'],
+    facilities: []
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onConfirm(formData);
+  };
+
+  const toggleFacility = (facility) => {
+    setFormData(prev => ({
+      ...prev,
+      facilities: prev.facilities.includes(facility)
+        ? prev.facilities.filter(f => f !== facility)
+        : [...prev.facilities, facility]
+    }));
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+      <div className="bg-[#121715] border-2 border-[#2BA84A] rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <form onSubmit={handleSubmit}>
+          <div className="p-6 border-b border-[#223029]">
+            <div className="flex items-start gap-4">
+              <div className="w-14 h-14 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0">
+                <MapPin className="w-7 h-7 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-[#F4F7F5] mb-2">Skapa ny plan</h3>
+                <p className="text-sm text-[#B6C2BC]">
+                  Fyll i information om planen
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 space-y-4">
+            {/* Coordinates Display */}
+            <div className="bg-[#18221E] border border-[#223029] rounded-xl p-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold text-[#7B8A83] uppercase tracking-wide">Koordinater</span>
+                <Badge className="bg-[#2BA84A]/20 text-[#2BA84A] border-0 text-xs">
+                  Exakt position
+                </Badge>
+              </div>
+              <div className="font-mono text-[#F4F7F5] text-xs">
+                {position.lat.toFixed(6)}, {position.lng.toFixed(6)}
+              </div>
+            </div>
+
+            {/* Name */}
+            <div>
+              <Label className="text-[#F4F7F5] mb-2 block">Plannamn *</Label>
+              <Input
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="bg-[#18221E] border-[#223029] text-[#F4F7F5]"
+                placeholder="T.ex. Östermalms IP"
+              />
+            </div>
+
+            {/* Address */}
+            <div>
+              <Label className="text-[#F4F7F5] mb-2 block">Adress *</Label>
+              <Input
+                required
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                className="bg-[#18221E] border-[#223029] text-[#F4F7F5]"
+                placeholder="T.ex. Fiskartorpsvägen 20"
+              />
+            </div>
+
+            {/* City */}
+            <div>
+              <Label className="text-[#F4F7F5] mb-2 block">Stad *</Label>
+              <Input
+                required
+                value={formData.city}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                className="bg-[#18221E] border-[#223029] text-[#F4F7F5]"
+                placeholder="T.ex. Stockholm"
+              />
+            </div>
+
+            {/* Surface Type */}
+            <div>
+              <Label className="text-[#F4F7F5] mb-2 block">Underlag *</Label>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, surface_type: 'grass' })}
+                  className={`p-3 rounded-xl border-2 transition-all ${
+                    formData.surface_type === 'grass'
+                      ? 'border-[#2BA84A] bg-[#2BA84A]/10 text-[#2BA84A]'
+                      : 'border-[#223029] bg-[#18221E] text-[#B6C2BC] hover:border-[#2BA84A]/30'
+                  }`}
+                >
+                  <div className="text-2xl mb-1">🌱</div>
+                  <div className="text-xs font-semibold">Gräs</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, surface_type: 'artificial_turf' })}
+                  className={`p-3 rounded-xl border-2 transition-all ${
+                    formData.surface_type === 'artificial_turf'
+                      ? 'border-[#2BA84A] bg-[#2BA84A]/10 text-[#2BA84A]'
+                      : 'border-[#223029] bg-[#18221E] text-[#B6C2BC] hover:border-[#2BA84A]/30'
+                  }`}
+                >
+                  <div className="text-2xl mb-1">🟢</div>
+                  <div className="text-xs font-semibold">Konstgräs</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, surface_type: 'futsal' })}
+                  className={`p-3 rounded-xl border-2 transition-all ${
+                    formData.surface_type === 'futsal'
+                      ? 'border-[#2BA84A] bg-[#2BA84A]/10 text-[#2BA84A]'
+                      : 'border-[#223029] bg-[#18221E] text-[#B6C2BC] hover:border-[#2BA84A]/30'
+                  }`}
+                >
+                  <div className="text-2xl mb-1">🏀</div>
+                  <div className="text-xs font-semibold">Futsal</div>
+                </button>
+              </div>
+            </div>
+
+            {/* Facilities */}
+            <div>
+              <Label className="text-[#F4F7F5] mb-2 block">Faciliteter</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => toggleFacility('lighting')}
+                  className={`p-3 rounded-xl border-2 transition-all text-left ${
+                    formData.facilities.includes('lighting')
+                      ? 'border-[#2BA84A] bg-[#2BA84A]/10 text-[#2BA84A]'
+                      : 'border-[#223029] bg-[#18221E] text-[#B6C2BC] hover:border-[#2BA84A]/30'
+                  }`}
+                >
+                  <div className="text-xl mb-1">💡</div>
+                  <div className="text-xs font-semibold">Belysning</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => toggleFacility('changing_rooms')}
+                  className={`p-3 rounded-xl border-2 transition-all text-left ${
+                    formData.facilities.includes('changing_rooms')
+                      ? 'border-[#2BA84A] bg-[#2BA84A]/10 text-[#2BA84A]'
+                      : 'border-[#223029] bg-[#18221E] text-[#B6C2BC] hover:border-[#2BA84A]/30'
+                  }`}
+                >
+                  <div className="text-xl mb-1">👕</div>
+                  <div className="text-xs font-semibold">Omklädningsrum</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => toggleFacility('parking')}
+                  className={`p-3 rounded-xl border-2 transition-all text-left ${
+                    formData.facilities.includes('parking')
+                      ? 'border-[#2BA84A] bg-[#2BA84A]/10 text-[#2BA84A]'
+                      : 'border-[#223029] bg-[#18221E] text-[#B6C2BC] hover:border-[#2BA84A]/30'
+                  }`}
+                >
+                  <div className="text-xl mb-1">🅿️</div>
+                  <div className="text-xs font-semibold">Parkering</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => toggleFacility('showers')}
+                  className={`p-3 rounded-xl border-2 transition-all text-left ${
+                    formData.facilities.includes('showers')
+                      ? 'border-[#2BA84A] bg-[#2BA84A]/10 text-[#2BA84A]'
+                      : 'border-[#223029] bg-[#18221E] text-[#B6C2BC] hover:border-[#2BA84A]/30'
+                  }`}
+                >
+                  <div className="text-xl mb-1">🚿</div>
+                  <div className="text-xs font-semibold">Duschar</div>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 border-t border-[#223029] flex gap-3">
+            <Button
+              type="button"
+              onClick={onCancel}
+              variant="outline"
+              className="flex-1 border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] hover:text-[#F4F7F5]"
+            >
+              Avbryt
+            </Button>
+            <Button
+              type="submit"
+              className="flex-1 bg-gradient-to-r from-[#2BA84A] to-[#248232] hover:from-[#248232] hover:to-[#2BA84A] text-white shadow-lg"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Skapa plan
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
