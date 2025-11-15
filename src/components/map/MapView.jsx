@@ -1,26 +1,23 @@
-
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapPin, Users, Calendar, Navigation, CheckCircle } from 'lucide-react';
+import { MapPin, Users, Calendar, CheckCircle, Lightbulb, ParkingCircle, ShowerHead } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
 // Optimize icon creation with memoization
 const createCustomIcon = (color = '#2BA84A', isActive = false, status = 'available', hasUserMatch = false) => {
-  // Color priority: User's match (blue) > Has matches (orange) > Default (green)
   let iconColor = color;
   
   if (hasUserMatch) {
-    iconColor = '#4169E1'; // Royal Blue for user's matches
+    iconColor = '#4169E1';
   } else if (status === 'has_matches') {
-    iconColor = '#F4743B'; // Orange for venues with matches
+    iconColor = '#F4743B';
   } else if (status === 'ongoing') {
-    iconColor = '#FFD700'; // Gold for ongoing
+    iconColor = '#FFD700';
   }
   
-  // Simplified SVG for better mobile performance
   const svgIcon = `
     <svg width="40" height="50" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -56,7 +53,6 @@ const createCustomIcon = (color = '#2BA84A', isActive = false, status = 'availab
   });
 };
 
-// Component to handle map centering
 function MapCenterController({ center, zoom }) {
   const map = useMap();
   
@@ -84,7 +80,6 @@ export default function MapView({
   const [mapReady, setMapReady] = useState(false);
   const mapRef = useRef(null);
 
-  // Memoize venue status calculations - NOW WITH USER MATCH CHECK
   const venueStatuses = useMemo(() => {
     const statusMap = {};
     venues.forEach(venue => {
@@ -94,7 +89,7 @@ export default function MapView({
       
       if (ongoingMatch) {
         statusMap[venue.id] = { status: 'ongoing', hasUserMatch };
-      } else if (venueMatches.length > 0) { // If there are any matches (upcoming, full, etc.)
+      } else if (venueMatches.length > 0) {
         statusMap[venue.id] = { status: 'has_matches', hasUserMatch };
       } else {
         statusMap[venue.id] = { status: 'available', hasUserMatch };
@@ -103,7 +98,6 @@ export default function MapView({
     return statusMap;
   }, [venues, matches, userMatchIds]);
 
-  // Filter out invalid venues
   const validVenues = useMemo(() => {
     return venues.filter(venue => 
       venue.latitude && 
@@ -121,10 +115,9 @@ export default function MapView({
     if (userLocation && userLocation.lat && userLocation.lng) {
       return userLocation;
     }
-    return { lat: 59.3293, lng: 18.0686 }; // Stockholm fallback
+    return { lat: 59.3293, lng: 18.0686 };
   }, [userLocation]);
 
-  // Simplified marker click handler
   const handleMarkerClick = (venue) => {
     try {
       if (onVenueSelect && typeof onVenueSelect === 'function') {
@@ -135,7 +128,6 @@ export default function MapView({
     }
   };
 
-  // Simplified match click handler
   const handleMatchClick = (matchId, e) => {
     try {
       if (e) {
@@ -163,7 +155,6 @@ export default function MapView({
         tap={true}
         ref={mapRef}
         whenReady={() => setMapReady(true)}
-        // Performance optimizations for mobile
         preferCanvas={true}
         updateWhenIdle={true}
         updateWhenZooming={false}
@@ -172,7 +163,6 @@ export default function MapView({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           maxZoom={19}
-          // Mobile performance optimizations
           keepBuffer={2}
           updateInterval={200}
         />
@@ -217,151 +207,108 @@ export default function MapView({
               }}
             >
               <Popup 
-                className="custom-popup"
-                maxWidth={300}
-                minWidth={260}
+                className="venue-popup"
+                maxWidth={320}
+                minWidth={280}
                 closeButton={true}
                 autoPan={true}
                 autoPanPadding={[50, 50]}
               >
-                <div className="p-3">
-                  {/* ENHANCED Venue Header */}
-                  <div className="mb-4">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className="font-bold text-[#F4F7F5] text-base flex-1">
-                        {venue.name}
-                      </h3>
+                <div className="venue-popup-content">
+                  {/* Header */}
+                  <div className="venue-header">
+                    <div className="venue-title-row">
+                      <h3 className="venue-name">{venue.name}</h3>
                       {venue.is_verified && (
-                        <div className="flex items-center gap-1 px-2 py-1 bg-[#2BA84A]/20 rounded-full flex-shrink-0">
-                          <CheckCircle className="w-3 h-3 text-[#2BA84A]" />
-                          <span className="text-[9px] font-bold text-[#2BA84A]">VERIFIERAD</span>
+                        <div className="verified-badge">
+                          <svg className="verified-icon" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                          </svg>
+                          <span>VERIFIERAD</span>
                         </div>
                       )}
                     </div>
                     
-                    <p className="text-xs text-[#B6C2BC] flex items-center gap-1 mb-2">
-                      <MapPin className="w-3 h-3" />
-                      {venue.address}, {venue.city}
-                    </p>
+                    <div className="venue-address">
+                      <svg className="address-icon" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
+                      </svg>
+                      <span>{venue.address}, {venue.city}</span>
+                    </div>
 
-                    {/* Rating if available */}
-                    {venue.rating && (
-                      <div className="flex items-center gap-1 mb-2">
-                        <span className="text-[#F4743B]">★</span>
-                        <span className="text-sm font-semibold text-[#F4F7F5]">{venue.rating}</span>
-                        <span className="text-xs text-[#7B8A83]">/5</span>
-                      </div>
-                    )}
-
-                    {/* Facilities */}
+                    {/* Facilities with icons */}
                     {venue.facilities && venue.facilities.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-2">
-                        {venue.facilities.slice(0, 3).map(facility => (
-                          <span key={facility} className="text-[9px] bg-[#18221E] text-[#B6C2BC] px-2 py-0.5 rounded-full">
-                            {facility === 'changing_rooms' && '🚿 Omklädning'}
-                            {facility === 'parking' && '🅿️ Parkering'}
-                            {facility === 'lighting' && '💡 Belysning'}
-                            {facility === 'artificial_grass' && '🌱 Konstgräs'}
-                            {/* Add more facilities here if needed */}
-                          </span>
-                        ))}
+                      <div className="facilities">
+                        {venue.facilities.includes('lighting') && (
+                          <div className="facility-item">
+                            💡 <span>Belysning</span>
+                          </div>
+                        )}
+                        {venue.facilities.includes('parking') && (
+                          <div className="facility-item">
+                            🅿️ <span>Parkering</span>
+                          </div>
+                        )}
+                        {(venue.facilities.includes('changing_rooms') || venue.facilities.includes('showers')) && (
+                          <div className="facility-item">
+                            🚿 <span>Omklädningsrum</span>
+                          </div>
+                        )}
                       </div>
                     )}
 
                     {/* Status Badge */}
-                    <div className="mt-2">
+                    <div className="status-badge-container">
                       {status === 'ongoing' && (
-                        <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#FFD700]/20 text-[#FFD700] rounded-full text-xs font-bold">
-                          <span className="w-2 h-2 bg-[#FFD700] rounded-full animate-pulse"></span>
+                        <div className="status-badge status-ongoing">
+                          <span className="status-pulse"></span>
                           Match pågår nu!
-                        </span>
+                        </div>
                       )}
                       {status === 'has_matches' && hasUserMatch && (
-                        <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#4169E1]/20 text-[#4169E1] rounded-full text-xs font-bold">
-                          <Users className="w-3 h-3" />
+                        <div className="status-badge status-user-match">
+                          <svg className="status-icon" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                            <path fillRule="evenodd" d="M5.216 14A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216z"/>
+                            <path d="M4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/>
+                          </svg>
                           Du spelar här
-                        </span>
+                        </div>
                       )}
                       {status === 'has_matches' && !hasUserMatch && (
-                        <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#F4743B]/20 text-[#F4743B] rounded-full text-xs font-bold">
-                          <Calendar className="w-3 h-3" />
+                        <div className="status-badge status-has-matches">
+                          <svg className="status-icon" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"/>
+                            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+                          </svg>
                           {venueMatches.length} match{venueMatches.length === 1 ? '' : 'er'}
-                        </span>
+                        </div>
                       )}
                       {status === 'available' && (
-                        <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#2BA84A]/20 text-[#2BA84A] rounded-full text-xs font-bold">
-                          <CheckCircle className="w-3 h-3" />
+                        <div className="status-badge status-available">
+                          <svg className="status-icon" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                          </svg>
                           Tillgänglig
-                        </span>
+                        </div>
                       )}
                     </div>
                   </div>
 
-                  {/* ENHANCED Matches List */}
-                  {venueMatches.length > 0 && (
-                    <div className="space-y-2 mb-3">
-                      <p className="text-[10px] font-bold text-[#9FC9AC] uppercase tracking-wide">
-                        Kommande matcher
-                      </p>
-                      {venueMatches.slice(0, 3).map((match) => (
-                        <Link
-                          key={match.id}
-                          to={`${createPageUrl("MatchDetail")}?id=${match.id}`}
-                          onClick={(e) => handleMatchClick(match.id, e)}
-                          className="block p-2.5 bg-[#18221E] rounded-lg hover:bg-[#223029] transition-all border border-[#223029] hover:border-[#2BA84A]/30"
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-semibold text-[#F4F7F5] truncate mb-1">
-                                {match.title}
-                              </p>
-                              <div className="flex items-center gap-2 text-[10px] text-[#B6C2BC]">
-                                <span className="flex items-center gap-1">
-                                  <Calendar className="w-3 h-3" />
-                                  {match.date}
-                                </span>
-                                <span>•</span>
-                                <span>{match.time}</span>
-                              </div>
-                            </div>
-                            <div className="flex flex-col items-end gap-1">
-                              <span className="text-[10px] font-bold text-[#9FC9AC] bg-[#2BA84A]/10 px-2 py-0.5 rounded-full">
-                                {match.format}
-                              </span>
-                              <span className="text-[9px] text-[#B6C2BC]">
-                                {match.is_spontaneous 
-                                  ? `${match.current_players || 0} spelare`
-                                  : `${match.current_players || 0}/${match.max_players}`
-                                }
-                              </span>
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
-                      {venueMatches.length > 3 && (
-                        <p className="text-[9px] text-[#7B8A83] text-center py-1">
-                          +{venueMatches.length - 3} fler matcher
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* ENHANCED Action Buttons */}
-                  <div className="flex gap-2">
+                  {/* Action Buttons - MATCHING DESIGN FROM IMAGE */}
+                  <div className="action-buttons">
                     <button
                       onClick={() => handleMarkerClick(venue)}
-                      className="flex-1 py-2.5 px-3 bg-[#2BA84A] hover:bg-[#248232] text-white text-xs font-bold rounded-lg transition-all"
+                      className="btn-details"
                     >
                       Visa detaljer
                     </button>
-                    {venueMatches.length === 0 && (
-                      <Link
-                        to={`${createPageUrl("Matches")}?create=true&venue=${venue.id}`}
-                        className="flex-1 py-2.5 px-3 bg-[#F4743B] hover:bg-[#E5683A] text-white text-xs font-bold rounded-lg transition-all text-center"
-                      >
-                        Skapa match
-                      </Link>
-                    )}
+                    <Link
+                      to={`${createPageUrl("Matches")}?create=true&venue=${venue.id}`}
+                      className="btn-create"
+                    >
+                      Skapa match
+                    </Link>
                   </div>
                 </div>
               </Popup>
@@ -370,49 +317,273 @@ export default function MapView({
         })}
       </MapContainer>
 
-      {/* Custom CSS for popup */}
+      {/* Enhanced CSS for popup matching the design */}
       <style jsx global>{`
         .custom-map-marker {
           background: none;
           border: none;
         }
         
-        .custom-popup .leaflet-popup-content-wrapper {
-          background: #121715;
-          border: 1px solid #223029;
-          border-radius: 12px;
+        /* Popup container */
+        .venue-popup .leaflet-popup-content-wrapper {
+          background: #1a1f1e;
+          border: none;
+          border-radius: 20px;
           padding: 0;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+          box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+          overflow: hidden;
         }
         
-        .custom-popup .leaflet-popup-content {
+        .venue-popup .leaflet-popup-content {
           margin: 0;
           width: 100% !important;
         }
         
-        .custom-popup .leaflet-popup-tip {
-          background: #121715;
-          border: 1px solid #223029;
+        .venue-popup .leaflet-popup-tip {
+          background: #1a1f1e;
         }
         
-        .custom-popup a.leaflet-popup-close-button {
-          color: #F4F7F5;
-          font-size: 18px;
-          padding: 8px 8px 0 0;
+        .venue-popup a.leaflet-popup-close-button {
+          color: #9CA3AF;
+          font-size: 24px;
+          padding: 12px 16px;
+          font-weight: 300;
+          z-index: 10;
         }
         
-        .custom-popup a.leaflet-popup-close-button:hover {
-          color: #2BA84A;
+        .venue-popup a.leaflet-popup-close-button:hover {
+          color: #FFFFFF;
         }
         
-        /* Mobile touch optimization */
+        /* Content */
+        .venue-popup-content {
+          padding: 20px;
+          padding-top: 16px;
+        }
+        
+        /* Header */
+        .venue-header {
+          margin-bottom: 16px;
+        }
+        
+        .venue-title-row {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 8px;
+          margin-bottom: 10px;
+        }
+        
+        .venue-name {
+          font-size: 20px;
+          font-weight: 700;
+          color: #FFFFFF;
+          line-height: 1.3;
+          flex: 1;
+        }
+        
+        .verified-badge {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          padding: 4px 8px;
+          background: rgba(34, 197, 94, 0.2);
+          border-radius: 12px;
+          flex-shrink: 0;
+        }
+        
+        .verified-icon {
+          width: 12px;
+          height: 12px;
+          color: #22C55E;
+        }
+        
+        .verified-badge span {
+          font-size: 9px;
+          font-weight: 700;
+          color: #22C55E;
+          letter-spacing: 0.5px;
+        }
+        
+        .venue-address {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-bottom: 12px;
+        }
+        
+        .address-icon {
+          width: 14px;
+          height: 14px;
+          color: #9CA3AF;
+          flex-shrink: 0;
+        }
+        
+        .venue-address span {
+          font-size: 13px;
+          color: #9CA3AF;
+          line-height: 1.4;
+        }
+        
+        /* Facilities */
+        .facilities {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 12px;
+        }
+        
+        .facility-item {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          padding: 4px 10px;
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 8px;
+          font-size: 12px;
+          color: #D1D5DB;
+        }
+        
+        /* Status Badge */
+        .status-badge-container {
+          margin-top: 12px;
+        }
+        
+        .status-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 14px;
+          border-radius: 12px;
+          font-size: 13px;
+          font-weight: 600;
+        }
+        
+        .status-icon {
+          width: 14px;
+          height: 14px;
+        }
+        
+        .status-ongoing {
+          background: rgba(251, 191, 36, 0.15);
+          color: #FCD34D;
+        }
+        
+        .status-pulse {
+          width: 8px;
+          height: 8px;
+          background: #FCD34D;
+          border-radius: 50%;
+          animation: pulse 2s infinite;
+        }
+        
+        .status-user-match {
+          background: rgba(59, 130, 246, 0.15);
+          color: #93C5FD;
+        }
+        
+        .status-has-matches {
+          background: rgba(249, 115, 22, 0.15);
+          color: #FB923C;
+        }
+        
+        .status-available {
+          background: rgba(34, 197, 94, 0.15);
+          color: #86EFAC;
+        }
+        
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.5;
+          }
+        }
+        
+        /* Action Buttons - MATCHING DESIGN */
+        .action-buttons {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+          margin-top: 16px;
+        }
+        
+        .btn-details {
+          padding: 12px 16px;
+          background: #2BA84A;
+          color: #FFFFFF;
+          border: none;
+          border-radius: 12px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          text-align: center;
+        }
+        
+        .btn-details:hover {
+          background: #248232;
+          transform: translateY(-1px);
+        }
+        
+        .btn-details:active {
+          transform: translateY(0);
+        }
+        
+        .btn-create {
+          padding: 12px 16px;
+          background: #F4743B;
+          color: #FFFFFF;
+          border: none;
+          border-radius: 12px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          text-align: center;
+          text-decoration: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .btn-create:hover {
+          background: #E5683A;
+          transform: translateY(-1px);
+        }
+        
+        .btn-create:active {
+          transform: translateY(0);
+        }
+        
+        /* Mobile optimizations */
         @media (max-width: 768px) {
           .leaflet-container {
             touch-action: pan-x pan-y;
           }
           
-          .custom-popup .leaflet-popup-content-wrapper {
+          .venue-popup .leaflet-popup-content-wrapper {
             max-width: 90vw;
+            border-radius: 16px;
+          }
+          
+          .venue-popup-content {
+            padding: 16px;
+          }
+          
+          .venue-name {
+            font-size: 18px;
+          }
+          
+          .action-buttons {
+            gap: 8px;
+          }
+          
+          .btn-details,
+          .btn-create {
+            padding: 10px 12px;
+            font-size: 13px;
           }
         }
       `}</style>
