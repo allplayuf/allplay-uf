@@ -209,7 +209,7 @@ export function DateTimePicker({ date, time, onDateChange, onTimeChange, minDate
           border-radius: 8px;
           font-size: 0.875rem;
           font-weight: 500;
-          color: #F4F7F5;
+          color: #2BA84A;
           background: transparent;
           border: none;
           cursor: pointer;
@@ -217,7 +217,7 @@ export function DateTimePicker({ date, time, onDateChange, onTimeChange, minDate
         }
 
         .calendar-white-text .rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled) {
-          background: rgba(43, 168, 74, 0.1);
+          background: rgba(43, 168, 74, 0.15);
           color: #2BA84A;
         }
 
@@ -228,20 +228,21 @@ export function DateTimePicker({ date, time, onDateChange, onTimeChange, minDate
         }
 
         .calendar-white-text .rdp-day_today:not(.rdp-day_selected) {
-          background: rgba(43, 168, 74, 0.15);
+          background: rgba(43, 168, 74, 0.2);
           color: #2BA84A;
-          font-weight: 600;
+          font-weight: 700;
+          ring: 2px solid #2BA84A;
         }
 
         .calendar-white-text .rdp-day_disabled {
-          color: #4B5563;
-          cursor: not-allowed;
-          opacity: 0.4;
+          color: #4B5563 !important;
+          cursor: not-allowed !important;
+          opacity: 0.3;
         }
 
         .calendar-white-text .rdp-day_outside {
-          color: #6B7280;
-          opacity: 0.5;
+          color: #6B7280 !important;
+          opacity: 0.3;
         }
       `}</style>
     </>
