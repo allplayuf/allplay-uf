@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,7 +64,6 @@ function DraggableMarker({ venue, onPositionChange }) {
       eventHandlers={eventHandlers}
       icon={icon}
     >
-      {/* Hover Tooltip */}
       <Tooltip direction="top" offset={[0, -40]} opacity={0.9} permanent={false}>
         <div className="text-center">
           <div className="font-semibold text-sm">{venue.name}</div>
@@ -76,7 +74,6 @@ function DraggableMarker({ venue, onPositionChange }) {
         </div>
       </Tooltip>
       
-      {/* Click Popup */}
       <Popup>
         <div className="p-2">
           <h3 className="font-semibold text-sm mb-1">{venue.name}</h3>
@@ -94,13 +91,20 @@ function DraggableMarker({ venue, onPositionChange }) {
   );
 }
 
-// Add new venue by clicking map
-function MapClickHandler({ onMapClick }) {
+// Right-click context menu handler
+function MapRightClickHandler({ onRightClick }) {
+  const [contextMenu, setContextMenu] = useState(null);
+
   useMapEvents({
-    click(e) {
-      onMapClick(e.latlng.lat, e.latlng.lng);
+    contextmenu(e) {
+      e.originalEvent.preventDefault();
+      onRightClick(e.latlng.lat, e.latlng.lng, {
+        x: e.originalEvent.clientX,
+        y: e.originalEvent.clientY
+      });
     }
   });
+  
   return null;
 }
 
@@ -111,12 +115,56 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
   const [newVenuePosition, setNewVenuePosition] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('map');
-  const [mapCenter, setMapCenter] = useState([59.3293, 18.0686]); // Stockholm default
-  const [sortBy, setSortBy] = useState('name'); // 'name', 'city', or 'created'
+  const [mapCenter, setMapCenter] = useState([59.3293, 18.0686]);
+  const [sortBy, setSortBy] = useState('name');
+  const [contextMenu, setContextMenu] = useState(null);
+  const contextMenuRef = useRef(null);
 
   useEffect(() => {
     setVenues(initialVenues);
   }, [initialVenues]);
+
+  // Close context menu on click outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (contextMenuRef.current && !contextMenuRef.current.contains(event.target)) {
+        setContextMenu(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleRightClick = useCallback((lat, lng, position) => {
+    setContextMenu({
+      lat,
+      lng,
+      x: position.x,
+      y: position.y
+    });
+  }, []);
+
+  const handleCreateVenueFromContextMenu = useCallback(() => {
+    if (!contextMenu) return;
+    
+    setNewVenuePosition({ lat: contextMenu.lat, lng: contextMenu.lng });
+    setEditingVenue({
+      name: '',
+      address: '',
+      city: '',
+      latitude: contextMenu.lat,
+      longitude: contextMenu.lng,
+      type: 'public',
+      formats_supported: ['5v5'],
+      facilities: [],
+      is_active: true,
+      is_verified: false,
+      added_by_admin: true
+    });
+    setIsAddingNew(true);
+    setContextMenu(null);
+  }, [contextMenu]);
 
   const handlePositionChange = async (venueId, lat, lng) => {
     try {
@@ -138,7 +186,7 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
 
   const handleSaveVenue = async (venueData) => {
     try {
-      if (editingVenue) {
+      if (editingVenue && editingVenue.id) {
         await Venue.update(editingVenue.id, venueData);
         alert('Plan uppdaterad!');
       } else {
@@ -169,31 +217,12 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
     }
   };
 
-  const handleMapClick = (lat, lng) => {
-    if (isAddingNew) {
-      setNewVenuePosition({ lat, lng });
-      setEditingVenue({
-        name: '',
-        address: '',
-        city: '',
-        latitude: lat,
-        longitude: lng,
-        type: 'public',
-        formats_supported: ['5v5'],
-        facilities: [],
-        is_active: true,
-        is_verified: false
-      });
-    }
-  };
-
   const filteredVenues = venues.filter(v =>
     v.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     v.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     v.address?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Sort venues
   const sortedVenues = [...filteredVenues].sort((a, b) => {
     switch(sortBy) {
       case 'name':
@@ -201,7 +230,6 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
       case 'city':
         return (a.city || '').localeCompare(b.city || '');
       case 'created':
-        // Assuming 'created_date' exists as a Date string or similar
         return new Date(b.created_date || 0).getTime() - new Date(a.created_date || 0).getTime();
       default:
         return 0;
@@ -236,7 +264,7 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
               onClick={() => {
                 setIsAddingNew(true);
                 setActiveTab('map');
-                alert('Klicka på kartan för att placera ny plan');
+                alert('Högerklicka på kartan för att placera ny plan');
               }}
               className="bg-[#2BA84A] hover:bg-[#248232] text-white w-full sm:w-auto rounded-xl h-11"
             >
@@ -270,11 +298,11 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
               </CardTitle>
               <p className="text-sm text-[#B6C2BC] mt-2">
                 {isAddingNew 
-                  ? '📍 Klicka på kartan för att placera ny plan' 
-                  : 'Dra och släpp pins för att justera exakt position'}
+                  ? '📍 Högerklicka på kartan för att skapa ny plan' 
+                  : 'Dra och släpp pins för att justera position, eller högerklicka för att skapa ny plan'}
               </p>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="p-0 relative">
               <div className="h-[600px] w-full">
                 <MapContainer
                   center={mapCenter}
@@ -287,7 +315,7 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   />
                   
-                  {isAddingNew && <MapClickHandler onMapClick={handleMapClick} />}
+                  <MapRightClickHandler onRightClick={handleRightClick} />
                   
                   {filteredVenues.map(venue => (
                     <DraggableMarker
@@ -325,10 +353,33 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
                   )}
                 </MapContainer>
               </div>
+
+              {/* Context Menu */}
+              {contextMenu && (
+                <div
+                  ref={contextMenuRef}
+                  className="fixed bg-[#121715] border border-[#223029] rounded-xl shadow-2xl p-2 z-[9999]"
+                  style={{
+                    left: `${contextMenu.x}px`,
+                    top: `${contextMenu.y}px`,
+                  }}
+                >
+                  <button
+                    onClick={handleCreateVenueFromContextMenu}
+                    className="w-full text-left px-4 py-2 hover:bg-[#18221E] rounded-lg text-[#F4F7F5] flex items-center gap-2 transition-colors"
+                  >
+                    <Plus className="w-4 h-4 text-[#2BA84A]" />
+                    <span>Skapa plan här</span>
+                  </button>
+                  <div className="px-4 py-1 text-xs text-[#7B8A83] mt-1 border-t border-[#223029] pt-2">
+                    {contextMenu.lat.toFixed(5)}, {contextMenu.lng.toFixed(5)}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* Edit Form (shown when editing or adding) */}
+          {/* Edit Form */}
           {editingVenue && (
             <Card className="bg-[#121715] border border-[#223029] shadow-xl rounded-2xl">
               <CardHeader className="border-b border-[#223029]">
@@ -458,6 +509,7 @@ function VenueForm({ venue, onSave, onCancel }) {
     facilities: venue?.facilities || [],
     is_active: venue?.is_active !== undefined ? venue.is_active : true,
     is_verified: venue?.is_verified || false,
+    added_by_admin: venue?.added_by_admin !== undefined ? venue.added_by_admin : true,
     contact_info: venue?.contact_info || '',
     image_url: venue?.image_url || ''
   });
