@@ -626,7 +626,7 @@ export default function Dashboard() {
                 >
                   <MapPin className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" strokeWidth={2.5} />
                 </motion.div>
-                <span className="text-xs sm:text-sm font-bold text-[#F4F7F5] text-center leading-tight px-1">Hitta matcher</span>
+                <span className="text-xs sm:text-sm font-bold text-[#F4F7F5] text-center leading-tight px-1">Hitta Planer</span>
               </div>
             </Link>
           </motion.div>
