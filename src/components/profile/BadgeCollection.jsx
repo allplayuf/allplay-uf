@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -42,6 +43,7 @@ import {
   EyeOff,
   ChevronDown
 } from "lucide-react";
+import { CACHE_STRATEGIES } from "../providers/QueryProvider";
 
 const TIER_CONFIG = {
   bronze: { 
@@ -477,7 +479,7 @@ export default function BadgeCollection({ user }) {
   const [showLockedBadges, setShowLockedBadges] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
 
-  // Fetch badge data
+  // Fetch badge data with OPTIMIZED caching
   const { data: badgeData, isLoading, refetch } = useQuery({
     queryKey: ['userBadges', user?.id],
     queryFn: async () => {
@@ -486,8 +488,8 @@ export default function BadgeCollection({ user }) {
       });
       return response.data;
     },
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
     enabled: !!user,
-    staleTime: 30 * 1000
   });
 
   const handleRefresh = async () => {
