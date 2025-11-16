@@ -442,15 +442,81 @@ export default function ProfilePage() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Hero Header Card */}
+        {/* Hero Header Card WITH GREEN RINGS */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <Card className="relative overflow-hidden bg-gradient-to-br from-[#2BA84A] to-[#0F2917] rounded-2xl p-6 shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029]">
-            <div className="absolute top-[-30px] right-[-30px] w-28 h-28 bg-[#2BA84A]/40 rounded-full opacity-50"></div>
-            <div className="absolute bottom-[-40px] left-[-40px] w-32 h-32 bg-[#0F2917]/60 rounded-full opacity-50"></div>
+          <Card className="relative overflow-hidden rounded-2xl p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] border-0">
+            {/* Animated Background Gradient */}
+            <motion.div 
+              className="absolute inset-0 bg-gradient-to-br from-[#2BA84A] via-[#248232] to-[#1A6029]"
+              animate={{
+                background: [
+                  'linear-gradient(135deg, #2BA84A 0%, #248232 50%, #1A6029 100%)',
+                  'linear-gradient(135deg, #248232 0%, #1A6029 50%, #2BA84A 100%)',
+                  'linear-gradient(135deg, #2BA84A 0%, #248232 50%, #1A6029 100%)'
+                ]
+              }}
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            />
+
+            {/* GREEN RINGS - Match Dashboard */}
+            <motion.div 
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full border-2 border-white/10"
+              animate={{
+                scale: [1, 1.1, 1],
+                opacity: [0.3, 0.5, 0.3]
+              }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div 
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full border-2 border-white/10"
+              animate={{
+                scale: [1.1, 1, 1.1],
+                opacity: [0.2, 0.4, 0.2]
+              }}
+              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            />
+
+            {/* Animated Orbs */}
+            <motion.div
+              className="absolute top-10 right-10 w-32 h-32 bg-white/10 rounded-full blur-3xl"
+              animate={{
+                x: [0, 20, 0],
+                y: [0, -20, 0],
+                opacity: [0.3, 0.5, 0.3]
+              }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+              className="absolute bottom-10 left-10 w-40 h-40 bg-[#0F2917]/60 rounded-full blur-3xl"
+              animate={{
+                x: [0, -20, 0],
+                y: [0, 20, 0],
+                opacity: [0.4, 0.6, 0.4]
+              }}
+              transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            />
+
+            {/* Floating Particles */}
+            <motion.div
+              className="absolute top-20 left-20 w-2 h-2 bg-white/40 rounded-full"
+              animate={{
+                y: [0, -20, 0],
+                opacity: [0.4, 0.8, 0.4]
+              }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+              className="absolute top-32 right-32 w-3 h-3 bg-white/30 rounded-full"
+              animate={{
+                y: [0, -30, 0],
+                opacity: [0.3, 0.6, 0.3]
+              }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            />
             
             <div className="relative z-10">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">

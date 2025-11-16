@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -354,36 +355,67 @@ export default function CommunityPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* REDESIGNED HERO CARD - COMMUNITY THEME */}
+        {/* REDESIGNED HERO CARD WITH GREEN RINGS - Match Dashboard */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative overflow-hidden rounded-[20px] sm:rounded-[24px] shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
+          className="relative overflow-hidden rounded-[20px] sm:rounded-[24px] shadow-[0_20px_60px_rgba(0,0,0,0.4)]"
         >
-          {/* Gradient Background with Pattern */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A] via-[#248232] to-[#1A6029]"></div>
-          
-          {/* Animated Gradient Overlay */}
-          <motion.div
-            className="absolute inset-0 opacity-30"
+          {/* Animated Background Gradient */}
+          <motion.div 
+            className="absolute inset-0 bg-gradient-to-br from-[#2BA84A] via-[#248232] to-[#1A6029]"
             animate={{
               background: [
-                'radial-gradient(circle at 20% 30%, rgba(255,255,255,0.15) 0%, transparent 50%)',
-                'radial-gradient(circle at 80% 70%, rgba(255,255,255,0.15) 0%, transparent 50%)',
-                'radial-gradient(circle at 20% 30%, rgba(255,255,255,0.15) 0%, transparent 50%)',
+                'linear-gradient(135deg, #2BA84A 0%, #248232 50%, #1A6029 100%)',
+                'linear-gradient(135deg, #248232 0%, #1A6029 50%, #2BA84A 100%)',
+                'linear-gradient(135deg, #2BA84A 0%, #248232 50%, #1A6029 100%)'
               ]
             }}
             transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
           />
 
-          {/* Decorative Elements */}
-          <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-[#0A1F11]/40 rounded-full blur-3xl"></div>
-          
+          {/* GREEN RINGS - Match Dashboard */}
+          <motion.div 
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full border-2 border-white/10"
+            animate={{
+              scale: [1, 1.1, 1],
+              opacity: [0.3, 0.5, 0.3]
+            }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div 
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full border-2 border-white/10"
+            animate={{
+              scale: [1.1, 1, 1.1],
+              opacity: [0.2, 0.4, 0.2]
+            }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          />
+
+          {/* Animated Orbs */}
+          <motion.div
+            className="absolute top-10 right-10 w-32 h-32 bg-white/10 rounded-full blur-3xl"
+            animate={{
+              x: [0, 20, 0],
+              y: [0, -20, 0],
+              opacity: [0.3, 0.5, 0.3]
+            }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="absolute bottom-10 left-10 w-40 h-40 bg-[#0F2917]/60 rounded-full blur-3xl"
+            animate={{
+              x: [0, -20, 0],
+              y: [0, 20, 0],
+              opacity: [0.4, 0.6, 0.4]
+            }}
+            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          />
+
           {/* Floating Particles */}
           <motion.div
-            className="absolute top-10 left-10 w-2 h-2 bg-white/40 rounded-full"
+            className="absolute top-20 left-20 w-2 h-2 bg-white/40 rounded-full"
             animate={{
               y: [0, -20, 0],
               opacity: [0.4, 0.8, 0.4]
@@ -391,20 +423,12 @@ export default function CommunityPage() {
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           />
           <motion.div
-            className="absolute top-20 right-32 w-3 h-3 bg-white/30 rounded-full"
+            className="absolute top-32 right-32 w-3 h-3 bg-white/30 rounded-full"
             animate={{
               y: [0, -30, 0],
               opacity: [0.3, 0.6, 0.3]
             }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          />
-          <motion.div
-            className="absolute bottom-24 left-1/3 w-2 h-2 bg-white/35 rounded-full"
-            animate={{
-              y: [0, -25, 0],
-              opacity: [0.35, 0.7, 0.35]
-            }}
-            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
           />
 
           <div className="relative z-10 p-5 sm:p-6 lg:p-8">
