@@ -493,9 +493,14 @@ export default function ProfilePage() {
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <h1 className="text-3xl font-bold text-[#FFFFFF] mb-3 break-words">
+                  <h1 className="text-3xl font-bold text-[#FFFFFF] mb-1 break-words">
                     {displayUser?.full_name}
                   </h1>
+                  {!isViewingOtherProfile && (
+                    <p className="text-xs text-[#F4743B] font-semibold mb-2">
+                      Du använder AllPlay – Testversion (endast preview). Din profil och dina matcher är endast testdata.
+                    </p>
+                  )}
                   <p className="text-[#FFFFFF]/90 text-base mb-4 break-words">
                     {displayUser?.bio || 'Spela. Tillsammans. ⚽'}
                   </p>

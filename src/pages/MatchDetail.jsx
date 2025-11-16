@@ -381,6 +381,23 @@ export default function MatchDetailPage() {
           Tillbaka
         </button>
 
+        {/* WARNING BOX */}
+        <Card className="bg-[#F4743B]/10 border border-[#F4743B]/30 rounded-[18px] shadow-[0_4px_12px_rgba(244,116,59,0.2)]">
+          <CardContent className="p-4">
+            <div className="flex gap-3">
+              <div className="w-10 h-10 bg-[#F4743B]/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Flag className="w-5 h-5 text-[#F4743B]" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-[#FDE3D2] mb-1">AllPlay – Testversion</h3>
+                <p className="text-xs text-[#FDE3D2] leading-relaxed">
+                  Detta är en testmatch i AllPlay – Testversion (endast preview). Matchen är endast till för att testa appens flöden. Gå inte till planen i verkligheten och använd inte informationen här för att organisera en riktig match.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Match Header - IMPROVED SPACING */}
         <Card className="bg-gradient-to-br from-[#2BA84A] to-[#0F2917] rounded-[20px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029]">
           <CardContent className="p-6 lg:p-8">
@@ -439,13 +456,18 @@ export default function MatchDetailPage() {
               {/* Action Buttons - IMPROVED SPACING */}
               <div className="flex flex-col gap-3 w-full lg:w-auto lg:min-w-[220px]">
                 {canJoin && (
-                  <button
-                    onClick={handleJoinMatch}
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#FFFFFF] px-6 text-[#2BA84A] font-semibold hover:bg-[#EAF6EE] transition-all hover:scale-[1.02]"
-                  >
-                    <UserPlus className="w-5 h-5" />
-                    Anmäl dig
-                  </button>
+                  <>
+                    <button
+                      onClick={handleJoinMatch}
+                      className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#FFFFFF] px-6 text-[#2BA84A] font-semibold hover:bg-[#EAF6EE] transition-all hover:scale-[1.02]"
+                    >
+                      <UserPlus className="w-5 h-5" />
+                      Anmäl dig
+                    </button>
+                    <p className="text-xs text-[#CFE8D6] text-center">
+                      Endast test – matchen kommer inte spelas på riktigt
+                    </p>
+                  </>
                 )}
 
                 {isParticipant && match.status === 'upcoming' && (
