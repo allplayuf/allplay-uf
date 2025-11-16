@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -197,7 +198,7 @@ export default function Layout({ children, currentPageName }) {
             <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-start gap-2.5">
               <AlertCircle className="w-4 h-4 text-[#F4743B] flex-shrink-0 mt-0.5" />
               <p className="text-xs leading-relaxed text-[#FDE3D2] font-medium">
-                <span className="font-bold">AllPlay – Testversion (endast preview)</span> • Använd inte appen för riktiga matcher eller fysiska sammankomster ännu.
+                <span className="font-bold">AllPlay – Testversion (endast preview)</span> • Använd inte appen för riktiga matcher eller fysiska mötet ännu.
               </p>
             </div>
           </div>

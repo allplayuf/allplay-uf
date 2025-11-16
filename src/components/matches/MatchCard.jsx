@@ -284,14 +284,17 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
                     <ChevronRight className="w-4 h-4 relative z-10" strokeWidth={3} />
                     
                     <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                      className="absolute inset-0"
                       animate={{
                         x: ['-100%', '100%']
                       }}
                       transition={{
                         duration: 2,
                         repeat: Infinity,
-                        repeatDelay: 4
+                        ease: "linear"
+                      }}
+                      style={{
+                        background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
                       }}
                     />
                   </motion.button>
