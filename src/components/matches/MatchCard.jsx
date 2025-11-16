@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -259,18 +260,19 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
                     animate={{
                       boxShadow: [
                         '0 4px 16px rgba(244, 116, 59, 0.3)',
-                        '0 4px 20px rgba(244, 116, 59, 0.5)',
+                        '0 6px 24px rgba(244, 116, 59, 0.6)',
                         '0 4px 16px rgba(244, 116, 59, 0.3)'
-                      ]
+                      ],
+                      scale: [1, 1.02, 1]
                     }}
                     transition={{
                       duration: 2,
                       repeat: Infinity,
-                      repeatDelay: 3
+                      ease: "easeInOut"
                     }}
                     whileHover={{
                       scale: 1.05,
-                      boxShadow: '0 6px 24px rgba(244, 116, 59, 0.6)'
+                      boxShadow: '0 8px 28px rgba(244, 116, 59, 0.7)'
                     }}
                     whileTap={{ 
                       scale: 0.98,

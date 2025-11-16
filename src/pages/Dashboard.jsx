@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -554,6 +555,20 @@ export default function Dashboard() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
+                  animate={{
+                    boxShadow: [
+                      '0 8px 24px rgba(255, 255, 255, 0.15)',
+                      '0 12px 32px rgba(255, 255, 255, 0.25)',
+                      '0 8px 24px rgba(255, 255, 255, 0.15)'
+                    ]
+                  }}
+                  transition={{
+                    boxShadow: {
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }
+                  }}
                   className="relative w-full h-14 sm:h-16 rounded-2xl overflow-hidden group"
                 >
                   <div className="absolute inset-0 bg-white/20 backdrop-blur-sm"></div>
@@ -590,7 +605,7 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
-        {/* Quick Access Cards - REDESIGNED WITH TEXT WRAP */}
+        {/* Quick Access Cards - REDESIGNED WITH EQUAL WIDTH */}
         <div className="grid grid-cols-3 gap-3 sm:gap-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -611,7 +626,7 @@ export default function Dashboard() {
                 >
                   <MapPin className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" strokeWidth={2.5} />
                 </motion.div>
-                <span className="text-xs sm:text-sm font-bold text-[#F4F7F5] text-center leading-tight">Hitta<br className="sm:hidden" /> matcher</span>
+                <span className="text-xs sm:text-sm font-bold text-[#F4F7F5] text-center leading-tight px-1">Hitta matcher</span>
               </div>
             </Link>
           </motion.div>
@@ -635,7 +650,7 @@ export default function Dashboard() {
                 >
                   <Plus className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" strokeWidth={2.5} />
                 </motion.div>
-                <span className="text-xs sm:text-sm font-bold text-[#F4F7F5] text-center">Skapa match</span>
+                <span className="text-xs sm:text-sm font-bold text-[#F4F7F5] text-center leading-tight px-1">Skapa match</span>
               </div>
             </button>
           </motion.div>
@@ -659,7 +674,7 @@ export default function Dashboard() {
                 >
                   <Users className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" strokeWidth={2.5} />
                 </motion.div>
-                <span className="text-xs sm:text-sm font-bold text-[#F4F7F5] text-center">Vänner & lag</span>
+                <span className="text-xs sm:text-sm font-bold text-[#F4F7F5] text-center leading-tight px-1">Vänner & lag</span>
               </div>
             </Link>
           </motion.div>
