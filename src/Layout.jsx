@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { MapPin, Calendar, Users, Trophy, User, Shield } from "lucide-react";
+import { MapPin, Calendar, Users, Trophy, User, Shield, AlertCircle } from "lucide-react";
 import { Toaster } from "sonner";
 import { QueryProvider, queryClient } from "@/components/providers/QueryProvider";
 import { PageLoadingSkeleton } from "@/components/ui/loading-skeleton";
@@ -109,7 +109,7 @@ export default function Layout({ children, currentPageName }) {
               </div>
               <div>
                 <h2 className="font-semibold text-[#F4F7F5] text-[20px] leading-[28px]">AllPlay UF</h2>
-                <p className="text-[11px] leading-[16px] text-[#B6C2BC] font-medium tracking-wide">PLAY TOGETHER, ANYWHERE!</p>
+                <p className="text-[10px] leading-[14px] text-[#F4743B] font-bold tracking-wide uppercase">Testversion</p>
               </div>
             </div>
           </div>
@@ -185,10 +185,20 @@ export default function Layout({ children, currentPageName }) {
               </div>
               <div>
                 <h1 className="text-lg font-semibold text-[#F4F7F5]">AllPlay UF</h1>
-                <p className="text-[10px] text-[#B6C2BC] font-medium tracking-wide">PLAY TOGETHER, ANYWHERE!</p>
+                <p className="text-[9px] text-[#F4743B] font-bold tracking-wide uppercase">Testversion</p>
               </div>
             </div>
           </header>
+
+          {/* PREVIEW BANNER */}
+          <div className="sticky top-[61px] lg:top-0 z-30 bg-[#F4743B]/10 backdrop-blur-sm border-b border-[#F4743B]/30">
+            <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-[#F4743B] flex-shrink-0 mt-0.5" />
+              <p className="text-xs leading-relaxed text-[#FDE3D2] font-medium">
+                <span className="font-bold">AllPlay – Testversion (endast preview)</span> • Använd inte appen för riktiga matcher eller fysiska sammankomster ännu.
+              </p>
+            </div>
+          </div>
 
           <div className="flex-1 overflow-auto pb-20 lg:pb-0">
             <RouteGuard currentRoute={location.pathname}>
