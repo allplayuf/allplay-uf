@@ -442,21 +442,83 @@ export default function ProfilePage() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Hero Header Card */}
+        {/* REDESIGNED HERO HEADER - SAME STYLE AS DASHBOARD */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+          className="relative overflow-hidden rounded-[24px] shadow-[0_20px_60px_rgba(0,0,0,0.4)]"
         >
-          <Card className="relative overflow-hidden bg-gradient-to-br from-[#2BA84A] to-[#0F2917] rounded-2xl p-6 shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029]">
-            <div className="absolute top-[-30px] right-[-30px] w-28 h-28 bg-[#2BA84A]/40 rounded-full opacity-50"></div>
-            <div className="absolute bottom-[-40px] left-[-40px] w-32 h-32 bg-[#0F2917]/60 rounded-full opacity-50"></div>
-            
-            <div className="relative z-10">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-                {/* Avatar */}
-                <div className="relative flex-shrink-0">
-                  <div className="w-24 h-24 bg-[#FFFFFF]/15 backdrop-blur-md rounded-2xl flex items-center justify-center overflow-hidden ring-2 ring-[#FFFFFF]/30">
+          {/* Animated Background Gradient */}
+          <motion.div
+            className="absolute inset-0"
+            animate={{
+              background: [
+                'linear-gradient(135deg, #2BA84A 0%, #0F2917 100%)',
+                'linear-gradient(135deg, #248232 0%, #1A5C2E 100%)',
+                'linear-gradient(135deg, #2BA84A 0%, #0F2917 100%)',
+              ]
+            }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          />
+
+          {/* GREEN RINGS - Same as Dashboard */}
+          <div className="absolute top-[-30px] right-[-30px] w-28 h-28 bg-[#2BA84A]/40 rounded-full opacity-50"></div>
+          <div className="absolute bottom-[-40px] left-[-40px] w-32 h-32 bg-[#0F2917]/60 rounded-full opacity-50"></div>
+
+          {/* Animated Orbs */}
+          <motion.div
+            className="absolute top-[-100px] right-[-100px] w-64 h-64 rounded-full"
+            style={{ background: 'radial-gradient(circle, rgba(43,168,74,0.4) 0%, transparent 70%)' }}
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.5, 0.3],
+            }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="absolute bottom-[-80px] left-[-80px] w-48 h-48 rounded-full"
+            style={{ background: 'radial-gradient(circle, rgba(15,41,23,0.6) 0%, transparent 70%)' }}
+            animate={{
+              scale: [1, 1.3, 1],
+              opacity: [0.4, 0.6, 0.4],
+            }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          />
+
+          {/* Floating Particles */}
+          {[...Array(6)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-white/20 rounded-full"
+              style={{
+                left: `${20 + i * 15}%`,
+                top: `${30 + (i % 3) * 20}%`,
+              }}
+              animate={{
+                y: [0, -30, 0],
+                opacity: [0.2, 0.5, 0.2],
+              }}
+              transition={{
+                duration: 3 + i * 0.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: i * 0.3,
+              }}
+            />
+          ))}
+
+          <div className="relative z-10 p-6 sm:p-8 lg:p-10">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+              {/* Avatar */}
+              <div className="relative flex-shrink-0">
+                <motion.div
+                  whileHover={{ scale: 1.05, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  className="relative"
+                >
+                  <div className="absolute inset-0 bg-white/30 rounded-3xl blur-xl"></div>
+                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center border-2 border-white/40 shadow-2xl overflow-hidden">
                     {displayUser?.profile_image_url ? (
                       <img
                         src={displayUser.profile_image_url}
@@ -465,131 +527,173 @@ export default function ProfilePage() {
                         loading="lazy"
                       />
                     ) : (
-                      <span className="text-4xl font-bold text-[#FFFFFF]">
+                      <span className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white drop-shadow-lg">
                         {displayUser?.full_name?.[0] || 'U'}
                       </span>
                     )}
                   </div>
+                  {/* Online Pulse - only on own profile */}
                   {!isViewingOtherProfile && (
-                    <>
-                      <input
-                        type="file"
-                        id="profile-image-upload"
-                        accept="image/*"
-                        onChange={handleProfileImageUpload}
-                        className="hidden"
-                      />
-                      <label htmlFor="profile-image-upload">
-                        <button
-                          className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#F4743B] rounded-xl flex items-center justify-center text-[#FFFFFF] ring-2 ring-[#FFFFFF] hover:bg-[#E5683A] transition-all duration-150 hover:shadow-lg hover:scale-105"
-                          onClick={() => document.getElementById('profile-image-upload').click()}
-                        >
-                          <Camera className="w-5 h-5" />
-                        </button>
-                      </label>
-                    </>
+                    <motion.div
+                      className="absolute -bottom-1 -right-1 w-6 h-6 sm:w-7 sm:h-7 bg-[#10B981] rounded-full border-3 border-white shadow-lg"
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
                   )}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <h1 className="text-3xl font-bold text-[#FFFFFF] mb-3 break-words">
-                    {displayUser?.full_name}
-                  </h1>
-                  <p className="text-[#FFFFFF]/90 text-base mb-4 break-words">
-                    {displayUser?.bio || 'Spela. Tillsammans. ⚽'}
-                  </p>
-
-                  {/* Chips */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge className="h-8 px-4 bg-transparent border border-[#FFFFFF]/30 text-[#FFFFFF] hover:bg-[#FFFFFF]/10 transition-all">
-                      <MapPin className="w-4 h-4 mr-1.5" />
-                      {displayUser?.city || 'Okänd stad'}
-                    </Badge>
-                    
-                    <Badge className={`h-8 px-4 bg-gradient-to-r ${skillLevel.color} border-0 ${skillLevel.textColor} hover:opacity-90 transition-all`}>
-                      <SkillIcon className="w-4 h-4 mr-1.5" />
-                      {skillLevel.label}
-                    </Badge>
-
-                    <Badge className="h-8 px-4 bg-transparent border border-[#FFFFFF]/30 text-[#FFFFFF] hover:bg-[#FFFFFF]/10 transition-all">
-                      Medlem sedan {memberSince}
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* CTA Section */}
-                <div className="flex flex-col gap-3 w-full sm:w-auto">
-                  {!isViewingOtherProfile ? (
-                    <>
-                      <Link to={createPageUrl("EditProfile")} className="w-full sm:w-auto">
-                        <button className="h-11 w-full sm:w-[200px] flex items-center justify-center gap-2 rounded-xl bg-[#FFFFFF]/10 backdrop-blur-sm text-[#FFFFFF] text-sm font-medium hover:bg-[#FFFFFF]/15 transition-all duration-150 border border-[#FFFFFF]/20">
-                          <Edit className="w-4 h-4" />
-                          Redigera
-                        </button>
-                      </Link>
-
-                      <div className="flex gap-3 w-full sm:w-[200px]">
-                        <button
-                          onClick={() => setShowQRModal(true)}
-                          className="h-11 flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#FFFFFF]/10 backdrop-blur-sm text-[#FFFFFF] text-sm font-medium hover:bg-[#FFFFFF]/15 transition-all duration-150 border border-[#FFFFFF]/20"
-                        >
-                          <QrCode className="w-4 h-4" />
-                          <span className="hidden sm:inline">Bjud in</span>
-                        </button>
-
-                        <button
-                          onClick={() => setShowSettingsSheet(true)}
-                          className="h-11 w-11 flex-shrink-0 flex items-center justify-center rounded-xl bg-[#FFFFFF]/10 backdrop-blur-sm text-[#FFFFFF] hover:bg-[#FFFFFF]/15 transition-all duration-150 border border-[#FFFFFF]/20"
-                        >
-                          <Settings className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="w-full sm:w-[200px]">
-                      {friendshipStatus === 'none' && (
-                        <button
-                          onClick={handleAddFriendFromProfile}
-                          className="h-11 w-full flex items-center justify-center gap-2 rounded-xl bg-[#2BA84A] text-[#FFFFFF] text-sm font-semibold hover:bg-[#248232] transition-all duration-150"
-                        >
-                          <UserPlus className="w-4 h-4" />
-                          Lägg till vän
-                        </button>
-                      )}
-                      {friendshipStatus === 'accepted' && (
-                        <button
-                          disabled
-                          className="h-11 w-full flex items-center justify-center gap-2 rounded-xl bg-[#2BA84A]/20 text-[#2BA84A] text-sm font-semibold cursor-not-allowed"
-                        >
-                          <CheckCircle className="w-4 h-4" />
-                          Vänner
-                        </button>
-                      )}
-                      {friendshipStatus === 'pending_outgoing' && (
-                        <button
-                          disabled
-                          className="h-11 w-full flex items-center justify-center gap-2 rounded-xl bg-[#FFFFFF]/10 text-[#FFFFFF]/60 text-sm font-semibold cursor-not-allowed"
-                        >
-                          <Clock className="w-4 h-4" />
-                          Förfrågan skickad
-                        </button>
-                      )}
-                      {friendshipStatus === 'pending_incoming' && (
-                        <button
-                          onClick={handleAddFriendFromProfile}
-                          className="h-11 w-full flex items-center justify-center gap-2 rounded-xl bg-[#F4743B] text-[#FFFFFF] text-sm font-semibold hover:bg-[#E5683A] transition-all duration-150"
-                        >
-                          <CheckCircle className="w-4 h-4" />
-                          Acceptera förfrågan
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
+                </motion.div>
+                {!isViewingOtherProfile && (
+                  <>
+                    <input
+                      type="file"
+                      id="profile-image-upload"
+                      accept="image/*"
+                      onChange={handleProfileImageUpload}
+                      className="hidden"
+                    />
+                    <label htmlFor="profile-image-upload">
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className="absolute -bottom-2 -right-2 w-11 h-11 bg-[#F4743B] rounded-2xl flex items-center justify-center text-white ring-2 ring-white hover:bg-[#E5683A] transition-all shadow-lg"
+                        onClick={() => document.getElementById('profile-image-upload').click()}
+                      >
+                        <Camera className="w-5 h-5" />
+                      </motion.button>
+                    </label>
+                  </>
+                )}
               </div>
+
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <motion.h1
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-3 drop-shadow-lg break-words"
+                >
+                  {displayUser?.full_name}
+                </motion.h1>
+                <motion.p
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-white/90 text-sm sm:text-base mb-4 drop-shadow break-words"
+                >
+                  {displayUser?.bio || 'Spela. Tillsammans. ⚽'}
+                </motion.p>
+
+                {/* Chips */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="flex flex-wrap items-center gap-2"
+                >
+                  <div className="h-8 px-4 bg-white/15 backdrop-blur-md border border-white/30 rounded-xl text-white text-sm font-semibold flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4" />
+                    {displayUser?.city || 'Okänd stad'}
+                  </div>
+                  
+                  <div className={`h-8 px-4 bg-gradient-to-r ${skillLevel.color} border-0 rounded-xl ${skillLevel.textColor} text-sm font-semibold flex items-center gap-1.5 shadow-lg`}>
+                    <SkillIcon className="w-4 h-4" />
+                    {skillLevel.label}
+                  </div>
+
+                  <div className="h-8 px-4 bg-white/15 backdrop-blur-md border border-white/30 rounded-xl text-white text-sm font-semibold">
+                    Medlem sedan {memberSince}
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* CTA Section */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5 }}
+                className="flex flex-col gap-3 w-full sm:w-auto"
+              >
+                {!isViewingOtherProfile ? (
+                  <>
+                    <Link to={createPageUrl("EditProfile")} className="w-full sm:w-auto">
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="h-12 w-full sm:w-[200px] flex items-center justify-center gap-2 rounded-2xl bg-white/20 backdrop-blur-sm text-white text-sm font-semibold hover:bg-white/30 transition-all border border-white/30"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Redigera
+                      </motion.button>
+                    </Link>
+
+                    <div className="flex gap-3 w-full sm:w-[200px]">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setShowQRModal(true)}
+                        className="h-12 flex-1 flex items-center justify-center gap-2 rounded-2xl bg-white/20 backdrop-blur-sm text-white text-sm font-semibold hover:bg-white/30 transition-all border border-white/30"
+                      >
+                        <QrCode className="w-4 h-4" />
+                        <span className="hidden sm:inline">Bjud in</span>
+                      </motion.button>
+
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setShowSettingsSheet(true)}
+                        className="h-12 w-12 flex-shrink-0 flex items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-all border border-white/30"
+                      >
+                        <Settings className="w-4 h-4" />
+                      </motion.button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="w-full sm:w-[200px]">
+                    {friendshipStatus === 'none' && (
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleAddFriendFromProfile}
+                        className="h-12 w-full flex items-center justify-center gap-2 rounded-2xl bg-white text-[#2BA84A] text-sm font-bold hover:bg-white/90 transition-all shadow-lg"
+                      >
+                        <UserPlus className="w-4 h-4" />
+                        Lägg till vän
+                      </motion.button>
+                    )}
+                    {friendshipStatus === 'accepted' && (
+                      <button
+                        disabled
+                        className="h-12 w-full flex items-center justify-center gap-2 rounded-2xl bg-white/20 text-white text-sm font-bold cursor-not-allowed border border-white/30"
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                        Vänner
+                      </button>
+                    )}
+                    {friendshipStatus === 'pending_outgoing' && (
+                      <button
+                        disabled
+                        className="h-12 w-full flex items-center justify-center gap-2 rounded-2xl bg-white/15 text-white/70 text-sm font-bold cursor-not-allowed border border-white/30"
+                      >
+                        <Clock className="w-4 h-4" />
+                        Förfrågan skickad
+                      </button>
+                    )}
+                    {friendshipStatus === 'pending_incoming' && (
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleAddFriendFromProfile}
+                        className="h-12 w-full flex items-center justify-center gap-2 rounded-2xl bg-[#F4743B] text-white text-sm font-bold hover:bg-[#E5683A] transition-all shadow-lg"
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                        Acceptera förfrågan
+                      </motion.button>
+                    )}
+                  </div>
+                )}
+              </motion.div>
             </div>
-          </Card>
+          </div>
         </motion.div>
 
         {/* Content based on if viewing other profile */}
