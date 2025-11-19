@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Kept as they might be used elsewhere in the project, though not in the main layout of this component anymore
 import { Button } from "@/components/ui/button";
@@ -42,10 +41,47 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
 
   const selectedVenue = venues.find(v => v.id === formData.venue_id);
 
-  const handleSubmit = async (e) => { // Made async to handle potential async onSubmit and setIsSubmitting
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.title || !formData.venue_id || !formData.date || !formData.time) {
-      alert("Fyll i alla obligatoriska fält!");
+    
+    // Validation
+    if (!formData.title?.trim()) {
+      alert("Matchnamn krävs!");
+      return;
+    }
+    
+    if (formData.title.length < 3) {
+      alert("Matchnamn måste vara minst 3 tecken!");
+      return;
+    }
+    
+    if (formData.title.length > 100) {
+      alert("Matchnamn kan inte vara längre än 100 tecken!");
+      return;
+    }
+
+    if (!formData.venue_id) {
+      alert("Välj en plan!");
+      return;
+    }
+
+    if (!formData.date) {
+      alert("Välj ett datum!");
+      return;
+    }
+
+    // Validate date not in past
+    const matchDate = new Date(formData.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (matchDate < today) {
+      alert("Datum kan inte vara i det förflutna!");
+      return;
+    }
+
+    if (!formData.time || !/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(formData.time)) {
+      alert("Välj en giltig tid!");
       return;
     }
 
@@ -54,22 +90,27 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
       return;
     }
 
-    setIsSubmitting(true); // Set submitting state to true
+    if (formData.notes && formData.notes.length > 500) {
+      alert("Anteckningar kan inte vara längre än 500 tecken!");
+      return;
+    }
+
+    setIsSubmitting(true);
 
     const submitData = {
       ...formData,
       max_players: formData.is_spontaneous ? null : formData.max_players,
-      is_team_match: false, // Ensure this is explicitly set if the UI doesn't allow changing it
-      is_ranked: false // Ensure this is explicitly set if the UI doesn't allow changing it
+      is_team_match: false,
+      is_ranked: false
     };
 
     try {
-      await onSubmit(submitData); // Await onSubmit if it's an async operation
+      await onSubmit(submitData);
     } catch (error) {
       console.error("Error submitting match:", error);
-      // Optionally, handle error display to the user
+      alert("Kunde inte skapa match. Försök igen.");
     } finally {
-      setIsSubmitting(false); // Reset submitting state
+      setIsSubmitting(false);
     }
   };
 
