@@ -1,17 +1,13 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { validateChatMessage } from '../utils/validation.js';
-import { sanitizeChatMessage } from '../utils/contentSanitizer.js';
+import { sanitizeMessageData } from '../utils/sanitizer.js';
 import { canSendTeamMessage, checkRateLimit } from '../utils/permissions.js';
+import { requireAuth } from '../utils/authorization.js';
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    
-    // Verify user is authenticated
-    const user = await base44.auth.me();
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // Require authentication
+    const { base44, user } = await requireAuth(req);
 
     const { team_id, content } = await req.json();
 
@@ -48,7 +44,7 @@ Deno.serve(async (req) => {
     }
 
     // Sanitize content
-    const sanitized = sanitizeChatMessage(content);
+    const sanitized = sanitizeMessageData({ content }).content;
 
     // Check for profanity
     const profanityCheck = await base44.functions.invoke('profanityFilter', {
@@ -63,8 +59,8 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Create message
-    const message = await base44.entities.TeamMessage.create({
+    // Create message using service role
+    const message = await base44.asServiceRole.entities.TeamMessage.create({
       team_id,
       user_id: user.id,
       message_type: 'text',

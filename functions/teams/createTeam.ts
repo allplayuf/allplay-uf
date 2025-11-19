@@ -1,17 +1,13 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { validateTeamData } from '../utils/validation.js';
-import { sanitizeTeamData } from '../utils/contentSanitizer.js';
+import { sanitizeTeamData } from '../utils/sanitizer.js';
 import { checkRateLimit } from '../utils/permissions.js';
+import { requireAuth } from '../utils/authorization.js';
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    
-    // Verify user is authenticated
-    const user = await base44.auth.me();
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // Require authentication
+    const { base44, user } = await requireAuth(req);
 
     // Rate limiting - max 5 teams per hour
     const rateLimit = checkRateLimit(`create-team-${user.id}`, 5, 60 * 60 * 1000);
@@ -62,8 +58,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Create team with sanitized data
-    const team = await base44.entities.Team.create({
+    // Create team with sanitized data using service role
+    const team = await base44.asServiceRole.entities.Team.create({
       ...sanitized,
       captain_id: user.id,
       current_members: 1,
@@ -76,7 +72,7 @@ Deno.serve(async (req) => {
     });
 
     // Add captain as first member
-    await base44.entities.TeamMember.create({
+    await base44.asServiceRole.entities.TeamMember.create({
       team_id: team.id,
       user_id: user.id,
       role: 'captain',

@@ -1,15 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { requireCupOwnership } from '../utils/authorization.js';
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    
-    // Verify user is authenticated
-    const user = await base44.auth.me();
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { cup_id } = await req.json();
 
     if (!cup_id) {
@@ -18,16 +11,8 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Fetch cup
-    const cup = await base44.entities.Cup.get(cup_id);
-    
-    // Check permissions - only organizer or admin can delete
-    if (cup.organizer_id !== user.id && user.role !== 'admin') {
-      return Response.json({ 
-        error: 'Forbidden',
-        details: 'Only the organizer or an admin can delete this tournament'
-      }, { status: 403 });
-    }
+    // Verify user has permission to delete this cup
+    const { base44, user, cup } = await requireCupOwnership(req, cup_id);
 
     // Don't allow deletion if tournament is ongoing or completed
     if (cup.status === 'ongoing') {

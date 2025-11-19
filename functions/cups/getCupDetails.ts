@@ -45,17 +45,25 @@ Deno.serve(async (req) => {
       cup.has_playoffs ? base44.entities.CupBracket.filter({ cup_id }) : []
     ]);
 
-    // Fetch team/user details for participants
+    // Fetch team/user details for participants - OPTIMIZED with service role
     const teamIds = [...new Set(participants.filter(p => p.team_id).map(p => p.team_id))];
     const userIds = [...new Set(participants.filter(p => p.user_id).map(p => p.user_id))];
     
+    // Only fetch what we need
+    const teamPromises = teamIds.map(id => 
+      base44.asServiceRole.entities.Team.get(id).catch(() => null)
+    );
+    const userPromises = userIds.map(id => 
+      base44.asServiceRole.entities.User.get(id).catch(() => null)
+    );
+    
     const [teams, users] = await Promise.all([
-      teamIds.length > 0 ? base44.entities.Team.list('name', 500) : [],
-      userIds.length > 0 ? base44.entities.User.list('full_name', 500) : []
+      teamIds.length > 0 ? Promise.all(teamPromises) : [],
+      userIds.length > 0 ? Promise.all(userPromises) : []
     ]);
 
-    const filteredTeams = teams.filter(t => teamIds.includes(t.id));
-    const filteredUsers = users.filter(u => userIds.includes(u.id));
+    const filteredTeams = teams.filter(Boolean);
+    const filteredUsers = users.filter(Boolean);
 
     // Enrich participants with team/user data
     const enrichedParticipants = participants.map(p => ({
@@ -64,13 +72,15 @@ Deno.serve(async (req) => {
       user: p.user_id ? filteredUsers.find(u => u.id === p.user_id) : null
     }));
 
-    // Fetch match details for cup matches
+    // Fetch match details for cup matches - OPTIMIZED
     const matchIds = cupMatches.map(cm => cm.match_id).filter(Boolean);
-    const matches = matchIds.length > 0 
-      ? await base44.entities.Match.list('-date', 500)
-      : [];
+    const matchPromises = matchIds.map(id => 
+      base44.asServiceRole.entities.Match.get(id).catch(() => null)
+    );
     
-    const filteredMatches = matches.filter(m => matchIds.includes(m.id));
+    const filteredMatches = matchIds.length > 0 
+      ? (await Promise.all(matchPromises)).filter(Boolean)
+      : [];
 
     // Enrich cup matches with match details
     const enrichedMatches = cupMatches.map(cm => {

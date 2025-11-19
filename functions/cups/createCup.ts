@@ -1,14 +1,11 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { requireAuth } from '../utils/authorization.js';
+import { sanitizeCupData } from '../utils/sanitizer.js';
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    
-    // Verify user is authenticated
-    const user = await base44.auth.me();
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // Require authentication
+    const { base44, user } = await requireAuth(req);
 
     const cupData = await req.json();
 
@@ -28,11 +25,10 @@ Deno.serve(async (req) => {
     }
 
     // Sanitize and prepare data
+    const sanitizedBase = sanitizeCupData(cupData);
+    
     const sanitizedData = {
-      name: cupData.name.trim(),
-      description: cupData.description?.trim() || '',
-      logo_url: cupData.logo_url || '',
-      location: cupData.location.trim(),
+      ...sanitizedBase,
       venue_ids: cupData.venue_ids || [],
       start_date: cupData.start_date,
       end_date: cupData.end_date || cupData.start_date,
@@ -41,14 +37,12 @@ Deno.serve(async (req) => {
       signup_type: cupData.signup_type || 'team',
       skill_level: cupData.skill_level || 'mixed',
       age_group: cupData.age_group || 'Open',
-      max_participants: parseInt(cupData.max_participants) || 16,
-      rules: cupData.rules?.trim() || '',
-      prize: cupData.prize?.trim() || '',
-      entry_fee: parseFloat(cupData.entry_fee) || 0,
+      max_participants: Math.min(Math.max(parseInt(cupData.max_participants) || 16, 4), 64),
+      entry_fee: Math.max(parseFloat(cupData.entry_fee) || 0, 0),
       has_group_stage: cupData.has_group_stage !== false,
       has_playoffs: cupData.has_playoffs !== false,
-      number_of_groups: parseInt(cupData.number_of_groups) || 4,
-      teams_advance_per_group: parseInt(cupData.teams_advance_per_group) || 2,
+      number_of_groups: Math.min(Math.max(parseInt(cupData.number_of_groups) || 4, 2), 8),
+      teams_advance_per_group: Math.min(Math.max(parseInt(cupData.teams_advance_per_group) || 2, 1), 4),
       enable_mvp_voting: cupData.enable_mvp_voting !== false,
       is_public: cupData.is_public !== false,
       organizer_id: user.id,
