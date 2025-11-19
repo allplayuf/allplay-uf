@@ -6,9 +6,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { requireAuth } from '../utils/authorization.js';
 import { sanitizeMatchData } from '../utils/sanitizer.js';
+import { validateMatchData } from '../utils/validation.js';
 import { checkRateLimit, RATE_LIMITS } from '../utils/rateLimit.js';
-import { withErrorHandler, ApiError, ErrorTypes, successResponse } from '../utils/errorHandler.js';
-import { Logger } from '../utils/logger.js';
+import { withErrorHandler, ErrorTypes, successResponse } from '../utils/errorHandler.js';
+import { invalidateCachePattern } from '../utils/cache.js';
 
 const handler = async (req, logger) => {
   const data = await req.json();
@@ -70,6 +71,9 @@ const handler = async (req, logger) => {
       user_id: user.id,
       status: 'confirmed'
     });
+    
+    // Invalidate matches cache
+    invalidateCachePattern('matches:');
     
     logger.logAction('match_created', user.id, { matchId: match.id, venue: venue.name });
     

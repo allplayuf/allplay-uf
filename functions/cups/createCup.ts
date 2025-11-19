@@ -1,9 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { requireAuth } from '../utils/authorization.js';
 import { sanitizeCupData } from '../utils/sanitizer.js';
+import { validateCupData } from '../utils/validation.js';
 import { checkRateLimit, RATE_LIMITS } from '../utils/rateLimit.js';
 import { withErrorHandler, ErrorTypes, successResponse } from '../utils/errorHandler.js';
-import { Logger } from '../utils/logger.js';
 
 const handler = async (req, logger) => {
   // Require authentication
@@ -21,14 +21,11 @@ const handler = async (req, logger) => {
   
   logger.info('Creating cup', { userId: user.id });
 
-    // Basic validation
-    if (!cupData.name || !cupData.location || !cupData.start_date || !cupData.start_time) {
-      throw ErrorTypes.VALIDATION_ERROR('Missing required fields: name, location, start_date, start_time');
-    }
-
-    if (cupData.max_participants < 4 || cupData.max_participants > 64) {
-      throw ErrorTypes.VALIDATION_ERROR('max_participants must be between 4 and 64');
-    }
+  // Validate input
+  const validation = validateCupData(cupData);
+  if (!validation.isValid) {
+    throw ErrorTypes.VALIDATION_ERROR(validation.errors.join(', '));
+  }
 
     // Sanitize input data
     const sanitized = sanitizeCupData(cupData);
