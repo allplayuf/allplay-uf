@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -153,14 +152,10 @@ export default function MatchesPage() {
   // The filteredMatches memo logic is now expected to be handled within InfiniteMatchList
   // as it now receives the raw matchesData and sorting parameters directly.
 
-  // Join match mutation
+  // Join match mutation (deprecated - using backend function now)
   const joinMatchMutation = useMutation({
-    mutationFn: async ({ matchId, userId }) => {
-      await base44.entities.MatchParticipant.create({
-        match_id: matchId,
-        user_id: userId,
-        status: 'confirmed'
-      });
+    mutationFn: async ({ matchId }) => {
+      return await base44.functions.invoke('matches/joinMatch', { matchId });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
@@ -210,25 +205,28 @@ export default function MatchesPage() {
 
   const handleMatchCreated = async (matchData) => {
     try {
-      const newMatch = await base44.entities.Match.create(matchData);
+      const { data } = await base44.functions.invoke('matches/createMatch', matchData);
       
-      await base44.entities.MatchParticipant.create({
-        match_id: newMatch.id,
-        user_id: user.id,
-        status: 'confirmed'
-      });
-
       setShowCreateForm(false);
       setPreselectedVenueId(null);
       
       queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.participants });
       
+      await alert(
+        'Match skapad! 🎉',
+        `"${matchData.title}" är nu tillgänglig för anmälan.`,
+        { type: 'success' }
+      );
+      
     } catch (error) {
       console.error("Error creating match:", error);
+      
+      const errorMsg = error.response?.data?.error?.message || error.message || 'Ett okänt fel uppstod';
+      
       await alert(
         'Kunde inte skapa match',
-        'Det gick inte att skapa matchen. Försök igen om en stund.',
+        errorMsg,
         { type: 'alert' }
       );
     }
@@ -238,19 +236,7 @@ export default function MatchesPage() {
     try {
       const match = allMatches.find(m => m.id === matchId);
       
-      const existingParticipation = allParticipants.filter(p =>
-        p.match_id === matchId && p.user_id === user.id
-      );
-
-      if (existingParticipation.length > 0) {
-        await alert(
-          'Redan anmäld',
-          'Du har redan anmält dig till denna match!',
-          { type: 'info' }
-        );
-        return;
-      }
-
+      // Check skill level mismatch
       if (!match.is_team_match && match.skill_bracket && match.skill_bracket !== 'mixed') {
         if (user.skill_level !== match.skill_bracket) {
           const shouldJoin = await confirm(
@@ -266,20 +252,11 @@ export default function MatchesPage() {
         }
       }
 
-      const currentParticipants = participantsByMatch[matchId] || [];
-      if (!match.is_spontaneous && currentParticipants.length >= match.max_players) {
-        await alert(
-          'Match fullbokad',
-          'Tyvärr är denna match redan fullbokad. Försök igen senare!',
-          { type: 'warning' }
-        );
-        return;
-      }
+      // Call backend function (handles atomic check + race condition)
+      const { data } = await base44.functions.invoke('matches/joinMatch', { matchId });
 
-      await joinMatchMutation.mutateAsync({
-        matchId,
-        userId: user.id
-      });
+      queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.participants });
 
       // Success popup with celebration
       await alert(
@@ -290,10 +267,26 @@ export default function MatchesPage() {
 
     } catch (error) {
       console.error("Error joining match:", error);
+      
+      const errorData = error.response?.data?.error;
+      let errorMsg = 'Kunde inte anmäla dig till matchen. Försök igen.';
+      let errorType = 'alert';
+      
+      if (errorData?.message) {
+        errorMsg = errorData.message;
+        
+        // Specific handling for common errors
+        if (errorMsg.includes('already registered')) {
+          errorType = 'info';
+        } else if (errorMsg.includes('full')) {
+          errorType = 'warning';
+        }
+      }
+      
       await alert(
-        'Ett fel uppstod',
-        'Kunde inte anmäla dig till matchen. Kontrollera din internetanslutning och försök igen.',
-        { type: 'alert' }
+        'Kunde inte gå med',
+        errorMsg,
+        { type: errorType }
       );
     }
   };
@@ -308,7 +301,7 @@ export default function MatchesPage() {
     const match = allMatches.find(m => m.id === matchId);
     const shouldDelete = await confirm(
       'Radera match',
-      `Är du säker på att du vill ta bort "${match?.title}"? Alla deltagare kommer att meddelas.`,
+      `Är du säker på att du vill ta bort "${match?.title}"? Alla relaterade data kommer att raderas.`,
       {
         type: 'warning',
         confirmText: 'Ja, radera',
@@ -319,7 +312,8 @@ export default function MatchesPage() {
     if (!shouldDelete) return;
 
     try {
-      await base44.entities.Match.delete(matchId);
+      // Call backend function with cascade delete
+      const { data } = await base44.functions.invoke('matches/deleteMatch', { matchId });
       
       queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.participants });
@@ -327,14 +321,17 @@ export default function MatchesPage() {
       
       await alert(
         'Match raderad',
-        'Matchen har tagits bort',
+        `Matchen och ${data.deletedRecords.participants} deltagare har tagits bort.`,
         { type: 'success' }
       );
     } catch (error) {
       console.error("Error deleting match:", error);
+      
+      const errorMsg = error.response?.data?.error?.message || 'Kunde inte ta bort matchen';
+      
       await alert(
         'Ett fel uppstod',
-        'Kunde inte ta bort matchen. Försök igen.',
+        errorMsg,
         { type: 'alert' }
       );
     }
