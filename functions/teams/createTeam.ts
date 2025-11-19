@@ -1,4 +1,5 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { validateTeamData as validateTeamDataNew, sanitizeTeamData as sanitizeTeamDataNew } from '../utils/sanitize.js';
 import { validateTeamData } from '../utils/validation.js';
 import { sanitizeTeamData } from '../utils/contentSanitizer.js';
 import { checkRateLimit } from '../utils/permissions.js';
@@ -23,7 +24,16 @@ Deno.serve(async (req) => {
 
     const teamData = await req.json();
 
-    // Validate input
+    // Validate input (new validation)
+    const validationErrorsNew = validateTeamDataNew(teamData);
+    if (validationErrorsNew.length > 0) {
+      return Response.json({ 
+        error: 'Validation failed',
+        details: validationErrorsNew 
+      }, { status: 400 });
+    }
+
+    // Validate input (old validation)
     const validation = validateTeamData(teamData);
     if (!validation.isValid) {
       return Response.json({ 
@@ -32,8 +42,9 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Sanitize user input
-    const sanitized = sanitizeTeamData(teamData);
+    // Sanitize user input (new + old)
+    let sanitized = sanitizeTeamDataNew(teamData);
+    sanitized = sanitizeTeamData(sanitized);
 
     // Check for profanity in name and description
     const nameCheck = await base44.functions.invoke('profanityFilter', {
