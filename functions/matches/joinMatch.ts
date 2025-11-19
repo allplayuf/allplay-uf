@@ -5,37 +5,41 @@
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { requireAuth } from '../utils/authorization.js';
+import { checkRateLimit, RATE_LIMITS } from '../utils/rateLimit.js';
+import { withErrorHandler, ApiError, ErrorTypes, successResponse } from '../utils/errorHandler.js';
+import { Logger } from '../utils/logger.js';
 
-Deno.serve(async (req) => {
+const handler = async (req, logger) => {
+  const { matchId } = await req.json();
+  
+  if (!matchId) {
+    throw ErrorTypes.VALIDATION_ERROR('Match ID is required');
+  }
+  
+  // Require authentication
+  const { base44, user } = await requireAuth(req);
+  
+  // Rate limiting - 50 joins per minute
+  const rateLimitKey = `join-match:${user.id}`;
+  const rateLimit = checkRateLimit(rateLimitKey, RATE_LIMITS.WRITE.requests, RATE_LIMITS.WRITE.windowMs);
+  
+  if (!rateLimit.allowed) {
+    throw ErrorTypes.RATE_LIMIT(rateLimit.retryAfter);
+  }
+  
   try {
-    const { matchId } = await req.json();
-    
-    if (!matchId) {
-      return Response.json(
-        { error: 'Match ID is required' },
-        { status: 400 }
-      );
-    }
-    
-    // Require authentication
-    const { base44, user } = await requireAuth(req);
+    logger.info('User joining match', { userId: user.id, matchId });
     
     // Get match details
     const match = await base44.asServiceRole.entities.Match.get(matchId);
     
     if (!match) {
-      return Response.json(
-        { error: 'Match not found' },
-        { status: 404 }
-      );
+      throw ErrorTypes.NOT_FOUND('Match');
     }
     
     // Check if match is open
     if (!match.is_open && !match.is_spontaneous) {
-      return Response.json(
-        { error: 'Match is not accepting new participants' },
-        { status: 400 }
-      );
+      throw ErrorTypes.VALIDATION_ERROR('Match is not accepting new participants');
     }
     
     // Check if user is already participating
@@ -45,10 +49,7 @@ Deno.serve(async (req) => {
     });
     
     if (existingParticipation.length > 0) {
-      return Response.json(
-        { error: 'You are already registered for this match' },
-        { status: 400 }
-      );
+      throw ErrorTypes.CONFLICT('You are already registered for this match');
     }
     
     // Get current participants count BEFORE adding new participant
@@ -60,10 +61,7 @@ Deno.serve(async (req) => {
     
     // Check capacity (atomic check before creation)
     if (!match.is_spontaneous && participantCount >= match.max_players) {
-      return Response.json(
-        { error: 'Match is full' },
-        { status: 400 }
-      );
+      throw ErrorTypes.VALIDATION_ERROR('Match is full');
     }
     
     // Create participant record
@@ -84,11 +82,8 @@ Deno.serve(async (req) => {
     // If we exceeded capacity, rollback
     if (!match.is_spontaneous && newCount > match.max_players) {
       await base44.asServiceRole.entities.MatchParticipant.delete(participant.id);
-      
-      return Response.json(
-        { error: 'Match became full while you were joining. Please try another match.' },
-        { status: 409 }
-      );
+      logger.warn('Match capacity exceeded, rolled back', { matchId, userId: user.id, newCount });
+      throw ErrorTypes.CONFLICT('Match became full while you were joining. Please try another match.');
     }
     
     // Update match current_players count
@@ -96,21 +91,17 @@ Deno.serve(async (req) => {
       current_players: newCount
     });
     
-    return Response.json({
-      success: true,
+    logger.logAction('match_joined', user.id, { matchId, newCount });
+    
+    return successResponse({ 
       participant,
       message: 'Successfully joined match'
     });
     
-  } catch (error) {
-    console.error('Error joining match:', error);
-    
-    const status = error.message.includes('required') || 
-                   error.message.includes('Authentication') ? 403 : 500;
-    
-    return Response.json(
-      { error: error.message || 'Failed to join match' },
-      { status }
-    );
+  } catch (innerError) {
+    logger.error('Failed to join match', innerError, { userId: user.id, matchId });
+    throw innerError;
   }
-});
+};
+
+Deno.serve(withErrorHandler(handler, 'join-match'));
