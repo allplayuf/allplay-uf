@@ -53,17 +53,23 @@ const createCustomIcon = (color = '#2BA84A', isActive = false, status = 'availab
   });
 };
 
-function MapCenterController({ center, zoom }) {
+function MapCenterController({ center, zoom, selectedVenue }) {
   const map = useMap();
   
   useEffect(() => {
-    if (center && center.lat && center.lng) {
+    // If a venue is selected, focus on that venue instead of user location
+    if (selectedVenue && selectedVenue.latitude && selectedVenue.longitude) {
+      map.setView([selectedVenue.latitude, selectedVenue.longitude], 16, {
+        animate: true,
+        duration: 0.8
+      });
+    } else if (center && center.lat && center.lng) {
       map.setView([center.lat, center.lng], zoom, {
         animate: true,
         duration: 0.5
       });
     }
-  }, [center, zoom, map]);
+  }, [center, zoom, selectedVenue, map]);
   
   return null;
 }
@@ -182,7 +188,7 @@ export default function MapView({
           updateInterval={200}
         />
 
-        {mapReady && <MapCenterController center={defaultCenter} zoom={selectedVenue ? 15 : 13} />}
+        {mapReady && <MapCenterController center={defaultCenter} zoom={13} selectedVenue={selectedVenue} />}
 
         {/* User location marker */}
         {userLocation && userLocation.lat && userLocation.lng && (
@@ -222,11 +228,11 @@ export default function MapView({
             >
               <Popup 
                 className="venue-popup"
-                maxWidth={340}
-                minWidth={300}
+                maxWidth={400}
+                minWidth={340}
                 closeButton={true}
                 autoPan={true}
-                autoPanPadding={[50, 50]}
+                autoPanPadding={[80, 80]}
               >
                 <div className="venue-popup-content">
                   {/* Header */}
@@ -309,6 +315,44 @@ export default function MapView({
                     </div>
                   </div>
 
+                  {/* Matches List */}
+                  {venue.upcoming_matches && venue.upcoming_matches.length > 0 && (
+                    <div className="matches-list">
+                      <div className="matches-header">
+                        <svg className="matches-icon" viewBox="0 0 16 16" fill="currentColor">
+                          <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"/>
+                          <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+                        </svg>
+                        <span>{venue.upcoming_matches.length} kommande match{venue.upcoming_matches.length === 1 ? '' : 'er'}</span>
+                      </div>
+                      {venue.upcoming_matches.slice(0, 2).map(match => (
+                        <button
+                          key={match.id}
+                          onClick={(e) => handleMatchClick(match.id, e)}
+                          className="match-item"
+                        >
+                          <div className="match-info">
+                            <div className="match-title">{match.title}</div>
+                            <div className="match-meta">
+                              <span>{match.date}</span>
+                              <span>•</span>
+                              <span>{match.time}</span>
+                            </div>
+                          </div>
+                          <div className="match-players">
+                            <svg className="players-icon" viewBox="0 0 16 16" fill="currentColor">
+                              <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002a.274.274 0 0 1-.014.002H7.022zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816zM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275zM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/>
+                            </svg>
+                            {match.is_spontaneous 
+                              ? match.current_players || 0
+                              : `${match.current_players || 0}/${match.max_players}`
+                            }
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
                   {/* Action Buttons */}
                   <div className="action-buttons">
                     <button
@@ -319,7 +363,7 @@ export default function MapView({
                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                         <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
                       </svg>
-                      Visa detaljer
+                      Visa all info
                     </button>
                     <Link
                       to={`${createPageUrl("Matches")}?create=true&venue=${venue.id}`}
@@ -328,7 +372,7 @@ export default function MapView({
                       <svg className="btn-icon-create" viewBox="0 0 16 16" fill="currentColor">
                         <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
                       </svg>
-                      Skapa match
+                      Skapa match här
                     </Link>
                   </div>
                 </div>
@@ -346,13 +390,13 @@ export default function MapView({
         }
         
         .venue-popup .leaflet-popup-content-wrapper {
-          background: linear-gradient(145deg, #1F2421 0%, #161A18 100%);
-          border: 1px solid rgba(43, 168, 74, 0.15);
-          border-radius: 24px;
+          background: linear-gradient(145deg, #1A211E 0%, #121715 100%);
+          border: 1.5px solid rgba(43, 168, 74, 0.25);
+          border-radius: 20px;
           padding: 0;
           box-shadow: 
-            0 20px 60px rgba(0,0,0,0.7),
-            0 0 0 1px rgba(255,255,255,0.05) inset;
+            0 24px 80px rgba(0,0,0,0.8),
+            0 0 0 1px rgba(43, 168, 74, 0.1) inset;
           overflow: hidden;
         }
         
@@ -381,8 +425,8 @@ export default function MapView({
         }
         
         .venue-popup-content {
-          padding: 24px;
-          padding-top: 20px;
+          padding: 20px;
+          max-width: 400px;
         }
         
         .venue-header {
@@ -398,10 +442,10 @@ export default function MapView({
         }
         
         .venue-name {
-          font-size: 22px;
+          font-size: 20px;
           font-weight: 800;
-          color: #FFFFFF;
-          line-height: 1.2;
+          color: #F4F7F5;
+          line-height: 1.3;
           flex: 1;
           letter-spacing: -0.02em;
         }
@@ -433,68 +477,70 @@ export default function MapView({
         
         .venue-address {
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           gap: 8px;
-          margin-bottom: 14px;
-          padding: 8px 12px;
-          background: rgba(255, 255, 255, 0.03);
+          margin-bottom: 16px;
+          padding: 10px 14px;
+          background: rgba(43, 168, 74, 0.08);
           border-radius: 12px;
-          border: 1px solid rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(43, 168, 74, 0.15);
         }
         
         .address-icon {
-          width: 15px;
-          height: 15px;
-          color: #6EE7B7;
+          width: 16px;
+          height: 16px;
+          color: #2BA84A;
           flex-shrink: 0;
+          margin-top: 1px;
         }
         
         .venue-address span {
           font-size: 13px;
-          color: #D1D5DB;
-          line-height: 1.4;
+          color: #E5E7EB;
+          line-height: 1.5;
           font-weight: 500;
         }
         
         .facilities {
           display: flex;
           flex-wrap: wrap;
-          gap: 8px;
-          margin-bottom: 14px;
+          gap: 6px;
+          margin-bottom: 16px;
         }
         
         .facility-item {
           display: flex;
           align-items: center;
-          gap: 5px;
-          padding: 6px 12px;
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          gap: 6px;
+          padding: 7px 12px;
+          background: rgba(24, 34, 30, 0.8);
+          border: 1px solid rgba(43, 168, 74, 0.2);
           border-radius: 10px;
           font-size: 12px;
-          color: #E5E7EB;
-          font-weight: 500;
+          color: #CFE8D6;
+          font-weight: 600;
           transition: all 0.2s;
         }
         
         .facility-item:hover {
-          background: rgba(255, 255, 255, 0.1);
+          background: rgba(43, 168, 74, 0.15);
+          border-color: rgba(43, 168, 74, 0.35);
           transform: translateY(-1px);
         }
         
         .status-badge-container {
-          margin-top: 14px;
+          margin-bottom: 16px;
         }
         
         .status-badge {
           display: inline-flex;
           align-items: center;
-          gap: 7px;
+          gap: 8px;
           padding: 10px 16px;
-          border-radius: 14px;
+          border-radius: 12px;
           font-size: 13px;
           font-weight: 700;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+          box-shadow: 0 4px 16px rgba(0,0,0,0.25);
           border: 1px solid;
         }
         
@@ -547,56 +593,130 @@ export default function MapView({
           }
         }
         
+        .matches-list {
+          margin-bottom: 18px;
+          padding: 14px;
+          background: rgba(15, 21, 19, 0.6);
+          border: 1px solid rgba(43, 168, 74, 0.15);
+          border-radius: 14px;
+        }
+        
+        .matches-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 12px;
+          font-size: 13px;
+          font-weight: 700;
+          color: #CFE8D6;
+        }
+        
+        .matches-icon {
+          width: 16px;
+          height: 16px;
+          color: #2BA84A;
+        }
+        
+        .match-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 12px;
+          background: rgba(24, 34, 30, 0.6);
+          border: 1px solid rgba(43, 168, 74, 0.15);
+          border-radius: 12px;
+          margin-bottom: 8px;
+          cursor: pointer;
+          transition: all 0.2s;
+          width: 100%;
+        }
+        
+        .match-item:last-child {
+          margin-bottom: 0;
+        }
+        
+        .match-item:hover {
+          background: rgba(43, 168, 74, 0.12);
+          border-color: rgba(43, 168, 74, 0.35);
+          transform: translateX(3px);
+        }
+        
+        .match-info {
+          flex: 1;
+          min-width: 0;
+        }
+        
+        .match-title {
+          font-size: 13px;
+          font-weight: 700;
+          color: #F4F7F5;
+          margin-bottom: 4px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        
+        .match-meta {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 12px;
+          color: #9FC9AC;
+          font-weight: 500;
+        }
+        
+        .match-players {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 12px;
+          background: rgba(43, 168, 74, 0.15);
+          border: 1px solid rgba(43, 168, 74, 0.25);
+          border-radius: 10px;
+          font-size: 13px;
+          font-weight: 700;
+          color: #CFE8D6;
+          flex-shrink: 0;
+        }
+        
+        .players-icon {
+          width: 14px;
+          height: 14px;
+          color: #2BA84A;
+        }
+        
         .action-buttons {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 12px;
-          margin-top: 20px;
+          display: flex;
+          gap: 10px;
+          margin-top: 18px;
         }
         
         .btn-details {
           position: relative;
-          padding: 14px 18px;
-          background: linear-gradient(135deg, #2BA84A 0%, #248232 100%);
-          color: #FFFFFF;
-          border: none;
-          border-radius: 16px;
+          flex: 1;
+          padding: 14px 20px;
+          background: linear-gradient(135deg, rgba(43, 168, 74, 0.15) 0%, rgba(36, 130, 50, 0.12) 100%);
+          color: #CFE8D6;
+          border: 1.5px solid rgba(43, 168, 74, 0.35);
+          border-radius: 14px;
           font-size: 14px;
           font-weight: 700;
           cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
           text-align: center;
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 8px;
-          box-shadow: 
-            0 4px 14px rgba(43, 168, 74, 0.4),
-            0 2px 4px rgba(0, 0, 0, 0.2) inset;
           overflow: hidden;
         }
         
-        .btn-details::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
-          opacity: 0;
-          transition: opacity 0.3s;
-        }
-        
-        .btn-details:hover::before {
-          opacity: 1;
-        }
-        
         .btn-details:hover {
+          background: linear-gradient(135deg, rgba(43, 168, 74, 0.25) 0%, rgba(36, 130, 50, 0.20) 100%);
+          border-color: rgba(43, 168, 74, 0.5);
           transform: translateY(-2px);
-          box-shadow: 
-            0 6px 20px rgba(43, 168, 74, 0.5),
-            0 2px 4px rgba(0, 0, 0, 0.2) inset;
+          box-shadow: 0 6px 18px rgba(43, 168, 74, 0.3);
+          color: #EAF6EE;
         }
         
         .btn-details:active {
@@ -606,34 +726,32 @@ export default function MapView({
         .btn-icon {
           width: 16px;
           height: 16px;
-          transition: transform 0.3s;
+          transition: transform 0.25s;
         }
         
         .btn-details:hover .btn-icon {
-          transform: rotate(12deg) scale(1.1);
+          transform: scale(1.1);
         }
         
         .btn-create {
           position: relative;
-          padding: 14px 18px;
+          flex: 1;
+          padding: 14px 20px;
           background: linear-gradient(135deg, #F4743B 0%, #E5683A 100%);
           color: #FFFFFF;
-          border: none;
-          border-radius: 16px;
+          border: 1.5px solid rgba(244, 116, 59, 0.5);
+          border-radius: 14px;
           font-size: 14px;
           font-weight: 700;
           cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
           text-align: center;
           text-decoration: none;
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 8px;
-          box-shadow: 
-            0 4px 14px rgba(244, 116, 59, 0.5),
-            0 2px 4px rgba(0, 0, 0, 0.2) inset,
-            0 0 0 2px rgba(255, 255, 255, 0.1) inset;
+          box-shadow: 0 4px 16px rgba(244, 116, 59, 0.4);
           overflow: hidden;
         }
         
@@ -641,59 +759,36 @@ export default function MapView({
           content: '';
           position: absolute;
           top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 100%);
-          opacity: 0;
-          transition: opacity 0.3s;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+          transition: left 0.5s;
         }
         
         .btn-create:hover::before {
-          opacity: 1;
-        }
-        
-        .btn-create::after {
-          content: '';
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          width: 0;
-          height: 0;
-          border-radius: 50%;
-          background: rgba(255, 255, 255, 0.3);
-          transform: translate(-50%, -50%);
-          transition: width 0.6s, height 0.6s;
-        }
-        
-        .btn-create:active::after {
-          width: 300px;
-          height: 300px;
-          opacity: 0;
-          transition: 0s;
+          left: 100%;
         }
         
         .btn-create:hover {
-          transform: translateY(-2px) scale(1.02);
-          box-shadow: 
-            0 8px 24px rgba(244, 116, 59, 0.6),
-            0 2px 4px rgba(0, 0, 0, 0.2) inset,
-            0 0 0 2px rgba(255, 255, 255, 0.15) inset;
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(244, 116, 59, 0.55);
+          border-color: rgba(244, 116, 59, 0.7);
         }
         
         .btn-create:active {
-          transform: translateY(0) scale(0.98);
+          transform: translateY(0);
         }
         
         .btn-icon-create {
           width: 18px;
           height: 18px;
-          transition: transform 0.3s;
+          transition: transform 0.25s;
           filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
         }
         
         .btn-create:hover .btn-icon-create {
-          transform: rotate(90deg) scale(1.1);
+          transform: rotate(90deg);
         }
         
         @media (max-width: 768px) {
@@ -702,34 +797,46 @@ export default function MapView({
           }
           
           .venue-popup .leaflet-popup-content-wrapper {
-            max-width: 92vw;
-            border-radius: 20px;
+            max-width: 95vw;
+            border-radius: 18px;
           }
           
           .venue-popup-content {
-            padding: 20px;
-            padding-top: 16px;
+            padding: 18px;
           }
           
           .venue-name {
-            font-size: 19px;
+            font-size: 18px;
           }
           
           .action-buttons {
-            gap: 10px;
+            flex-direction: column;
+            gap: 8px;
           }
           
           .btn-details,
           .btn-create {
-            padding: 12px 14px;
+            padding: 13px 16px;
             font-size: 13px;
-            border-radius: 14px;
+            border-radius: 12px;
           }
           
           .btn-icon,
           .btn-icon-create {
             width: 15px;
             height: 15px;
+          }
+          
+          .match-item {
+            padding: 10px;
+          }
+          
+          .match-title {
+            font-size: 12px;
+          }
+          
+          .match-meta {
+            font-size: 11px;
           }
         }
       `}</style>
