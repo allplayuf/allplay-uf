@@ -28,6 +28,7 @@ const CupGroupStage = lazy(() => import("../components/cups/CupGroupStage"));
 const CupBracket = lazy(() => import("../components/cups/CupBracket"));
 const CupMatches = lazy(() => import("../components/cups/CupMatches"));
 const CupAdminPanel = lazy(() => import("../components/cups/CupAdminPanel"));
+const CupHeroCard = lazy(() => import("../components/cups/CupHeroCard"));
 
 const STATUS_CONFIG = {
   upcoming: { label: 'Kommande', color: 'bg-[#F59E0B]/20 text-[#FCD34D]', dotColor: 'bg-[#F59E0B]' },
@@ -156,140 +157,31 @@ export default function CupDetailPage() {
           )}
         </div>
 
-        {/* Hero Header */}
-        <Card className="bg-[#121715] border-[#223029] rounded-2xl overflow-hidden mb-8 shadow-xl">
-          {/* Banner */}
-          <div className="relative h-48 sm:h-56 lg:h-64 overflow-hidden">
-            {cup.logo_url ? (
-              <>
-                <img 
-                  src={cup.logo_url} 
-                  alt={cup.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#121715] via-[#121715]/50 to-transparent"></div>
-              </>
-            ) : (
-              <>
-                <div className="absolute inset-0 bg-gradient-to-br from-[#F59E0B]/20 via-[#121715] to-[#121715]"></div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Trophy className="w-24 h-24 text-[#F59E0B]/30" strokeWidth={1.5} />
-                </div>
-              </>
-            )}
-          </div>
+        {/* Hero Header with Rings */}
+        <Suspense fallback={<PageLoadingSkeleton />}>
+          <CupHeroCard 
+            cup={cup}
+            statusConfig={statusConfig}
+            confirmedCount={confirmedParticipants.length}
+          />
+        </Suspense>
 
-          <CardContent className="p-6 sm:p-8">
-            {/* Title and Status Row */}
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
-              <div className="flex-1 min-w-0">
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#F4F7F5] mb-3">
-                  {cup.name}
-                </h1>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge className={`h-7 px-3 ${statusConfig.color} border-0 font-semibold text-sm flex items-center gap-1.5`}>
-                    <div className={`w-2 h-2 rounded-full ${statusConfig.dotColor} animate-pulse`}></div>
-                    {statusConfig.label}
-                  </Badge>
-                  <Badge className="h-7 px-3 bg-[#18221E] text-[#B6C2BC] border-0 font-semibold text-sm">
-                    {cup.format}
-                  </Badge>
-                  <Badge className="h-7 px-3 bg-[#18221E] text-[#B6C2BC] border-0 font-semibold text-sm">
-                    {cup.signup_type === 'team' ? '👥 Lag' : '⚽ Solo'}
-                  </Badge>
-                </div>
-              </div>
-
-              {canManage && (
-                <Button
-                  onClick={() => setActiveTab('admin')}
-                  className="h-12 px-5 bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#F59E0B] text-white gap-2.5 flex-shrink-0 font-bold shadow-lg rounded-xl ring-2 ring-[#F59E0B]/20 hover:ring-[#F59E0B]/40 transition-all"
-                >
-                  <Shield className="w-5 h-5" strokeWidth={2.5} />
-                  Admin
-                </Button>
-              )}
-            </div>
-
-            {/* Key Info Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <div className="flex items-center gap-3 p-3 bg-[#0F1513] rounded-xl border border-[#223029]">
-                <MapPin className="w-5 h-5 text-[#F59E0B] flex-shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs text-[#7B8A83] mb-0.5">Plats</p>
-                  <p className="text-sm font-semibold text-[#F4F7F5] truncate">{cup.location}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 bg-[#0F1513] rounded-xl border border-[#223029]">
-                <Calendar className="w-5 h-5 text-[#F59E0B] flex-shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs text-[#7B8A83] mb-0.5">Datum</p>
-                  <p className="text-sm font-semibold text-[#F4F7F5] truncate">
-                    {new Date(cup.start_date).toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' })}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 bg-[#0F1513] rounded-xl border border-[#223029]">
-                <Users className="w-5 h-5 text-[#F59E0B] flex-shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs text-[#7B8A83] mb-0.5">Deltagare</p>
-                  <p className="text-sm font-semibold text-[#F4F7F5]">
-                    {cup.current_participants}/{cup.max_participants}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 bg-[#0F1513] rounded-xl border border-[#223029]">
-                <Target className="w-5 h-5 text-[#F59E0B] flex-shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs text-[#7B8A83] mb-0.5">Nivå</p>
-                  <p className="text-sm font-semibold text-[#F4F7F5] truncate">
-                    {cup.skill_level === 'mixed' ? 'Blandad' : 
-                     cup.skill_level === 'beginner' ? 'Nybörjare' : 
-                     cup.skill_level === 'intermediate' ? 'Medel' : 
-                     cup.skill_level === 'advanced' ? 'Avancerad' : 'Elite'}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-[#B6C2BC] font-medium">Anmälningsstatus</span>
-                <span className="text-[#FCD34D] font-bold">
-                  {Math.round((cup.current_participants / cup.max_participants) * 100)}%
-                </span>
-              </div>
-              <div className="h-2 bg-[#0F1513] rounded-full overflow-hidden border border-[#223029]">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(cup.current_participants / cup.max_participants) * 100}%` }}
-                  transition={{ duration: 0.8, ease: "easeOut" }}
-                  className="h-full bg-gradient-to-r from-[#F59E0B] to-[#EAB308] rounded-full"
-                  style={{
-                    boxShadow: '0 0 8px rgba(245, 158, 11, 0.4)'
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* User Signup Status */}
-            {userParticipant && (
-              <div className="mt-4 p-4 bg-[#2BA84A]/10 border border-[#2BA84A]/30 rounded-xl flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-[#2BA84A] flex-shrink-0" />
+        {/* User Signup Status Below Hero */}
+        {userParticipant && (
+          <Card className="bg-[#121715] border-[#223029] rounded-2xl shadow-xl mb-6">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-6 h-6 text-[#2BA84A] flex-shrink-0" />
                 <div>
-                  <p className="font-semibold text-[#F4F7F5] text-sm">Du är anmäld!</p>
+                  <p className="font-semibold text-[#F4F7F5] text-sm">Du är anmäld till denna turnering!</p>
                   <p className="text-xs text-[#B6C2BC]">
-                    Status: {userParticipant.status === 'confirmed' ? '✓ Bekräftad' : '⏳ Väntar'}
+                    Status: {userParticipant.status === 'confirmed' ? '✓ Bekräftad' : '⏳ Väntar på godkännande'}
                   </p>
                 </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Navigation Tabs - UTAN ADMIN TAB */}
         <div className="bg-[#121715] border border-[#223029] rounded-2xl p-2 mb-8 shadow-[0_6px_18px_rgba(0,0,0,0.22)]">

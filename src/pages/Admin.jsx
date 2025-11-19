@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Users, Flag, MapPin, BarChart, AlertTriangle, RefreshCw, Trophy } from "lucide-react";
+import { Shield, Users, Flag, MapPin, BarChart, AlertTriangle, RefreshCw, Trophy, Sparkles } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 
@@ -362,6 +362,26 @@ export default function AdminPage() {
               >
                 {isRemovingDuplicates ? 'Rensar...' : 'Kör cleanup'}
               </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-[#121715] border border-[#223029] hover:border-[#F59E0B] transition-all shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-2xl">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-[#F59E0B]/20 rounded-xl flex items-center justify-center ring-1 ring-[#F59E0B]/30">
+                  <Trophy className="w-6 h-6 text-[#F59E0B]" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-[#F4F7F5]">Rensa cuper</h3>
+                  <p className="text-xs text-[#B6C2BC]">Ta bort alla testcuper</p>
+                </div>
+              </div>
+              <Link to={createPageUrl("AdminCleanup")}>
+                <Button className="w-full bg-[#F59E0B] hover:bg-[#D97706] text-white rounded-xl h-11 gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Öppna cleanup
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </div>
