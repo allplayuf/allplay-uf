@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { validateTeamData } from '../utils/validation.js';
 import { sanitizeTeamData } from '../utils/contentSanitizer.js';
 import { checkRateLimit } from '../utils/permissions.js';

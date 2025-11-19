@@ -5,20 +5,20 @@
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { requireTeamOwnership } from '../utils/authorization.js';
+import { withErrorHandler, ErrorTypes, successResponse } from '../utils/errorHandler.js';
+import { Logger } from '../utils/logger.js';
 
-Deno.serve(async (req) => {
-  try {
-    const { teamId } = await req.json();
-    
-    if (!teamId) {
-      return Response.json(
-        { error: 'Team ID is required' },
-        { status: 400 }
-      );
-    }
-    
-    // Verify user has permission to delete this team
-    const { base44, user, team } = await requireTeamOwnership(req, teamId);
+const handler = async (req, logger) => {
+  const { teamId } = await req.json();
+  
+  if (!teamId) {
+    throw ErrorTypes.VALIDATION_ERROR('Team ID is required');
+  }
+  
+  // Verify user has permission to delete this team
+  const { base44, user, team } = await requireTeamOwnership(req, teamId);
+  
+  logger.info('Deleting team with cleanup', { userId: user.id, teamId, teamName: team.name });
     
     // Step 1: Delete all TeamMember records
     const members = await base44.asServiceRole.entities.TeamMember.filter({
@@ -95,29 +95,22 @@ Deno.serve(async (req) => {
     // Step 8: Finally, delete the team itself
     await base44.asServiceRole.entities.Team.delete(teamId);
     
-    return Response.json({
-      success: true,
+    const deletedRecords = {
+      members: members.length,
+      invitations: invitations.length,
+      messages: messages.length,
+      polls: polls.length,
+      highlights: highlights.length,
+      challenges: challenges.length,
+      matchesUpdated: matchesToUpdate.length
+    };
+    
+    logger.logAction('team_deleted', user.id, { teamId, teamName: team.name, deletedRecords });
+    
+    return successResponse({
       message: 'Team and all related records deleted successfully',
-      deletedRecords: {
-        members: members.length,
-        invitations: invitations.length,
-        messages: messages.length,
-        polls: polls.length,
-        highlights: highlights.length,
-        challenges: challenges.length,
-        matchesUpdated: matchesToUpdate.length
-      }
+      deletedRecords
     });
-    
-  } catch (error) {
-    console.error('Error deleting team:', error);
-    
-    const status = error.message.includes('required') || 
-                   error.message.includes('permission') ? 403 : 500;
-    
-    return Response.json(
-      { error: error.message || 'Failed to delete team' },
-      { status }
-    );
-  }
-});
+};
+
+Deno.serve(withErrorHandler(handler, 'delete-team'));
