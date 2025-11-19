@@ -210,8 +210,8 @@ export default function MatchesPage() {
   const handleMatchCreated = async (matchData) => {
     try {
       // Use backend function for validation and sanitization
-      const { createMatch } = await import('@/functions/matches/createMatch');
-      const response = await createMatch(matchData);
+      const { base44 } = await import('@/api/base44Client');
+      const response = await base44.functions.invoke('createMatch', matchData);
 
       if (response.data.error) {
         throw new Error(response.data.details?.[0] || response.data.error);
@@ -260,8 +260,8 @@ export default function MatchesPage() {
       }
 
       // Use backend function for atomic join
-      const { joinMatch } = await import('@/functions/matches/joinMatch');
-      const response = await joinMatch({ matchId });
+      const { base44 } = await import('@/api/base44Client');
+      const response = await base44.functions.invoke('joinMatch', { matchId });
 
       if (response.data.error) {
         // Handle specific errors
@@ -326,8 +326,8 @@ export default function MatchesPage() {
 
     try {
       // Use backend function for proper cleanup
-      const { deleteMatch } = await import('@/functions/matches/deleteMatch');
-      const response = await deleteMatch({ matchId });
+      const { base44 } = await import('@/api/base44Client');
+      const response = await base44.functions.invoke('deleteMatch', { matchId });
 
       if (response.data.error) {
         throw new Error(response.data.error);

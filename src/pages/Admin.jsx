@@ -125,8 +125,8 @@ export default function AdminPage() {
 
     try {
       // Use backend function for proper cleanup
-      const { deleteMatch } = await import('@/functions/matches/deleteMatch');
-      const response = await deleteMatch({ matchId });
+      const { base44 } = await import('@/api/base44Client');
+      const response = await base44.functions.invoke('deleteMatch', { matchId });
 
       if (response.data.error) {
         throw new Error(response.data.error);
@@ -169,8 +169,8 @@ export default function AdminPage() {
 
     try {
       // Use backend function for proper cleanup
-      const { deleteTeam } = await import('@/functions/teams/deleteTeam');
-      const response = await deleteTeam({ teamId });
+      const { base44 } = await import('@/api/base44Client');
+      const response = await base44.functions.invoke('deleteTeam', { teamId });
 
       if (response.data.error) {
         throw new Error(response.data.error);

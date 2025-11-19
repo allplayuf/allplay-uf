@@ -160,8 +160,8 @@ export default function Dashboard() {
       }
 
       // Use backend function for validation and sanitization
-      const { createMatch } = await import('@/functions/matches/createMatch');
-      const response = await createMatch(matchData);
+      const { base44 } = await import('@/api/base44Client');
+      const response = await base44.functions.invoke('createMatch', matchData);
 
       if (response.data.error) {
         throw new Error(response.data.details?.[0] || response.data.error);

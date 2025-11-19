@@ -147,8 +147,8 @@ export default function MatchDetailPage() {
   const handleJoinMatch = async () => {
     try {
       // Use backend function for atomic join
-      const { joinMatch } = await import('@/functions/matches/joinMatch');
-      const response = await joinMatch({ matchId });
+      const { base44 } = await import('@/api/base44Client');
+      const response = await base44.functions.invoke('joinMatch', { matchId });
 
       if (response.data.error) {
         if (response.data.error.includes('full')) {
@@ -202,8 +202,8 @@ export default function MatchDetailPage() {
       if (!shouldLeave) return;
 
       // Use backend function for atomic leave
-      const { leaveMatch } = await import('@/functions/matches/leaveMatch');
-      const response = await leaveMatch({ matchId });
+      const { base44 } = await import('@/api/base44Client');
+      const response = await base44.functions.invoke('leaveMatch', { matchId });
 
       if (response.data.error) {
         throw new Error(response.data.error);
