@@ -11,7 +11,8 @@ import Feedback from './pages/Feedback';
 import Cups from './pages/Cups';
 import CupDetail from './pages/CupDetail';
 import CreateCup from './pages/CreateCup';
-import Layout from './Layout.jsx';
+import AdminCleanup from './pages/AdminCleanup';
+import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
@@ -28,10 +29,11 @@ export const PAGES = {
     "Cups": Cups,
     "CupDetail": CupDetail,
     "CreateCup": CreateCup,
+    "AdminCleanup": AdminCleanup,
 }
 
 export const pagesConfig = {
     mainPage: "Dashboard",
     Pages: PAGES,
-    Layout: Layout,
+    Layout: __Layout,
 };

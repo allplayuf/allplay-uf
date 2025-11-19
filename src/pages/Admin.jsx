@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { User, Report, Venue, Match, Team } from "@/entities/User";
 import { Button } from "@/components/ui/button";
