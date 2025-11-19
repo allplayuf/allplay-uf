@@ -113,7 +113,7 @@ export default function AdminPage() {
   const handleDeleteMatch = async (matchId, matchTitle) => {
     const shouldDelete = await confirm(
       'Radera match',
-      `Är du säker på att du vill radera matchen "${matchTitle}"? Alla deltagare och relaterad data raderas.`,
+      `Är du säker på att du vill radera matchen "${matchTitle}"? Detta går inte att ångra.`,
       {
         type: 'warning',
         confirmText: 'Ja, radera',
@@ -124,13 +124,11 @@ export default function AdminPage() {
     if (!shouldDelete) return;
 
     try {
-      // Use backend function for proper cleanup
-      const { base44 } = await import('@/api/base44Client');
-      const response = await base44.functions.invoke('deleteMatch', { matchId });
-
-      if (response.data.error) {
-        throw new Error(response.data.error);
-      }
+      await Match.update(matchId, {
+        status: 'cancelled',
+        deleted_at: new Date().toISOString(),
+        deleted_by: currentUser.id
+      });
 
       console.log('AUDIT LOG:', {
         action: 'DELETE_MATCH',
@@ -139,25 +137,22 @@ export default function AdminPage() {
         match_id: matchId,
         match_title: matchTitle,
         timestamp: new Date().toISOString(),
-        deleted_counts: response.data.deleted
+        previous_state: { status: 'active' },
+        new_state: { status: 'deleted' }
       });
 
-      await alert(
-        'Match raderad!', 
-        `Matchen och ${response.data.deleted.participants} deltagare har tagits bort.`, 
-        { type: 'success' }
-      );
+      await alert('Match raderad!', 'Matchen har tagits bort från systemet.', { type: 'success' });
       loadAdminData();
     } catch (error) {
       console.error("Error deleting match:", error);
-      await alert('Ett fel uppstod', error.message || 'Kunde inte radera match. Försök igen.', { type: 'alert' });
+      await alert('Ett fel uppstod', 'Kunde inte radera match. Försök igen.', { type: 'alert' });
     }
   };
 
   const handleDeleteTeam = async (teamId, teamName) => {
     const shouldDelete = await confirm(
       'Radera lag',
-      `Är du säker på att du vill radera laget "${teamName}"? Alla medlemmar och relaterad data raderas.`,
+      `Är du säker på att du vill radera laget "${teamName}"? Detta går inte att ångra.`,
       {
         type: 'warning',
         confirmText: 'Ja, radera',
@@ -168,13 +163,11 @@ export default function AdminPage() {
     if (!shouldDelete) return;
 
     try {
-      // Use backend function for proper cleanup
-      const { base44 } = await import('@/api/base44Client');
-      const response = await base44.functions.invoke('deleteTeam', { teamId });
-
-      if (response.data.error) {
-        throw new Error(response.data.error);
-      }
+      await Team.update(teamId, {
+        is_active: false,
+        deleted_at: new Date().toISOString(),
+        deleted_by: currentUser.id
+      });
 
       console.log('AUDIT LOG:', {
         action: 'DELETE_TEAM',
@@ -183,18 +176,15 @@ export default function AdminPage() {
         team_id: teamId,
         team_name: teamName,
         timestamp: new Date().toISOString(),
-        deleted_counts: response.data.deleted
+        previous_state: { is_active: true },
+        new_state: { is_active: false }
       });
 
-      await alert(
-        'Lag raderat!', 
-        `Laget och ${response.data.deleted.members} medlemmar har tagits bort.`, 
-        { type: 'success' }
-      );
+      await alert('Lag raderat!', 'Laget har tagits bort från systemet.', { type: 'success' });
       loadAdminData();
     } catch (error) {
       console.error("Error deleting team:", error);
-      await alert('Ett fel uppstod', error.message || 'Kunde inte radera lag. Försök igen.', { type: 'alert' });
+      await alert('Ett fel uppstod', 'Kunde inte radera lag. Försök igen.', { type: 'alert' });
     }
   };
 

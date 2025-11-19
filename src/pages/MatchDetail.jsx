@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
@@ -146,31 +147,41 @@ export default function MatchDetailPage() {
 
   const handleJoinMatch = async () => {
     try {
-      // Use backend function for atomic join
-      const { base44 } = await import('@/api/base44Client');
-      const response = await base44.functions.invoke('joinMatch', { matchId });
+      const existingParticipation = participants.find(p => p.id === user.id);
 
-      if (response.data.error) {
-        if (response.data.error.includes('full')) {
-          await alert(
-            'Match fullbokad',
-            'Tyvärr är denna match redan fullbokad!',
-            { type: 'warning' }
-          );
-        } else if (response.data.error.includes('Already joined')) {
-          await alert(
-            'Redan anmäld',
-            'Du har redan anmält dig till denna match!',
-            { type: 'info' }
-          );
-        } else {
-          throw new Error(response.data.error);
-        }
+      if (existingParticipation) {
+        await alert(
+          'Redan anmäld',
+          'Du har redan anmält dig till denna match!',
+          { type: 'info' }
+        );
         return;
+      }
+
+      if (!match.is_spontaneous && participants.length >= match.max_players) {
+        await alert(
+          'Match fullbokad',
+          'Tyvärr är denna match redan fullbokad!',
+          { type: 'warning' }
+        );
+        return;
+      }
+
+      await base44.entities.MatchParticipant.create({
+        match_id: matchId,
+        user_id: user.id,
+        status: 'confirmed'
+      });
+
+      if (!match.is_spontaneous) {
+        await base44.entities.Match.update(matchId, {
+          current_players: participants.length + 1
+        });
       }
 
       loadMatchData();
 
+      // Success popup
       await alert(
         'Anmäld! 🎉',
         `Du har anmält dig till "${match.title}". Vi ses där!`,
@@ -181,7 +192,7 @@ export default function MatchDetailPage() {
       console.error("Error joining match:", error);
       await alert(
         'Ett fel uppstod',
-        error.message || 'Kunde inte anmäla dig. Försök igen.',
+        'Kunde inte anmäla dig. Försök igen.',
         { type: 'alert' }
       );
     }
@@ -189,6 +200,10 @@ export default function MatchDetailPage() {
 
   const handleLeaveMatch = async () => {
     try {
+      const myParticipation = participants.find(p => p.id === user.id);
+
+      if (!myParticipation) return;
+
       const shouldLeave = await confirm(
         'Lämna match',
         'Är du säker på att du vill lämna denna match?',
@@ -201,12 +216,12 @@ export default function MatchDetailPage() {
 
       if (!shouldLeave) return;
 
-      // Use backend function for atomic leave
-      const { base44 } = await import('@/api/base44Client');
-      const response = await base44.functions.invoke('leaveMatch', { matchId });
+      await base44.entities.MatchParticipant.delete(myParticipation.participantInfo.id);
 
-      if (response.data.error) {
-        throw new Error(response.data.error);
+      if (!match.is_spontaneous) {
+        await base44.entities.Match.update(matchId, {
+          current_players: Math.max(0, participants.length - 1)
+        });
       }
 
       loadMatchData();
@@ -219,20 +234,11 @@ export default function MatchDetailPage() {
 
     } catch (error) {
       console.error("Error leaving match:", error);
-      
-      if (error.message?.includes('Organizers cannot leave')) {
-        await alert(
-          'Kan inte lämna',
-          'Som organisatör måste du radera matchen istället för att lämna den.',
-          { type: 'alert' }
-        );
-      } else {
-        await alert(
-          'Ett fel uppstod',
-          error.message || 'Kunde inte lämna matchen. Försök igen.',
-          { type: 'alert' }
-        );
-      }
+      await alert(
+        'Ett fel uppstod',
+        'Kunde inte lämna matchen. Försök igen.',
+        { type: 'alert' }
+      );
     }
   };
 

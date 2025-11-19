@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -209,13 +210,13 @@ export default function MatchesPage() {
 
   const handleMatchCreated = async (matchData) => {
     try {
-      // Use backend function for validation and sanitization
-      const { base44 } = await import('@/api/base44Client');
-      const response = await base44.functions.invoke('createMatch', matchData);
-
-      if (response.data.error) {
-        throw new Error(response.data.details?.[0] || response.data.error);
-      }
+      const newMatch = await base44.entities.Match.create(matchData);
+      
+      await base44.entities.MatchParticipant.create({
+        match_id: newMatch.id,
+        user_id: user.id,
+        status: 'confirmed'
+      });
 
       setShowCreateForm(false);
       setPreselectedVenueId(null);
@@ -223,17 +224,11 @@ export default function MatchesPage() {
       queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.participants });
       
-      await alert(
-        'Match skapad! 🎉',
-        'Din match har skapats och är nu synlig för andra spelare.',
-        { type: 'success' }
-      );
-      
     } catch (error) {
       console.error("Error creating match:", error);
       await alert(
         'Kunde inte skapa match',
-        error.message || 'Det gick inte att skapa matchen. Försök igen om en stund.',
+        'Det gick inte att skapa matchen. Försök igen om en stund.',
         { type: 'alert' }
       );
     }
@@ -243,7 +238,19 @@ export default function MatchesPage() {
     try {
       const match = allMatches.find(m => m.id === matchId);
       
-      // Skill level warning
+      const existingParticipation = allParticipants.filter(p =>
+        p.match_id === matchId && p.user_id === user.id
+      );
+
+      if (existingParticipation.length > 0) {
+        await alert(
+          'Redan anmäld',
+          'Du har redan anmält dig till denna match!',
+          { type: 'info' }
+        );
+        return;
+      }
+
       if (!match.is_team_match && match.skill_bracket && match.skill_bracket !== 'mixed') {
         if (user.skill_level !== match.skill_bracket) {
           const shouldJoin = await confirm(
@@ -259,35 +266,22 @@ export default function MatchesPage() {
         }
       }
 
-      // Use backend function for atomic join
-      const { base44 } = await import('@/api/base44Client');
-      const response = await base44.functions.invoke('joinMatch', { matchId });
-
-      if (response.data.error) {
-        // Handle specific errors
-        if (response.data.error.includes('full')) {
-          await alert(
-            'Match fullbokad',
-            'Tyvärr är denna match redan fullbokad!',
-            { type: 'warning' }
-          );
-        } else if (response.data.error.includes('Already joined')) {
-          await alert(
-            'Redan anmäld',
-            'Du har redan anmält dig till denna match!',
-            { type: 'info' }
-          );
-        } else {
-          throw new Error(response.data.error);
-        }
+      const currentParticipants = participantsByMatch[matchId] || [];
+      if (!match.is_spontaneous && currentParticipants.length >= match.max_players) {
+        await alert(
+          'Match fullbokad',
+          'Tyvärr är denna match redan fullbokad. Försök igen senare!',
+          { type: 'warning' }
+        );
         return;
       }
 
-      // Invalidate queries
-      queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.participants });
+      await joinMatchMutation.mutateAsync({
+        matchId,
+        userId: user.id
+      });
 
-      // Success popup
+      // Success popup with celebration
       await alert(
         'Anmäld! 🎉',
         `Du har anmält dig till "${match.title}". Vi ses där!`,
@@ -298,7 +292,7 @@ export default function MatchesPage() {
       console.error("Error joining match:", error);
       await alert(
         'Ett fel uppstod',
-        error.message || 'Kunde inte anmäla dig till matchen. Försök igen.',
+        'Kunde inte anmäla dig till matchen. Kontrollera din internetanslutning och försök igen.',
         { type: 'alert' }
       );
     }
@@ -314,7 +308,7 @@ export default function MatchesPage() {
     const match = allMatches.find(m => m.id === matchId);
     const shouldDelete = await confirm(
       'Radera match',
-      `Är du säker på att du vill ta bort "${match?.title}"? Alla relaterade data kommer att raderas.`,
+      `Är du säker på att du vill ta bort "${match?.title}"? Alla deltagare kommer att meddelas.`,
       {
         type: 'warning',
         confirmText: 'Ja, radera',
@@ -325,13 +319,7 @@ export default function MatchesPage() {
     if (!shouldDelete) return;
 
     try {
-      // Use backend function for proper cleanup
-      const { base44 } = await import('@/api/base44Client');
-      const response = await base44.functions.invoke('deleteMatch', { matchId });
-
-      if (response.data.error) {
-        throw new Error(response.data.error);
-      }
+      await base44.entities.Match.delete(matchId);
       
       queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.participants });
@@ -339,26 +327,16 @@ export default function MatchesPage() {
       
       await alert(
         'Match raderad',
-        'Matchen och alla relaterade data har tagits bort.',
+        'Matchen har tagits bort',
         { type: 'success' }
       );
     } catch (error) {
       console.error("Error deleting match:", error);
-      
-      // Handle authorization errors
-      if (error.message?.includes('Only organizer') || error.message?.includes('Unauthorized')) {
-        await alert(
-          'Ingen behörighet',
-          'Du måste vara matchorganisatör eller admin för att radera denna match.',
-          { type: 'alert' }
-        );
-      } else {
-        await alert(
-          'Ett fel uppstod',
-          error.message || 'Kunde inte ta bort matchen. Försök igen.',
-          { type: 'alert' }
-        );
-      }
+      await alert(
+        'Ett fel uppstod',
+        'Kunde inte ta bort matchen. Försök igen.',
+        { type: 'alert' }
+      );
     }
   };
 
