@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -156,12 +157,15 @@ export default function Dashboard() {
   const handleMatchCreated = async (matchData) => {
     try {
       if (!user?.id) {
-        displayError("Du måste vara inloggad för att skapa matcher.");
-        return;
+        throw new Error("User not logged in.");
       }
+      const newMatch = await base44.entities.Match.create(matchData);
       
-      // Use backend function with validation and sanitization
-      const { data } = await base44.functions.invoke('matches/createMatch', matchData);
+      await base44.entities.MatchParticipant.create({
+        match_id: newMatch.id,
+        user_id: user.id,
+        status: 'confirmed'
+      });
 
       setShowCreateMatchModal(false);
       
@@ -170,8 +174,7 @@ export default function Dashboard() {
       
     } catch (error) {
       console.error("Error creating match:", error);
-      const errorMsg = error.response?.data?.error?.message || 'Kunde inte skapa match';
-      displayError(errorMsg);
+      displayError('Kunde inte skapa match. Försök igen.');
     }
   };
 

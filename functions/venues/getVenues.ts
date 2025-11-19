@@ -4,8 +4,6 @@
  */
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
-import { withErrorHandler, successResponse } from '../utils/errorHandler.js';
-import { withCache, CACHE_TTL } from '../utils/cache.js';
 
 // Haversine distance calculation
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -22,8 +20,9 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-const handler = async (req, logger) => {
-  const url = new URL(req.url);
+Deno.serve(async (req) => {
+  try {
+    const url = new URL(req.url);
     
     // Pagination parameters
     const page = parseInt(url.searchParams.get('page') || '1');
@@ -39,15 +38,8 @@ const handler = async (req, logger) => {
     
     const base44 = createClientFromRequest(req);
     
-    // Cache key for venues (10 min TTL since venues change rarely)
-    const cacheKey = 'venues:all';
-    
-    // Get all venues with caching
-    let venues = await withCache(
-      cacheKey,
-      CACHE_TTL.LONG,
-      async () => await base44.asServiceRole.entities.Venue.list()
-    );
+    // Get all venues
+    let venues = await base44.asServiceRole.entities.Venue.list();
     
     // Filter by city if provided
     if (city) {
@@ -91,9 +83,8 @@ const handler = async (req, logger) => {
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
     
-    logger.debug('Returning venues', { count: paginatedVenues.length, totalCount, page });
-    
-    return successResponse({
+    return Response.json({
+      success: true,
       venues: paginatedVenues,
       pagination: {
         page,
@@ -104,6 +95,13 @@ const handler = async (req, logger) => {
         hasPrevPage
       }
     });
-};
-
-Deno.serve(withErrorHandler(handler, 'get-venues'));
+    
+  } catch (error) {
+    console.error('Error getting venues:', error);
+    
+    return Response.json(
+      { error: error.message || 'Failed to get venues' },
+      { status: 500 }
+    );
+  }
+});

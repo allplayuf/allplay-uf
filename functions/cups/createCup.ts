@@ -1,41 +1,38 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
-import { requireAuth } from '../utils/authorization.js';
-import { sanitizeCupData } from '../utils/sanitizer.js';
-import { validateCupData } from '../utils/validation.js';
-import { checkRateLimit, RATE_LIMITS } from '../utils/rateLimit.js';
-import { withErrorHandler, ErrorTypes, successResponse } from '../utils/errorHandler.js';
 
-const handler = async (req, logger) => {
-  // Require authentication
-  const { base44, user } = await requireAuth(req);
-  
-  // Rate limiting - 3 cups per hour
-  const rateLimitKey = `create-cup:${user.id}`;
-  const rateLimit = checkRateLimit(rateLimitKey, RATE_LIMITS.CREATE_CUP.requests, RATE_LIMITS.CREATE_CUP.windowMs);
-  
-  if (!rateLimit.allowed) {
-    throw ErrorTypes.RATE_LIMIT(rateLimit.retryAfter);
-  }
-  
-  const cupData = await req.json();
-  
-  logger.info('Creating cup', { userId: user.id });
-
-  // Validate input
-  const validation = validateCupData(cupData);
-  if (!validation.isValid) {
-    throw ErrorTypes.VALIDATION_ERROR(validation.errors.join(', '));
-  }
-
-    // Sanitize input data
-    const sanitized = sanitizeCupData(cupData);
+Deno.serve(async (req) => {
+  try {
+    const base44 = createClientFromRequest(req);
     
-    // Prepare data
+    // Verify user is authenticated
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const cupData = await req.json();
+
+    // Basic validation
+    if (!cupData.name || !cupData.location || !cupData.start_date || !cupData.start_time) {
+      return Response.json({ 
+        error: 'Missing required fields',
+        details: 'name, location, start_date and start_time are required' 
+      }, { status: 400 });
+    }
+
+    if (cupData.max_participants < 4 || cupData.max_participants > 64) {
+      return Response.json({ 
+        error: 'Invalid max_participants',
+        details: 'Must be between 4 and 64' 
+      }, { status: 400 });
+    }
+
+    // Sanitize and prepare data
     const sanitizedData = {
-      name: sanitized.name,
-      description: sanitized.description || '',
+      name: cupData.name.trim(),
+      description: cupData.description?.trim() || '',
       logo_url: cupData.logo_url || '',
-      location: sanitized.location || cupData.location,
+      location: cupData.location.trim(),
       venue_ids: cupData.venue_ids || [],
       start_date: cupData.start_date,
       end_date: cupData.end_date || cupData.start_date,
@@ -45,8 +42,8 @@ const handler = async (req, logger) => {
       skill_level: cupData.skill_level || 'mixed',
       age_group: cupData.age_group || 'Open',
       max_participants: parseInt(cupData.max_participants) || 16,
-      rules: sanitized.rules || '',
-      prize: sanitized.prize || '',
+      rules: cupData.rules?.trim() || '',
+      prize: cupData.prize?.trim() || '',
       entry_fee: parseFloat(cupData.entry_fee) || 0,
       has_group_stage: cupData.has_group_stage !== false,
       has_playoffs: cupData.has_playoffs !== false,
@@ -79,9 +76,16 @@ const handler = async (req, logger) => {
       await Promise.all(groupPromises);
     }
 
-    logger.logAction('cup_created', user.id, { cupId: cup.id, cupName: cup.name });
-    
-    return successResponse({ cup }, 201);
-};
+    return Response.json({ 
+      success: true,
+      cup 
+    }, { status: 201 });
 
-Deno.serve(withErrorHandler(handler, 'create-cup'));
+  } catch (error) {
+    console.error('Error creating cup:', error);
+    return Response.json({ 
+      error: error.message || 'Internal server error',
+      details: error.toString()
+    }, { status: 500 });
+  }
+});

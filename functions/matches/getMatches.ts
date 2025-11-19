@@ -4,11 +4,10 @@
  */
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
-import { withErrorHandler, successResponse } from '../utils/errorHandler.js';
-import { withCache, CACHE_TTL, invalidateCachePattern } from '../utils/cache.js';
 
-const handler = async (req, logger) => {
-  const url = new URL(req.url);
+Deno.serve(async (req) => {
+  try {
+    const url = new URL(req.url);
     
     // Pagination parameters
     const page = parseInt(url.searchParams.get('page') || '1');
@@ -35,15 +34,8 @@ const handler = async (req, logger) => {
       filter.skill_bracket = skillLevel;
     }
     
-    // Create cache key based on filters
-    const cacheKey = `matches:${JSON.stringify({ filter, sortBy, page, limit })}`;
-    
-    // Use cache for read-heavy endpoint (2 min TTL)
-    const allMatches = await withCache(
-      cacheKey,
-      CACHE_TTL.MEDIUM,
-      async () => await base44.asServiceRole.entities.Match.filter(filter, sortBy)
-    );
+    // Get matches with pagination
+    const allMatches = await base44.asServiceRole.entities.Match.filter(filter, sortBy);
     
     // Apply pagination
     const totalCount = allMatches.length;
@@ -54,9 +46,8 @@ const handler = async (req, logger) => {
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
     
-    logger.debug('Returning matches', { count: matches.length, totalCount, page });
-    
-    return successResponse({
+    return Response.json({
+      success: true,
       matches,
       pagination: {
         page,
@@ -67,6 +58,13 @@ const handler = async (req, logger) => {
         hasPrevPage
       }
     });
-};
-
-Deno.serve(withErrorHandler(handler, 'get-matches'));
+    
+  } catch (error) {
+    console.error('Error getting matches:', error);
+    
+    return Response.json(
+      { error: error.message || 'Failed to get matches' },
+      { status: 500 }
+    );
+  }
+});

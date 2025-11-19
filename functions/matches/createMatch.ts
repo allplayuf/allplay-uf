@@ -6,34 +6,20 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { requireAuth } from '../utils/authorization.js';
 import { sanitizeMatchData } from '../utils/sanitizer.js';
-import { validateMatchData } from '../utils/validation.js';
-import { checkRateLimit, RATE_LIMITS } from '../utils/rateLimit.js';
-import { withErrorHandler, ErrorTypes, successResponse } from '../utils/errorHandler.js';
-import { invalidateCachePattern } from '../utils/cache.js';
 
-const handler = async (req, logger) => {
-  const data = await req.json();
-  
-  // Require authentication
-  const { base44, user } = await requireAuth(req);
-  
-  // Rate limiting - 20 matches per hour
-  const rateLimitKey = `create-match:${user.id}`;
-  const rateLimit = checkRateLimit(rateLimitKey, RATE_LIMITS.CREATE_MATCH.requests, RATE_LIMITS.CREATE_MATCH.windowMs);
-  
-  if (!rateLimit.allowed) {
-    throw ErrorTypes.RATE_LIMIT(rateLimit.retryAfter);
-  }
-  
+Deno.serve(async (req) => {
   try {
-    logger.info('Creating match', { userId: user.id });
+    const data = await req.json();
     
     // Require authentication
     const { base44, user } = await requireAuth(req);
     
     // Validate required fields
     if (!data.title || !data.venue_id || !data.date || !data.time || !data.format) {
-      throw ErrorTypes.VALIDATION_ERROR('Missing required fields: title, venue_id, date, time, format');
+      return Response.json(
+        { error: 'Missing required fields: title, venue_id, date, time, format' },
+        { status: 400 }
+      );
     }
     
     // Validate date is not in the past
@@ -41,13 +27,19 @@ const handler = async (req, logger) => {
     const now = new Date();
     
     if (matchDate < now) {
-      throw ErrorTypes.VALIDATION_ERROR('Cannot create match in the past');
+      return Response.json(
+        { error: 'Cannot create match in the past' },
+        { status: 400 }
+      );
     }
     
     // Validate venue exists
     const venue = await base44.asServiceRole.entities.Venue.get(data.venue_id);
     if (!venue) {
-      throw ErrorTypes.NOT_FOUND('Venue');
+      return Response.json(
+        { error: 'Invalid venue' },
+        { status: 400 }
+      );
     }
     
     // Sanitize input data
@@ -72,17 +64,20 @@ const handler = async (req, logger) => {
       status: 'confirmed'
     });
     
-    // Invalidate matches cache
-    invalidateCachePattern('matches:');
+    return Response.json({
+      success: true,
+      match
+    });
     
-    logger.logAction('match_created', user.id, { matchId: match.id, venue: venue.name });
+  } catch (error) {
+    console.error('Error creating match:', error);
     
-    return successResponse({ match }, 201);
+    const status = error.message.includes('required') || 
+                   error.message.includes('Authentication') ? 403 : 500;
     
-  } catch (innerError) {
-    logger.error('Failed to create match', innerError, { userId: user.id });
-    throw innerError;
+    return Response.json(
+      { error: error.message || 'Failed to create match' },
+      { status }
+    );
   }
-};
-
-Deno.serve(withErrorHandler(handler, 'create-match'));
+});

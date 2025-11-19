@@ -5,20 +5,20 @@
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { requireMatchOwnership } from '../utils/authorization.js';
-import { withErrorHandler, ErrorTypes, successResponse } from '../utils/errorHandler.js';
-import { Logger } from '../utils/logger.js';
 
-const handler = async (req, logger) => {
-  const { matchId } = await req.json();
-  
-  if (!matchId) {
-    throw ErrorTypes.VALIDATION_ERROR('Match ID is required');
-  }
-  
-  // Verify user has permission to delete this match
-  const { base44, user, match } = await requireMatchOwnership(req, matchId);
-  
-  logger.info('Deleting match with cleanup', { userId: user.id, matchId });
+Deno.serve(async (req) => {
+  try {
+    const { matchId } = await req.json();
+    
+    if (!matchId) {
+      return Response.json(
+        { error: 'Match ID is required' },
+        { status: 400 }
+      );
+    }
+    
+    // Verify user has permission to delete this match
+    const { base44, user, match } = await requireMatchOwnership(req, matchId);
     
     // Step 1: Delete all MatchParticipant records
     const participants = await base44.asServiceRole.entities.MatchParticipant.filter({
@@ -68,20 +68,27 @@ const handler = async (req, logger) => {
     // Step 6: Finally, delete the match itself
     await base44.asServiceRole.entities.Match.delete(matchId);
     
-    const deletedRecords = {
-      participants: participants.length,
-      cupMatches: cupMatches.length,
-      verifications: verifications.length,
-      mvpVotes: mvpVotes.length,
-      checkIns: checkIns.length
-    };
-    
-    logger.logAction('match_deleted', user.id, { matchId, deletedRecords });
-    
-    return successResponse({
+    return Response.json({
+      success: true,
       message: 'Match and all related records deleted successfully',
-      deletedRecords
+      deletedRecords: {
+        participants: participants.length,
+        cupMatches: cupMatches.length,
+        verifications: verifications.length,
+        mvpVotes: mvpVotes.length,
+        checkIns: checkIns.length
+      }
     });
-};
-
-Deno.serve(withErrorHandler(handler, 'delete-match'));
+    
+  } catch (error) {
+    console.error('Error deleting match:', error);
+    
+    const status = error.message.includes('required') || 
+                   error.message.includes('permission') ? 403 : 500;
+    
+    return Response.json(
+      { error: error.message || 'Failed to delete match' },
+      { status }
+    );
+  }
+});
