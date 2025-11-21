@@ -71,22 +71,14 @@ export default function CreateCupTeamForm({ cup, onClose, onSuccess }) {
           className="bg-[#121715] rounded-t-[20px] lg:rounded-2xl w-full lg:max-w-lg border border-[#223029] shadow-2xl mb-16 lg:mb-0"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-[#223029] bg-gradient-to-r from-[#F59E0B]/10 to-[#D97706]/5">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-[#F59E0B]/20 rounded-xl flex items-center justify-center">
-                <Trophy className="w-6 h-6 text-[#F59E0B]" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-[#F4F7F5] flex items-center gap-2">
-                  Skapa Cup-Lag
-                  <Sparkles className="w-4 h-4 text-[#F59E0B]" />
-                </h2>
-                <p className="text-xs text-[#B6C2BC]">Speciellt för denna turnering</p>
-              </div>
+          <div className="flex items-center justify-between p-6 border-b border-[#223029]">
+            <div>
+              <h2 className="text-xl font-bold text-[#F4F7F5] mb-1">Skapa Cup-Lag</h2>
+              <p className="text-sm text-[#B6C2BC]">För {cup.name}</p>
             </div>
             <button
               onClick={onClose}
-              className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-[#18221E] transition-colors text-[#B6C2BC] hover:text-[#F4F7F5]"
+              className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-[#18221E] transition-colors text-[#7B8A83] hover:text-[#F4F7F5]"
             >
               <X className="w-5 h-5" />
             </button>
@@ -95,80 +87,72 @@ export default function CreateCupTeamForm({ cup, onClose, onSuccess }) {
           {/* Form */}
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             
-            {/* Info Box */}
-            <div className="p-4 bg-[#F59E0B]/10 border border-[#F59E0B]/30 rounded-xl">
-              <p className="text-sm text-[#F4F7F5] mb-2 font-semibold">💡 Vad är ett cup-lag?</p>
-              <p className="text-xs text-[#B6C2BC] leading-relaxed">
-                Ett cup-lag skapas specifikt för <strong className="text-[#F4F7F5]">{cup.name}</strong>. 
-                Du blir lagkapten och kan bjuda in andra spelare senare. Perfekt om du inte har ett permanent lag!
-              </p>
-            </div>
-
             {/* Team Name */}
-            <div className="space-y-2">
-              <Label className="text-[#F4F7F5] font-semibold flex items-center gap-2">
-                <Users className="w-4 h-4 text-[#F59E0B]" />
-                Lagnamn *
-              </Label>
+            <div className="space-y-3">
+              <Label className="text-[#F4F7F5] font-semibold text-base">Lagnamn</Label>
               <Input
-                placeholder="t.ex. Dynamit FC"
+                placeholder="t.ex. Stormarna, FC Gänget..."
                 value={teamName}
                 onChange={(e) => setTeamName(e.target.value)}
-                className="h-11 bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30"
+                className="h-12 bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#7B8A83] focus:border-[#F59E0B] focus:ring-2 focus:ring-[#F59E0B]/30 text-base"
                 required
+                autoFocus
                 maxLength={50}
               />
-              <p className="text-xs text-[#B6C2BC]">
-                Laget kommer att heta: <span className="text-[#F4F7F5] font-semibold">"{teamName || 'Ditt lagnamn'} ({cup.name})"</span>
-              </p>
             </div>
 
             {/* Team Color */}
             <div className="space-y-3">
-              <Label className="text-[#F4F7F5] font-semibold">Lagfärg</Label>
+              <Label className="text-[#F4F7F5] font-semibold text-base">Välj lagfärg</Label>
               <div className="grid grid-cols-4 gap-3">
                 {TEAM_COLORS.map(({ color, name }) => (
                   <button
                     key={color}
                     type="button"
                     onClick={() => setSelectedColor(color)}
-                    className={`h-14 rounded-xl border-2 transition-all ${
+                    className={`h-16 rounded-xl border-3 transition-all ${
                       selectedColor === color
-                        ? 'border-white scale-105 shadow-xl ring-2 ring-white/50'
-                        : 'border-transparent hover:scale-105 hover:shadow-lg'
+                        ? 'border-[#F4F7F5] scale-105 shadow-[0_6px_20px_rgba(0,0,0,0.4)]'
+                        : 'border-[#223029] hover:scale-105 hover:border-[#7B8A83]'
                     }`}
                     style={{ backgroundColor: color }}
                     title={name}
                   >
                     {selectedColor === color && (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <CheckCircle className="w-6 h-6 text-white drop-shadow-lg" />
-                      </div>
+                      <CheckCircle className="w-7 h-7 text-white drop-shadow-lg mx-auto" />
                     )}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Submit Buttons */}
-            <div className="flex gap-3 pt-4 border-t border-[#223029]">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                className="flex-1 h-12 border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] hover:text-[#F4F7F5] font-semibold"
-              >
-                Avbryt
-              </Button>
-              <Button
-                type="submit"
-                disabled={createTeamMutation.isPending || !teamName.trim()}
-                className="flex-1 h-12 bg-[#F59E0B] hover:bg-[#D97706] text-[#FFFFFF] gap-2 font-semibold shadow-lg"
-              >
-                <Trophy className="w-4 h-4" />
-                {createTeamMutation.isPending ? 'Skapar...' : 'Skapa & Anmäl'}
-              </Button>
+            {/* Info Box */}
+            <div className="p-4 bg-[#2BA84A]/10 border border-[#2BA84A]/30 rounded-xl">
+              <p className="text-sm text-[#CFE8D6] leading-relaxed">
+                <strong className="text-[#EAF6EE]">✓</strong> Du blir lagkapten automatiskt<br/>
+                <strong className="text-[#EAF6EE]">✓</strong> Bjud in vänner efter att laget skapats<br/>
+                <strong className="text-[#EAF6EE]">✓</strong> Laget anmäls direkt till turneringen
+              </p>
             </div>
+
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              disabled={createTeamMutation.isPending || !teamName.trim()}
+              className="w-full h-14 bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#F59E0B] text-white font-bold text-base rounded-xl shadow-xl gap-2 transition-all hover:scale-[1.02]"
+            >
+              {createTeamMutation.isPending ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Skapar lag...
+                </>
+              ) : (
+                <>
+                  <Trophy className="w-5 h-5" />
+                  Skapa lag & anmäl
+                </>
+              )}
+            </Button>
           </form>
         </motion.div>
       </div>
