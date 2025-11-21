@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
@@ -328,6 +327,36 @@ export default function MatchDetailPage() {
     return 'none';
   };
 
+  const generateGoogleCalendarUrl = () => {
+    if (!match) return '';
+    
+    try {
+      // Construct start date object
+      const [year, month, day] = match.date.split('-');
+      const [hour, minute] = match.time.split(':');
+      const startDate = new Date(year, month - 1, day, hour, minute);
+      const endDate = new Date(startDate.getTime() + (match.duration_minutes || 90) * 60000);
+      
+      const formatTime = (date) => {
+        return date.toISOString().replace(/-|:|\.\d+/g, '');
+      };
+
+      const start = formatTime(startDate);
+      const end = formatTime(endDate);
+      
+      const venueName = venue?.name || 'Okänd plats';
+      const venueAddress = venue ? `${venue.address}, ${venue.city}` : '';
+      
+      const details = `Spela fotboll med AllPlay!\nMatch: ${match.title}\nFormat: ${match.format}\nPlats: ${venueName}\nLänk: ${window.location.href}`;
+      const location = venueAddress || venueName;
+      
+      return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(match.title)}&dates=${start}/${end}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(location)}`;
+    } catch (e) {
+      console.error("Error generating calendar URL", e);
+      return '#';
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#0F1513] flex items-center justify-center p-4">
@@ -472,13 +501,25 @@ export default function MatchDetailPage() {
 
                 {isParticipant && match.status === 'upcoming' && (
                   <>
-                    <button
-                      onClick={() => setShowInviteModal(true)}
-                      className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#FFFFFF]/10 backdrop-blur-sm px-6 text-[#FFFFFF] font-semibold border border-[#FFFFFF]/30 hover:bg-[#FFFFFF]/20 transition-all"
-                    >
-                      <Share2 className="w-5 h-5" />
-                      Bjud in vänner
-                    </button>
+                    <div className="flex gap-3 w-full">
+                      <button
+                        onClick={() => setShowInviteModal(true)}
+                        className="flex-1 inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#FFFFFF]/10 backdrop-blur-sm px-4 text-[#FFFFFF] font-semibold border border-[#FFFFFF]/30 hover:bg-[#FFFFFF]/20 transition-all"
+                      >
+                        <Share2 className="w-5 h-5" />
+                        Bjud in
+                      </button>
+                      
+                      <a
+                        href={generateGoogleCalendarUrl()}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#FFFFFF]/10 backdrop-blur-sm px-4 text-[#FFFFFF] font-semibold border border-[#FFFFFF]/30 hover:bg-[#FFFFFF]/20 transition-all"
+                      >
+                        <Calendar className="w-5 h-5" />
+                        Kalender
+                      </a>
+                    </div>
 
                     <button
                       onClick={handleLeaveMatch}
