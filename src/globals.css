@@ -4,16 +4,61 @@ css
 @tailwind utilities;
 
 @layer base {
-  html, body {
-    background-color: #0F1513;
-    margin: 0;
-    padding: 0;
+  :root {
+    --background: 160 17% 7%; /* #0F1513 */
+    --foreground: 150 10% 96%; /* #F4F7F5 */
+
+    --card: 160 13% 8%; /* #121715 */
+    --card-foreground: 150 10% 96%;
+
+    --popover: 160 13% 8%;
+    --popover-foreground: 150 10% 96%;
+
+    --primary: 135 59% 41%; /* #2BA84A */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 160 14% 11%; /* #18221E */
+    --secondary-foreground: 150 10% 96%;
+
+    --muted: 160 14% 11%;
+    --muted-foreground: 150 8% 74%; /* #B6C2BC */
+
+    --accent: 19 89% 59%; /* #F4743B */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 155 15% 16%; /* #223029 */
+    --input: 155 15% 16%;
+    --ring: 135 59% 41%;
+
+    --radius: 1rem;
   }
-  
+}
+
+@layer base {
+  /*
+    The original file had a global '*' transition property definition here.
+    It's not explicitly in the outline, and the outline provides new global '*' and 'body' rules.
+    To maintain the spirit of the outline providing the definitive base layer content,
+    the original transition properties are not re-added unless specified.
+    However, the 'will-change' properties defined globally for transitions are
+    still relevant and should be considered if not implicitly covered by Tailwind.
+  */
+
   * {
-    transition-property: color, background-color, border-color, opacity;
+    @apply border-border;
+    /* Keeping original transition properties for a smoother UI experience */
+    transition-property: color, background-color, border-color, opacity, transform;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 100ms;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    margin: 0; /* Preserve original margin reset */
+    padding: 0; /* Preserve original padding reset */
   }
 }
 
@@ -30,6 +75,26 @@ css
   }
 }
 
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0F1513;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #223029;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2BA84A;
+}
+
+/* Animations */
 @keyframes pulse {
   0%, 100% {
     opacity: 1;
@@ -41,6 +106,15 @@ css
 
 .animate-pulse {
   animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }
 
 .will-change-transform {
