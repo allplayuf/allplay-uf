@@ -201,7 +201,7 @@ export default function MatchEndModal({
 
         {/* Step 1: MVP Voting */}
         {step === 1 &&
-        <>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <div className="p-6 border-b border-[#223029]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -210,7 +210,7 @@ export default function MatchEndModal({
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-[#F4F7F5]">Rösta på MVP</h2>
-                    <p className="text-sm text-[#B6C2BC]">Vem spelade bäst?</p>
+                    <p className="text-sm text-[#B6C2BC]">Vem var matchens bästa spelare?</p>
                   </div>
                 </div>
                 <button
@@ -224,49 +224,67 @@ export default function MatchEndModal({
 
             <CardContent className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
               {usersList.length === 0 ?
-            <div className="text-center py-8">
+            <div className="text-center py-12 bg-[#18221E]/50 rounded-3xl border border-dashed border-[#223029]">
                   <Users className="w-12 h-12 text-[#248232] mx-auto mb-3 opacity-50" />
                   <p className="text-sm text-[#B6C2BC]">Inga andra spelare att rösta på</p>
                 </div> :
 
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 gap-3">
                   {usersList.map((user) =>
-              <button
+              <motion.button
                 key={user.id}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => setSelectedMVP(user.id)}
-                className={`w-full p-4 rounded-2xl border-2 transition-all ${
+                className={`w-full p-4 rounded-2xl border-2 transition-all relative overflow-hidden ${
                 selectedMVP === user.id ?
                 'border-[#F4743B] bg-[#F4743B]/10' :
                 'border-[#223029] hover:border-[#2BA84A] bg-[#18221E]'}`
                 }>
+                      {selectedMVP === user.id && (
+                        <motion.div 
+                          layoutId="highlight"
+                          className="absolute inset-0 bg-[#F4743B]/5"
+                        />
+                      )}
 
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0">
-                          {user.profile_image_url ?
-                    <img src={user.profile_image_url} alt={user.full_name} className="w-full h-full object-cover rounded-xl" /> :
-
-                    <span className="text-white font-semibold text-lg">{user.full_name?.[0] || 'U'}</span>
-                    }
+                      <div className="flex items-center gap-4 relative z-10">
+                        <div className="relative">
+                          <div className="w-14 h-14 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-inner overflow-hidden">
+                            {user.profile_image_url ?
+                      <img src={user.profile_image_url} alt={user.full_name} className="w-full h-full object-cover" /> :
+                      <span className="text-white font-bold text-xl">{user.full_name?.[0] || 'U'}</span>
+                      }
+                          </div>
+                          {selectedMVP === user.id && 
+                            <motion.div 
+                              initial={{ scale: 0 }} animate={{ scale: 1 }}
+                              className="absolute -top-2 -right-2 w-6 h-6 bg-[#F4743B] rounded-full flex items-center justify-center shadow-lg border-2 border-[#121715]">
+                              <Trophy className="w-3 h-3 text-white" />
+                            </motion.div>
+                          }
                         </div>
                         <div className="flex-1 text-left">
-                          <p className="font-semibold text-[#F4F7F5]">{user.full_name}</p>
+                          <p className={`font-bold text-lg ${selectedMVP === user.id ? 'text-[#F4743B]' : 'text-[#F4F7F5]'}`}>
+                            {user.full_name}
+                          </p>
                           <p className="text-sm text-[#B6C2BC]">{user.city}</p>
                         </div>
                         {selectedMVP === user.id &&
-                  <CheckCircle className="w-6 h-6 text-[#F4743B]" />
-                  }
+                          <CheckCircle className="w-6 h-6 text-[#F4743B]" />
+                        }
                       </div>
-                    </button>
+                    </motion.button>
               )}
                 </div>
             }
             </CardContent>
 
-            <div className="p-6 border-t border-[#223029] space-y-2">
+            <div className="p-6 border-t border-[#223029] space-y-3 bg-[#0F1513]">
               <Button
               onClick={handleMVPVote}
               disabled={!selectedMVP || isSubmitting}
-              className="w-full h-12 bg-[#F4743B] hover:bg-[#E5683A] text-white font-semibold rounded-2xl disabled:opacity-50">
+              className="w-full h-14 text-lg bg-[#F4743B] hover:bg-[#E5683A] text-white font-bold rounded-2xl shadow-[0_4px_14px_rgba(244,116,59,0.3)] disabled:opacity-50 disabled:shadow-none transition-all hover:scale-[1.02] active:scale-[0.98]">
 
                 {isSubmitting ?
               <>
@@ -282,27 +300,20 @@ export default function MatchEndModal({
               </Button>
               <button
                 onClick={async () => {
-                  if (match.is_spontaneous) {
-                    // For spontaneous, complete match immediately
-                    await Match.update(match.id, {
-                      status: 'completed',
-                      completed_at: new Date().toISOString(),
-                      result_reported_by: currentUser.id
-                    });
-                    await User.updateMyUserData({
-                      matches_played: (currentUser.matches_played || 0) + 1
-                    });
-                    setStep(3);
+                   if (match.is_spontaneous) {
+                     await completeMatch();
+                     setShowConfetti(true);
+                     setStep(3);
                   } else {
-                    setStep(2);
+                     setStep(2);
                   }
                 }}
-                className="w-full h-10 text-sm text-[#B6C2BC] hover:text-[#F4F7F5] transition-colors"
+                className="w-full py-2 text-sm font-medium text-[#7B8A83] hover:text-[#F4F7F5] transition-colors"
               >
-                Hoppa över
+                Hoppa över MVP-röstning
               </button>
             </div>
-          </>
+          </motion.div>
         }
 
         {/* Step 2: Result Entry */}
