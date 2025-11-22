@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -451,12 +450,6 @@ export default function Dashboard() {
                   className="text-2xl sm:text-3xl lg:text-[36px] lg:leading-[44px] font-bold text-white mb-2 drop-shadow-lg flex items-center gap-2 flex-wrap"
                 >
                   Välkommen tillbaka, {user?.full_name?.split(' ')[0]}!
-                  <motion.span
-                    animate={{ rotate: [0, 20, -20, 20, 0] }}
-                    transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 3 }}
-                  >
-                    ⚽
-                  </motion.span>
                 </motion.h1>
                 <motion.p
                   initial={{ opacity: 0, x: -20 }}
