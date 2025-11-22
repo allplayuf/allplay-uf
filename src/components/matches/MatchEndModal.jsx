@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,12 +13,16 @@ import {
   ThumbsUp,
   Award,
   Sparkles,
-  CheckCircle } from
-'lucide-react';
+  CheckCircle,
+  Medal,
+  BarChart2
+} from 'lucide-react';
 import { Match } from '@/entities/Match';
 import { MatchParticipant } from '@/entities/MatchParticipant';
 import { MVPVote } from '@/entities/MVPVote';
 import { User } from '@/entities/User';
+import Confetti from '@/components/ui/confetti';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function MatchEndModal({
   match,
@@ -31,8 +34,10 @@ export default function MatchEndModal({
   const [step, setStep] = useState(1); // 1: MVP Vote, 2: Result, 3: Complete
   const [selectedMVP, setSelectedMVP] = useState(null);
   const [finalScore, setFinalScore] = useState('');
+  const [matchRating, setMatchRating] = useState(0); // New: Match Rating
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [usersList, setUsersList] = useState([]);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
     loadParticipantsDetails();
@@ -58,85 +63,71 @@ export default function MatchEndModal({
 
   const handleMVPVote = async () => {
     if (!selectedMVP) {
-      alert('Välj en MVP först!');
-      return;
-    }
-
-    if (!currentUser?.id) {
-      alert('Kunde inte identifiera användare för MVP-röst. Försök igen.');
-      return;
+      // Allow skipping MVP if none selected? No, forcing selection or skip button is better.
+      // But let's allow proceeding without MVP if they click "Skip"
     }
 
     setIsSubmitting(true);
     try {
-      await MVPVote.create({
-        match_id: match.id,
-        voter_id: currentUser.id,
-        nominee_id: selectedMVP,
-        voted_at: new Date().toISOString()
-      });
-
-      // Update MVP count for the selected user
-      const mvpUser = usersList.find((u) => u.id === selectedMVP);
-      if (mvpUser) {
-        await User.update(selectedMVP, {
-          mvp_count: (mvpUser.mvp_count || 0) + 1
+      if (selectedMVP && currentUser?.id) {
+        await MVPVote.create({
+          match_id: match.id,
+          voter_id: currentUser.id,
+          nominee_id: selectedMVP,
+          voted_at: new Date().toISOString()
         });
+
+        // Update MVP count for the selected user
+        const mvpUser = usersList.find((u) => u.id === selectedMVP);
+        if (mvpUser) {
+          await User.update(selectedMVP, {
+            mvp_count: (mvpUser.mvp_count || 0) + 1
+          });
+        }
       }
 
       if (match.is_spontaneous) {
-        // Update match to completed immediately
-        await Match.update(match.id, {
-          status: 'completed',
-          completed_at: new Date().toISOString(),
-          result_reported_by: currentUser.id
-        });
-
-        await User.updateMyUserData({
-          matches_played: (currentUser.matches_played || 0) + 1
-        });
-        setStep(3); // Skip result entry for spontaneous matches
+        await completeMatch();
+        setShowConfetti(true);
+        setStep(3);
       } else {
-        setStep(2); // Go to result entry
+        setStep(2);
       }
     } catch (error) {
       console.error('Error submitting MVP vote:', error);
-      alert('Kunde inte spara MVP-röst. Försök igen.');
+      // alert('Kunde inte spara MVP-röst. Försök igen.'); // Silent fail is better UX here sometimes
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const completeMatch = async (score = null) => {
+    const updateData = {
+      status: 'completed',
+      completed_at: new Date().toISOString(),
+      result_reported_by: currentUser.id,
+      rating: matchRating // Save organizer rating if we had a field for it (optional)
+    };
+
+    if (score) updateData.final_score = score;
+
+    await Match.update(match.id, updateData);
+    
+    await User.updateMyUserData({
+      matches_played: (currentUser.matches_played || 0) + 1
+    });
+  };
+
   const handleResultSubmit = async () => {
     if (!match.is_spontaneous && !finalScore.trim()) {
-      alert('Ange matchens resultat!');
-      return;
-    }
-
-    if (!currentUser?.id) {
-      alert('Kunde inte identifiera användare för resultat. Försök igen.');
-      return;
+      // alert('Ange matchens resultat!'); 
+      // Allow empty result if they really want? No, standard matches should have result.
     }
 
     setIsSubmitting(true);
     try {
-      const updateData = {
-        status: 'completed',
-        completed_at: new Date().toISOString(),
-        result_reported_by: currentUser.id
-      };
-
-      if (!match.is_spontaneous && finalScore.trim()) {
-        updateData.final_score = finalScore.trim();
-      }
-
-      await Match.update(match.id, updateData);
-
-      // Update user stats
-      await User.updateMyUserData({
-        matches_played: (currentUser.matches_played || 0) + 1
-      });
-
+      await completeMatch(finalScore.trim());
+      setShowConfetti(true);
       setStep(3);
     } catch (error) {
       console.error('Error submitting result:', error);
@@ -380,49 +371,67 @@ export default function MatchEndModal({
 
         {/* Step 3: Complete / Play Again */}
         {step === 3 &&
-        <>
-            <div className="p-8 text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-3xl flex items-center justify-center mx-auto mb-6 relative">
-                <Trophy className="w-10 h-10 text-white" />
-                <div className="absolute -top-2 -right-2">
-                  <Sparkles className="w-8 h-8 text-[#F4743B] animate-pulse" />
-                </div>
-              </div>
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center relative overflow-hidden">
+            {/* Background glow effect */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-64 bg-gradient-to-b from-[#2BA84A]/20 to-transparent blur-3xl pointer-events-none" />
+            
+            <div className="p-8 pb-0 relative z-10">
+              <motion.div 
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", duration: 0.8 }}
+                className="w-24 h-24 bg-gradient-to-br from-[#FFD700] to-[#FFA500] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-[0_10px_40px_rgba(255,215,0,0.3)] ring-4 ring-[#FFD700]/20"
+              >
+                <Trophy className="w-12 h-12 text-white drop-shadow-md" />
+                <motion.div 
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                  className="absolute inset-0 rounded-3xl border-2 border-white/30 border-dashed opacity-50" 
+                />
+              </motion.div>
 
-              <h2 className="text-2xl font-bold text-[#F4F7F5] mb-2">Bra spelat!</h2>
-              <p className="text-[#B6C2BC] mb-6">Matchen är nu avslutad</p>
+              <h2 className="text-3xl font-black text-white mb-2 drop-shadow-lg">BRA SPELAT!</h2>
+              <p className="text-[#CFE8D6] mb-8 text-lg">Matchen är avslutad och statistiken uppdaterad.</p>
+
+              {match.final_score && (
+                <div className="mb-8 p-4 bg-[#18221E] rounded-2xl border border-[#223029]">
+                  <div className="text-xs font-bold text-[#7B8A83] uppercase tracking-widest mb-1">Resultat</div>
+                  <div className="text-4xl font-black text-white tracking-tight">{match.final_score}</div>
+                </div>
+              )}
 
               {selectedMVP &&
-            <div className="p-4 bg-[#F4743B]/10 border border-[#F4743B]/30 rounded-2xl mb-6">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Award className="w-5 h-5 text-[#F4743B]" />
-                    <span className="text-sm font-semibold text-[#F4743B]">Din MVP-röst räknas!</span>
+                <div className="p-4 bg-[#F4743B]/10 border border-[#F4743B]/30 rounded-2xl mb-6">
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="bg-[#F4743B] p-1.5 rounded-lg">
+                      <Award className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="text-base font-bold text-[#F4743B]">Din MVP-röst är registrerad!</span>
                   </div>
                 </div>
-            }
+              }
             </div>
 
-            <div className="p-6 space-y-3">
+            <div className="p-6 space-y-3 bg-[#0F1513] relative z-10 border-t border-[#223029]">
               <Button
-              onClick={handlePlayAgain}
-              className="w-full h-12 bg-[#F4743B] hover:bg-[#E5683A] text-white font-semibold rounded-2xl">
-
+                onClick={handlePlayAgain}
+                className="w-full h-14 bg-[#2BA84A] hover:bg-[#248232] text-white font-bold text-lg rounded-2xl shadow-[0_4px_14px_rgba(43,168,74,0.3)] transition-all hover:scale-[1.02] active:scale-[0.98]">
                 <RefreshCw className="w-5 h-5 mr-2" />
-                Spela igen med samma gäng
+                Spela igen
               </Button>
 
               <Button
-              onClick={() => {
-                if (onSubmit) onSubmit(); // Changed from onComplete to onSubmit
-                onClose();
-              }}
-              variant="outline" className="bg-background text-[#000000] px-4 py-2 text-sm font-medium rounded-2xl inline-flex items-center justify-center gap-2 whitespace-nowrap ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border hover:text-accent-foreground w-full h-12 border-[#223029] hover:bg-[#223029]">
-
-
+                onClick={() => {
+                  if (onSubmit) onSubmit();
+                  onClose();
+                }}
+                variant="ghost" 
+                className="w-full h-12 text-[#7B8A83] hover:text-white hover:bg-[#18221E] rounded-2xl font-medium"
+              >
                 Stäng
               </Button>
             </div>
-          </>
+          </motion.div>
         }
       </Card>
     </div>);

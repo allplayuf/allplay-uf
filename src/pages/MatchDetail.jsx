@@ -413,7 +413,63 @@ export default function MatchDetailPage() {
           </CardContent>
         </Card>
 
-        {/* Match Header - IMPROVED SPACING */}
+        {/* Match Header - COMPLETION STATE */}
+        {isCompleted ? (
+          <Card className="overflow-hidden border-0 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[24px] relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0F1513] to-[#121715]"></div>
+            
+            {/* Hero Background Image/Gradient */}
+            <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-[#F4743B]/20 to-[#E5683A]/10"></div>
+            
+            <CardContent className="p-0 relative z-10">
+              <div className="text-center pt-10 pb-8 px-6">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-[#F4743B] to-[#D97706] shadow-xl mb-4 rotate-3 ring-4 ring-[#121715]">
+                  <Trophy className="w-10 h-10 text-white" />
+                </div>
+                <h1 className="text-3xl font-black text-white mb-1 uppercase tracking-tight">{match.title}</h1>
+                <div className="flex items-center justify-center gap-2 text-[#B6C2BC] text-sm font-medium mb-6">
+                  <Calendar className="w-4 h-4" />
+                  <span>{match.date}</span>
+                  <span>•</span>
+                  <span className="text-[#2BA84A]">Avslutad</span>
+                </div>
+
+                {match.final_score && (
+                  <div className="mb-8">
+                    <div className="inline-block px-8 py-4 bg-[#18221E] rounded-2xl border border-[#223029] shadow-inner">
+                      <div className="text-xs text-[#7B8A83] font-bold uppercase tracking-widest mb-1">Resultat</div>
+                      <div className="text-5xl font-black text-white tracking-tight">{match.final_score}</div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4 max-w-lg mx-auto mb-8">
+                  <div className="bg-[#18221E]/50 p-4 rounded-2xl border border-[#223029]">
+                    <div className="text-[#B6C2BC] text-xs font-bold uppercase mb-1">MVP</div>
+                    <div className="text-[#F4743B] font-bold text-lg truncate">
+                      {/* MVP Logic would require fetching votes, placeholder for now */}
+                      {match.result_reported_by === user?.id ? 'Du rapporterade' : 'Se deltagare'}
+                    </div>
+                  </div>
+                  <div className="bg-[#18221E]/50 p-4 rounded-2xl border border-[#223029]">
+                    <div className="text-[#B6C2BC] text-xs font-bold uppercase mb-1">Deltagare</div>
+                    <div className="text-white font-bold text-lg">{participants.length} spelare</div>
+                  </div>
+                </div>
+
+                {isParticipant && (
+                  <button
+                    onClick={() => setShowEndModal(true)}
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#2BA84A] px-8 text-white font-bold hover:bg-[#248232] transition-all shadow-lg hover:scale-105"
+                  >
+                    <Crown className="w-5 h-5" />
+                    Rösta på MVP / Betygsätt
+                  </button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
         <Card className="bg-gradient-to-br from-[#2BA84A] to-[#0F2917] rounded-[20px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029]">
           <CardContent className="p-6 lg:p-8">
             <div className="flex flex-col lg:flex-row gap-6">
@@ -535,6 +591,7 @@ export default function MatchDetailPage() {
             </div>
           </CardContent>
         </Card>
+        )}
 
         {/* Tabs */}
         <Tabs defaultValue="participants" className="space-y-6">
