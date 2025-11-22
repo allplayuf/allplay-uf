@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -478,21 +477,7 @@ export default function CommunityPage() {
                 </div>
               </div>
 
-              {/* Quick Actions */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3 }}
-                className="hidden lg:flex items-center gap-2"
-              >
-                <Button
-                  onClick={() => setActiveTab('find')}
-                  className="bg-white/20 backdrop-blur-sm border-2 border-white/40 text-white hover:bg-white/30 h-10 px-4 rounded-xl font-semibold shadow-lg"
-                >
-                  <Search className="w-4 h-4 mr-2" />
-                  Hitta spelare
-                </Button>
-              </motion.div>
+              {/* Quick Actions - Removed to use bottom buttons on all screens */}
             </div>
 
             {/* Stats Grid */}
@@ -580,25 +565,25 @@ export default function CommunityPage() {
               </motion.div>
             </div>
 
-            {/* Bottom Quick Links - MOBILE ONLY */}
+            {/* Action Buttons - Responsive Grid for all screens */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7 }}
-              className="lg:hidden mt-4 flex gap-2"
+              className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4"
             >
               <button
                 onClick={() => setActiveTab('find')}
-                className="flex-1 bg-white/20 backdrop-blur-sm border border-white/30 text-white px-3 py-2 rounded-xl font-semibold text-xs shadow-lg hover:bg-white/30 transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-white/20 backdrop-blur-sm border border-white/30 text-white h-12 sm:h-14 px-4 rounded-xl font-semibold text-sm sm:text-base shadow-lg hover:bg-white/30 transition-all flex items-center justify-center gap-2 group"
               >
-                <Search className="w-3.5 h-3.5" />
+                <Search className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
                 Hitta spelare
               </button>
               <button
                 onClick={() => setActiveTab('teams')}
-                className="flex-1 bg-white/20 backdrop-blur-sm border border-white/30 text-white px-3 py-2 rounded-xl font-semibold text-xs shadow-lg hover:bg-white/30 transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-white/20 backdrop-blur-sm border border-white/30 text-white h-12 sm:h-14 px-4 rounded-xl font-semibold text-sm sm:text-base shadow-lg hover:bg-white/30 transition-all flex items-center justify-center gap-2 group"
               >
-                <Target className="w-3.5 h-3.5" />
+                <Target className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
                 Mina Lag
               </button>
             </motion.div>
