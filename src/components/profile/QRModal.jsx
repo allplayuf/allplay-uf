@@ -19,7 +19,6 @@ export default function QRModal({ user, onClose }) {
     // Handle finding user by ID
     setShowScanner(false);
     // Logic to navigate to user profile or add friend would go here
-    // For now, just close and maybe alert (in a real app, navigate to profile)
     window.location.href = `/profile?userId=${scannedId}`;
     onClose();
   };
