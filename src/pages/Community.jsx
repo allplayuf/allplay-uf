@@ -481,27 +481,29 @@ export default function CommunityPage() {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-3 gap-3 sm:gap-4">
+            <div className="grid grid-cols-3 gap-3 sm:gap-4 auto-rows-fr">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
                 whileHover={{ scale: 1.03, y: -2 }}
-                className="relative group cursor-pointer"
+                className="relative group cursor-pointer h-full"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-white/25 to-white/10 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-white/15 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-white/30 shadow-xl hover:border-white/50 transition-all">
+                <div className="relative bg-white/15 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-white/30 shadow-xl hover:border-white/50 transition-all h-full flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-2">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-xl flex items-center justify-center">
                       <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
                     </div>
                     <ArrowUpRight className="w-3 h-3 sm:w-4 sm:h-4 text-white/60 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
-                  <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-1 drop-shadow-lg">
-                    {friendsAccepted.length}
-                  </div>
-                  <div className="text-[10px] sm:text-xs lg:text-sm font-semibold text-white/80 uppercase tracking-wide">
-                    Vänner
+                  <div>
+                    <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-1 drop-shadow-lg">
+                      {friendsAccepted.length}
+                    </div>
+                    <div className="text-[10px] sm:text-xs lg:text-sm font-semibold text-white/80 uppercase tracking-wide truncate">
+                      Vänner
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -512,21 +514,23 @@ export default function CommunityPage() {
                 transition={{ delay: 0.5 }}
                 whileHover={{ scale: 1.03, y: -2 }}
                 onClick={() => setActiveTab('teams')}
-                className="relative group cursor-pointer"
+                className="relative group cursor-pointer h-full"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-[#9370DB]/30 to-[#7C3AED]/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-white/15 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-white/30 shadow-xl hover:border-[#DDD6FE]/50 transition-all">
+                <div className="relative bg-white/15 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-white/30 shadow-xl hover:border-[#DDD6FE]/50 transition-all h-full flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-2">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#9370DB]/30 rounded-xl flex items-center justify-center backdrop-blur-sm">
                       <Target className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
                     </div>
                     <ArrowUpRight className="w-3 h-3 sm:w-4 sm:h-4 text-white/60 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
-                  <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-1 drop-shadow-lg">
-                    {myTeams.length}
-                  </div>
-                  <div className="text-[10px] sm:text-xs lg:text-sm font-semibold text-white/80 uppercase tracking-wide">
-                    Mina Lag
+                  <div>
+                    <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-1 drop-shadow-lg">
+                      {myTeams.length}
+                    </div>
+                    <div className="text-[10px] sm:text-xs lg:text-sm font-semibold text-white/80 uppercase tracking-wide truncate">
+                      Mina Lag
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -537,29 +541,31 @@ export default function CommunityPage() {
                 transition={{ delay: 0.6 }}
                 whileHover={{ scale: 1.03, y: -2 }}
                 onClick={() => handleStatCardClick('cups')}
-                className="relative group cursor-pointer"
+                className="relative group cursor-pointer h-full"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-[#F59E0B]/30 to-[#D97706]/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-white/15 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-white/30 shadow-xl hover:border-[#FCD34D]/50 transition-all">
+                <div className="relative bg-white/15 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-white/30 shadow-xl hover:border-[#FCD34D]/50 transition-all h-full flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-2">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#F59E0B]/30 rounded-xl flex items-center justify-center backdrop-blur-sm">
                       <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
                     </div>
                     <ArrowUpRight className="w-3 h-3 sm:w-4 sm:h-4 text-white/60 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
-                  <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-1 drop-shadow-lg flex items-center gap-2">
-                    {cupsCount}
-                    {cupsCount > 0 && (
-                      <motion.span
-                        animate={{ rotate: [0, 10, -10, 0] }}
-                        transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 3 }}
-                      >
-                        🏆
-                      </motion.span>
-                    )}
-                  </div>
-                  <div className="text-[10px] sm:text-xs lg:text-sm font-semibold text-white/80 uppercase tracking-wide">
-                    Aktiva Cuper
+                  <div>
+                    <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-1 drop-shadow-lg flex items-center gap-2">
+                      {cupsCount}
+                      {cupsCount > 0 && (
+                        <motion.span
+                          animate={{ rotate: [0, 10, -10, 0] }}
+                          transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 3 }}
+                        >
+                          🏆
+                        </motion.span>
+                      )}
+                    </div>
+                    <div className="text-[10px] sm:text-xs lg:text-sm font-semibold text-white/80 uppercase tracking-wide truncate">
+                      Aktiva Cuper
+                    </div>
                   </div>
                 </div>
               </motion.div>
