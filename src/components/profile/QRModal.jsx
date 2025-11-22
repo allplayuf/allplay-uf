@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Copy, Check, Scan } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react'; // Note: Assuming this is available or I'll fallback to a simple display
+// import { QRCodeSVG } from 'qrcode.react'; // Removed external dependency
 import QRScanner from './QRScanner';
 import { base44 } from "@/api/base44Client";
 
