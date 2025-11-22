@@ -44,7 +44,6 @@ const PROFILE_SECTIONS = {
       { key: 'city', label: 'Stad', icon: MapPin, type: 'text', placeholder: 'T.ex. Stockholm' },
       { key: 'languages', label: 'Språk', icon: Languages, type: 'multi', placeholder: 'Svenska, Engelska...' },
       { key: 'occupation', label: 'Yrke', icon: Briefcase, type: 'text', placeholder: 'Vad jobbar du med?' },
-      { key: 'interests', label: 'Intressen', icon: Heart, type: 'multi', placeholder: 'Fotboll, musik, matlagning...' },
     ]
   },
   football: {
@@ -95,15 +94,6 @@ const PROFILE_SECTIONS = {
         { value: 'flexible', label: 'Flexibel' }
       ]},
       { key: 'match_languages', label: 'Matchspråk', icon: Globe, type: 'multi', placeholder: 'Svenska, Engelska...' },
-    ]
-  },
-  social: {
-    title: "Socialt",
-    icon: Sparkles,
-    fields: [
-      { key: 'fun_fact', label: 'Rolig fakta', icon: Sparkles, type: 'text', placeholder: 'Något kul om dig!' },
-      { key: 'pre_match_playlist', label: 'Pre-match playlist', icon: Music, type: 'text', placeholder: 'Spotify-länk eller namn' },
-      { key: 'instagram_handle', label: 'Instagram', icon: Instagram, type: 'text', placeholder: '@dittnamn' },
     ]
   }
 };

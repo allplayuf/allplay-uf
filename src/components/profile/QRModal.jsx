@@ -1,123 +1,90 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { X, QrCode, Share2, Copy, Check } from "lucide-react";
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Copy, Check, Scan } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react'; // Note: Assuming this is available or I'll fallback to a simple display
+import QRScanner from './QRScanner';
+import { base44 } from "@/api/base44Client";
 
 export default function QRModal({ user, onClose }) {
   const [copied, setCopied] = useState(false);
-  
-  // Generate unique profile URL with user ID
-  const profileUrl = `${window.location.origin}${window.location.pathname}#/profile?userId=${user.id}`;
-  
-  // Use QR Server API to generate QR code
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(profileUrl)}`;
-  
+  const [showScanner, setShowScanner] = useState(false);
+
   const handleCopy = () => {
-    navigator.clipboard.writeText(profileUrl);
+    navigator.clipboard.writeText(user.id);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${user.full_name} på AllPlay`,
-          text: 'Lägg till mig som vän på AllPlay!',
-          url: profileUrl
-        });
-      } catch (error) {
-        console.error('Error sharing:', error);
-      }
-    } else {
-      handleCopy();
-    }
+  const handleScanResult = async (scannedId) => {
+    // Handle finding user by ID
+    setShowScanner(false);
+    // Logic to navigate to user profile or add friend would go here
+    // For now, just close and maybe alert (in a real app, navigate to profile)
+    window.location.href = `/profile?userId=${scannedId}`;
+    onClose();
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <Card 
-        className="bg-[#121715] border border-[#223029] rounded-[20px] shadow-[0_16px_32px_rgba(0,0,0,0.5)] max-w-md w-full"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <CardHeader className="border-b border-[#223029] p-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle className="text-[24px] leading-[32px] font-bold text-[#F4F7F5] mb-2">
-                Min QR-kod
-              </CardTitle>
-              <p className="text-[14px] leading-[20px] text-[#B6C2BC]">
-                Låt andra spelare skanna för att lägga till dig
-              </p>
+    <>
+      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="bg-[#121715] border border-[#223029] rounded-[24px] w-full max-w-sm p-8 relative"
+        >
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 text-[#B6C2BC] hover:text-white transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
+
+          <div className="text-center space-y-6">
+            <div className="space-y-2">
+              <div className="w-16 h-16 bg-[#2BA84A]/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                {user.profile_image_url ? (
+                  <img src={user.profile_image_url} className="w-full h-full rounded-full object-cover" />
+                ) : (
+                  <span className="text-2xl font-bold text-[#2BA84A]">{user.full_name?.[0]}</span>
+                )}
+              </div>
+              <h2 className="text-2xl font-bold text-white">{user.full_name}</h2>
+              <p className="text-[#B6C2BC] text-sm">Dela din kod för att lägga till vänner</p>
             </div>
-            <button
-              onClick={onClose}
-              className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#18221E] text-[#B6C2BC] hover:bg-[#223029] hover:text-[#F4F7F5] transition-all"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </CardHeader>
 
-        <CardContent className="p-6 space-y-6">
-          {/* QR Code */}
-          <div className="bg-white p-6 rounded-[16px] flex items-center justify-center">
-            <img 
-              src={qrCodeUrl}
-              alt="QR Code"
-              className="w-[200px] h-[200px]"
-              onError={(e) => {
-                e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23f0f0f0" width="200" height="200"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-family="sans-serif" font-size="14"%3EQR Code%3C/text%3E%3C/svg%3E';
-              }}
-            />
-          </div>
+            <div className="bg-white p-4 rounded-xl mx-auto w-fit">
+               {/* Simple QR Code generation using an image service if library missing, or just styling a placeholder if needed, but using API if possible */}
+               <img 
+                 src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${user.id}`} 
+                 alt="QR Code" 
+                 className="w-48 h-48"
+               />
+            </div>
 
-          {/* User Info */}
-          <div className="text-center">
-            <h3 className="text-[20px] leading-[28px] font-bold text-[#F4F7F5] mb-1">
-              {user.full_name}
-            </h3>
-            <p className="text-[14px] leading-[20px] text-[#B6C2BC]">
-              @{user.full_name?.toLowerCase().replace(/\s+/g, '')}
-            </p>
-          </div>
-
-          {/* Actions */}
-          <div className="space-y-3">
-            <button
-              onClick={handleShare}
-              className="w-full inline-flex h-12 items-center justify-center gap-2 rounded-[14px] bg-[#2BA84A] px-6 text-[15px] leading-[20px] font-semibold text-[#FFFFFF] transition-all hover:bg-[#248232] hover:scale-[1.02]"
-            >
-              <Share2 className="w-5 h-5" />
-              Dela profil
-            </button>
+            <div className="flex items-center gap-2 bg-[#18221E] p-3 rounded-xl border border-[#223029]">
+              <code className="flex-1 text-sm text-[#F4F7F5] font-mono truncate">{user.id}</code>
+              <button
+                onClick={handleCopy}
+                className="p-2 hover:bg-[#223029] rounded-lg transition-colors"
+              >
+                {copied ? <Check className="w-4 h-4 text-[#2BA84A]" /> : <Copy className="w-4 h-4 text-[#B6C2BC]" />}
+              </button>
+            </div>
 
             <button
-              onClick={handleCopy}
-              className="w-full inline-flex h-12 items-center justify-center gap-2 rounded-[14px] bg-[#18221E] px-6 text-[15px] leading-[20px] font-semibold text-[#F4F7F5] transition-all hover:bg-[#223029]"
+              onClick={() => setShowScanner(true)}
+              className="w-full py-3 bg-[#2BA84A] hover:bg-[#248232] text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-colors"
             >
-              {copied ? (
-                <>
-                  <Check className="w-5 h-5 text-[#2BA84A]" />
-                  Kopierad!
-                </>
-              ) : (
-                <>
-                  <Copy className="w-5 h-5" />
-                  Kopiera länk
-                </>
-              )}
+              <Scan className="w-5 h-5" />
+              Skanna kod
             </button>
           </div>
+        </motion.div>
+      </div>
 
-          {/* Info */}
-          <div className="bg-[#18221E] border border-[#223029] rounded-xl p-4 text-center">
-            <p className="text-xs text-[#B6C2BC]">
-              💡 När någon skannar din QR-kod kommer de till din profil och kan lägga till dig som vän
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+      {showScanner && (
+        <QRScanner onScan={handleScanResult} onClose={() => setShowScanner(false)} />
+      )}
+    </>
   );
 }

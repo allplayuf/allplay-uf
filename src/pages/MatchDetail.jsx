@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
@@ -24,6 +25,7 @@ import { createPageUrl } from "@/utils";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import MatchEndModal from "../components/matches/MatchEndModal";
 import InviteFriendsModal from "../components/matches/InviteFriendsModal";
+import MatchReportModal from "../components/matches/MatchReportModal"; // Added import
 
 // CONSISTENT SKILL LEVEL CONFIG - WCAG AA compliant colors
 const SKILL_LEVEL_CONFIG = {
@@ -97,6 +99,7 @@ export default function MatchDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showEndModal, setShowEndModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false); // Added state
   const [friendships, setFriendships] = useState([]);
 
   const { confirm, alert, DialogContainer } = useCustomDialog();
@@ -126,6 +129,7 @@ export default function MatchDetailPage() {
         setVenue(venueData);
       }
 
+      // Keep existing participant fetching
       const participantData = await base44.entities.MatchParticipant.filter({ match_id: matchId });
       const participantUsers = await Promise.all(
         participantData.map(async (p) => {
@@ -133,7 +137,6 @@ export default function MatchDetailPage() {
           return { ...userData, participantInfo: p };
         })
       );
-
       setParticipants(participantUsers);
 
     } catch (error) {
@@ -484,6 +487,12 @@ export default function MatchDetailPage() {
 
               {/* Action Buttons - IMPROVED SPACING */}
               <div className="flex flex-col gap-3 w-full lg:w-auto lg:min-w-[220px]">
+                <button
+                   onClick={() => setShowReportModal(true)}
+                   className="text-xs text-[#F4743B] hover:underline text-right mb-2"
+                >
+                  Rapportera problem
+                </button>
                 {canJoin && (
                   <>
                     <button
@@ -715,6 +724,14 @@ export default function MatchDetailPage() {
             await alert('Inbjudningar skickade!', 'Dina vänner har blivit inbjudna till matchen.', { type: 'success' });
           }}
         />
+      )}
+
+      {showReportModal && (
+          <MatchReportModal 
+              match={match}
+              currentUser={user}
+              onClose={() => setShowReportModal(false)}
+          />
       )}
     </div>
   );
