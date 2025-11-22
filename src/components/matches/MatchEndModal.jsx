@@ -40,26 +40,13 @@ export default function MatchEndModal({
   const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
-    loadParticipantsDetails();
-  }, [participants]); // Changed dependency from [participants, currentUser] to [participants]
-
-  const loadParticipantsDetails = async () => {
-    try {
-      if (!currentUser?.id) {
-        console.error('No currentUser provided to MatchEndModal or currentUser.id is missing.');
-        // Optionally, handle this by showing a message or closing the modal
-        return;
-      }
-
-      const allUsers = await User.list();
-      const participantUsers = participants.
-      map((p) => allUsers.find((u) => u.id === p.user_id)).
-      filter((u) => u && u.id !== currentUser.id); // Ensure not to include current user in the vote list
-      setUsersList(participantUsers);
-    } catch (error) {
-      console.error('Error loading participants:', error);
+    if (participants && currentUser) {
+      // Filter out current user from the voting list
+      // participants prop is already enriched with user data from MatchDetail
+      const voteablePlayers = participants.filter(p => p.id !== currentUser.id);
+      setUsersList(voteablePlayers);
     }
-  };
+  }, [participants, currentUser]);
 
   const handleMVPVote = async () => {
     if (!selectedMVP) {
