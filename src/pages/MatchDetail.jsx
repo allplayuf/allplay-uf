@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
@@ -169,17 +168,7 @@ export default function MatchDetailPage() {
         return;
       }
 
-      await base44.entities.MatchParticipant.create({
-        match_id: matchId,
-        user_id: user.id,
-        status: 'confirmed'
-      });
-
-      if (!match.is_spontaneous) {
-        await base44.entities.Match.update(matchId, {
-          current_players: participants.length + 1
-        });
-      }
+      await base44.functions.invoke('joinMatch', { match_id: matchId });
 
       loadMatchData();
 
@@ -218,13 +207,7 @@ export default function MatchDetailPage() {
 
       if (!shouldLeave) return;
 
-      await base44.entities.MatchParticipant.delete(myParticipation.participantInfo.id);
-
-      if (!match.is_spontaneous) {
-        await base44.entities.Match.update(matchId, {
-          current_players: Math.max(0, participants.length - 1)
-        });
-      }
+      await base44.functions.invoke('leaveMatch', { match_id: matchId });
 
       loadMatchData();
 
