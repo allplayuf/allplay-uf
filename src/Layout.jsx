@@ -55,6 +55,13 @@ export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminCheckDone, setAdminCheckDone] = useState(false);
+  const mainContentRef = React.useRef(null);
+
+  useEffect(() => {
+    if (mainContentRef.current) {
+      mainContentRef.current.scrollTop = 0;
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     if (adminCheckDone) return;
@@ -192,7 +199,10 @@ export default function Layout({ children, currentPageName }) {
 
           {/* PREVIEW BANNER REMOVED */}
 
-          <div className="flex-1 overflow-auto pb-20 lg:pb-0">
+          <div 
+            ref={mainContentRef}
+            className="flex-1 overflow-auto pb-20 lg:pb-0"
+          >
             <RouteGuard currentRoute={location.pathname}>
               <PageTransition pageKey={location.pathname}>
                 <Suspense fallback={<PageLoadingSkeleton />}>
