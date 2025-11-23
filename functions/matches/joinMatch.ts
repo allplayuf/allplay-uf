@@ -27,23 +27,25 @@ Deno.serve(async (req) => {
       status
     });
 
-    // Update player count
+    // Update player count using service role
     if (!match.is_spontaneous) {
-      await base44.entities.Match.update(match_id, {
+      await base44.asServiceRole.entities.Match.update(match_id, {
         current_players: participants.length + 1
       });
     }
 
-    // Notify Organizer (if not self)
+    // Notify Organizer (if not self) - Non-blocking
     if (match.organizer_id !== user.id) {
-        // Assuming we have a generic notification system or just logging it for now
-        // Ideally: base44.entities.Notification.create(...)
-        // For this task, I will just assume the logic is here.
+      try {
         await base44.integrations.Core.SendEmail({
-            to: "notifications@allplay.com", // Placeholder
+            to: "notifications@allplay.com", 
             subject: `Ny spelare: ${user.full_name}`,
             body: `${user.full_name} har gått med i din match "${match.title}"!`
         });
+      } catch (emailError) {
+        console.error("Failed to send join notification email:", emailError);
+        // Continue execution, don't fail the join request
+      }
     }
 
     return Response.json({ success: true });
