@@ -76,6 +76,7 @@ function MapCenterController({ center, zoom, selectedVenue }) {
 export default function MapView({ 
   venues = [], 
   matches = [], 
+  allParticipants = [],
   selectedVenue, 
   userLocation, 
   onVenueSelect,
@@ -236,6 +237,7 @@ export default function MapView({
             key={selectedVenue.id}
             venue={selectedVenue}
             matches={matches.filter(m => m.venue_id === selectedVenue.id)}
+            allParticipants={allParticipants}
             userMatchIds={userMatchIds}
             onClose={() => onVenueSelect(null)}
             onShowDetails={(v) => onShowDetails(v)}

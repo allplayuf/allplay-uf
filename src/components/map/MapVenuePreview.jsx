@@ -4,13 +4,18 @@ import { MapPin, Star, Calendar, Users, Navigation, ChevronRight, Plus, Trophy, 
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
-export default function MapVenuePreview({ venue, matches = [], userMatchIds = [], onClose, onShowDetails, onMatchClick }) {
+export default function MapVenuePreview({ venue, matches = [], allParticipants = [], userMatchIds = [], onClose, onShowDetails, onMatchClick }) {
   if (!venue) return null;
 
   const upcomingMatches = matches.filter(m => m.status === 'upcoming');
   const ongoingMatch = matches.find(m => m.status === 'ongoing');
   const hasUserMatch = matches.some(m => userMatchIds.includes(m.id));
   const nextMatch = upcomingMatches[0];
+  
+  // Calculate synced player count if next match exists
+  const nextMatchParticipantCount = nextMatch 
+    ? (allParticipants.filter(p => p.match_id === nextMatch.id).length)
+    : 0;
 
   return (
     <div className="absolute bottom-4 left-4 right-4 z-[1000] flex justify-center pointer-events-none">
@@ -92,7 +97,10 @@ export default function MapVenuePreview({ venue, matches = [], userMatchIds = []
                   </span>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-[#B6C2BC]">
-                      {nextMatch.current_players || 0}/{nextMatch.max_players}
+                      {nextMatch.is_spontaneous 
+                        ? `${nextMatchParticipantCount} anmälda`
+                        : `${nextMatchParticipantCount}/${nextMatch.max_players}`
+                      }
                     </span>
                     <ChevronRight className="w-4 h-4 text-[#7B8A83] group-hover:translate-x-0.5 transition-transform" />
                   </div>

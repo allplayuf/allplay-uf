@@ -455,8 +455,17 @@ export default function MatchDetailPage() {
             </CardContent>
           </Card>
         ) : (
-        <Card className="bg-gradient-to-br from-[#2BA84A] to-[#0F2917] rounded-[20px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029]">
-          <CardContent className="p-6 lg:p-8">
+        <Card className="bg-gradient-to-br from-[#2BA84A] to-[#0F2917] rounded-[20px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029] relative overflow-hidden">
+          
+          {/* Animated Background Elements */}
+          <div className="absolute top-[-50px] right-[-50px] w-64 h-64 bg-white/5 rounded-full blur-3xl animate-pulse pointer-events-none"></div>
+          <div className="absolute bottom-[-50px] left-[-50px] w-48 h-48 bg-[#248232]/30 rounded-full blur-2xl animate-pulse pointer-events-none" style={{ animationDelay: '1s' }}></div>
+          
+          {/* Animated Rings */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-white/5 rounded-full pointer-events-none animate-[spin_20s_linear_infinite]"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] border border-white/10 rounded-full pointer-events-none animate-[spin_15s_linear_infinite_reverse]"></div>
+
+          <CardContent className="p-6 lg:p-8 relative z-10">
             <div className="flex flex-col lg:flex-row gap-6">
               <div className="flex-1">
                 <div className="flex flex-wrap items-center gap-3 mb-4">

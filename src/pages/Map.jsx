@@ -7,11 +7,17 @@ import { MapPin, Filter, Search, Navigation, SlidersHorizontal, List, Map as Map
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 
 import MapView from "../components/map/MapView";
 import VenueCard from "../components/map/VenueCard";
 import VenueDetailModal from "../components/map/VenueDetailModal";
 import FilterSheet from "../components/map/FilterSheet";
+
+const QUERY_KEYS = {
+  participants: ['participants']
+};
 
 export default function MapPage() {
   const navigate = useNavigate();
@@ -33,6 +39,16 @@ export default function MapPage() {
   const [selectedVenueForModal, setSelectedVenueForModal] = useState(null);
   const [user, setUser] = useState(null);
   const [userMatchIds, setUserMatchIds] = useState([]);
+
+  // Fetch all participants for sync
+  const { data: allParticipants = [] } = useQuery({
+    queryKey: QUERY_KEYS.participants,
+    queryFn: async () => {
+      return await base44.entities.MatchParticipant.list();
+    },
+    ...CACHE_STRATEGIES.REALTIME,
+    enabled: !!user,
+  });
 
   const formatLabels = {
     all: 'Alla format',
@@ -368,6 +384,7 @@ export default function MapPage() {
               <MapView
                 venues={filteredVenues}
                 matches={matches}
+                allParticipants={allParticipants}
                 selectedVenue={selectedVenue}
                 userLocation={userLocation}
                 onVenueSelect={handleVenueClick}
@@ -484,6 +501,7 @@ export default function MapPage() {
           <MapView
             venues={filteredVenues}
             matches={matches}
+            allParticipants={allParticipants}
             selectedVenue={selectedVenue}
             userLocation={userLocation}
             onVenueSelect={handleVenueClick}
