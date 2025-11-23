@@ -374,7 +374,7 @@ export default function AdminPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-[#F4F7F5]">Rensa cuper</h3>
-                  <p className="text-xs text-[#B6C2BC]">Ta bort alla testcuper</p>
+                  <p className="text-xs text-[#B6C2BC]">Hantera och rensa cuper</p>
                 </div>
               </div>
               <Link to={createPageUrl("AdminCleanup")}>
