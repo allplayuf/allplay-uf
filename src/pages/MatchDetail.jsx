@@ -396,22 +396,7 @@ export default function MatchDetailPage() {
           Tillbaka
         </button>
 
-        {/* WARNING BOX */}
-        <Card className="bg-[#F4743B]/10 border border-[#F4743B]/30 rounded-[18px] shadow-[0_4px_12px_rgba(244,116,59,0.2)]">
-          <CardContent className="p-4">
-            <div className="flex gap-3">
-              <div className="w-10 h-10 bg-[#F4743B]/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Flag className="w-5 h-5 text-[#F4743B]" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-[#FDE3D2] mb-1">AllPlay – Testversion</h3>
-                <p className="text-xs text-[#FDE3D2] leading-relaxed">
-                  Detta är en testmatch i AllPlay – Testversion (endast preview). Matchen är endast till för att testa appens flöden. Gå inte till planen i verkligheten och använd inte informationen här för att organisera en riktig match.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* WARNING BOX REMOVED */}
 
         {/* Match Header - COMPLETION STATE */}
         {isCompleted ? (
@@ -541,9 +526,6 @@ export default function MatchDetailPage() {
                       <UserPlus className="w-5 h-5" />
                       Anmäl dig
                     </button>
-                    <p className="text-xs text-[#CFE8D6] text-center">
-                      Endast test – matchen kommer inte spelas på riktigt
-                    </p>
                   </>
                 )}
 
