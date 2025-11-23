@@ -3,6 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Star, Calendar, Users } from "lucide-react";
 
+import { motion } from "framer-motion";
+
 export default function VenueCard({ venue, matches, isSelected, onClick, onMatchClick, userMatchIds = [] }) {
   // Determine venue color based on user participation
   const hasUserMatch = matches.some(m => userMatchIds.includes(m.id));
@@ -20,14 +22,18 @@ export default function VenueCard({ venue, matches, isSelected, onClick, onMatch
   }
 
   return (
-    <Card 
-      className={`cursor-pointer transition-all rounded-[16px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] ${
-        isSelected 
-          ? 'bg-[#2BA84A]/10 border border-[#2BA84A] scale-[1.02]' 
-          : 'bg-[#121715] border border-[#223029] hover:border-[#2BA84A] hover:scale-[1.01]'
-      }`}
-      onClick={onClick}
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
     >
+      <Card 
+        className={`cursor-pointer transition-all rounded-[16px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] ${
+          isSelected 
+            ? 'bg-[#2BA84A]/10 border border-[#2BA84A] scale-[1.02]' 
+            : 'bg-[#121715] border border-[#223029] hover:border-[#2BA84A]'
+        }`}
+        onClick={onClick}
+      >
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1 min-w-0">
@@ -97,6 +103,7 @@ export default function VenueCard({ venue, matches, isSelected, onClick, onMatch
           </span>
         )}
       </CardContent>
-    </Card>
+      </Card>
+    </motion.div>
   );
 }

@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MapPin, Filter, Search, Navigation, SlidersHorizontal, List, Map as MapIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 import MapView from "../components/map/MapView";
 import VenueCard from "../components/map/VenueCard";
@@ -327,17 +328,26 @@ export default function MapPage() {
         <div className="flex-1 overflow-hidden relative">
           {viewMode === "list" ? (
             <div className="h-full overflow-y-auto p-3 space-y-3 pb-4">
-              {filteredVenues.map(venue => (
-                <VenueCard
-                  key={venue.id}
-                  venue={venue}
-                  matches={venue.upcoming_matches || []}
-                  isSelected={selectedVenue?.id === venue.id}
-                  onClick={() => handleShowDetails(venue)}
-                  onMatchClick={handleMatchClick}
-                  userMatchIds={userMatchIds}
-                />
-              ))}
+              <AnimatePresence mode="popLayout">
+                {filteredVenues.map((venue, index) => (
+                  <motion.div
+                    key={venue.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                  >
+                    <VenueCard
+                      venue={venue}
+                      matches={venue.upcoming_matches || []}
+                      isSelected={selectedVenue?.id === venue.id}
+                      onClick={() => handleShowDetails(venue)}
+                      onMatchClick={handleMatchClick}
+                      userMatchIds={userMatchIds}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
               
               {filteredVenues.length === 0 && (
                 <div className="text-center py-12">
