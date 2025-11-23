@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Shield, Users, Trophy, Plus, ChevronRight, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { motion } from "framer-motion";
 import RankBadge from "../teams/RankBadge";
 
 export default function TeamsList({ teams, user, onRefresh }) {
@@ -48,10 +49,16 @@ export default function TeamsList({ teams, user, onRefresh }) {
 
   return (
     <div className="grid md:grid-cols-2 gap-4 lg:gap-6">
-      {teams.map((team) => {
+      {teams.map((team, index) => {
         const teamStyle = getTeamColorStyle(team.teamColor);
         return (
-          <Card key={team.id} className={`bg-[#121715] border border-[#223029] ${teamStyle.border} transition-all shadow-[0_6px_18px_rgba(0,0,0,0.22)] hover:scale-[1.02] rounded-[16px] group`}>
+          <motion.div
+            key={team.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: index * 0.05, ease: "easeOut" }}
+          >
+            <Card className={`bg-[#121715] border border-[#223029] ${teamStyle.border} transition-all shadow-[0_6px_18px_rgba(0,0,0,0.22)] hover:scale-[1.02] rounded-[16px] group`}>
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-4">
@@ -114,6 +121,7 @@ export default function TeamsList({ teams, user, onRefresh }) {
             </Link>
           </CardContent>
         </Card>
+        </motion.div>
         );
       })}
     </div>

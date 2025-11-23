@@ -96,8 +96,7 @@ export default function MatchesPage() {
     queryKey: QUERY_KEYS.participants,
     queryFn: async () => {
       if (!user) return [];
-      // Optimization: Only fetch user's participations to avoid loading all DB records
-      const participants = await base44.entities.MatchParticipant.filter({ user_id: user.id });
+      const participants = await base44.entities.MatchParticipant.list();
       return participants;
     },
     ...CACHE_STRATEGIES.REALTIME,

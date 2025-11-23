@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import MatchCard from './MatchCard';
 import { MatchCardSkeleton } from '../ui/loading-skeleton';
 
@@ -57,22 +58,24 @@ export default function InfiniteMatchList({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {allMatches.map((match, index) => {
-          if (!match) return null;
-          
-          return (
-            <MatchCard
-              key={match.id}
-              match={match}
-              venues={venues || []}
-              user={user}
-              participants={participants[match.id] || []}
-              onJoin={onJoin}
-              onRefresh={onRefresh}
-              index={index}
-            />
-          );
-        })}
+        <AnimatePresence mode="popLayout">
+          {allMatches.map((match, index) => {
+            if (!match) return null;
+            
+            return (
+              <MatchCard
+                key={match.id}
+                match={match}
+                venues={venues || []}
+                user={user}
+                participants={participants[match.id] || []}
+                onJoin={onJoin}
+                onRefresh={onRefresh}
+                index={index}
+              />
+            );
+          })}
+        </AnimatePresence>
       </div>
 
       <div ref={loadMoreRef} className="py-8" style={{ minHeight: '64px' }}>

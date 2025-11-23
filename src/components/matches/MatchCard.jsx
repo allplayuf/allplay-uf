@@ -51,6 +51,8 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
   useEffect(() => {
     if (participants && participants.length > 0) {
       loadParticipantUsers();
+    } else {
+      setParticipantUsers([]);
     }
   }, [participants]);
 
