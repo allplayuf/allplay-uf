@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Users, Trophy, Plus, ChevronRight } from "lucide-react";
+import { Shield, Users, Trophy, Plus, ChevronRight, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import RankBadge from "../teams/RankBadge";
@@ -31,26 +31,46 @@ export default function TeamsList({ teams, user, onRefresh }) {
     );
   }
 
+  const getTeamColorStyle = (color) => {
+    const colorMap = {
+      '#2BA84A': { gradient: 'from-[#2BA84A] to-[#0F2917]', text: 'text-[#2BA84A]', border: 'group-hover:border-[#2BA84A]' },
+      '#F4743B': { gradient: 'from-[#F4743B] to-[#BF360C]', text: 'text-[#F4743B]', border: 'group-hover:border-[#F4743B]' },
+      '#4169E1': { gradient: 'from-[#4169E1] to-[#0D1B4D]', text: 'text-[#4169E1]', border: 'group-hover:border-[#4169E1]' },
+      '#9370DB': { gradient: 'from-[#9370DB] to-[#2E1A47]', text: 'text-[#9370DB]', border: 'group-hover:border-[#9370DB]' },
+      '#FFD700': { gradient: 'from-[#FFD700] to-[#4D3A00]', text: 'text-[#FFD700]', border: 'group-hover:border-[#FFD700]' },
+      '#DC2626': { gradient: 'from-[#DC2626] to-[#450A0A]', text: 'text-[#DC2626]', border: 'group-hover:border-[#DC2626]' },
+      '#14B8A6': { gradient: 'from-[#14B8A6] to-[#042F2E]', text: 'text-[#14B8A6]', border: 'group-hover:border-[#14B8A6]' },
+      '#EC4899': { gradient: 'from-[#EC4899] to-[#4A0E29]', text: 'text-[#EC4899]', border: 'group-hover:border-[#EC4899]' },
+      '#F59E0B': { gradient: 'from-[#F59E0B] to-[#D97706]', text: 'text-[#F59E0B]', border: 'group-hover:border-[#F59E0B]' }
+    };
+    return colorMap[color] || colorMap['#2BA84A'];
+  };
+
   return (
     <div className="grid md:grid-cols-2 gap-4 lg:gap-6">
-      {teams.map((team) => (
-        <Card key={team.id} className="bg-[#121715] border border-[#223029] hover:border-[#2BA84A] transition-all shadow-[0_6px_18px_rgba(0,0,0,0.22)] hover:scale-[1.02] rounded-[16px]">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center overflow-hidden">
-                  {team.logo_url ? (
-                    <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <Shield className="w-7 h-7 text-[#EAF6EE]" />
-                  )}
-                </div>
-                <div>
-                  <h3 className="font-semibold text-[16px] leading-[24px] text-[#F4F7F5]">{team.name}</h3>
-                  <p className="text-[13px] leading-[18px] text-[#B6C2BC]">{team.city}</p>
+      {teams.map((team) => {
+        const teamStyle = getTeamColorStyle(team.teamColor);
+        return (
+          <Card key={team.id} className={`bg-[#121715] border border-[#223029] ${teamStyle.border} transition-all shadow-[0_6px_18px_rgba(0,0,0,0.22)] hover:scale-[1.02] rounded-[16px] group`}>
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-4">
+                  <div className={`w-14 h-14 bg-gradient-to-br ${teamStyle.gradient} rounded-2xl flex items-center justify-center overflow-hidden shadow-lg`}>
+                    {team.logo_url ? (
+                      <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <Shield className="w-7 h-7 text-[#FFFFFF]" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-[18px] leading-[24px] text-[#F4F7F5] mb-0.5">{team.name}</h3>
+                    <div className="flex items-center gap-1.5 text-[13px] text-[#B6C2BC]">
+                      <MapPin className="w-3.5 h-3.5" />
+                      {team.city}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
 
             {/* Rank Badge with Progress */}
             <div className="mb-4">
@@ -64,37 +84,38 @@ export default function TeamsList({ teams, user, onRefresh }) {
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-6">
-              <div className="text-center p-3 bg-[#18221E] rounded-xl border border-[#223029]">
-                <div className="text-xl font-semibold text-[#2BA84A]">{team.current_members || 1}</div>
-                <div className="text-[13px] leading-[18px] text-[#B6C2BC]">Medlemmar</div>
+              <div className="text-center p-3 bg-[#18221E] rounded-xl border border-[#223029] group-hover:border-opacity-50 transition-colors">
+                <div className={`text-xl font-bold ${teamStyle.text}`}>{team.current_members || 1}</div>
+                <div className="text-[12px] uppercase tracking-wider font-medium text-[#7B8A83]">Medlemmar</div>
               </div>
-              <div className="text-center p-3 bg-[#18221E] rounded-xl border border-[#223029]">
-                <div className="text-xl font-semibold text-[#2BA84A]">{team.matches_played || 0}</div>
-                <div className="text-[13px] leading-[18px] text-[#B6C2BC]">Matcher</div>
+              <div className="text-center p-3 bg-[#18221E] rounded-xl border border-[#223029] group-hover:border-opacity-50 transition-colors">
+                <div className={`text-xl font-bold ${teamStyle.text}`}>{team.matches_played || 0}</div>
+                <div className="text-[12px] uppercase tracking-wider font-medium text-[#7B8A83]">Matcher</div>
               </div>
             </div>
 
             <div className="flex items-center justify-between text-[13px] leading-[18px] mb-6 p-4 bg-[#18221E] rounded-xl border border-[#223029]">
               <div className="space-y-1">
                 <div className="text-[#B6C2BC]">Matcher: <span className="font-semibold text-[#F4F7F5]">{team.matches_played || 0}</span></div>
-                <div className="text-[#2BA84A]">Vinster: <span className="font-semibold">{team.wins || 0}</span></div>
+                <div className={teamStyle.text}>Vinster: <span className="font-semibold">{team.wins || 0}</span></div>
               </div>
               <div className="space-y-1 text-right">
                 <div className="text-[#B6C2BC]">Oavgjort: <span className="font-semibold text-[#F4F7F5]">{team.draws || 0}</span></div>
-                <div className="text-[#F4743B]">Förluster: <span className="font-semibold">{team.losses || 0}</span></div>
+                <div className="text-[#EF4444]">Förluster: <span className="font-semibold">{team.losses || 0}</span></div>
               </div>
             </div>
 
             <Link to={`${createPageUrl("TeamOverview")}?id=${team.id}`} className="block">
-              <button className="w-full inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#2BA84A]/16 px-6 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30 transition-all hover:bg-[#2BA84A]/24 hover:ring-[#2BA84A]/45 hover:scale-[1.02] font-semibold">
-                <Shield className="w-5 h-5" />
+              <button className="w-full inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#FFFFFF]/5 px-6 text-[#F4F7F5] ring-1 ring-[#FFFFFF]/10 transition-all hover:bg-[#FFFFFF]/10 hover:ring-[#FFFFFF]/20 font-semibold group-hover:text-white">
+                <Shield className={`w-5 h-5 ${teamStyle.text}`} />
                 Visa lag
-                <ChevronRight className="w-5 h-5 ml-auto" />
+                <ChevronRight className="w-5 h-5 ml-auto opacity-50 group-hover:opacity-100 transition-opacity" />
               </button>
             </Link>
           </CardContent>
         </Card>
-      ))}
+        );
+      })}
     </div>
   );
 }

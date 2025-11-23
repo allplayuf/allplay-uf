@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Kept as they might be used elsewhere in the project, though not in the main layout of this component anymore
 import { Button } from "@/components/ui/button";
@@ -110,7 +109,7 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
       <div className="flex-shrink-0 flex items-center justify-between p-4 lg:p-6 border-b border-[#223029] bg-gradient-to-br from-[#2BA84A]/10 to-[#0F2917]/10">
         <div>
           <h2 className="text-xl lg:text-2xl font-bold text-[#F4F7F5]">Skapa match</h2>
-          <p className="text-xs text-[#F4743B] font-semibold mt-0.5">Testversion – skapa endast testmatcher</p>
+          <p className="text-xs text-[#B6C2BC] font-medium mt-0.5">Fyll i detaljerna för att skapa en match</p>
         </div>
         <button
           onClick={onCancel}
@@ -120,15 +119,7 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
         </button>
       </div>
 
-      {/* DISCLAIMER BOX */}
-      <div className="flex-shrink-0 mx-4 lg:mx-6 mt-4 p-3 bg-[#F4743B]/10 border border-[#F4743B]/30 rounded-xl">
-        <div className="flex gap-2">
-          <AlertCircle className="w-4 h-4 text-[#F4743B] flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-[#FDE3D2] leading-relaxed">
-            Den här versionen av AllPlay är en testversion. Matcherna du skapar är endast till för att testa appens funktioner och ska inte spelas på riktigt eller användas för att samlas på en fysisk plan.
-          </p>
-        </div>
-      </div>
+      {/* DISCLAIMER BOX REMOVED */}
 
       {/* Scrollable Form Content */}
       <div className="flex-1 overflow-y-auto px-4 lg:px-6 py-4 space-y-5">
@@ -364,19 +355,6 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
 
       {/* Footer Actions */}
       <div className="flex-shrink-0 p-4 lg:p-6 border-t border-[#223029] space-y-3">
-        {/* VISUAL CHECKBOX NOTE */}
-        <label className="flex items-start gap-2.5 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={true} // Always checked as per requirement
-            readOnly // Make it read-only
-            className="mt-0.5 w-4 h-4 rounded border-[#223029] bg-[#18221E] text-[#2BA84A] focus:ring-[#2BA84A] focus:ring-offset-[#121715]"
-          />
-          <span className="text-xs text-[#B6C2BC] leading-relaxed">
-            Jag förstår att detta är en testmatch i AllPlay – Testversion (endast preview) och att matchen inte ska spelas på riktigt.
-          </span>
-        </label>
-
         <div className="flex gap-3">
           <button
             type="button"

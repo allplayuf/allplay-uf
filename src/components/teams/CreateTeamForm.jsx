@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Shield, X, Upload, Image as ImageIcon, Info } from "lucide-react";
+import { Shield, X, Upload, Image as ImageIcon, Info, Palette, Check } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 
@@ -20,7 +20,8 @@ export default function CreateTeamForm({ user, onSubmit, onCancel }) {
     max_members: 20,
     current_members: 1,
     elo_rating: 1000,
-    rank_tier: 'brons'
+    rank_tier: 'brons',
+    teamColor: '#2BA84A' // Default green
   });
   const [isUploading, setIsUploading] = useState(false);
   const [logoPreview, setLogoPreview] = useState('');
@@ -83,6 +84,42 @@ export default function CreateTeamForm({ user, onSubmit, onCancel }) {
 
         <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4 overflow-y-auto flex-1 overscroll-contain">
           <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+
+            {/* Team Color */}
+            <div className="space-y-3 p-3 bg-[#18221E] rounded-[14px] border border-[#223029]">
+              <Label className="text-[#F4F7F5] font-semibold text-sm sm:text-base flex items-center gap-2">
+                <Palette className="w-4 h-4 text-[#9B59B6]" />
+                Lagfärg
+              </Label>
+              <div className="grid grid-cols-8 gap-2">
+                {[
+                  '#2BA84A', // Green
+                  '#F4743B', // Orange
+                  '#4169E1', // Blue
+                  '#9370DB', // Purple
+                  '#FFD700', // Gold
+                  '#DC2626', // Red
+                  '#14B8A6', // Teal
+                  '#EC4899'  // Pink
+                ].map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, teamColor: color }))}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                      formData.teamColor === color 
+                        ? 'ring-2 ring-[#F4F7F5] scale-110' 
+                        : 'hover:scale-110 opacity-80 hover:opacity-100'
+                    }`}
+                    style={{ backgroundColor: color }}
+                  >
+                    {formData.teamColor === color && (
+                      <Check className="w-4 h-4 text-white drop-shadow-md" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {/* Logo Upload */}
             <div className="space-y-2">
