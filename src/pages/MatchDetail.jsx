@@ -100,6 +100,7 @@ export default function MatchDetailPage() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false); // Added state
   const [friendships, setFriendships] = useState([]);
+  const [isActionLoading, setIsActionLoading] = useState(false);
 
   const { confirm, alert, DialogContainer } = useCustomDialog();
 
@@ -147,6 +148,8 @@ export default function MatchDetailPage() {
   };
 
   const handleJoinMatch = async () => {
+    if (isActionLoading) return;
+    setIsActionLoading(true);
     try {
       const existingParticipation = participants.find(p => p.id === user.id);
 
@@ -186,10 +189,13 @@ export default function MatchDetailPage() {
         'Kunde inte anmäla dig. Försök igen.',
         { type: 'alert' }
       );
+    } finally {
+      setIsActionLoading(false);
     }
   };
 
   const handleLeaveMatch = async () => {
+    if (isActionLoading) return;
     try {
       const myParticipation = participants.find(p => p.id === user.id);
 
@@ -207,9 +213,11 @@ export default function MatchDetailPage() {
 
       if (!shouldLeave) return;
 
+      setIsActionLoading(true);
       await base44.functions.invoke('leaveMatch', { match_id: matchId });
 
-      loadMatchData();
+      // Refresh data immediately
+      await loadMatchData();
 
       await alert(
         'Match lämnad',
@@ -224,6 +232,8 @@ export default function MatchDetailPage() {
         'Kunde inte lämna matchen. Försök igen.',
         { type: 'alert' }
       );
+    } finally {
+      setIsActionLoading(false);
     }
   };
 
@@ -247,6 +257,8 @@ export default function MatchDetailPage() {
 
   // New function to handle adding friends
   const handleAddFriend = async (participantId) => {
+    if (isActionLoading) return;
+    setIsActionLoading(true);
     try {
       // Check if already friends or request exists
       const existing = friendships.find(f =>
@@ -293,6 +305,8 @@ export default function MatchDetailPage() {
         'Kunde inte skicka vänförfrågan. Försök igen.',
         { type: 'alert' }
       );
+    } finally {
+      setIsActionLoading(false);
     }
   };
 
@@ -530,10 +544,11 @@ export default function MatchDetailPage() {
                   <>
                     <button
                       onClick={handleJoinMatch}
-                      className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#FFFFFF] px-6 text-[#2BA84A] font-semibold hover:bg-[#EAF6EE] transition-all hover:scale-[1.02]"
+                      disabled={isActionLoading}
+                      className={`inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#FFFFFF] px-6 text-[#2BA84A] font-semibold hover:bg-[#EAF6EE] transition-all hover:scale-[1.02] ${isActionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      <UserPlus className="w-5 h-5" />
-                      Anmäl dig
+                      {isActionLoading ? <div className="w-5 h-5 border-2 border-[#2BA84A] border-t-transparent rounded-full animate-spin" /> : <UserPlus className="w-5 h-5" />}
+                      {isActionLoading ? 'Vänta...' : 'Anmäl dig'}
                     </button>
                   </>
                 )}
@@ -562,9 +577,10 @@ export default function MatchDetailPage() {
 
                     <button
                       onClick={handleLeaveMatch}
-                      className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] border border-[#FFFFFF]/30 px-6 text-[#FFFFFF] font-semibold hover:bg-[#FFFFFF]/10 transition-all"
+                      disabled={isActionLoading}
+                      className={`inline-flex h-12 items-center justify-center gap-2 rounded-[16px] border border-[#FFFFFF]/30 px-6 text-[#FFFFFF] font-semibold hover:bg-[#FFFFFF]/10 transition-all ${isActionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      Lämna match
+                      {isActionLoading ? 'Lämnar...' : 'Lämna match'}
                     </button>
                   </>
                 )}

@@ -72,6 +72,7 @@ export default function CommunityPage() {
   
   const [activeTab, setActiveTab] = useState(initialTab);
   const [showCreateTeamForm, setShowCreateTeamForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { confirm, alert, DialogContainer } = useCustomDialog();
   const queryClient = useQueryClient();
 
@@ -132,7 +133,7 @@ export default function CommunityPage() {
       const teams = response.data.teams || [];
       return user?.role === 'admin' ? teams : teams.filter(t => t.is_active !== false);
     },
-    ...CACHE_STRATEGIES.STATIC,
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC, // Changed from STATIC to ensure deleted teams disappear
     enabled: !!user,
   });
 
@@ -214,6 +215,8 @@ export default function CommunityPage() {
   const isLoading = userLoading || usersLoading || teamsLoading || friendshipsLoading;
 
   const handleAddFriend = async (targetId) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       const existing = (friendships || []).find(f =>
         f && ((f.requester_id === user.id && f.addressee_id === targetId) ||
@@ -266,6 +269,8 @@ export default function CommunityPage() {
     } catch (error) {
       console.error("Error adding friend:", error);
       await alert('Ett fel uppstod', 'Kunde inte skicka vänförfrågan.', { type: 'alert' });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
