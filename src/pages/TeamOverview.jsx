@@ -17,7 +17,8 @@ import {
   MessageCircle,
   BarChart,
   Image as ImageIcon,
-  Swords
+  Swords,
+  Calendar
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 
@@ -29,6 +30,8 @@ import TeamColorPicker from "../components/teams/TeamColorPicker";
 import RankBadge from "../components/teams/RankBadge";
 import InviteFriendsToTeamModal from "../components/teams/InviteFriendsToTeamModal";
 import CreateTeamMatchForm from "../components/teams/CreateTeamMatchForm";
+import TeamCalendar from "../components/teams/TeamCalendar";
+import TeamLeaderboard from "../components/teams/TeamLeaderboard";
 
 const SKILL_LEVEL_CONFIG = {
   beginner: { 
@@ -65,6 +68,8 @@ const SKILL_LEVEL_CONFIG = {
 const ALL_TABS = [
   { id: 'members', label: 'Medlemmar', icon: Users, showForCupTeam: true },
   { id: 'stats', label: 'Statistik', icon: Trophy, showForCupTeam: true },
+  { id: 'calendar', label: 'Kalender', icon: Calendar, showForCupTeam: true },
+  { id: 'ranking', label: 'Ranking', icon: TrendingUp, showForCupTeam: false },
   { id: 'chat', label: 'Chatt', icon: MessageCircle, showForCupTeam: false },
   { id: 'polls', label: 'Omröstningar', icon: BarChart, showForCupTeam: false },
   { id: 'highlights', label: 'Highlights', icon: ImageIcon, showForCupTeam: false },
@@ -523,6 +528,30 @@ export default function TeamOverviewPage() {
                     />
                   )}
                 </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'calendar' && (
+              <motion.div
+                key="calendar"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+              >
+                <TeamCalendar team={team} />
+              </motion.div>
+            )}
+
+            {!isCupTeam && activeTab === 'ranking' && (
+              <motion.div
+                key="ranking"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+              >
+                <TeamLeaderboard currentTeamId={team.id} />
               </motion.div>
             )}
 
