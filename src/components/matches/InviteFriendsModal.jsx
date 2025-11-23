@@ -92,17 +92,11 @@ export default function InviteFriendsModal({ match, currentUser, onClose, onInvi
 
     setIsSending(true);
     try {
-      // Create invitations for each selected friend
-      const invitationPromises = selectedFriends.map(friendId =>
-        MatchInvitation.create({
-          match_id: match.id,
-          invited_user_id: friendId,
-          inviter_id: currentUser.id,
-          invited_at: new Date().toISOString()
-        })
-      );
-
-      await Promise.all(invitationPromises);
+      // Use backend function to send invitations and notifications
+      await base44.functions.invoke('matches/sendInvites', {
+        matchId: match.id,
+        friendIds: selectedFriends
+      });
 
       alert(`${selectedFriends.length} inbjudningar skickade!`);
       if (onInvitesSent) onInvitesSent();

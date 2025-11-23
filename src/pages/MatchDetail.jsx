@@ -283,10 +283,9 @@ export default function MatchDetailPage() {
         return;
       }
 
-      await base44.entities.Friendship.create({
-        requester_id: user.id,
-        addressee_id: participantId,
-        status: 'pending'
+      // Use backend function to send request and notification
+      await base44.functions.invoke('social/sendFriendRequest', {
+        targetUserId: participantId
       });
 
       // Success popup with celebration
