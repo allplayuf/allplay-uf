@@ -50,7 +50,7 @@ export default function EditProfilePage() {
       'full_name', 'bio', 'date_of_birth', 'gender', 'nationality', 'city', 'favorite_club', 'skill_level'
     ];
 
-    const arrayFields = ['interests', 'favorite_positions', 'preferred_match_types', 'availability'];
+    const arrayFields = ['favorite_positions', 'preferred_match_types', 'availability'];
 
     let filled = 0;
     let total = fields.length + arrayFields.length;
@@ -85,14 +85,11 @@ export default function EditProfilePage() {
         gender: currentUser.gender || '',
         nationality: currentUser.nationality || '',
         city: currentUser.city || '',
-        interests: currentUser.interests || [],
         skill_level: currentUser.skill_level || 'intermediate',
         favorite_club: currentUser.favorite_club || '',
         favorite_positions: currentUser.favorite_positions || [],
         preferred_match_types: currentUser.preferred_match_types || [],
         availability: currentUser.availability || [],
-        instagram_handle: currentUser.instagram_handle || '',
-        pre_match_playlist: currentUser.pre_match_playlist || '',
         publicProfile: currentUser.publicProfile ?? true,
         blocked: currentUser.blocked ?? false
       });
@@ -388,39 +385,6 @@ export default function EditProfilePage() {
                   />
                 </div>
               </div>
-
-              {/* Interests */}
-              <div>
-                <Label className="text-[#F4F7F5] font-semibold mb-2 block text-sm">Intressen</Label>
-                <div className="space-y-2">
-                  {(formData.interests || []).length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {(formData.interests || []).map((interest) => (
-                        <span
-                          key={interest}
-                          className="inline-flex h-8 items-center rounded-full bg-[#2BA84A]/18 px-3 text-xs font-medium text-[#CFE8D6] ring-1 ring-[#2BA84A]/25 gap-2"
-                        >
-                          {interest}
-                          <button type="button" onClick={() => removeCustomItem('interests', interest)}>
-                            <X className="w-3 h-3" />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  <Input
-                    placeholder="Lägg till intressen (tryck Enter)"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && e.target.value) {
-                        e.preventDefault();
-                        addCustomItem('interests', e.target.value);
-                        e.target.value = '';
-                      }
-                    }}
-                    className="bg-[#18221E] border border-[#223029] text-[#F4F7F5] placeholder:text-[#7B8A83] focus:border-[#2BA84A] rounded-xl h-10 text-sm"
-                  />
-                </div>
-              </div>
             </CardContent>
           </Card>
 
@@ -541,42 +505,6 @@ export default function EditProfilePage() {
                 </div>
               </div>
 
-              {/* Pre-match Playlist */}
-              <div>
-                <Label className="text-[#F4F7F5] font-semibold mb-2 block text-sm">Uppvärmningslåt (Spotify URL)</Label>
-                <Input
-                  placeholder="https://open.spotify.com/track/..."
-                  value={formData.pre_match_playlist || ''}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, pre_match_playlist: e.target.value }))}
-                  className="bg-[#18221E] border border-[#223029] text-[#F4F7F5] placeholder:text-[#7B8A83] focus:border-[#2BA84A] rounded-xl h-11 text-sm"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* SECTION: Socialt */}
-          <Card className="bg-[#121715] border border-[#223029] rounded-2xl shadow-lg">
-            <CardContent className="p-6 space-y-5">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[#2BA84A]/10 rounded-xl flex items-center justify-center ring-1 ring-[#2BA84A]/20">
-                  <Sparkles className="w-5 h-5 text-[#2BA84A]" />
-                </div>
-                <h2 className="text-lg font-semibold text-[#F4F7F5]">Socialt</h2>
-              </div>
-
-              {/* Instagram */}
-              <div>
-                <Label className="text-[#F4F7F5] font-semibold mb-2 block flex items-center gap-2 text-sm">
-                  <Instagram className="w-4 h-4 text-[#F4743B]" />
-                  Instagram
-                </Label>
-                <Input
-                  placeholder="@ditt_användarnamn"
-                  value={formData.instagram_handle || ''}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, instagram_handle: e.target.value }))}
-                  className="bg-[#18221E] border border-[#223029] text-[#F4F7F5] placeholder:text-[#7B8A83] focus:border-[#2BA84A] rounded-xl h-11 text-sm"
-                />
-              </div>
             </CardContent>
           </Card>
 

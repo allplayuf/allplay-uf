@@ -907,7 +907,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.9, ease: "easeOut" }}
-            className="space-y-5 sm:space-y-6"
+            className="space-y-5 sm:space-y-6 sticky top-24 self-start"
           >
             {/* NEW: Cups Widget */}
             <CupsWidget />
