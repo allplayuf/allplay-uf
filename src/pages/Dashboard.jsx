@@ -718,7 +718,7 @@ export default function Dashboard() {
                 <div className="space-y-3">
                   {myUpcomingMatches.map((match, index) => {
                     const venue = venues.find(v => v.id === match.venue_id);
-                    const currentPlayersCount = allParticipants.filter(p => p.match_id === match.id).length;
+                    const currentPlayersCount = (allParticipants || []).filter(p => p.match_id === match.id).length;
                     return (
                       <motion.div
                         key={match.id}
@@ -788,7 +788,7 @@ export default function Dashboard() {
                 <div className="space-y-3">
                   {nearbyMatches.map((match, index) => {
                     const venue = match.venue;
-                    const currentPlayersCount = allParticipants.filter(p => p.match_id === match.id).length;
+                    const currentPlayersCount = (allParticipants || []).filter(p => p.match_id === match.id).length;
                     return (
                       <motion.div
                         key={match.id}
@@ -858,7 +858,7 @@ export default function Dashboard() {
                 <div className="space-y-3">
                   {quickPlayMatches.slice(0, 3).map((match, index) => {
                     const venue = venues.find(v => v.id === match.venue_id);
-                    const currentPlayersCount = allParticipants.filter(p => p.match_id === match.id).length;
+                    const currentPlayersCount = (allParticipants || []).filter(p => p.match_id === match.id).length;
                     return (
                       <motion.div
                         key={match.id}
