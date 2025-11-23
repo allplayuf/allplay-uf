@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -117,19 +116,11 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
           <div className="space-y-4 flex flex-col h-full">
             {/* Header */}
             <div>
-              {/* TEST BADGE */}
-              <div className="mb-2">
-                <span className="inline-flex h-5 items-center rounded-md bg-[#F4743B]/15 px-2 text-[10px] leading-[14px] font-bold text-[#F4743B] ring-1 ring-[#F4743B]/30 uppercase tracking-wider">
-                  Testmatch (preview)
-                </span>
-              </div>
-
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1 pr-2">
                   <h3 className="text-[17px] leading-[24px] font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#2BA84A] to-[#CFE8D6] mb-1.5 transition-all">
                     {match.title || 'Untitled Match'}
                   </h3>
-                  <p className="text-[11px] leading-[15px] text-[#9FC9AC] font-medium">Endast testmatch – ska inte spelas på riktigt</p>
                 </div>
                 {isOrganizer && match.status === 'upcoming' && (
                   <span className="inline-flex h-6 items-center rounded-full bg-[#F4743B]/18 px-2.5 text-[12px] leading-[16px] font-medium text-[#FDE3D2] ring-1 ring-[#F4743B]/25 flex-shrink-0">
