@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Team } from "@/entities/Team";
+import { base44 } from "@/api/base44Client";
 import { Trophy, Medal, ArrowUp, ArrowDown, Minus } from "lucide-react";
 import RankBadge, { getRankFromElo } from "./RankBadge";
 import { useNavigate } from 'react-router-dom';
@@ -19,7 +19,7 @@ export default function TeamLeaderboard({ currentTeamId }) {
     try {
       // In a real scenario with many teams, we would want a backend function 
       // or a query that sorts by ELO. For now, fetching list and sorting client side.
-      const allTeams = await Team.list();
+      const allTeams = await base44.entities.Team.list();
       
       // Filter active teams and sort by ELO descending
       const sortedTeams = allTeams
