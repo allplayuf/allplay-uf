@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapPin, Users, Calendar, CheckCircle, Lightbulb, ParkingCircle, ShowerHead } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+import { AnimatePresence } from 'framer-motion';
+import MapVenuePreview from './MapVenuePreview';
 
 // Optimize icon creation with memoization
 const createCustomIcon = (color = '#2BA84A', isActive = false, status = 'available', hasUserMatch = false) => {
@@ -212,9 +211,9 @@ export default function MapView({
           />
         )}
 
-        {/* Venue markers - POPUP ONLY */}
+        {/* Venue markers */}
         {validVenues.map((venue) => {
-          const { status, hasUserMatch, matchCount } = venueStatuses[venue.id] || { status: 'available', hasUserMatch: false, matchCount: 0 };
+          const { status, hasUserMatch } = venueStatuses[venue.id] || { status: 'available', hasUserMatch: false };
           const isSelected = selectedVenue && selectedVenue.id === venue.id;
 
           return (
@@ -225,353 +224,30 @@ export default function MapView({
               eventHandlers={{
                 click: () => handleMarkerClick(venue),
               }}
-            >
-              <Popup 
-                className="venue-popup"
-                maxWidth={420}
-                minWidth={360}
-                closeButton={true}
-                autoPan={true}
-                autoPanPadding={[80, 80]}
-              >
-                <div className="venue-popup-content">
-                  {/* Venue Name */}
-                  <div className="venue-title-section">
-                    <h3 className="venue-name">{venue.name}</h3>
-                    {venue.is_verified && (
-                      <div className="verified-badge">
-                        <svg className="verified-icon" viewBox="0 0 16 16" fill="currentColor">
-                          <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Address */}
-                  <div className="venue-address">
-                    <svg className="address-icon" viewBox="0 0 16 16" fill="currentColor">
-                      <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
-                    </svg>
-                    <span>{venue.address}, {venue.city}</span>
-                  </div>
-
-                  {/* Status Badge */}
-                  <div className="status-section">
-                    {status === 'ongoing' && (
-                      <div className="status-badge status-ongoing">
-                        <span className="status-pulse"></span>
-                        Match pågår nu
-                      </div>
-                    )}
-                    {status === 'has_matches' && hasUserMatch && (
-                      <div className="status-badge status-user-match">
-                        <svg className="status-icon" viewBox="0 0 16 16" fill="currentColor">
-                          <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
-                        </svg>
-                        Du spelar här
-                      </div>
-                    )}
-                    {status === 'has_matches' && !hasUserMatch && matchCount > 0 && (
-                      <div className="status-badge status-has-matches">
-                        <svg className="status-icon" viewBox="0 0 16 16" fill="currentColor">
-                          <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"/>
-                          <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
-                        </svg>
-                        {matchCount} match{matchCount === 1 ? '' : 'er'}
-                      </div>
-                    )}
-                    {status === 'available' && (
-                      <div className="status-badge status-available">
-                        <svg className="status-icon" viewBox="0 0 16 16" fill="currentColor">
-                          <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
-                        </svg>
-                        Tillgänglig
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="action-buttons">
-                    <button
-                      onClick={(e) => handleShowDetailsClick(venue, e)}
-                      className="btn-info"
-                    >
-                      Visa info
-                    </button>
-                    <Link
-                      to={`${createPageUrl("Matches")}?create=true&venue=${venue.id}`}
-                      className="btn-create-match"
-                    >
-                      Skapa match
-                    </Link>
-                  </div>
-                </div>
-              </Popup>
-            </Marker>
+            />
           );
         })}
       </MapContainer>
 
-      {/* Enhanced CSS for popup */}
+      {/* Floating Venue Preview Card */}
+      <AnimatePresence>
+        {selectedVenue && (
+          <MapVenuePreview
+            key={selectedVenue.id}
+            venue={selectedVenue}
+            matches={matches.filter(m => m.venue_id === selectedVenue.id)}
+            userMatchIds={userMatchIds}
+            onClose={() => onVenueSelect(null)}
+            onShowDetails={(v) => onShowDetails(v)}
+            onMatchClick={(id) => onMatchClick(id)}
+          />
+        )}
+      </AnimatePresence>
+
       <style jsx global>{`
         .custom-map-marker {
           background: none;
           border: none;
-        }
-        
-        .venue-popup .leaflet-popup-content-wrapper {
-          background: #121715;
-          border: 1px solid #223029;
-          border-radius: 20px;
-          padding: 0;
-          box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-          overflow: hidden;
-        }
-        
-        .venue-popup .leaflet-popup-content {
-          margin: 0;
-          width: 100% !important;
-        }
-        
-        .venue-popup .leaflet-popup-tip {
-          background: #121715;
-          border: 1px solid #223029;
-        }
-        
-        .venue-popup a.leaflet-popup-close-button {
-          color: #7B8A83;
-          font-size: 28px;
-          padding: 12px 16px;
-          font-weight: 300;
-          z-index: 10;
-          transition: all 0.2s;
-        }
-        
-        .venue-popup a.leaflet-popup-close-button:hover {
-          color: #F4F7F5;
-          transform: rotate(90deg);
-        }
-        
-        .venue-popup-content {
-          padding: 24px;
-        }
-        
-        .venue-title-section {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-bottom: 16px;
-        }
-        
-        .venue-name {
-          font-size: 22px;
-          font-weight: 800;
-          color: #F4F7F5;
-          line-height: 1.2;
-          flex: 1;
-          letter-spacing: -0.03em;
-        }
-        
-        .verified-badge {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 24px;
-          height: 24px;
-          background: linear-gradient(135deg, #2BA84A 0%, #248232 100%);
-          border-radius: 50%;
-          flex-shrink: 0;
-          box-shadow: 0 2px 8px rgba(43, 168, 74, 0.4);
-        }
-        
-        .verified-icon {
-          width: 14px;
-          height: 14px;
-          color: #FFFFFF;
-        }
-        
-        .venue-address {
-          display: flex;
-          align-items: flex-start;
-          gap: 10px;
-          margin-bottom: 20px;
-          padding: 0;
-          background: transparent;
-          border: none;
-        }
-        
-        .address-icon {
-          width: 18px;
-          height: 18px;
-          color: #7B8A83;
-          flex-shrink: 0;
-          margin-top: 2px;
-        }
-        
-        .venue-address span {
-          font-size: 14px;
-          color: #B6C2BC;
-          line-height: 1.6;
-          font-weight: 500;
-        }
-        
-        .status-section {
-          margin-bottom: 24px;
-        }
-        
-        .status-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 16px;
-          border-radius: 12px;
-          font-size: 14px;
-          font-weight: 700;
-          border: 1px solid;
-        }
-        
-        .status-icon {
-          width: 15px;
-          height: 15px;
-        }
-        
-        .status-ongoing {
-          background: rgba(251, 191, 36, 0.15);
-          color: #FDE68A;
-          border-color: rgba(251, 191, 36, 0.4);
-        }
-        
-        .status-pulse {
-          width: 8px;
-          height: 8px;
-          background: #FCD34D;
-          border-radius: 50%;
-          animation: pulse 2s infinite;
-          box-shadow: 0 0 10px rgba(252, 211, 77, 0.8);
-        }
-        
-        .status-user-match {
-          background: rgba(65, 105, 225, 0.15);
-          color: #B0C4DE;
-          border-color: rgba(65, 105, 225, 0.4);
-        }
-        
-        .status-has-matches {
-          background: rgba(244, 116, 59, 0.15);
-          color: #FDE3D2;
-          border-color: rgba(244, 116, 59, 0.4);
-        }
-        
-        .status-available {
-          background: rgba(43, 168, 74, 0.15);
-          color: #CFE8D6;
-          border-color: rgba(43, 168, 74, 0.4);
-        }
-        
-        @keyframes pulse {
-          0%, 100% {
-            opacity: 1;
-            transform: scale(1);
-          }
-          50% {
-            opacity: 0.6;
-            transform: scale(0.9);
-          }
-        }
-        
-        .action-buttons {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          margin-top: 0;
-        }
-        
-        .btn-info {
-          width: 100%;
-          padding: 16px 24px;
-          background: transparent;
-          color: #F4F7F5;
-          border: 1.5px solid #223029;
-          border-radius: 14px;
-          font-size: 15px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 0.2s;
-          text-align: center;
-        }
-        
-        .btn-info:hover {
-          background: rgba(43, 168, 74, 0.08);
-          border-color: #2BA84A;
-          transform: translateY(-1px);
-          color: #CFE8D6;
-        }
-        
-        .btn-info:active {
-          transform: translateY(0);
-        }
-        
-        .btn-create-match {
-          width: 100%;
-          padding: 16px 24px;
-          background: linear-gradient(135deg, #2BA84A 0%, #248232 100%);
-          color: #FFFFFF;
-          border: 1.5px solid transparent;
-          border-radius: 14px;
-          font-size: 15px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 0.2s;
-          text-align: center;
-          text-decoration: none;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 4px 16px rgba(43, 168, 74, 0.35);
-        }
-        
-        .btn-create-match:hover {
-          background: linear-gradient(135deg, #248232 0%, #1F6B29 100%);
-          transform: translateY(-2px);
-          box-shadow: 0 8px 24px rgba(43, 168, 74, 0.45);
-        }
-        
-        .btn-create-match:active {
-          transform: translateY(0);
-        }
-        
-        @media (max-width: 768px) {
-          .leaflet-container {
-            touch-action: pan-x pan-y;
-          }
-          
-          .venue-popup .leaflet-popup-content-wrapper {
-            max-width: 90vw;
-            border-radius: 16px;
-          }
-          
-          .venue-popup-content {
-            padding: 20px;
-          }
-          
-          .venue-name {
-            font-size: 19px;
-          }
-          
-          .venue-address span {
-            font-size: 13px;
-          }
-          
-          .status-badge {
-            font-size: 13px;
-            padding: 9px 14px;
-          }
-          
-          .btn-info,
-          .btn-create-match {
-            padding: 14px 20px;
-            font-size: 14px;
-          }
         }
       `}</style>
     </div>
