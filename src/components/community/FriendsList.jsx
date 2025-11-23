@@ -23,7 +23,12 @@ const SKILL_LEVEL_CONFIG = {
 };
 
 export default function FriendsList({ friends, user, onRefresh }) {
-  if (friends.length === 0) {
+  // Deduplicate friends based on ID
+  const uniqueFriends = friends.filter((friend, index, self) => 
+    index === self.findIndex((t) => t.id === friend.id)
+  );
+
+  if (uniqueFriends.length === 0) {
     return (
       <Card className="relative overflow-hidden bg-gradient-to-br from-[#2BA84A] to-[#0F2917] rounded-[16px] lg:rounded-[20px] p-8 sm:p-12 lg:p-16 shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029]">
         <div className="absolute top-[-30px] right-[-30px] w-28 h-28 bg-[#2BA84A]/40 rounded-full"></div>
@@ -48,7 +53,7 @@ export default function FriendsList({ friends, user, onRefresh }) {
 
   return (
     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-      {friends.map((friend, index) => {
+      {uniqueFriends.map((friend, index) => {
         const friendSkill = SKILL_LEVEL_CONFIG[friend.skill_level || 'intermediate'];
         const FriendSkillIcon = friendSkill.icon;
 

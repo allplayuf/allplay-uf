@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -498,21 +497,6 @@ export default function BadgeCollection({ user }) {
     setTimeout(() => setIsRefreshing(false), 1000);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex flex-col items-center gap-3"
-        >
-          <RefreshCw className="w-8 h-8 text-[#2BA84A] animate-spin" strokeWidth={2.5} />
-          <p className="text-sm text-[#B6C2BC] font-medium">Laddar badges...</p>
-        </motion.div>
-      </div>
-    );
-  }
-
   const stats = badgeData?.stats || {};
   const earnedBadges = badgeData?.badges || [];
 
@@ -739,7 +723,7 @@ export default function BadgeCollection({ user }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.3 }}
-        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3 lg:gap-4"
+        className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3 lg:gap-4 ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}
       >
         <AnimatePresence mode="popLayout">
           {filteredBadges.map((badge, index) => {
