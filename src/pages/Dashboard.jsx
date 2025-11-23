@@ -718,6 +718,7 @@ export default function Dashboard() {
                 <div className="space-y-3">
                   {myUpcomingMatches.map((match, index) => {
                     const venue = venues.find(v => v.id === match.venue_id);
+                    const currentPlayersCount = allParticipants.filter(p => p.match_id === match.id).length;
                     return (
                       <motion.div
                         key={match.id}
@@ -749,11 +750,11 @@ export default function Dashboard() {
                             <div className="flex-shrink-0">
                               {match.is_spontaneous ? (
                                 <span className="text-sm font-semibold text-[#B6C2BC]">
-                                  {match.current_players || 0} anmälda
+                                  {currentPlayersCount} anmälda
                                 </span>
                               ) : (
                                 <span className="inline-flex h-8 items-center rounded-full bg-[#18221E] px-4 text-sm font-bold text-[#2BA84A] ring-1 ring-[#2BA84A]/25">
-                                  {match.current_players || 0}/{match.max_players}
+                                  {currentPlayersCount}/{match.max_players}
                                 </span>
                               )}
                             </div>
@@ -787,6 +788,7 @@ export default function Dashboard() {
                 <div className="space-y-3">
                   {nearbyMatches.map((match, index) => {
                     const venue = match.venue;
+                    const currentPlayersCount = allParticipants.filter(p => p.match_id === match.id).length;
                     return (
                       <motion.div
                         key={match.id}
@@ -818,11 +820,11 @@ export default function Dashboard() {
                             <div className="flex-shrink-0">
                               {match.is_spontaneous ? (
                                 <span className="text-sm font-semibold text-[#B6C2BC]">
-                                  {match.current_players || 0} anmälda
+                                  {currentPlayersCount} anmälda
                                 </span>
                               ) : (
                                 <span className="inline-flex h-8 items-center rounded-full bg-[#18221E] px-4 text-sm font-bold text-[#2BA84A] ring-1 ring-[#2BA84A]/25">
-                                  {match.current_players || 0}/{match.max_players}
+                                  {currentPlayersCount}/{match.max_players}
                                 </span>
                               )}
                             </div>
@@ -856,6 +858,7 @@ export default function Dashboard() {
                 <div className="space-y-3">
                   {quickPlayMatches.slice(0, 3).map((match, index) => {
                     const venue = venues.find(v => v.id === match.venue_id);
+                    const currentPlayersCount = allParticipants.filter(p => p.match_id === match.id).length;
                     return (
                       <motion.div
                         key={match.id}
@@ -886,7 +889,7 @@ export default function Dashboard() {
                             </div>
                             <div className="flex-shrink-0">
                               <span className="inline-flex h-8 items-center rounded-full bg-[#18221E] px-4 text-sm font-bold text-[#F4743B] ring-1 ring-[#F4743B]/25">
-                                {match.current_players || 0}/{match.max_players}
+                                {currentPlayersCount}/{match.max_players}
                               </span>
                             </div>
                           </div>
