@@ -103,7 +103,7 @@ export default function Layout({ children, currentPageName }) {
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden bg-transparent">
                 <img 
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/8501d9a99_upscalemedia-transformed.png" 
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png" 
                   alt="AllPlay UF Logo" 
                   className="w-full h-full object-contain"
                   loading="eager"
@@ -178,7 +178,7 @@ export default function Layout({ children, currentPageName }) {
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-transparent">
                 <img 
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/8501d9a99_upscalemedia-transformed.png" 
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png" 
                   alt="AllPlay UF Logo" 
                   className="w-full h-full object-contain"
                   loading="eager"
