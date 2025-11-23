@@ -133,7 +133,8 @@ export default function CommunityPage() {
       const teams = response.data.teams || [];
       return user?.role === 'admin' ? teams : teams.filter(t => t.is_active !== false);
     },
-    ...CACHE_STRATEGIES.SEMI_DYNAMIC, // Changed from STATIC to ensure deleted teams disappear
+    ...CACHE_STRATEGIES.DYNAMIC, // Use DYNAMIC to ensure fresh data on mount
+    refetchOnMount: true,
     enabled: !!user,
   });
 

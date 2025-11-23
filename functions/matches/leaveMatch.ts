@@ -16,19 +16,15 @@ Deno.serve(async (req) => {
     // Find participant record
     const participants = await base44.entities.MatchParticipant.filter({ match_id, user_id: user.id });
     if (participants.length > 0) {
-        await base44.entities.MatchParticipant.delete(participants[0].id);
+        // Use service role for deletion to ensure it works regardless of RLS
+        await base44.asServiceRole.entities.MatchParticipant.delete(participants[0].id);
         
-        // Update count
-        const allParticipants = await base44.entities.MatchParticipant.filter({ match_id });
+        // Update count using service role (required as users can't usually update match entities they don't own)
+        const allParticipants = await base44.asServiceRole.entities.MatchParticipant.filter({ match_id });
         if (!match.is_spontaneous) {
-            await base44.entities.Match.update(match_id, {
-                current_players: Math.max(0, allParticipants.length) // already deleted one
+            await base44.asServiceRole.entities.Match.update(match_id, {
+                current_players: Math.max(0, allParticipants.length)
             });
-        }
-
-        // Notify Organizer
-        if (match.organizer_id !== user.id) {
-             // Notification logic
         }
     }
 
