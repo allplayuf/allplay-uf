@@ -140,10 +140,18 @@ export default function CommunityPage() {
   const { data: friendships = [], isLoading: friendshipsLoading } = useQuery({
     queryKey: QUERY_KEYS.friendships,
     queryFn: async () => {
-      const allFriendships = await base44.entities.Friendship.list();
-      return allFriendships.filter(f => 
-        f.requester_id === user.id || f.addressee_id === user.id
-      );
+      // Optimization: Fetch only relevant friendships instead of listing all
+      const [sent, received] = await Promise.all([
+        base44.entities.Friendship.filter({ requester_id: user.id }),
+        base44.entities.Friendship.filter({ addressee_id: user.id })
+      ]);
+      
+      // Combine and deduplicate by ID
+      const map = new Map();
+      sent.forEach(f => map.set(f.id, f));
+      received.forEach(f => map.set(f.id, f));
+      
+      return Array.from(map.values());
     },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
     enabled: !!user,
