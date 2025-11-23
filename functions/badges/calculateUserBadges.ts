@@ -33,60 +33,76 @@ Deno.serve(async (req) => {
     // Fetch user data
     const targetUser = await base44.asServiceRole.entities.User.get(targetUserId);
     
-    // Fetch all matches for this user
-    const allParticipations = await base44.asServiceRole.entities.MatchParticipant.filter({ 
+    // 1. Optimize: Only fetch user's participations first
+    const userParticipations = await base44.asServiceRole.entities.MatchParticipant.filter({ 
       user_id: targetUserId 
     });
-    const matchIds = allParticipations.map(p => p.match_id);
+    const matchIds = userParticipations.map(p => p.match_id);
     
     let allMatches = [];
     if (matchIds.length > 0) {
-      allMatches = await base44.asServiceRole.entities.Match.list();
-      allMatches = allMatches.filter(m => matchIds.includes(m.id));
+      // 2. Optimize: Fetch specific matches instead of list()
+      // Use batching to avoid too many parallel requests if list is long
+      if (matchIds.length < 50) {
+        const matchPromises = matchIds.map(id => base44.asServiceRole.entities.Match.get(id));
+        // Use Promise.allSettled to handle potential 404s for deleted matches
+        const results = await Promise.allSettled(matchPromises);
+        allMatches = results
+          .filter(r => r.status === 'fulfilled' && r.value)
+          .map(r => r.value);
+      } else {
+        // Fallback for heavy users: fetch all and filter (cache strategies on frontend help, but backend needs to be safe)
+        // Ideally we would have an $in operator, but assuming limited SDK features:
+        const fullList = await base44.asServiceRole.entities.Match.list();
+        allMatches = fullList.filter(m => matchIds.includes(m.id));
+      }
     }
 
-    // Fetch friendships
+    // Efficient filters for other entities
     const allFriendships = await base44.asServiceRole.entities.Friendship.filter({ 
       status: 'accepted' 
     });
     const userFriendships = allFriendships.filter(f => 
       f.requester_id === targetUserId || f.addressee_id === targetUserId
     );
-
-    // Fetch teams created by user
+    
     const teamsCreated = await base44.asServiceRole.entities.Team.filter({ 
       captain_id: targetUserId 
     });
 
-    // Fetch cup participations
     const cupParticipations = await base44.asServiceRole.entities.CupParticipant.filter({ 
       user_id: targetUserId,
       status: 'confirmed'
     });
 
-    // Fetch feedback posts
     const feedbackPosts = await base44.asServiceRole.entities.FeedbackPost.filter({ 
       author_id: targetUserId 
     });
 
-    // Calculate stats
+    // 3. Optimize: Unique Opponents (N+1 problem)
     const completedMatches = allMatches.filter(m => m.status === 'completed');
     const organizedMatches = allMatches.filter(m => m.organizer_id === targetUserId);
     
-    // Count unique venues
     const uniqueVenueIds = new Set(completedMatches.map(m => m.venue_id));
-    
-    // Count unique opponents
     const uniqueOpponentIds = new Set();
-    for (const match of completedMatches) {
-      const matchParticipants = await base44.asServiceRole.entities.MatchParticipant.filter({ 
-        match_id: match.id 
-      });
-      matchParticipants.forEach(p => {
-        if (p.user_id !== targetUserId) {
-          uniqueOpponentIds.add(p.user_id);
-        }
-      });
+
+    const completedMatchIds = completedMatches.map(m => m.id);
+    
+    if (completedMatchIds.length > 0) {
+      // Batch fetch participants
+      const batchSize = 10;
+      for (let i = 0; i < completedMatchIds.length; i += batchSize) {
+        const batch = completedMatchIds.slice(i, i + batchSize);
+        const batchPromises = batch.map(mid => 
+          base44.asServiceRole.entities.MatchParticipant.filter({ match_id: mid })
+        );
+        const batchResults = await Promise.all(batchPromises);
+        batchResults.flat().forEach(p => {
+          if (p.user_id !== targetUserId) {
+            uniqueOpponentIds.add(p.user_id);
+          }
+        });
+      }
     }
 
     // Count time-based matches
@@ -209,10 +225,8 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Error calculating badges:', error);
-    return Response.json({ 
-      error: error.message,
-      stack: error.stack 
-    }, { status: 500 });
+    console.error("Badge calculation error:", error);
+    // Return clean error to frontend
+    return Response.json({ error: "Kunde inte beräkna badges" }, { status: 500 });
   }
 });

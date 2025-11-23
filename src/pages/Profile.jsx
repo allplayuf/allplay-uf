@@ -561,7 +561,6 @@ export default function ProfilePage() {
                   <h1 className="text-3xl font-bold text-[#FFFFFF] mb-1 break-words">
                     {displayUser?.full_name}
                   </h1>
-                  {/* Test version message removed */}
                   <p className="text-[#FFFFFF]/90 text-base mb-4 break-words">
                     {displayUser?.bio || 'Spela. Tillsammans. ⚽'}
                   </p>

@@ -77,11 +77,13 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
-  // Fetch all participants with OPTIMIZED caching (REALTIME strategy)
+  // Fetch user participants with OPTIMIZED caching (REALTIME strategy)
   const { data: allParticipants = [], isLoading: participantsLoading } = useQuery({
     queryKey: QUERY_KEYS.participants,
     queryFn: async () => {
-      return await base44.entities.MatchParticipant.list();
+       // Performance optimization: Only fetch user's participations
+       if (!user) return [];
+       return await base44.entities.MatchParticipant.filter({ user_id: user.id });
     },
     ...CACHE_STRATEGIES.REALTIME,
     enabled: !!user,
@@ -718,7 +720,8 @@ export default function Dashboard() {
                 <div className="space-y-3">
                   {myUpcomingMatches.map((match, index) => {
                     const venue = venues.find(v => v.id === match.venue_id);
-                    const currentPlayersCount = (allParticipants || []).filter(p => p.match_id === match.id).length;
+                    // Optimization: Use match.current_players or fallback to 0 (since we don't fetch all participants anymore)
+                    const currentPlayersCount = match.current_players || 0;
                     return (
                       <motion.div
                         key={match.id}
@@ -788,7 +791,8 @@ export default function Dashboard() {
                 <div className="space-y-3">
                   {nearbyMatches.map((match, index) => {
                     const venue = match.venue;
-                    const currentPlayersCount = (allParticipants || []).filter(p => p.match_id === match.id).length;
+                    // Optimization: Use match.current_players
+                    const currentPlayersCount = match.current_players || 0;
                     return (
                       <motion.div
                         key={match.id}
@@ -858,7 +862,8 @@ export default function Dashboard() {
                 <div className="space-y-3">
                   {quickPlayMatches.slice(0, 3).map((match, index) => {
                     const venue = venues.find(v => v.id === match.venue_id);
-                    const currentPlayersCount = (allParticipants || []).filter(p => p.match_id === match.id).length;
+                    // Optimization: Use match.current_players
+                    const currentPlayersCount = match.current_players || 0;
                     return (
                       <motion.div
                         key={match.id}

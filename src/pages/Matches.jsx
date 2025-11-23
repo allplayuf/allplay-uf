@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -97,7 +96,8 @@ export default function MatchesPage() {
     queryKey: QUERY_KEYS.participants,
     queryFn: async () => {
       if (!user) return [];
-      const participants = await base44.entities.MatchParticipant.list();
+      // Optimization: Only fetch user's participations to avoid loading all DB records
+      const participants = await base44.entities.MatchParticipant.filter({ user_id: user.id });
       return participants;
     },
     ...CACHE_STRATEGIES.REALTIME,
