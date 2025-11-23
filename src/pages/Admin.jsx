@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Users, Flag, MapPin, BarChart, AlertTriangle, RefreshCw, Trophy, Sparkles, Bell } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { Shield, Users, Flag, MapPin, BarChart, AlertTriangle, RefreshCw, Trophy, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useCustomDialog } from "../components/ui/custom-dialog";
@@ -27,7 +26,6 @@ export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCleaningUp, setIsCleaningUp] = useState(false);
   const [isRemovingDuplicates, setIsRemovingDuplicates] = useState(false);
-  const [isSendingWelcome, setIsSendingWelcome] = useState(false);
 
   const { confirm, alert, DialogContainer } = useCustomDialog();
 
@@ -237,6 +235,7 @@ export default function AdminPage() {
 
     setIsRemovingDuplicates(true);
     try {
+      const { base44 } = await import("@/api/base44Client");
       const response = await base44.functions.invoke('removeDuplicateVenues', {});
       
       await alert(
@@ -252,36 +251,6 @@ export default function AdminPage() {
       await alert('Ett fel uppstod', 'Kunde inte ta bort dubbletter. Försök igen.', { type: 'alert' });
     } finally {
       setIsRemovingDuplicates(false);
-    }
-  };
-
-  const handleSendWelcomeNotification = async () => {
-    const shouldSend = await confirm(
-      'Skicka välkomst-notis',
-      'Är du säker? Detta skickar en avisering och ett mail till ALLA registrerade användare.',
-      {
-        type: 'warning',
-        confirmText: 'Ja, skicka till alla',
-        cancelText: 'Avbryt'
-      }
-    );
-
-    if (!shouldSend) return;
-
-    setIsSendingWelcome(true);
-    try {
-      const response = await base44.functions.invoke('admin/sendWelcomeNotification');
-      
-      await alert(
-        'Skickat!',
-        `Välkomstmeddelande skickat till ${response.data.count} användare.`,
-        { type: 'success' }
-      );
-    } catch (error) {
-      console.error("Error sending welcome notifications:", error);
-      await alert('Ett fel uppstod', 'Kunde inte skicka notiser.', { type: 'alert' });
-    } finally {
-      setIsSendingWelcome(false);
     }
   };
 
@@ -414,27 +383,6 @@ export default function AdminPage() {
                   Öppna cleanup
                 </Button>
               </Link>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-[#121715] border border-[#223029] hover:border-[#2BA84A] transition-all shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-2xl">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-[#2BA84A]/20 rounded-xl flex items-center justify-center ring-1 ring-[#2BA84A]/30">
-                  <Bell className="w-6 h-6 text-[#2BA84A]" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-[#F4F7F5]">Skicka välkomst</h3>
-                  <p className="text-xs text-[#B6C2BC]">Avisera alla användare</p>
-                </div>
-              </div>
-              <Button 
-                onClick={handleSendWelcomeNotification}
-                disabled={isSendingWelcome}
-                className="w-full bg-[#2BA84A] hover:bg-[#248232] text-white rounded-xl h-11 gap-2"
-              >
-                {isSendingWelcome ? 'Skickar...' : 'Skicka till alla'}
-              </Button>
             </CardContent>
           </Card>
         </div>

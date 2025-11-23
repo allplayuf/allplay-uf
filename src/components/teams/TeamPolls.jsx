@@ -40,11 +40,19 @@ export default function TeamPolls({ team, currentUser, isMember, isCaptainOrVice
     try {
       const pollOptions = validOptions.map(text => ({ text, votes: [] }));
       
-      // Use backend function to create poll and notify members
-      await base44.functions.invoke('teams/createPoll', {
-        teamId: team.id,
+      await TeamPoll.create({
+        team_id: team.id,
+        creator_id: currentUser.id,
         question: newPoll.question.trim(),
-        options: pollOptions
+        options: pollOptions,
+        status: 'active'
+      });
+
+      await TeamMessage.create({
+        team_id: team.id,
+        user_id: currentUser.id,
+        message_type: 'poll_created',
+        content: `📊 Ny omröstning: ${newPoll.question}`
       });
 
       setNewPoll({ question: '', options: ['', ''] });

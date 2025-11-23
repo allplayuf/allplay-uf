@@ -10,9 +10,8 @@ import { base44 } from "@/api/base44Client";
 import { RouteProgress } from "@/components/ui/route-progress";
 import { RouteGuard } from "@/components/ui/route-guard";
 import { OnboardingModal } from "@/components/ui/onboarding-modal";
-import NotificationBell from "@/components/notifications/NotificationBell";
 
-      const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Map = lazy(() => import("@/pages/Map"));
 const Matches = lazy(() => import("@/pages/Matches"));
 const Community = lazy(() => import("@/pages/Community"));
@@ -107,7 +106,7 @@ export default function Layout({ children, currentPageName }) {
         
         {/* Desktop Sidebar */}
         <aside className="hidden lg:flex w-64 bg-[#121715] border-r border-[#223029] flex-col">
-          <div className="p-6 border-b border-[#223029] flex justify-between items-center">
+          <div className="p-6 border-b border-[#223029]">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden bg-transparent">
                 <img 
@@ -120,9 +119,8 @@ export default function Layout({ children, currentPageName }) {
               <div>
                 <h2 className="font-semibold text-[#F4F7F5] text-[20px] leading-[28px]">AllPlay UF</h2>
               </div>
-              </div>
-              <NotificationBell />
-              </div>
+            </div>
+          </div>
           
           <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
             <div className="space-y-1">
@@ -197,8 +195,7 @@ export default function Layout({ children, currentPageName }) {
                 <h1 className="text-lg font-semibold text-[#F4F7F5]">AllPlay UF</h1>
               </div>
             </div>
-            <NotificationBell />
-            </header>
+          </header>
 
           {/* PREVIEW BANNER REMOVED */}
 

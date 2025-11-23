@@ -6,7 +6,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { requireAuth } from '../utils/authorization.js';
 import { sanitizeMatchData } from '../utils/sanitizer.js';
-import { createNotification } from '../utils/notificationService.js';
 
 Deno.serve(async (req) => {
   try {
@@ -64,30 +63,6 @@ Deno.serve(async (req) => {
       user_id: user.id,
       status: 'confirmed'
     });
-
-    // Notify Team Members if it's a team match
-    if (match.is_team_match && match.team_a_id) {
-      // Fetch team members of Team A (assuming organizer is in Team A)
-      const teamMembers = await base44.asServiceRole.entities.TeamMember.filter({ 
-        team_id: match.team_a_id, 
-        status: 'active' 
-      });
-
-      const notificationPromises = teamMembers
-        .filter(m => m.user_id !== user.id)
-        .map(m => createNotification(base44, {
-          userId: m.user_id,
-          type: 'team_activity',
-          title: 'Ny lagmatch',
-          message: `En ny lagmatch "${match.title}" har skapats för ditt lag.`,
-          link: `/match?id=${match.id}`,
-          metadata: { match_id: match.id, team_id: match.team_a_id },
-          sendMail: true
-        }));
-        
-      // Non-blocking notification sending
-      Promise.all(notificationPromises).catch(e => console.error("Failed to send team notifications", e));
-    }
     
     return Response.json({
       success: true,
