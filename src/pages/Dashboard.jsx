@@ -1015,13 +1015,59 @@ export default function Dashboard() {
               className="absolute inset-0"
               animate={{
                 background: [
-                  'radial-gradient(circle at 20% 50%, rgba(43,168,74,0.3) 0%, transparent 50%)',
-                  'radial-gradient(circle at 80% 50%, rgba(43,168,74,0.3) 0%, transparent 50%)',
-                  'radial-gradient(circle at 20% 50%, rgba(43,168,74,0.3) 0%, transparent 50%)',
+                  'linear-gradient(135deg, #2BA84A 0%, #0F2917 100%)',
+                  'linear-gradient(135deg, #248232 0%, #1A5C2E 100%)',
+                  'linear-gradient(135deg, #2BA84A 0%, #0F2917 100%)',
                 ]
               }}
-              transition={{ duration: 8, repeat: Infinity }}
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
             />
+
+            {/* GREEN RINGS */}
+            <div className="absolute top-[-30px] right-[-30px] w-28 h-28 bg-[#2BA84A]/40 rounded-full opacity-50"></div>
+            <div className="absolute bottom-[-40px] left-[-40px] w-32 h-32 bg-[#0F2917]/60 rounded-full opacity-50"></div>
+
+            {/* Animated Orbs */}
+            <motion.div
+              className="absolute top-[-100px] right-[-100px] w-64 h-64 rounded-full"
+              style={{ background: 'radial-gradient(circle, rgba(43,168,74,0.4) 0%, transparent 70%)' }}
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.3, 0.5, 0.3],
+              }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+              className="absolute bottom-[-80px] left-[-80px] w-48 h-48 rounded-full"
+              style={{ background: 'radial-gradient(circle, rgba(15,41,23,0.6) 0%, transparent 70%)' }}
+              animate={{
+                scale: [1, 1.3, 1],
+                opacity: [0.4, 0.6, 0.4],
+              }}
+              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            />
+
+            {/* Floating Particles */}
+            {[...Array(6)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-2 h-2 bg-white/20 rounded-full"
+                style={{
+                  left: `${20 + i * 15}%`,
+                  top: `${30 + (i % 3) * 20}%`,
+                }}
+                animate={{
+                  y: [0, -30, 0],
+                  opacity: [0.2, 0.5, 0.2],
+                }}
+                transition={{
+                  duration: 3 + i * 0.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: i * 0.3,
+                }}
+              />
+            ))}
             <div className="relative flex flex-col lg:flex-row items-center justify-between gap-6">
               <div className="flex-1 text-center lg:text-left">
                 <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2">
