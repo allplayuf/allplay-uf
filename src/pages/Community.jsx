@@ -9,6 +9,7 @@ import { Users, MessageSquare, UserPlus, Trophy, Plus, Search, Target, TrendingU
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/components/utils/helpers";
+import { resolveImageUrl } from "@/components/utils/imageUtils";
 import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import { NoPlayersFound, NoTeamsFound } from "../components/ui/empty-state";
@@ -457,8 +458,8 @@ export default function CommunityPage() {
                   <div className="absolute inset-0 bg-white/30 rounded-2xl blur-xl"></div>
                   <div className="relative w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border-2 border-white/40 shadow-2xl overflow-hidden">
                     {user?.profile_image_url ? (
-                      <img src={user.profile_image_url} alt="Profile" className="w-full h-full object-cover" loading="lazy" />
-                    ) : (
+                        <img src={resolveImageUrl(user.profile_image_url)} alt="Profile" className="w-full h-full object-cover" loading="lazy" />
+                      ) : (
                       <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-white drop-shadow-lg">
                         {user?.full_name?.[0] || 'U'}
                       </span>

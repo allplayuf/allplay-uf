@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Users, Trophy, Plus, ChevronRight, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
+import { createPageUrl } from "@/components/utils/helpers";
 import { motion } from "framer-motion";
+import { resolveImageUrl } from "@/components/utils/imageUtils";
 import RankBadge from "../teams/RankBadge";
 
 export default function TeamsList({ teams, user, onRefresh }) {
@@ -64,7 +65,7 @@ export default function TeamsList({ teams, user, onRefresh }) {
                 <div className="flex items-center gap-4">
                   <div className={`w-14 h-14 bg-gradient-to-br ${teamStyle.gradient} rounded-2xl flex items-center justify-center overflow-hidden shadow-lg`}>
                     {team.logo_url ? (
-                      <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
+                      <img src={resolveImageUrl(team.logo_url)} alt={team.name} className="w-full h-full object-cover" />
                     ) : (
                       <Shield className="w-7 h-7 text-[#FFFFFF]" />
                     )}

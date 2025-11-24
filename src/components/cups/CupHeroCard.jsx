@@ -94,7 +94,7 @@ export default function CupHeroCard({ cup, statusConfig, confirmedCount }) {
             <div className="absolute inset-0 bg-white/30 rounded-3xl blur-xl"></div>
             <div className="relative w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center border-2 border-white/40 shadow-2xl overflow-hidden">
               {cup.logo_url ? (
-                <img src={cup.logo_url} alt={cup.name} className="w-full h-full object-cover" loading="lazy" />
+                <img src={resolveImageUrl(cup.logo_url)} alt={cup.name} className="w-full h-full object-cover" loading="lazy" />
               ) : (
                 <Trophy className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 text-white" strokeWidth={2} />
               )}
