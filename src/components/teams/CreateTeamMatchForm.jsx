@@ -6,8 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar, MapPin, Users, Trophy, X, Info, Shield, Swords } from "lucide-react";
-import { Venue } from "@/entities/Venue";
-import { Team } from "@/entities/Team";
+import { base44 } from "@/api/base44Client";
 
 export default function CreateTeamMatchForm({ currentTeam, onSubmit, onCancel }) {
   const [venues, setVenues] = useState([]);
@@ -31,8 +30,8 @@ export default function CreateTeamMatchForm({ currentTeam, onSubmit, onCancel })
   const loadData = async () => {
     try {
       const [venuesData, teamsData] = await Promise.all([
-        Venue.list(),
-        Team.list()
+        base44.entities.Venue.list(),
+        base44.entities.Team.list()
       ]);
       
       setVenues(venuesData);
