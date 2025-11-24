@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send, Trophy, Image as ImageIcon, BarChart } from "lucide-react";
-import { TeamMessage } from "@/entities/TeamMessage";
-import { User } from "@/entities/User";
+import { base44 } from "@/api/base44Client";
 
 export default function TeamChat({ team, currentUser, isMember }) {
   const [messages, setMessages] = useState([]);
@@ -29,12 +28,12 @@ export default function TeamChat({ team, currentUser, isMember }) {
 
   const loadMessages = async () => {
     try {
-      const msgs = await TeamMessage.filter({ team_id: team.id }, '-created_date', 50);
+      const msgs = await base44.entities.TeamMessage.filter({ team_id: team.id }, '-created_date', 50);
       
       // Load user data for each message
       const msgsWithUsers = await Promise.all(
         msgs.map(async (msg) => {
-          const userData = await User.get(msg.user_id);
+          const userData = await base44.entities.User.get(msg.user_id);
           return { ...msg, user: userData };
         })
       );
@@ -52,7 +51,7 @@ export default function TeamChat({ team, currentUser, isMember }) {
     if (!newMessage.trim()) return;
 
     try {
-      await TeamMessage.create({
+      await base44.entities.TeamMessage.create({
         team_id: team.id,
         user_id: currentUser.id,
         message_type: 'text',
