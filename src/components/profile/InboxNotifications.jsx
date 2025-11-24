@@ -14,7 +14,7 @@ import {
   Inbox
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
+import { createPageUrl } from "@/components/utils/helpers";
 import { base44 } from "@/api/base44Client";
 
 export default function InboxNotifications({ 
