@@ -24,7 +24,7 @@ import {
   CheckCircle,
   Clock
 } from "lucide-react";
-import { createPageUrl } from "@/utils";
+import { createPageUrl } from "@/components/utils/helpers";
 import { Link, useLocation } from "react-router-dom";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import { ProfileSkeleton } from "../components/ui/loading-skeleton";

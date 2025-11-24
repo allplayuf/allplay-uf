@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, MapPin, Calendar, Users, ArrowRight, Sparkles, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+import { createPageUrl } from '@/components/utils/helpers';
 import { motion } from 'framer-motion';
 
 // Shared query key for cups across platform

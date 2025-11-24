@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Users, MessageSquare, UserPlus, Trophy, Plus, Search, Target, TrendingUp, Flame, Heart, Sparkles, ArrowUpRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
-import { createPageUrl } from "@/utils";
+import { createPageUrl } from "@/components/utils/helpers";
 import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import { NoPlayersFound, NoTeamsFound } from "../components/ui/empty-state";

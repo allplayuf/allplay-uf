@@ -20,7 +20,7 @@ import {
   Shield,
   Crown
 } from "lucide-react";
-import { createPageUrl } from "@/utils";
+import { createPageUrl } from "@/components/utils/helpers";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import MatchEndModal from "../components/matches/MatchEndModal";
 import InviteFriendsModal from "../components/matches/InviteFriendsModal";
