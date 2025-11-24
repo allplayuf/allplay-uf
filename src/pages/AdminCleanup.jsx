@@ -7,7 +7,7 @@ import { AlertTriangle, Trash2, RefreshCw, CheckCircle, XCircle } from "lucide-r
 import { motion } from "framer-motion";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import { Link, useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/utils";
+import { createPageUrl } from "@/components/utils/helpers";
 
 export default function AdminCleanupPage() {
   const [loading, setLoading] = useState(false);
