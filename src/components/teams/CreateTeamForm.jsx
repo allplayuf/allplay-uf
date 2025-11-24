@@ -43,7 +43,9 @@ export default function CreateTeamForm({ user, onSubmit, onCancel }) {
     setIsUploading(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setFormData(prev => ({ ...prev, logo_url: file_url }));
+      // Save only filename
+      const filename = file_url.split('/').pop();
+      setFormData(prev => ({ ...prev, logo_url: filename }));
       setLogoPreview(URL.createObjectURL(file));
     } catch (error) {
       console.error("Error uploading logo:", error);

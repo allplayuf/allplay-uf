@@ -221,7 +221,9 @@ export default function ProfilePage() {
 
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      await base44.auth.updateMe({ profile_image_url: file_url });
+      // Extract filename and save only that
+      const filename = file_url.split('/').pop();
+      await base44.auth.updateMe({ profile_image_url: filename });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.user });
     } catch (error) {
       console.error("Error uploading profile image:", error);

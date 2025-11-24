@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -68,7 +67,9 @@ export default function EditCupModal({ cup, onClose }) {
     setUploadingLogo(true);
     try {
       const uploadResult = await base44.integrations.Core.UploadFile({ file });
-      setFormData(prev => ({ ...prev, logo_url: uploadResult.file_url }));
+      // Save only filename
+      const filename = uploadResult.file_url.split('/').pop();
+      setFormData(prev => ({ ...prev, logo_url: filename }));
     } catch (error) {
       console.error('Error uploading logo:', error);
       alert('Uppladdning misslyckades', 'Kunde inte ladda upp loggan.', { type: 'alert' });
