@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Image as ImageIcon } from 'lucide-react';
 
 /**
  * OptimizedImage component with lazy loading, blur placeholder, and WebP support
@@ -47,6 +48,17 @@ export function OptimizedImage({
 
   const displaySrc = hasError ? fallbackSrc : src;
   const srcSet = generateSrcSet(src);
+
+  if (hasError) {
+    return (
+      <div 
+        className={`flex items-center justify-center bg-[#18221E] border border-[#223029] ${className}`} 
+        style={{ width, height }}
+      >
+        <ImageIcon className="w-1/2 h-1/2 text-[#2BA84A] opacity-40" />
+      </div>
+    );
+  }
 
   return (
     <div className={`relative overflow-hidden ${className}`} style={{ width, height }}>
