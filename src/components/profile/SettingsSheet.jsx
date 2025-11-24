@@ -1,8 +1,8 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { createPageUrl } from "@/components/utils/helpers";
-import { base44 } from "@/api/base44Client";
+import { createPageUrl } from "@/utils";
+import { User } from "@/entities/User";
 import { Edit, QrCode, X } from "lucide-react";
 
 export default function SettingsSheet({ onClose, onShowQR }) {
@@ -59,7 +59,8 @@ export default function SettingsSheet({ onClose, onShowQR }) {
             <button 
               onClick={async () => {
                 if (confirm('Vill du logga ut?')) {
-                  await base44.auth.logout();
+                  await User.logout();
+                  window.location.reload();
                 }
               }}
               className="w-full h-14 px-4 flex items-center justify-between text-[#F4743B] bg-[#18221E] rounded-xl border border-[#223029] hover:border-[#F4743B] transition-all duration-150"

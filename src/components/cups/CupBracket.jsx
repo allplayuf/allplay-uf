@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Trophy, Award } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { createPageUrl } from "@/components/utils/helpers";
+import { createPageUrl } from "@/utils";
 
 export default function CupBracket({ cup, brackets, matches }) {
   if (!brackets || brackets.length === 0) {

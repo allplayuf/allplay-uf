@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Plus, BarChart, Check, X } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { TeamPoll } from "@/entities/TeamPoll";
+import { TeamMessage } from "@/entities/TeamMessage";
 
 export default function TeamPolls({ team, currentUser, isMember, isCaptainOrVice }) {
   const [polls, setPolls] = useState([]);
@@ -20,7 +21,7 @@ export default function TeamPolls({ team, currentUser, isMember, isCaptainOrVice
 
   const loadPolls = async () => {
     try {
-      const pollData = await base44.entities.TeamPoll.filter({ team_id: team.id }, '-created_date', 10);
+      const pollData = await TeamPoll.filter({ team_id: team.id }, '-created_date', 10);
       setPolls(pollData);
     } catch (error) {
       console.error('Error loading polls:', error);
@@ -39,7 +40,7 @@ export default function TeamPolls({ team, currentUser, isMember, isCaptainOrVice
     try {
       const pollOptions = validOptions.map(text => ({ text, votes: [] }));
       
-      await base44.entities.TeamPoll.create({
+      await TeamPoll.create({
         team_id: team.id,
         creator_id: currentUser.id,
         question: newPoll.question.trim(),
@@ -47,7 +48,7 @@ export default function TeamPolls({ team, currentUser, isMember, isCaptainOrVice
         status: 'active'
       });
 
-      await base44.entities.TeamMessage.create({
+      await TeamMessage.create({
         team_id: team.id,
         user_id: currentUser.id,
         message_type: 'poll_created',
@@ -79,7 +80,7 @@ export default function TeamPolls({ team, currentUser, isMember, isCaptainOrVice
         }
       });
 
-      await base44.entities.TeamPoll.update(pollId, { options: updatedOptions });
+      await TeamPoll.update(pollId, { options: updatedOptions });
       loadPolls();
     } catch (error) {
       console.error('Error voting:', error);
@@ -89,7 +90,7 @@ export default function TeamPolls({ team, currentUser, isMember, isCaptainOrVice
 
   const handleClosePoll = async (pollId) => {
     try {
-      await base44.entities.TeamPoll.update(pollId, { status: 'closed' });
+      await TeamPoll.update(pollId, { status: 'closed' });
       loadPolls();
     } catch (error) {
       console.error('Error closing poll:', error);

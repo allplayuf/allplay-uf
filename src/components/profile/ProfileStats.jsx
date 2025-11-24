@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Trophy, Target, Flame, Calendar, Star, Award, Shield, Crown, Gem, TrendingUp } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { User } from "@/entities/User";
 
 const skillLevelConfig = {
   beginner: {
@@ -46,7 +47,7 @@ export default function ProfileStats({ user, isOwnProfile = true }) {
 
   const handleSkillUpdate = async () => {
     try {
-      await base44.auth.updateMe({ skill_level: selectedSkill });
+      await User.updateMyUserData({ skill_level: selectedSkill });
       setIsEditingSkill(false);
       window.location.reload();
     } catch (error) {

@@ -3,7 +3,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
-import { resolveImageUrl } from "@/components/utils/imageUtils";
 import { 
   User, 
   MessageCircle, 
@@ -70,7 +69,7 @@ export default function FriendsList({ friends, user, onRefresh }) {
                 <div className="flex items-center gap-4 mb-6">
                   <div className="w-14 h-14 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center flex-shrink-0">
                     {friend.profile_image_url ? 
-                      <img src={resolveImageUrl(friend.profile_image_url)} alt={friend.full_name} className="w-full h-full object-cover rounded-2xl" /> :
+                      <img src={friend.profile_image_url} alt={friend.full_name} className="w-full h-full object-cover rounded-2xl" /> :
                       <span className="text-[#EAF6EE] font-semibold text-xl">
                         {friend.full_name?.[0] || 'U'}
                       </span>

@@ -20,9 +20,8 @@ import {
   Shield,
   Crown
 } from "lucide-react";
-import { createPageUrl } from "@/components/utils/helpers";
+import { createPageUrl } from "@/utils";
 import { useCustomDialog } from "../components/ui/custom-dialog";
-import { resolveImageUrl } from "@/components/utils/imageUtils";
 import MatchEndModal from "../components/matches/MatchEndModal";
 import InviteFriendsModal from "../components/matches/InviteFriendsModal";
 import MatchReportModal from "../components/matches/MatchReportModal"; // Added import
@@ -648,7 +647,7 @@ export default function MatchDetailPage() {
                           <div className="flex items-center gap-3">
                             <div className="w-12 h-12 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
                               {participant.profile_image_url ? (
-                                <img src={resolveImageUrl(participant.profile_image_url)} alt={participant.full_name} className="w-full h-full object-cover rounded-xl" />
+                                <img src={participant.profile_image_url} alt={participant.full_name} className="w-full h-full object-cover rounded-xl" />
                               ) : (
                                 <span className="text-[#FFFFFF] font-semibold text-lg">{participant.full_name?.[0] || 'U'}</span>
                               )}

@@ -20,8 +20,7 @@ import {
   Swords,
   Calendar
 } from "lucide-react";
-import { createPageUrl } from "@/components/utils/helpers";
-import { resolveImageUrl } from "@/components/utils/imageUtils";
+import { createPageUrl } from "@/utils";
 
 import TeamChat from "../components/teams/TeamChat";
 import TeamPolls from "../components/teams/TeamPolls";
@@ -269,7 +268,7 @@ export default function TeamOverviewPage() {
                   <div className="w-24 h-24 bg-[#FFFFFF]/15 backdrop-blur-md rounded-2xl flex items-center justify-center overflow-hidden ring-2 ring-[#FFFFFF]/30">
                     {team.logo_url ? (
                       <img
-                        src={resolveImageUrl(team.logo_url)}
+                        src={team.logo_url}
                         alt={team.name}
                         className="w-full h-full object-cover"
                       />
@@ -446,7 +445,7 @@ export default function TeamOverviewPage() {
                             <div className="flex items-center gap-3 mb-4">
                               <div className="w-14 h-14 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0">
                                 {member.profile_image_url ? (
-                                  <img src={resolveImageUrl(member.profile_image_url)} alt={member.full_name} className="w-full h-full object-cover rounded-xl" />
+                                  <img src={member.profile_image_url} alt={member.full_name} className="w-full h-full object-cover rounded-xl" />
                                 ) : (
                                   <span className="text-[#FFFFFF] font-semibold text-lg">{member.full_name?.[0]}</span>
                                 )}

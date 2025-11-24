@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Users, Clock, XCircle, ChevronRight, Zap, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { createPageUrl } from "@/components/utils/helpers";
+import { createPageUrl } from "@/utils";
 import { MatchParticipant } from "@/entities/MatchParticipant";
 import { Match } from "@/entities/Match";
 import { format } from "date-fns";

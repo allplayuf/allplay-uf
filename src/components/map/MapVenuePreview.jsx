@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Star, Calendar, Users, Navigation, ChevronRight, Plus, Trophy, Zap, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/components/utils/helpers';
+import { createPageUrl } from '@/utils';
 
 export default function MapVenuePreview({ venue, matches = [], allParticipants = [], userMatchIds = [], onClose, onShowDetails, onMatchClick }) {
   if (!venue) return null;

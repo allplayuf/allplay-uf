@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -11,7 +12,6 @@ import { X, Trophy, Save, Upload, ImageIcon, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
 import { useCustomDialog } from "../ui/custom-dialog";
 import { CUPS_QUERY_KEY } from "../dashboard/CupsWidget";
-import { resolveImageUrl } from "@/components/utils/imageUtils";
 
 export default function EditCupModal({ cup, onClose }) {
   const { alert, DialogContainer } = useCustomDialog();
@@ -35,7 +35,7 @@ export default function EditCupModal({ cup, onClose }) {
     is_public: cup.is_public !== false,
   });
 
-  const [logoPreview, setLogoPreview] = useState(resolveImageUrl(cup.logo_url) || '');
+  const [logoPreview, setLogoPreview] = useState(cup.logo_url || '');
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
   // Fetch venues
@@ -68,9 +68,7 @@ export default function EditCupModal({ cup, onClose }) {
     setUploadingLogo(true);
     try {
       const uploadResult = await base44.integrations.Core.UploadFile({ file });
-      // Save only filename
-      const filename = uploadResult.file_url.split('/').pop();
-      setFormData(prev => ({ ...prev, logo_url: filename }));
+      setFormData(prev => ({ ...prev, logo_url: uploadResult.file_url }));
     } catch (error) {
       console.error('Error uploading logo:', error);
       alert('Uppladdning misslyckades', 'Kunde inte ladda upp loggan.', { type: 'alert' });

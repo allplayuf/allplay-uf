@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { createPageUrl } from "@/components/utils/helpers";
+import { createPageUrl } from "@/utils";
 import { MapPin, Calendar, Users, Trophy, User, Shield, AlertCircle } from "lucide-react";
 import { Toaster } from "sonner";
 import { QueryProvider, queryClient } from "@/components/providers/QueryProvider";
@@ -10,7 +10,6 @@ import { base44 } from "@/api/base44Client";
 import { RouteProgress } from "@/components/ui/route-progress";
 import { RouteGuard } from "@/components/ui/route-guard";
 import { OnboardingModal } from "@/components/ui/onboarding-modal";
-import { resolveImageUrl } from "@/components/utils/imageUtils";
 
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Map = lazy(() => import("@/pages/Map"));
@@ -56,7 +55,6 @@ export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminCheckDone, setAdminCheckDone] = useState(false);
-  const [logoError, setLogoError] = useState(false);
   const mainContentRef = React.useRef(null);
 
   useEffect(() => {
@@ -111,19 +109,12 @@ export default function Layout({ children, currentPageName }) {
           <div className="p-6 border-b border-[#223029]">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden bg-transparent">
-                {logoError ? (
-                  <div className="w-full h-full bg-gradient-to-br from-[#2BA84A] to-[#248232] flex items-center justify-center">
-                    <Trophy className="w-6 h-6 text-white" />
-                  </div>
-                ) : (
-                  <img 
-                    src={resolveImageUrl("31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png")} 
-                    alt="AllPlay UF Logo" 
-                    className="w-full h-full object-contain"
-                    loading="eager"
-                    onError={() => setLogoError(true)}
-                  />
-                )}
+                <img 
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png" 
+                  alt="AllPlay UF Logo" 
+                  className="w-full h-full object-contain"
+                  loading="eager"
+                />
               </div>
               <div>
                 <h2 className="font-semibold text-[#F4F7F5] text-[20px] leading-[28px]">AllPlay UF</h2>
@@ -193,19 +184,12 @@ export default function Layout({ children, currentPageName }) {
           <header className="lg:hidden sticky top-0 z-40 bg-[#121715] border-b border-[#223029] px-4 py-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-transparent">
-                {logoError ? (
-                  <div className="w-full h-full bg-gradient-to-br from-[#2BA84A] to-[#248232] flex items-center justify-center">
-                    <Trophy className="w-5 h-5 text-white" />
-                  </div>
-                ) : (
-                  <img 
-                    src={resolveImageUrl("31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png")} 
-                    alt="AllPlay UF Logo" 
-                    className="w-full h-full object-contain"
-                    loading="eager"
-                    onError={() => setLogoError(true)}
-                  />
-                )}
+                <img 
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png" 
+                  alt="AllPlay UF Logo" 
+                  className="w-full h-full object-contain"
+                  loading="eager"
+                />
               </div>
               <div>
                 <h1 className="text-lg font-semibold text-[#F4F7F5]">AllPlay UF</h1>

@@ -4,9 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search, MapPin, UserPlus, CheckCircle, Clock, Target, TrendingUp, Shield, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
-import { createPageUrl } from "@/components/utils/helpers";
+import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
-import { resolveImageUrl } from "@/components/utils/imageUtils";
 
 const SKILL_LEVEL_CONFIG = {
   beginner: { label: 'Nybörjare', icon: Target, color: 'bg-[#10B981]/20 text-[#A7F3D0]' },
@@ -94,7 +93,7 @@ export default function FindPlayers({ allUsers = [], friendships = [], currentUs
                       <div className="w-12 h-12 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0">
                         {player.profile_image_url ? (
                           <img 
-                            src={resolveImageUrl(player.profile_image_url)} 
+                            src={player.profile_image_url} 
                             alt={player.full_name} 
                             className="w-full h-full object-cover rounded-xl" 
                             loading="lazy" 

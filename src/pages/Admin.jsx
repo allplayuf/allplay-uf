@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { User, Report, Venue, Match, Team } from "@/entities/User";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, Users, Flag, MapPin, BarChart, AlertTriangle, RefreshCw, Trophy, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
-import { createPageUrl } from "@/components/utils/helpers";
+import { createPageUrl } from "@/utils";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 
 import ModerationQueue from "../components/admin/ModerationQueue";
@@ -35,7 +35,7 @@ export default function AdminPage() {
 
   const loadAdminData = async () => {
     try {
-      const user = await base44.auth.me();
+      const user = await User.me();
       
       if (user.role !== 'admin') {
         await alert('Behörighet saknas', 'Du har inte behörighet att se denna sida.', { type: 'alert' });
@@ -44,11 +44,11 @@ export default function AdminPage() {
       }
 
       const [reportsData, usersData, venuesData, matchesData, teamsData] = await Promise.all([
-        base44.entities.Report.list('-created_date'),
-        base44.entities.User.list('-created_date'),
-        base44.entities.Venue.list(),
-        base44.entities.Match.list('-created_date'),
-        base44.entities.Team.list('-created_date')
+        Report.list('-created_date'),
+        User.list('-created_date'),
+        Venue.list(),
+        Match.list('-created_date'),
+        Team.list('-created_date')
       ]);
 
       setReports(reportsData);
@@ -69,7 +69,7 @@ export default function AdminPage() {
 
   const handleReportAction = async (reportId, action, notes) => {
     try {
-      await base44.entities.Report.update(reportId, {
+      await Report.update(reportId, {
         status: action === 'resolve' ? 'resolved' : 'dismissed',
         moderator_notes: notes,
         resolved_date: new Date().toISOString(),
@@ -101,7 +101,7 @@ export default function AdminPage() {
         blocked = false;
       }
 
-      await base44.entities.User.update(userId, { status, blocked });
+      await User.update(userId, { status, blocked });
       loadAdminData();
       await alert('Uppdaterat!', 'Användarstatus uppdaterad!', { type: 'success' });
     } catch (error) {
@@ -124,7 +124,7 @@ export default function AdminPage() {
     if (!shouldDelete) return;
 
     try {
-      await base44.entities.Match.update(matchId, {
+      await Match.update(matchId, {
         status: 'cancelled',
         deleted_at: new Date().toISOString(),
         deleted_by: currentUser.id
@@ -163,7 +163,7 @@ export default function AdminPage() {
     if (!shouldDelete) return;
 
     try {
-      await base44.entities.Team.update(teamId, {
+      await Team.update(teamId, {
         is_active: false,
         deleted_at: new Date().toISOString(),
         deleted_by: currentUser.id

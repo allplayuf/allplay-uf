@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { createPageUrl } from "@/components/utils/helpers";
+import { createPageUrl } from "@/utils";
 import { PageLoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import { CUPS_QUERY_KEY } from "../components/dashboard/CupsWidget";

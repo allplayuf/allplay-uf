@@ -5,7 +5,7 @@ import { Calendar, MapPin, Trophy, Users, Clock, ChevronRight } from "lucide-rea
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { Link } from "react-router-dom";
-import { createPageUrl } from "@/components/utils/helpers";
+import { createPageUrl } from "@/utils";
 
 export default function MatchHistory({ matches }) {
   const formatMatchDate = (match) => {

@@ -6,7 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Swords, Calendar, Clock, MapPin, Check, X } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { Team } from "@/entities/Team";
+import { TeamChallenge } from "@/entities/TeamChallenge";
+import { Venue } from "@/entities/Venue";
+import { Match } from "@/entities/Match";
 
 export default function TeamChallenges({ team, currentUser, isCaptainOrVice }) {
   const [challenges, setChallenges] = useState([]);
@@ -30,15 +33,15 @@ export default function TeamChallenges({ team, currentUser, isCaptainOrVice }) {
 
   const loadChallenges = async () => {
     try {
-      const sent = await base44.entities.TeamChallenge.filter({ challenger_team_id: team.id }, '-created_date');
-      const received = await base44.entities.TeamChallenge.filter({ challenged_team_id: team.id }, '-created_date');
+      const sent = await TeamChallenge.filter({ challenger_team_id: team.id }, '-created_date');
+      const received = await TeamChallenge.filter({ challenged_team_id: team.id }, '-created_date');
       
       const allChallenges = [...sent, ...received];
       
       const challengesWithTeams = await Promise.all(
         allChallenges.map(async (c) => {
-          const challengerTeam = await base44.entities.Team.get(c.challenger_team_id);
-          const challengedTeam = await base44.entities.Team.get(c.challenged_team_id);
+          const challengerTeam = await Team.get(c.challenger_team_id);
+          const challengedTeam = await Team.get(c.challenged_team_id);
           return { ...c, challengerTeam, challengedTeam };
         })
       );
@@ -51,7 +54,7 @@ export default function TeamChallenges({ team, currentUser, isCaptainOrVice }) {
 
   const loadTeams = async () => {
     try {
-      const allTeams = await base44.entities.Team.list();
+      const allTeams = await Team.list();
       const otherTeams = allTeams.filter(t => t.id !== team.id);
       setTeams(otherTeams);
     } catch (error) {
@@ -61,7 +64,7 @@ export default function TeamChallenges({ team, currentUser, isCaptainOrVice }) {
 
   const loadVenues = async () => {
     try {
-      const venueData = await base44.entities.Venue.list();
+      const venueData = await Venue.list();
       setVenues(venueData);
     } catch (error) {
       console.error('Error loading venues:', error);
@@ -77,7 +80,7 @@ export default function TeamChallenges({ team, currentUser, isCaptainOrVice }) {
     }
 
     try {
-      await base44.entities.TeamChallenge.create({
+      await TeamChallenge.create({
         challenger_team_id: team.id,
         challenged_team_id: newChallenge.challenged_team_id,
         proposed_date: newChallenge.proposed_date || null,
@@ -111,7 +114,7 @@ export default function TeamChallenges({ team, currentUser, isCaptainOrVice }) {
       if (!challenge) return;
 
       // Create match
-      const match = await base44.entities.Match.create({
+      const match = await Match.create({
         title: `${challenge.challengerTeam.name} vs ${challenge.challengedTeam.name}`,
         venue_id: challenge.venue_id,
         organizer_id: currentUser.id,
@@ -127,7 +130,7 @@ export default function TeamChallenges({ team, currentUser, isCaptainOrVice }) {
         team_b_id: challenge.challenged_team_id
       });
 
-      await base44.entities.TeamChallenge.update(challengeId, {
+      await TeamChallenge.update(challengeId, {
         status: 'accepted',
         match_id: match.id,
         responded_at: new Date().toISOString()
@@ -143,7 +146,7 @@ export default function TeamChallenges({ team, currentUser, isCaptainOrVice }) {
 
   const handleDeclineChallenge = async (challengeId) => {
     try {
-      await base44.entities.TeamChallenge.update(challengeId, {
+      await TeamChallenge.update(challengeId, {
         status: 'declined',
         responded_at: new Date().toISOString()
       });

@@ -18,7 +18,7 @@ import {
   List,
   Keyboard
 } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { Venue } from "@/entities/Venue";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -144,7 +144,7 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
 
   const handleCreateVenue = useCallback(async (venueData) => {
     try {
-      await base44.entities.Venue.create({
+      await Venue.create({
         ...venueData,
         latitude: pendingPosition.lat,
         longitude: pendingPosition.lng,
@@ -170,7 +170,7 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
 
   const handlePositionChange = async (venueId, lat, lng) => {
     try {
-      await base44.entities.Venue.update(venueId, {
+      await Venue.update(venueId, {
         latitude: lat,
         longitude: lng
       });
@@ -189,10 +189,10 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
   const handleSaveVenue = async (venueData) => {
     try {
       if (editingVenue && editingVenue.id) {
-        await base44.entities.Venue.update(editingVenue.id, venueData);
+        await Venue.update(editingVenue.id, venueData);
         alert('Plan uppdaterad!');
       } else {
-        await base44.entities.Venue.create(venueData);
+        await Venue.create(venueData);
         alert('Plan tillagd!');
       }
       
@@ -210,7 +210,7 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
     if (!confirm('Är du säker på att du vill ta bort denna plan?')) return;
     
     try {
-      await base44.entities.Venue.delete(venueId);
+      await Venue.delete(venueId);
       setVenues(venues.filter(v => v.id !== venueId));
       alert('Plan borttagen!');
     } catch (error) {

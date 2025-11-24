@@ -3,10 +3,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Clock, Users, Trophy, Target, ChevronRight, Shield, Zap, TrendingUp, Crown, Flame } from "lucide-react";
 import { Link } from "react-router-dom";
-import { createPageUrl } from "@/components/utils/helpers";
+import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
-import { resolveImageUrl } from "@/components/utils/imageUtils";
 
 const SKILL_LEVEL_CONFIG = {
   beginner: { label: 'Nybörjare', icon: Target },
@@ -210,7 +209,7 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
                           title={participant?.full_name || 'User'}
                         >
                           {participant?.profile_image_url ? (
-                            <img src={resolveImageUrl(participant.profile_image_url)} alt={participant.full_name || 'User'} className="w-full h-full object-cover" />
+                            <img src={participant.profile_image_url} alt={participant.full_name || 'User'} className="w-full h-full object-cover" />
                           ) : (
                             <span className="text-xs font-semibold text-white">{participant?.full_name?.[0] || '?'}</span>
                           )}

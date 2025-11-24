@@ -8,7 +8,6 @@ import { Switch } from "@/components/ui/switch";
 import { Shield, X, Upload, Image as ImageIcon, Info, Palette, Check } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import { resolveImageUrl } from "@/components/utils/imageUtils";
 
 export default function CreateTeamForm({ user, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
@@ -44,9 +43,7 @@ export default function CreateTeamForm({ user, onSubmit, onCancel }) {
     setIsUploading(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      // Save only filename
-      const filename = file_url.split('/').pop();
-      setFormData(prev => ({ ...prev, logo_url: filename }));
+      setFormData(prev => ({ ...prev, logo_url: file_url }));
       setLogoPreview(URL.createObjectURL(file));
     } catch (error) {
       console.error("Error uploading logo:", error);
@@ -131,7 +128,7 @@ export default function CreateTeamForm({ user, onSubmit, onCancel }) {
                 <div className="w-24 h-24 bg-[#18221E] border-2 border-[#223029] rounded-xl flex items-center justify-center overflow-hidden">
                   {logoPreview || formData.logo_url ? (
                     <img 
-                      src={logoPreview || resolveImageUrl(formData.logo_url)} 
+                      src={logoPreview || formData.logo_url} 
                       alt="Team Logo" 
                       className="w-full h-full object-cover"
                     />

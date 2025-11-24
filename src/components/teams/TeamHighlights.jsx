@@ -5,7 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Heart, Upload, X, Image as ImageIcon } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { TeamHighlight } from "@/entities/TeamHighlight";
+import { TeamMessage } from "@/entities/TeamMessage";
+import { User } from "@/entities/User";
+import { UploadFile } from "@/integrations/Core";
 
 export default function TeamHighlights({ team, currentUser, isMember }) {
   const [highlights, setHighlights] = useState([]);
@@ -23,11 +26,11 @@ export default function TeamHighlights({ team, currentUser, isMember }) {
 
   const loadHighlights = async () => {
     try {
-      const highlightData = await base44.entities.TeamHighlight.filter({ team_id: team.id }, '-created_date', 20);
+      const highlightData = await TeamHighlight.filter({ team_id: team.id }, '-created_date', 20);
       
       const highlightsWithUsers = await Promise.all(
         highlightData.map(async (h) => {
-          const userData = await base44.entities.User.get(h.posted_by);
+          const userData = await User.get(h.posted_by);
           return { ...h, user: userData };
         })
       );
@@ -54,7 +57,7 @@ export default function TeamHighlights({ team, currentUser, isMember }) {
 
     setIsUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const { file_url } = await UploadFile({ file });
       setNewHighlight(prev => ({ ...prev, image_url: file_url }));
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -73,7 +76,7 @@ export default function TeamHighlights({ team, currentUser, isMember }) {
     }
 
     try {
-      await base44.entities.TeamHighlight.create({
+      await TeamHighlight.create({
         team_id: team.id,
         posted_by: currentUser.id,
         title: newHighlight.title.trim(),
@@ -82,7 +85,7 @@ export default function TeamHighlights({ team, currentUser, isMember }) {
         likes: []
       });
 
-      await base44.entities.TeamMessage.create({
+      await TeamMessage.create({
         team_id: team.id,
         user_id: currentUser.id,
         message_type: 'highlight_added',
@@ -110,7 +113,7 @@ export default function TeamHighlights({ team, currentUser, isMember }) {
         ? likes.filter(id => id !== currentUser.id)
         : [...likes, currentUser.id];
 
-      await base44.entities.TeamHighlight.update(highlightId, { likes: updatedLikes });
+      await TeamHighlight.update(highlightId, { likes: updatedLikes });
       loadHighlights();
     } catch (error) {
       console.error('Error toggling like:', error);

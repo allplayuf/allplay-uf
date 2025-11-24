@@ -24,11 +24,10 @@ import {
   CheckCircle,
   Clock
 } from "lucide-react";
-import { createPageUrl } from "@/components/utils/helpers";
+import { createPageUrl } from "@/utils";
 import { Link, useLocation } from "react-router-dom";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import { ProfileSkeleton } from "../components/ui/loading-skeleton";
-import { resolveImageUrl } from "@/components/utils/imageUtils";
 
 // Lazy load components
 const ProfileStats = lazy(() => import("../components/profile/ProfileStats"));
@@ -222,9 +221,7 @@ export default function ProfilePage() {
 
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      // Extract filename and save only that
-      const filename = file_url.split('/').pop();
-      await base44.auth.updateMe({ profile_image_url: filename });
+      await base44.auth.updateMe({ profile_image_url: file_url });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.user });
     } catch (error) {
       console.error("Error uploading profile image:", error);
@@ -527,7 +524,7 @@ export default function ProfilePage() {
                   <div className="w-24 h-24 bg-[#FFFFFF]/15 backdrop-blur-md rounded-2xl flex items-center justify-center overflow-hidden ring-2 ring-[#FFFFFF]/30">
                     {displayUser?.profile_image_url ? (
                       <img
-                        src={resolveImageUrl(displayUser.profile_image_url)}
+                        src={displayUser.profile_image_url}
                         alt="Profile"
                         className="w-full h-full object-cover"
                         loading="lazy"
@@ -783,7 +780,7 @@ export default function ProfilePage() {
                                       <div className="flex items-center gap-3 mb-3">
                                         <div className="w-12 h-12 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0">
                                           {friend.profile_image_url ? 
-                                            <img src={resolveImageUrl(friend.profile_image_url)} alt={friend.full_name} className="w-full h-full object-cover rounded-xl" loading="lazy" /> :
+                                            <img src={friend.profile_image_url} alt={friend.full_name} className="w-full h-full object-cover rounded-xl" loading="lazy" /> :
                                             <span className="text-[#FFFFFF] font-semibold text-lg">{friend.full_name?.[0] || 'U'}</span>
                                           }
                                         </div>

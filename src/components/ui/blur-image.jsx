@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Image as ImageIcon } from 'lucide-react';
-import { resolveImageUrl } from "@/components/utils/imageUtils";
 
 /**
  * OptimizedImage component with lazy loading, blur placeholder, and WebP support
@@ -20,9 +18,6 @@ export function OptimizedImage({
 }) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-
-  // Resolve the full URL if it's a filename
-  const resolvedSrc = resolveImageUrl(src);
 
   // Generate responsive image sources
   const generateSrcSet = (originalSrc) => {
@@ -50,19 +45,8 @@ export function OptimizedImage({
     setIsLoading(false);
   };
 
-  const displaySrc = hasError ? fallbackSrc : resolvedSrc;
-  const srcSet = generateSrcSet(resolvedSrc);
-
-  if (hasError) {
-    return (
-      <div 
-        className={`flex items-center justify-center bg-[#18221E] border border-[#223029] ${className}`} 
-        style={{ width, height }}
-      >
-        <ImageIcon className="w-1/2 h-1/2 text-[#2BA84A] opacity-40" />
-      </div>
-    );
-  }
+  const displaySrc = hasError ? fallbackSrc : src;
+  const srcSet = generateSrcSet(src);
 
   return (
     <div className={`relative overflow-hidden ${className}`} style={{ width, height }}>
