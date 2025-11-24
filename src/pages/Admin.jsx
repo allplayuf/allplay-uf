@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, Users, Flag, MapPin, BarChart, AlertTriangle, RefreshCw, Trophy, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
+import { createPageUrl } from "@/components/utils/helpers";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 
 import ModerationQueue from "../components/admin/ModerationQueue";

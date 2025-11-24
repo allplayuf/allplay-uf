@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Trophy, ArrowLeft, Calendar, MapPin, Users, Target, Sparkles, Upload, Image as ImageIcon } from "lucide-react";
-import { createPageUrl } from "@/utils";
+import { createPageUrl } from "@/components/utils/helpers";
 import { Link } from "react-router-dom";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
