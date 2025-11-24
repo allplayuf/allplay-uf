@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Trophy, Medal, ArrowUp, ArrowDown, Minus } from "lucide-react";
 import RankBadge, { getRankFromElo } from "./RankBadge";
 import { useNavigate } from 'react-router-dom';
-import { createPageUrl } from "@/utils";
+import { createPageUrl } from "@/components/utils/helpers";
 
 export default function TeamLeaderboard({ currentTeamId }) {
   const [teams, setTeams] = useState([]);
