@@ -11,6 +11,7 @@ import { X, Trophy, Save, Upload, ImageIcon, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
 import { useCustomDialog } from "../ui/custom-dialog";
 import { CUPS_QUERY_KEY } from "../dashboard/CupsWidget";
+import { resolveImageUrl } from "@/components/utils/imageUtils";
 
 export default function EditCupModal({ cup, onClose }) {
   const { alert, DialogContainer } = useCustomDialog();
@@ -34,7 +35,7 @@ export default function EditCupModal({ cup, onClose }) {
     is_public: cup.is_public !== false,
   });
 
-  const [logoPreview, setLogoPreview] = useState(cup.logo_url || '');
+  const [logoPreview, setLogoPreview] = useState(resolveImageUrl(cup.logo_url) || '');
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
   // Fetch venues
