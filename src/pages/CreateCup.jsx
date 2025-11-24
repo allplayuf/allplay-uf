@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -28,9 +27,10 @@ export default function CreateCupPage() {
     logo_url: '',
     start_date: '',
     end_date: '',
-    start_time: '',
-    surface_type: 'grass', // New field
-    match_duration: 90, // New field
+    start_time: '10:00',
+    end_time: '20:00',
+    surface_type: 'grass',
+    match_duration: 15,
     format: '5v5',
     signup_type: 'team',
     skill_level: 'mixed',
@@ -316,37 +316,57 @@ export default function CreateCupPage() {
 
                 <div className="space-y-2">
                   <Label className="text-[#F4F7F5] font-semibold">Matchlängd (min) *</Label>
-                  <Select 
-                    value={formData.match_duration.toString()} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, match_duration: parseInt(value) }))}
-                  >
-                    <SelectTrigger className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="30">30 min</SelectItem>
-                      <SelectItem value="40">40 min</SelectItem>
-                      <SelectItem value="45">45 min</SelectItem>
-                      <SelectItem value="60">60 min</SelectItem>
-                      <SelectItem value="90">90 min</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex gap-2">
+                    <Input
+                        type="number"
+                        min="5"
+                        max="120"
+                        value={formData.match_duration}
+                        onChange={(e) => setFormData(prev => ({ ...prev, match_duration: parseInt(e.target.value) }))}
+                        className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B]"
+                    />
+                  </div>
+                  <p className="text-xs text-[#B6C2BC]">Ange matchtid i minuter (t.ex. 10, 15, 20, 90)</p>
                 </div>
               </div>
 
-              {/* Date and Time */}
-              <div className="space-y-2">
-                <Label className="text-[#F4F7F5] font-semibold flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-[#F59E0B]" />
-                  Startdatum och tid *
-                </Label>
-                <DateTimePicker
-                  date={formData.start_date}
-                  time={formData.start_time}
-                  onDateChange={(date) => setFormData(prev => ({ ...prev, start_date: date }))}
-                  onTimeChange={(time) => setFormData(prev => ({ ...prev, start_time: time }))}
-                  minDate={today}
-                />
+              {/* Date and Time Interval */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-[#F4F7F5] font-semibold flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-[#F59E0B]" />
+                    Startdatum *
+                  </Label>
+                  <Input
+                    type="date"
+                    min={today}
+                    value={formData.start_date}
+                    onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
+                    className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B]"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[#F4F7F5] font-semibold">Daglig starttid *</Label>
+                    <Input
+                      type="time"
+                      value={formData.start_time}
+                      onChange={(e) => setFormData(prev => ({ ...prev, start_time: e.target.value }))}
+                      className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B]"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[#F4F7F5] font-semibold">Daglig sluttid *</Label>
+                    <Input
+                      type="time"
+                      value={formData.end_time}
+                      onChange={(e) => setFormData(prev => ({ ...prev, end_time: e.target.value }))}
+                      className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B]"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-[#B6C2BC]">Matcher kommer schemaläggas inom detta tidsintervall varje dag.</p>
               </div>
             </CardContent>
           </Card>

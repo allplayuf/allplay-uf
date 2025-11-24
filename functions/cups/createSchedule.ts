@@ -101,12 +101,43 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Create match entities
+      // Create match entities with intelligent scheduling
       const startDate = new Date(cup.start_date);
+      let currentDate = new Date(startDate);
+      
+      // Parse daily time constraints
+      const [startHour, startMinute] = (cup.start_time || "10:00").split(':').map(Number);
+      const [endHour, endMinute] = (cup.end_time || "20:00").split(':').map(Number);
+      
+      // Set initial time for the first day
+      let currentHour = startHour;
+      let currentMinute = startMinute;
+      
+      const matchDuration = cup.match_duration || 15;
+      const breakDuration = 5; // 5 min break between matches
       
       for (let m = 0; m < matchPairs.length; m++) {
-        const matchDate = new Date(startDate);
-        matchDate.setDate(matchDate.getDate() + Math.floor(m / 2)); // Spread matches over days
+        // Check if next match fits in today's schedule
+        // If current time + duration > end time, move to next day
+        const matchEndTimeHour = currentHour + Math.floor((currentMinute + matchDuration) / 60);
+        const matchEndTimeMinute = (currentMinute + matchDuration) % 60;
+        
+        const isPastEndTime = matchEndTimeHour > endHour || (matchEndTimeHour === endHour && matchEndTimeMinute > endMinute);
+        
+        if (isPastEndTime) {
+            // Move to next day
+            currentDate.setDate(currentDate.getDate() + 1);
+            currentHour = startHour;
+            currentMinute = startMinute;
+        }
+
+        // Format time string HH:mm
+        const timeString = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
+        
+        // Prepare for next match time
+        currentMinute += matchDuration + breakDuration;
+        currentHour += Math.floor(currentMinute / 60);
+        currentMinute %= 60;
         
         // Get team names for match title
         const teamAParticipant = participants.find(p => 
@@ -124,8 +155,9 @@ Deno.serve(async (req) => {
           title: `${cup.name} - ${groups[i].name}`,
           venue_id: cup.venue_ids[0], // FIX: Alltid en string nu
           organizer_id: cup.organizer_id,
-          date: matchDate.toISOString().split('T')[0],
-          time: cup.start_time || '10:00',
+          date: currentDate.toISOString().split('T')[0],
+          time: timeString,
+          duration_minutes: matchDuration,
           format: cup.format,
           max_players: cup.format === '5v5' ? 10 : cup.format === '7v7' ? 14 : 22,
           is_team_match: true,
