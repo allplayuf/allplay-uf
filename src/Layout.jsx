@@ -92,14 +92,8 @@ export default function Layout({ children, currentPageName }) {
     <QueryProvider>
       <RouteProgress />
       <OnboardingModal />
-      <style>{`
-        html, body {
-          background-color: #0f1513;
-          overscroll-behavior-y: none;
-        }
-      `}</style>
       
-      <div className="min-h-screen flex w-full bg-[#0f1513]">
+      <div className="min-h-screen flex w-full bg-[#131816]">
         <Toaster 
           position="bottom-center"
           theme="dark"
@@ -195,7 +189,7 @@ export default function Layout({ children, currentPageName }) {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col min-h-screen lg:min-h-0">
+        <main className="flex-1 flex flex-col bg-[#131816] min-h-screen lg:min-h-0">
           <header className="lg:hidden sticky top-0 z-40 bg-[#121715] border-b border-[#223029] px-4 py-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-transparent">
