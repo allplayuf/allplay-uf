@@ -152,11 +152,16 @@ export default function CupSignupModule({ cup, user, participants, userParticipa
                         <Button
                           type="button"
                           onClick={() => setShowCreateCupTeam(true)}
-                          className="w-full h-16 bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#F59E0B] text-white font-bold text-base rounded-2xl shadow-xl gap-3 transition-all hover:scale-[1.02]"
+                          className="w-full h-20 bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#F59E0B] text-white font-bold text-lg rounded-2xl shadow-xl gap-3 transition-all hover:scale-[1.02] border-2 border-[#FCD34D]/30"
                         >
-                          <Sparkles className="w-5 h-5" />
-                          Skapa nytt cup-lag
-                          <Sparkles className="w-5 h-5" />
+                          <div className="flex flex-col items-center">
+                            <div className="flex items-center gap-2">
+                                <Sparkles className="w-5 h-5" />
+                                <span>Skapa nytt cup-lag</span>
+                                <Sparkles className="w-5 h-5" />
+                            </div>
+                            <span className="text-xs font-normal text-[#FDE3D2] mt-1">Det enklaste sättet att delta!</span>
+                          </div>
                         </Button>
 
                         {/* Divider */}
@@ -264,10 +269,10 @@ export default function CupSignupModule({ cup, user, participants, userParticipa
                     <Button
                       onClick={handleSignup}
                       disabled={signupMutation.isPending || (cup.signup_type === 'team' && !selectedTeam)}
-                      className="w-full h-12 bg-[#F59E0B] hover:bg-[#D97706] text-[#FFFFFF] gap-2 font-semibold shadow-lg"
+                      className="w-full h-14 text-lg bg-[#F59E0B] hover:bg-[#D97706] text-[#FFFFFF] gap-2 font-bold shadow-lg transform hover:scale-[1.02] transition-all"
                     >
-                      <UserPlus className="w-5 h-5" />
-                      {signupMutation.isPending ? 'Anmäler...' : 'Anmäl'}
+                      <UserPlus className="w-6 h-6" />
+                      {signupMutation.isPending ? 'Registrerar...' : 'Slutför anmälan'}
                     </Button>
 
                     {cup.entry_fee > 0 && (

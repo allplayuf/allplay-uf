@@ -188,50 +188,50 @@ export default function CupDetailPage() {
           <div className="grid grid-cols-4 gap-2">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`h-11 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
+              className={`h-11 px-2 sm:px-4 rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 ${
                 activeTab === 'overview'
                   ? 'bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30'
                   : 'bg-transparent text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
               }`}
             >
-              <Trophy className="w-4 h-4" />
-              <span className="hidden sm:inline">Översikt</span>
+              <Trophy className="w-4 h-4 flex-shrink-0" />
+              <span className="truncate">Översikt</span>
             </button>
-            
+
             <button
               onClick={() => setActiveTab('signup')}
-              className={`h-11 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
+              className={`h-11 px-2 sm:px-4 rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 ${
                 activeTab === 'signup'
                   ? 'bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30'
                   : 'bg-transparent text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
               }`}
             >
-              <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">Anmälan</span>
+              <Users className="w-4 h-4 flex-shrink-0" />
+              <span className="truncate">Anmälan</span>
             </button>
-            
+
             <button
               onClick={() => setActiveTab('schedule')}
-              className={`h-11 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
+              className={`h-11 px-2 sm:px-4 rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 ${
                 activeTab === 'schedule'
                   ? 'bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30'
                   : 'bg-transparent text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
               }`}
             >
-              <Layout className="w-4 h-4" />
-              <span className="hidden sm:inline">Schema</span>
+              <Layout className="w-4 h-4 flex-shrink-0" />
+              <span className="truncate">Schema</span>
             </button>
-            
+
             <button
               onClick={() => setActiveTab('matches')}
-              className={`h-11 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
+              className={`h-11 px-2 sm:px-4 rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 ${
                 activeTab === 'matches'
                   ? 'bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30'
                   : 'bg-transparent text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
               }`}
             >
-              <ListChecks className="w-4 h-4" />
-              <span className="hidden sm:inline">Matcher</span>
+              <ListChecks className="w-4 h-4 flex-shrink-0" />
+              <span className="truncate">Matcher</span>
             </button>
           </div>
         </div>

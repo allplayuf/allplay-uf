@@ -28,6 +28,54 @@ Deno.serve(async (req) => {
     // Fetch cup to verify it exists and get location
     const cup = await base44.entities.Cup.get(cup_id);
 
+    // --- VALIDATION START ---
+
+    // Check registration status
+    if (cup.status !== 'registration_open' && cup.status !== 'upcoming') {
+      return Response.json({ 
+        error: 'Registration is closed' 
+      }, { status: 400 });
+    }
+
+    // Check if cup is full
+    if (cup.current_participants >= cup.max_participants) {
+      return Response.json({ 
+        error: 'Tournament is full' 
+      }, { status: 400 });
+    }
+
+    // Check if user is already signed up to this cup (solo or in another team)
+    // 1. Check direct participation (solo or team captain of another team)
+    const existingDirectSignup = await base44.entities.CupParticipant.filter({
+      cup_id: cup_id,
+      user_id: user.id 
+    });
+    
+    // 2. Check if user is a member of ANY team that is already signed up
+    // First get all teams this user is a member of
+    const userTeamMemberships = await base44.entities.TeamMember.filter({ user_id: user.id, status: 'active' });
+    const userTeamIds = userTeamMemberships.map(m => m.team_id);
+    
+    if (userTeamIds.length > 0) {
+        // Check if any of these teams are participants in this cup
+        const teamSignups = await base44.entities.CupParticipant.list(); // Optimizable with filter if supported
+        const teamsInCup = teamSignups.filter(p => p.cup_id === cup_id && userTeamIds.includes(p.team_id));
+        
+        if (teamsInCup.length > 0) {
+             return Response.json({ 
+                error: 'You are already part of a team registered for this tournament' 
+              }, { status: 400 });
+        }
+    }
+    
+    if (existingDirectSignup.length > 0) {
+      return Response.json({ 
+        error: 'You are already registered for this tournament' 
+      }, { status: 400 });
+    }
+
+    // --- VALIDATION END ---
+
     // Create a cup-specific team using service role
     const team = await base44.asServiceRole.entities.Team.create({
       name: `${team_name} (${cup.name})`,
