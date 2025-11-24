@@ -113,10 +113,40 @@ export default function CupDetailPage() {
   }
 
   const statusConfig = STATUS_CONFIG[cup.status] || STATUS_CONFIG.upcoming;
-  const confirmedParticipants = participants.filter(p => p.status === 'confirmed');
+  
+  // Show both confirmed and pending participants
+  // Pending ones are marked visually
+  const displayedParticipants = participants.filter(p => 
+      p.status === 'confirmed' || p.status === 'pending'
+  ).sort((a, b) => {
+      // Sort confirmed first, then pending
+      if (a.status === b.status) return 0;
+      return a.status === 'confirmed' ? -1 : 1;
+  });
 
   // Expandable state for team cards
   const [expandedTeamId, setExpandedTeamId] = useState(null);
+
+  const approveSignupMutation = useMutation({
+    mutationFn: async (participantId) => {
+      const response = await base44.functions.invoke('cups/manageSignup', {
+        participant_id: participantId,
+        action: 'approve'
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cupDetails', cupId] });
+      alert('Anmälan godkänd! ✅', 'Laget har godkänts för cupen.', { type: 'success' });
+    },
+    onError: (error) => {
+      alert('Fel', error.response?.data?.error || 'Kunde inte godkänna anmälan.', { type: 'alert' });
+    }
+  });
+
+  const handleApproveTeam = async (participantId, teamName) => {
+      approveSignupMutation.mutate(participantId);
+  };
 
   const joinTeamMutation = useMutation({
     mutationFn: async ({ cup_id, team_id }) => {
