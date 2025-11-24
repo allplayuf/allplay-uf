@@ -79,6 +79,44 @@ export default function CupDetailPage() {
     }
   });
 
+  // Expandable state for team cards
+  const [expandedTeamId, setExpandedTeamId] = useState(null);
+
+  const approveSignupMutation = useMutation({
+    mutationFn: async (participantId) => {
+      const response = await base44.functions.invoke('cups/manageSignup', {
+        participant_id: participantId,
+        action: 'approve'
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cupDetails', cupId] });
+      alert('Anmälan godkänd! ✅', 'Laget har godkänts för cupen.', { type: 'success' });
+    },
+    onError: (error) => {
+      alert('Fel', error.response?.data?.error || 'Kunde inte godkänna anmälan.', { type: 'alert' });
+    }
+  });
+
+  const handleApproveTeam = async (participantId, teamName) => {
+      approveSignupMutation.mutate(participantId);
+  };
+
+  const joinTeamMutation = useMutation({
+    mutationFn: async ({ cup_id, team_id }) => {
+      const response = await base44.functions.invoke('cups/joinCupTeam', { cup_id, team_id });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cupDetails', cupId] });
+      alert('Gick med i laget! 🎉', 'Du har lagts till i laget.', { type: 'success' });
+    },
+    onError: (error) => {
+      alert('Ett fel uppstod', error.response?.data?.error || 'Kunde inte gå med i laget.', { type: 'alert' });
+    }
+  });
+
   const handleDeleteCup = async () => {
     const shouldDelete = await confirm(
       'Ta bort turnering',
@@ -113,23 +151,15 @@ export default function CupDetailPage() {
   }
 
   const statusConfig = STATUS_CONFIG[cup.status] || STATUS_CONFIG.upcoming;
-  const confirmedParticipants = participants.filter(p => p.status === 'confirmed');
-
-  // Expandable state for team cards
-  const [expandedTeamId, setExpandedTeamId] = useState(null);
-
-  const joinTeamMutation = useMutation({
-    mutationFn: async ({ cup_id, team_id }) => {
-      const response = await base44.functions.invoke('cups/joinCupTeam', { cup_id, team_id });
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cupDetails', cupId] });
-      alert('Gick med i laget! 🎉', 'Du har lagts till i laget.', { type: 'success' });
-    },
-    onError: (error) => {
-      alert('Ett fel uppstod', error.response?.data?.error || 'Kunde inte gå med i laget.', { type: 'alert' });
-    }
+  
+  // Show both confirmed and pending participants
+  // Pending ones are marked visually
+  const displayedParticipants = participants.filter(p => 
+      p.status === 'confirmed' || p.status === 'pending'
+  ).sort((a, b) => {
+      // Sort confirmed first, then pending
+      if (a.status === b.status) return 0;
+      return a.status === 'confirmed' ? -1 : 1;
   });
 
   const handleJoinTeam = async (teamId, teamName) => {
@@ -138,14 +168,6 @@ export default function CupDetailPage() {
         return;
     }
     
-    /* 
-       User requested: "utan några frågor blir man inlagt"
-       So we skip the confirm dialog for a super smooth experience, 
-       or just keep a simple confirm to prevent accidental clicks. 
-       "utan några frågor" usually implies no approval process, but a confirm dialog is UI safety.
-       I'll keep a very quick confirm or just do it. 
-       Let's add a small confirm just in case.
-    */
     const shouldJoin = await confirm(
       `Gå med i ${teamName}?`, 
       `Vill du gå med i ${teamName} direkt?`, 
@@ -387,17 +409,17 @@ export default function CupDetailPage() {
               <Card className="bg-[#121715] border-[#223029] rounded-2xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
                 <CardContent className="p-6">
                   <h3 className="text-lg font-bold text-[#F4F7F5] mb-4">
-                    Anmälda {cup.signup_type === 'team' ? 'Lag' : 'Spelare'} ({confirmedParticipants.length})
+                    Anmälda {cup.signup_type === 'team' ? 'Lag' : 'Spelare'} ({displayedParticipants.length})
                   </h3>
                   
-                  {confirmedParticipants.length === 0 ? (
+                  {displayedParticipants.length === 0 ? (
                     <div className="text-center py-12">
                       <Users className="w-12 h-12 text-[#7B8A83] mx-auto mb-3" />
-                      <p className="text-[#B6C2BC]">Inga bekräftade deltagare än</p>
+                      <p className="text-[#B6C2BC]">Inga deltagare än</p>
                     </div>
                   ) : (
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {confirmedParticipants.map((participant, index) => (
+                      {displayedParticipants.map((participant, index) => (
                         <motion.div
                           key={participant.id}
                           initial={{ opacity: 0, y: 10 }}
@@ -423,7 +445,12 @@ export default function CupDetailPage() {
                                       </div>
                                     )}
                                     <div className="flex-1 min-w-0">
-                                        <p className="font-semibold text-[#F4F7F5] truncate text-sm">{participant.team.name}</p>
+                                        <div className="flex items-center gap-2">
+                                            <p className="font-semibold text-[#F4F7F5] truncate text-sm">{participant.team.name}</p>
+                                            {participant.status === 'pending' && (
+                                                <Badge className="h-5 bg-[#EAB308]/20 text-[#FDE047] border-0 px-1.5 text-[10px]">Väntar</Badge>
+                                            )}
+                                        </div>
                                         <p className="text-xs text-[#B6C2BC]">{participant.team.city}</p>
                                     </div>
                                     {expandedTeamId === participant.id ? <ChevronUp className="w-4 h-4 text-[#7B8A83]" /> : <ChevronDown className="w-4 h-4 text-[#7B8A83]" />}
@@ -436,7 +463,12 @@ export default function CupDetailPage() {
                                       </span>
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                      <p className="font-semibold text-[#F4F7F5] truncate text-sm">{participant.user?.full_name || 'Spelare'}</p>
+                                      <div className="flex items-center gap-2">
+                                        <p className="font-semibold text-[#F4F7F5] truncate text-sm">{participant.user?.full_name || 'Spelare'}</p>
+                                        {participant.status === 'pending' && (
+                                            <Badge className="h-5 bg-[#EAB308]/20 text-[#FDE047] border-0 px-1.5 text-[10px]">Väntar</Badge>
+                                        )}
+                                      </div>
                                       {participant.preferred_position && participant.preferred_position !== 'any' && (
                                         <p className="text-xs text-[#B6C2BC] capitalize">{participant.preferred_position}</p>
                                       )}
@@ -471,17 +503,31 @@ export default function CupDetailPage() {
                                             )}
                                         </div>
 
-                                        {/* Join Button - Only if not already signed up */}
-                                        {!userParticipant && cup.status !== 'completed' && (
-                                            <Button 
-                                                onClick={() => handleJoinTeam(participant.team.id, participant.team.name)}
-                                                className="w-full h-9 bg-[#2BA84A] hover:bg-[#248232] text-white text-xs font-semibold gap-2"
-                                                disabled={joinTeamMutation.isPending}
-                                            >
-                                                <UserPlus className="w-3 h-3" />
-                                                {joinTeamMutation.isPending ? 'Går med...' : 'Gå med i laget'}
-                                            </Button>
-                                        )}
+                                        <div className="flex gap-2">
+                                            {/* Join Button - Only if not already signed up */}
+                                            {!userParticipant && cup.status !== 'completed' && (
+                                                <Button 
+                                                    onClick={() => handleJoinTeam(participant.team.id, participant.team.name)}
+                                                    className="flex-1 h-9 bg-[#2BA84A] hover:bg-[#248232] text-white text-xs font-semibold gap-2"
+                                                    disabled={joinTeamMutation.isPending}
+                                                >
+                                                    <UserPlus className="w-3 h-3" />
+                                                    {joinTeamMutation.isPending ? 'Går med...' : 'Gå med i laget'}
+                                                </Button>
+                                            )}
+
+                                            {/* Admin Approve Button */}
+                                            {canManage && participant.status === 'pending' && (
+                                                <Button 
+                                                    onClick={() => handleApproveTeam(participant.id, participant.team.name)}
+                                                    className="flex-1 h-9 bg-[#F59E0B] hover:bg-[#D97706] text-white text-xs font-semibold gap-2"
+                                                    disabled={approveSignupMutation.isPending}
+                                                >
+                                                    <CheckCircle className="w-3 h-3" />
+                                                    {approveSignupMutation.isPending ? 'Godkänner...' : 'Godkänn lag'}
+                                                </Button>
+                                            )}
+                                        </div>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
