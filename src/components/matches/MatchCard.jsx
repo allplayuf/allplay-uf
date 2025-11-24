@@ -107,56 +107,23 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2, delay: index * 0.05 }}
+      transition={{ duration: 0.4, delay: index * 0.05, ease: "easeOut" }}
     >
-      <Card className={`card-base card-hover group h-full flex flex-col ${
+      <Card className={`bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] hover:shadow-[0_10px_28px_rgba(0,0,0,0.28)] hover:border-[#2BA84A]/30 transition-all rounded-[20px] overflow-hidden group ${
         match.status === 'completed' ? 'opacity-75' : ''
       }`}>
-        <CardContent className="p-4 flex flex-col h-full">
-          <div className="space-y-3 flex flex-col h-full">
+        <CardContent className="p-5 flex flex-col h-full">
+          <div className="space-y-4 flex flex-col h-full">
             {/* Header */}
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="text-base font-semibold text-white truncate pr-2">
-                  {match.title || 'Untitled Match'}
-                </h3>
-                {isOrganizer && match.status === 'upcoming' && (
-                  <Badge variant="outline" className="text-[10px] border-[#F4743B]/30 text-[#FDE3D2] h-5 px-2">
-                    Din
-                  </Badge>
-                )}
-              </div>
-              
-              <div className="flex items-center gap-2 text-secondary">
-                 <span className="flex items-center gap-1 truncate max-w-[150px]">
-                    <MapPin className="w-3.5 h-3.5" />
-                    {venue?.name || 'Okänd'}
-                 </span>
-                 <span>•</span>
-                 <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    {match.date} {match.time}
-                 </span>
-              </div>
-            </div>
-
-            {/* Tags */}
-            <div className="flex flex-wrap gap-1.5">
-                <span className={`inline-flex h-6 items-center rounded-md px-2 text-[11px] font-medium bg-[#18221E] border border-[#223029] text-secondary`}>
-                  {statusBadge.label}
-                </span>
-
-                <span className="inline-flex h-6 items-center rounded-md px-2 text-[11px] font-medium bg-[#18221E] border border-[#223029] text-secondary">
-                  {match.format || '5v5'}
-                </span>
-                
-                {match.is_team_match && (
-                    <span className="inline-flex h-6 items-center rounded-md px-2 text-[11px] font-medium bg-[#18221E] border border-[#223029] text-[#DDA5E8]">
-                      Lag
-                    </span>
-                )}
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1 pr-2">
+                  <h3 className="text-[17px] leading-[24px] font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#2BA84A] to-[#CFE8D6] mb-1.5 transition-all">
+                    {match.title || 'Untitled Match'}
+                  </h3>
+                </div>
                 {isOrganizer && match.status === 'upcoming' && (
                   <span className="inline-flex h-6 items-center rounded-full bg-[#F4743B]/18 px-2.5 text-[12px] leading-[16px] font-medium text-[#FDE3D2] ring-1 ring-[#F4743B]/25 flex-shrink-0">
                     <Trophy className="w-3 h-3 mr-1" />
@@ -271,37 +238,77 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
             )}
 
             {/* Actions */}
-            <div className="flex gap-3 mt-auto pt-2">
+            <div className="flex gap-2 mt-auto">
               {match.status === 'completed' ? (
-                <div className="flex-1 py-2 text-center border border-[#223029] rounded-lg bg-[#18221E]">
-                  <span className="text-xs font-medium text-gray-500">Avslutad</span>
+                <div className="flex-1 bg-[#18221E] rounded-xl p-2.5 text-center border border-[#223029]">
+                  <div className="text-[13px] leading-[18px] font-semibold text-[#7B8A83]">Match avslutad</div>
+                  {match.final_score && (
+                    <div className="text-[12px] leading-[16px] text-[#7B8A83] mt-0.5">Resultat: {match.final_score}</div>
+                  )}
                 </div>
               ) : isJoinable && (!match.is_spontaneous && spotsLeft > 0 || match.is_spontaneous) ? (
                 <>
-                  <button
+                  <motion.button
                     onClick={handleJoinClick}
-                    className="flex-1 bg-[#F4743B] hover:bg-[#E5683A] text-white text-sm font-semibold h-9 rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                    animate={{
+                      boxShadow: [
+                        '0 4px 16px rgba(244, 116, 59, 0.3)',
+                        '0 6px 24px rgba(244, 116, 59, 0.6)',
+                        '0 4px 16px rgba(244, 116, 59, 0.3)'
+                      ],
+                      scale: [1, 1.02, 1]
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                    whileHover={{
+                      scale: 1.05,
+                      boxShadow: '0 8px 28px rgba(244, 116, 59, 0.7)'
+                    }}
+                    whileTap={{ 
+                      scale: 0.98,
+                      boxShadow: '0 2px 12px rgba(244, 116, 59, 0.4)'
+                    }}
+                    className="flex-1 inline-flex h-11 items-center justify-center gap-2 rounded-[14px] bg-gradient-to-r from-[#F4743B] to-[#FF8652] text-white font-bold text-[13px] tracking-wide uppercase ring-2 ring-[#F4743B]/30 transition-all relative overflow-hidden"
                   >
-                    Gå med
-                  </button>
+                    <span className="relative z-10">Gå med nu</span>
+                    <ChevronRight className="w-4 h-4 relative z-10" strokeWidth={3} />
+                    
+                    <motion.div
+                      className="absolute inset-0"
+                      animate={{
+                        x: ['-100%', '100%']
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "linear"
+                      }}
+                      style={{
+                        background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
+                      }}
+                    />
+                  </motion.button>
                   
                   <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`} className="flex-shrink-0">
-                    <button className="h-9 px-3 border border-[#223029] hover:bg-[#18221E] text-white text-sm font-medium rounded-lg transition-colors">
-                      Info
+                    <button className="inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border-2 border-[#223029] px-4 text-[#CFE8D6] transition-all hover:bg-[#18221E] hover:border-[#2BA84A]/30 active:scale-95 font-semibold text-[13px]">
+                      Detaljer
                     </button>
                   </Link>
                 </>
               ) : match.status === 'upcoming' && !match.is_spontaneous && spotsLeft === 0 ? (
-                <div className="flex-1 py-2 text-center border border-[#223029] rounded-lg bg-[#18221E]">
-                  <span className="text-xs font-medium text-gray-500">Fullbokad</span>
+                <div className="flex-1 bg-[#18221E] rounded-xl p-2.5 border border-[#223029] text-center">
+                  <div className="text-[13px] leading-[18px] font-semibold text-[#7B8A83]">Fullbokad</div>
                 </div>
               ) : null}
 
-              {(match.status === 'completed' || (match.status === 'upcoming' && (!isJoinable || (spotsLeft !== null && spotsLeft <= 0)))) && (
+              {(match.status === 'completed' || match.status === 'upcoming' && (!isJoinable || (spotsLeft !== null && spotsLeft <= 0))) && (
                 <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`} className="flex-1">
-                  <button className="w-full h-9 border border-[#223029] hover:bg-[#18221E] text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-1">
+                  <button className="w-full inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border-2 border-[#2BA84A]/35 px-4 text-[#CFE8D6] transition-all hover:bg-[#2BA84A]/10 hover:border-[#2BA84A]/50 active:scale-95 font-semibold text-[13px]">
                     Detaljer
-                    <ChevronRight className="w-3 h-3" />
+                    <ChevronRight className="w-4 h-4" />
                   </button>
                 </Link>
               )}

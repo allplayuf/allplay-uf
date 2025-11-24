@@ -43,27 +43,6 @@ css
   animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Mature Design Utility Classes */
-.card-base {
-  @apply bg-[#121715] border border-[#223029] rounded-xl shadow-sm transition-all duration-200;
-}
-
-.card-hover {
-  @apply hover:border-[#2BA84A]/30 hover:shadow-md;
-}
-
-.btn-primary {
-  @apply bg-[#2BA84A] hover:bg-[#248232] text-white font-medium rounded-lg shadow-sm transition-all;
-}
-
-.btn-secondary {
-  @apply bg-transparent border border-[#223029] hover:bg-[#18221E] text-[#F4F7F5] font-medium rounded-lg transition-all;
-}
-
-.text-secondary {
-  @apply text-[#B6C2BC] text-sm;
-}
-
 .will-change-transform {
   will-change: transform;
 }
