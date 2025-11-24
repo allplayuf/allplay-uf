@@ -22,27 +22,22 @@ export default function VenueCard({ venue, matches, isSelected, onClick, onMatch
   }
 
   return (
-    <motion.div
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+    <div
+      className={`cursor-pointer transition-all rounded-xl border shadow-sm ${
+        isSelected 
+          ? 'bg-[#18221E] border-[#2BA84A] ring-1 ring-[#2BA84A]/20' 
+          : 'bg-[#121715] border-[#223029] hover:border-[#2BA84A]/50'
+      }`}
+      onClick={onClick}
     >
-      <Card 
-        className={`cursor-pointer transition-all rounded-[16px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] ${
-          isSelected 
-            ? 'bg-[#2BA84A]/10 border border-[#2BA84A] scale-[1.02]' 
-            : 'bg-[#121715] border border-[#223029] hover:border-[#2BA84A]'
-        }`}
-        onClick={onClick}
-      >
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
+      <div className="p-4">
+        <div className="flex items-start justify-between mb-2">
           <div className="flex-1 min-w-0">
-            <h4 className="text-[16px] leading-[24px] font-semibold text-[#F4F7F5] truncate mb-1">{venue.name}</h4>
-            <div className="flex items-center gap-1 text-[13px] leading-[18px] text-[#B6C2BC]">
-              <MapPin className="w-4 h-4 flex-shrink-0 text-[#9FC9AC]" />
+            <h4 className="text-base font-semibold text-white truncate mb-0.5">{venue.name}</h4>
+            <div className="flex items-center gap-1 text-sm text-secondary">
               <span className="truncate">{venue.city}</span>
               {venue.distance && (
-                <span className="text-[#9FC9AC] ml-2 flex-shrink-0">• {venue.distance.toFixed(1)}km</span>
+                <span>• {venue.distance.toFixed(1)}km</span>
               )}
             </div>
           </div>
