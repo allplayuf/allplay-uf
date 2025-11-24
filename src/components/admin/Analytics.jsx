@@ -1,45 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Users, Calendar, MapPin, TrendingUp, Activity, Trophy, Target, Zap, Trash2, Shield } from "lucide-react";
-import { Badge } from "@/components/ui/badge"; // Assuming Badge is from ui/badge
-import { Button } from "@/components/ui/button"; // Assuming Button is from ui/button
-
-// Placeholder for a Team API/service. In a real application, this would be a separate module.
-// For the purpose of this implementation, we'll create a mock to make the code runnable.
-const Team = {
-  list: async () => {
-    // Simulate API call
-    return new Promise(resolve => {
-      setTimeout(() => {
-        resolve([
-          { id: 'team1', name: 'FC Dynamo', city: 'Stockholm', current_members: 15, logo_url: 'https://via.placeholder.com/40/9B59B6/FFFFFF?text=FD' },
-          { id: 'team2', name: 'Ballers United', city: 'Göteborg', current_members: 12, logo_url: 'https://via.placeholder.com/40/2BA84A/FFFFFF?text=BU' },
-          { id: 'team3', name: 'Kicking Krew', city: 'Malmö', current_members: 10, logo_url: null },
-          { id: 'team4', name: 'Goal Getters', city: 'Uppsala', current_members: 18, logo_url: 'https://via.placeholder.com/40/F4743B/FFFFFF?text=GG' },
-          { id: 'team5', name: 'Padel Kings', city: 'Västerås', current_members: 8, logo_url: null },
-          // Add more mock teams if needed for testing scrolling
-          { id: 'team6', name: 'Football Fanatics', city: 'Örebro', current_members: 14, logo_url: 'https://via.placeholder.com/40/9370DB/FFFFFF?text=FF' },
-          { id: 'team7', name: 'Super Strikers', city: 'Linköping', current_members: 11, logo_url: null },
-          { id: 'team8', name: 'Net Rippers', city: 'Helsingborg', current_members: 16, logo_url: 'https://via.placeholder.com/40/10B981/FFFFFF?text=NR' },
-          { id: 'team9', name: 'United FC', city: 'Jönköping', current_members: 13, logo_url: 'https://via.placeholder.com/40/2BA84A/FFFFFF?text=UF' },
-          { id: 'team10', name: 'Red Dragons', city: 'Norrköping', current_members: 9, logo_url: null },
-          { id: 'team11', name: 'Blue Lightning', city: 'Lund', current_members: 17, logo_url: 'https://via.placeholder.com/40/F4743B/FFFFFF?text=BL' },
-          { id: 'team12', name: 'Green Giants', city: 'Borås', current_members: 10, logo_url: 'https://via.placeholder.com/40/9370DB/FFFFFF?text=GG' },
-          { id: 'team13', name: 'Black Hawks', city: 'Gävle', current_members: 15, logo_url: null },
-          { id: 'team14', name: 'White Wolves', city: 'Södertälje', current_members: 12, logo_url: 'https://via.placeholder.com/40/10B981/FFFFFF?text=WW' },
-          { id: 'team15', name: 'Yellow Jackets', city: 'Växjö', current_members: 14, logo_url: null },
-          { id: 'team16', name: 'Purple Power', city: 'Karlstad', current_members: 11, logo_url: 'https://via.placeholder.com/40/2BA84A/FFFFFF?text=PP' },
-          { id: 'team17', name: 'Orange Crush', city: 'Halmstad', current_members: 13, logo_url: null },
-          { id: 'team18', name: 'Silver Stars', city: 'Umeå', current_members: 16, logo_url: 'https://via.placeholder.com/40/F4743B/FFFFFF?text=SS' },
-          { id: 'team19', name: 'Golden Goals', city: 'Luleå', current_members: 9, logo_url: null },
-          { id: 'team20', name: 'Bronze Breakers', city: 'Östersund', current_members: 10, logo_url: 'https://via.placeholder.com/40/9370DB/FFFFFF?text=BB' },
-          { id: 'team21', name: 'Emerald Eagles', city: 'Trollhättan', current_members: 15, logo_url: null },
-        ]);
-      }, 500);
-    });
-  }
-};
+import { Badge } from "@/components/ui/badge"; 
+import { Button } from "@/components/ui/button"; 
+import { Team } from "@/entities/User";
 
 
 export default function Analytics({ users, matches, venues, reports, onDeleteMatch, onDeleteTeam }) {
