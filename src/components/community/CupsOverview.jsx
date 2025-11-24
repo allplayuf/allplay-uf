@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
+import { createPageUrl } from "@/components/utils/helpers";
 import { CUPS_QUERY_KEY } from "../dashboard/CupsWidget";
 
 // Golden/Yellow accent theme for cups - matching elite level
