@@ -82,25 +82,37 @@ export default function CupDetailPage() {
   // Expandable state for team cards
   const [expandedTeamId, setExpandedTeamId] = useState(null);
 
-  const approveSignupMutation = useMutation({
-    mutationFn: async (participantId) => {
+  const manageSignupMutation = useMutation({
+    mutationFn: async ({ participantId, action }) => {
       const response = await base44.functions.invoke('cups/manageSignup', {
         participant_id: participantId,
-        action: 'approve'
+        action
       });
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['cupDetails', cupId] });
-      alert('Anmälan godkänd! ✅', 'Laget har godkänts för cupen.', { type: 'success' });
+      const actionText = variables.action === 'approve' ? 'godkänd' : 'avvisad';
+      alert(`Anmälan ${actionText}!`, `Status har uppdaterats.`, { type: 'success' });
     },
     onError: (error) => {
-      alert('Fel', error.response?.data?.error || 'Kunde inte godkänna anmälan.', { type: 'alert' });
+      alert('Fel', error.response?.data?.error || 'Ett fel uppstod.', { type: 'alert' });
     }
   });
 
-  const handleApproveTeam = async (participantId, teamName) => {
-      approveSignupMutation.mutate(participantId);
+  const handleApproveTeam = (participantId) => {
+      manageSignupMutation.mutate({ participantId, action: 'approve' });
+  };
+
+  const handleRejectTeam = async (participantId) => {
+      const shouldReject = await confirm(
+        'Avvisa anmälan',
+        'Är du säker på att du vill avvisa denna anmälan?',
+        { type: 'warning', confirmText: 'Avvisa', cancelText: 'Avbryt' }
+      );
+      if (shouldReject) {
+          manageSignupMutation.mutate({ participantId, action: 'reject' });
+      }
   };
 
   const joinTeamMutation = useMutation({
@@ -155,10 +167,11 @@ export default function CupDetailPage() {
   
   // Show both confirmed and pending participants
   // Pending ones are marked visually
-  const displayedParticipants = participants.filter(p => 
-      p.status === 'confirmed' || p.status === 'pending'
+  const displayedParticipants = (participants || []).filter(p => 
+      p && (p.status === 'confirmed' || p.status === 'pending')
   ).sort((a, b) => {
       // Sort confirmed first, then pending
+      if (!a || !b) return 0;
       if (a.status === b.status) return 0;
       return a.status === 'confirmed' ? -1 : 1;
   });
@@ -455,18 +468,30 @@ export default function CupDetailPage() {
                                         <p className="text-xs text-[#B6C2BC]">{participant.team.city}</p>
                                     </div>
                                     
-                                    {/* Admin Approve Button - Directly on card */}
+                                    {/* Admin Actions - Directly on card */}
                                     {canManage && participant.status === 'pending' && (
-                                        <Button 
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleApproveTeam(participant.id, participant.team.name);
-                                            }}
-                                            className="h-8 bg-[#F59E0B] hover:bg-[#D97706] text-white text-xs font-semibold px-3 mr-2"
-                                            disabled={approveSignupMutation.isPending}
-                                        >
-                                            {approveSignupMutation.isPending ? '...' : 'Godkänn'}
-                                        </Button>
+                                        <div className="flex items-center gap-1 mr-2">
+                                            <Button 
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleApproveTeam(participant.id);
+                                                }}
+                                                className="h-8 bg-[#2BA84A] hover:bg-[#248232] text-white text-xs font-semibold px-3"
+                                                disabled={manageSignupMutation.isPending}
+                                            >
+                                                Godkänn
+                                            </Button>
+                                            <Button 
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleRejectTeam(participant.id);
+                                                }}
+                                                className="h-8 bg-[#DC2626] hover:bg-[#B91C1C] text-white text-xs font-semibold px-3"
+                                                disabled={manageSignupMutation.isPending}
+                                            >
+                                                Avvisa
+                                            </Button>
+                                        </div>
                                     )}
 
                                     {expandedTeamId === participant.id ? <ChevronUp className="w-4 h-4 text-[#7B8A83]" /> : <ChevronDown className="w-4 h-4 text-[#7B8A83]" />}
