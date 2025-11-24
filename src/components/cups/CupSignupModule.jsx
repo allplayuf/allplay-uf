@@ -10,7 +10,7 @@ import { UserPlus, Users, CheckCircle, Clock, XCircle, Target, MapPin, Plus, Spa
 import { useCustomDialog } from "../ui/custom-dialog";
 import { CUPS_QUERY_KEY } from "../dashboard/CupsWidget";
 import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
+import { createPageUrl } from "@/components/utils/helpers";
 import CreateCupTeamForm from "./CreateCupTeamForm";
 import { AnimatePresence } from "framer-motion";
 
