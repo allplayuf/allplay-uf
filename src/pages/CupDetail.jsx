@@ -151,6 +151,7 @@ export default function CupDetailPage() {
   }
 
   const statusConfig = STATUS_CONFIG[cup.status] || STATUS_CONFIG.upcoming;
+  const confirmedParticipants = participants.filter(p => p.status === 'confirmed');
   
   // Show both confirmed and pending participants
   // Pending ones are marked visually
