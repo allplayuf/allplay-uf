@@ -92,6 +92,12 @@ export default function Layout({ children, currentPageName }) {
     <QueryProvider>
       <RouteProgress />
       <OnboardingModal />
+      <style>{`
+        html, body {
+          background-color: #0f1513;
+          overscroll-behavior-y: none;
+        }
+      `}</style>
       
       <div className="min-h-screen flex w-full bg-[#0f1513]">
         <Toaster 
