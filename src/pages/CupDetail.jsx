@@ -151,7 +151,6 @@ export default function CupDetailPage() {
   }
 
   const statusConfig = STATUS_CONFIG[cup.status] || STATUS_CONFIG.upcoming;
-  const confirmedParticipants = (participants || []).filter(p => p.status === 'confirmed');
   
   // Show both confirmed and pending participants
   // Pending ones are marked visually
@@ -454,21 +453,6 @@ export default function CupDetailPage() {
                                         </div>
                                         <p className="text-xs text-[#B6C2BC]">{participant.team.city}</p>
                                     </div>
-                                    
-                                    {/* Admin Approve Button - Directly on card */}
-                                    {canManage && participant.status === 'pending' && (
-                                        <Button 
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleApproveTeam(participant.id, participant.team.name);
-                                            }}
-                                            className="h-8 bg-[#F59E0B] hover:bg-[#D97706] text-white text-xs font-semibold px-3 mr-2"
-                                            disabled={approveSignupMutation.isPending}
-                                        >
-                                            {approveSignupMutation.isPending ? '...' : 'Godkänn'}
-                                        </Button>
-                                    )}
-
                                     {expandedTeamId === participant.id ? <ChevronUp className="w-4 h-4 text-[#7B8A83]" /> : <ChevronDown className="w-4 h-4 text-[#7B8A83]" />}
                                   </>
                                 ) : (
@@ -529,6 +513,18 @@ export default function CupDetailPage() {
                                                 >
                                                     <UserPlus className="w-3 h-3" />
                                                     {joinTeamMutation.isPending ? 'Går med...' : 'Gå med i laget'}
+                                                </Button>
+                                            )}
+
+                                            {/* Admin Approve Button */}
+                                            {canManage && participant.status === 'pending' && (
+                                                <Button 
+                                                    onClick={() => handleApproveTeam(participant.id, participant.team.name)}
+                                                    className="flex-1 h-9 bg-[#F59E0B] hover:bg-[#D97706] text-white text-xs font-semibold gap-2"
+                                                    disabled={approveSignupMutation.isPending}
+                                                >
+                                                    <CheckCircle className="w-3 h-3" />
+                                                    {approveSignupMutation.isPending ? 'Godkänner...' : 'Godkänn lag'}
                                                 </Button>
                                             )}
                                         </div>
