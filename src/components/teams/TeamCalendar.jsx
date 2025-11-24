@@ -6,7 +6,7 @@ import { Calendar as CalendarIcon, MapPin, Clock, Users } from "lucide-react";
 import { format, isSameDay, parseISO } from "date-fns";
 import { sv } from "date-fns/locale";
 import { useNavigate } from 'react-router-dom';
-import { createPageUrl } from "@/utils";
+import { createPageUrl } from "@/components/utils/helpers";
 import { base44 } from "@/api/base44Client";
 
 export default function TeamCalendar({ team }) {
