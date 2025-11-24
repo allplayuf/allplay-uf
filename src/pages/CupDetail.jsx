@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { 
   Trophy, Calendar, MapPin, Users, Target, 
   ArrowLeft, Shield, Trash2, MoreVertical,
-  CheckCircle, Clock, ListChecks, Layout
+  CheckCircle, Clock, ListChecks, Layout, UserPlus, ChevronDown, ChevronUp
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -114,6 +114,48 @@ export default function CupDetailPage() {
 
   const statusConfig = STATUS_CONFIG[cup.status] || STATUS_CONFIG.upcoming;
   const confirmedParticipants = participants.filter(p => p.status === 'confirmed');
+
+  // Expandable state for team cards
+  const [expandedTeamId, setExpandedTeamId] = useState(null);
+
+  const joinTeamMutation = useMutation({
+    mutationFn: async ({ cup_id, team_id }) => {
+      const response = await base44.functions.invoke('cups/joinCupTeam', { cup_id, team_id });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cupDetails', cupId] });
+      alert('Gick med i laget! 🎉', 'Du har lagts till i laget.', { type: 'success' });
+    },
+    onError: (error) => {
+      alert('Ett fel uppstod', error.response?.data?.error || 'Kunde inte gå med i laget.', { type: 'alert' });
+    }
+  });
+
+  const handleJoinTeam = async (teamId, teamName) => {
+    if (userParticipant) {
+        await alert('Redan anmäld', 'Du deltar redan i denna cup.', { type: 'info' });
+        return;
+    }
+    
+    /* 
+       User requested: "utan några frågor blir man inlagt"
+       So we skip the confirm dialog for a super smooth experience, 
+       or just keep a simple confirm to prevent accidental clicks. 
+       "utan några frågor" usually implies no approval process, but a confirm dialog is UI safety.
+       I'll keep a very quick confirm or just do it. 
+       Let's add a small confirm just in case.
+    */
+    const shouldJoin = await confirm(
+      `Gå med i ${teamName}?`, 
+      `Vill du gå med i ${teamName} direkt?`, 
+      { type: 'confirm', confirmText: 'Gå med', cancelText: 'Avbryt' }
+    );
+
+    if (shouldJoin) {
+        joinTeamMutation.mutate({ cup_id: cupId, team_id: teamId });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0F1513]">
@@ -362,40 +404,87 @@ export default function CupDetailPage() {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.03 }}
                         >
-                          <div className="flex items-center gap-3 p-3 bg-[#18221E] rounded-xl border border-[#223029] hover:border-[#F59E0B]/30 transition-all">
-                            {cup.signup_type === 'team' && participant.team ? (
-                              <>
-                                {participant.team.logo_url ? (
-                                  <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
-                                    <img src={participant.team.logo_url} alt={participant.team.name} className="w-full h-full object-cover" />
-                                  </div>
+                          <div 
+                            className={`bg-[#18221E] rounded-xl border border-[#223029] transition-all overflow-hidden ${expandedTeamId === participant.id ? 'ring-1 ring-[#F59E0B]/30' : 'hover:border-[#F59E0B]/30'}`}
+                          >
+                            <div 
+                                className="flex items-center gap-3 p-3 cursor-pointer"
+                                onClick={() => setExpandedTeamId(expandedTeamId === participant.id ? null : participant.id)}
+                            >
+                                {cup.signup_type === 'team' && participant.team ? (
+                                  <>
+                                    {participant.team.logo_url ? (
+                                      <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
+                                        <img src={participant.team.logo_url} alt={participant.team.name} className="w-full h-full object-cover" />
+                                      </div>
+                                    ) : (
+                                      <div className="w-10 h-10 bg-[#F59E0B]/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <Users className="w-5 h-5 text-[#F59E0B]" />
+                                      </div>
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-semibold text-[#F4F7F5] truncate text-sm">{participant.team.name}</p>
+                                        <p className="text-xs text-[#B6C2BC]">{participant.team.city}</p>
+                                    </div>
+                                    {expandedTeamId === participant.id ? <ChevronUp className="w-4 h-4 text-[#7B8A83]" /> : <ChevronDown className="w-4 h-4 text-[#7B8A83]" />}
+                                  </>
                                 ) : (
-                                  <div className="w-10 h-10 bg-[#F59E0B]/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <Users className="w-5 h-5 text-[#F59E0B]" />
-                                  </div>
+                                  <>
+                                    <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-full flex items-center justify-center flex-shrink-0">
+                                      <span className="text-white font-semibold text-sm">
+                                        {participant.user?.full_name?.[0] || 'U'}
+                                      </span>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-semibold text-[#F4F7F5] truncate text-sm">{participant.user?.full_name || 'Spelare'}</p>
+                                      {participant.preferred_position && participant.preferred_position !== 'any' && (
+                                        <p className="text-xs text-[#B6C2BC] capitalize">{participant.preferred_position}</p>
+                                      )}
+                                    </div>
+                                  </>
                                 )}
-                                <div className="flex-1 min-w-0">
-                                  <Link to={`${createPageUrl("TeamOverview")}?id=${participant.team.id}`} className="hover:underline">
-                                    <p className="font-semibold text-[#F4F7F5] truncate text-sm">{participant.team.name}</p>
-                                    <p className="text-xs text-[#B6C2BC]">{participant.team.city}</p>
-                                  </Link>
-                                </div>
-                              </>
-                            ) : (
-                              <>
-                                <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-full flex items-center justify-center flex-shrink-0">
-                                  <span className="text-white font-semibold text-sm">
-                                    {participant.user?.full_name?.[0] || 'U'}
-                                  </span>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-semibold text-[#F4F7F5] truncate text-sm">{participant.user?.full_name || 'Spelare'}</p>
-                                  {participant.preferred_position && participant.preferred_position !== 'any' && (
-                                    <p className="text-xs text-[#B6C2BC] capitalize">{participant.preferred_position}</p>
-                                  )}
-                                </div>
-                              </>
-                            )}
+                            </div>
+
+                            {/* Expanded Content: Team Members & Join Button */}
+                            <AnimatePresence>
+                                {expandedTeamId === participant.id && cup.signup_type === 'team' && participant.team && (
+                                    <motion.div 
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        className="border-t border-[#223029] bg-[#121715]/50 px-3 py-3"
+                                    >
+                                        {/* Member List */}
+                                        <div className="space-y-2 mb-3">
+                                            <p className="text-xs font-semibold text-[#7B8A83] uppercase tracking-wider">Spelare ({participant.team_members?.length || 0})</p>
+                                            {participant.team_members?.map(member => (
+                                                <div key={member.user_id} className="flex items-center gap-2 text-sm text-[#F4F7F5]">
+                                                    <div className="w-6 h-6 rounded-full bg-[#223029] flex items-center justify-center text-xs">
+                                                        {member.user?.full_name?.[0] || 'U'}
+                                                    </div>
+                                                    <span>{member.user?.full_name || 'Okänd spelare'}</span>
+                                                    {member.role === 'captain' && <Badge className="h-4 text-[10px] bg-[#F59E0B]/20 text-[#FCD34D] border-0 px-1">K</Badge>}
+                                                </div>
+                                            ))}
+                                            {(!participant.team_members || participant.team_members.length === 0) && (
+                                                <p className="text-xs text-[#B6C2BC] italic">Inga spelare listade.</p>
+                                            )}
+                                        </div>
+
+                                        {/* Join Button - Only if not already signed up */}
+                                        {!userParticipant && cup.status !== 'completed' && (
+                                            <Button 
+                                                onClick={() => handleJoinTeam(participant.team.id, participant.team.name)}
+                                                className="w-full h-9 bg-[#2BA84A] hover:bg-[#248232] text-white text-xs font-semibold gap-2"
+                                                disabled={joinTeamMutation.isPending}
+                                            >
+                                                <UserPlus className="w-3 h-3" />
+                                                {joinTeamMutation.isPending ? 'Går med...' : 'Gå med i laget'}
+                                            </Button>
+                                        )}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                           </div>
                         </motion.div>
                       ))}

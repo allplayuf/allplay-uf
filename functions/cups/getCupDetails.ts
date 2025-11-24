@@ -65,12 +65,58 @@ Deno.serve(async (req) => {
     const filteredTeams = teams.filter(Boolean);
     const filteredUsers = users.filter(Boolean);
 
-    // Enrich participants with team/user data
-    const enrichedParticipants = participants.map(p => ({
-      ...p,
-      team: p.team_id ? filteredTeams.find(t => t.id === p.team_id) : null,
-      user: p.user_id ? filteredUsers.find(u => u.id === p.user_id) : null
-    }));
+    // --- FETCH TEAM MEMBERS FOR CUP TEAMS ---
+    let teamMembersMap = {};
+    let memberUsersMap = {};
+
+    if (teamIds.length > 0) {
+        // Fetch active members for all teams involved
+        const teamMembersPromises = teamIds.map(id => 
+            base44.asServiceRole.entities.TeamMember.filter({ team_id: id, status: 'active' })
+        );
+        const teamMembersResults = await Promise.all(teamMembersPromises);
+        
+        teamIds.forEach((id, index) => {
+            teamMembersMap[id] = teamMembersResults[index];
+        });
+
+        // Collect user IDs from members to fetch their details
+        const memberUserIds = new Set();
+        Object.values(teamMembersMap).flat().forEach(m => memberUserIds.add(m.user_id));
+        
+        // Fetch user details for members
+        const allMemberUserIds = [...memberUserIds];
+        const memberUserPromises = allMemberUserIds.map(id => 
+            base44.asServiceRole.entities.User.get(id).catch(() => null)
+        );
+        const memberUsers = await Promise.all(memberUserPromises);
+        
+        memberUsers.filter(Boolean).forEach(u => {
+            memberUsersMap[u.id] = u;
+        });
+    }
+    // ----------------------------------------
+
+    // Enrich participants with team/user data AND team members
+    const enrichedParticipants = participants.map(p => {
+      const team = p.team_id ? filteredTeams.find(t => t.id === p.team_id) : null;
+      let team_members = [];
+      
+      if (team) {
+          const members = teamMembersMap[team.id] || [];
+          team_members = members.map(m => ({
+              ...m,
+              user: memberUsersMap[m.user_id]
+          })).filter(m => m.user); // Only include if user found
+      }
+
+      return {
+        ...p,
+        team,
+        team_members,
+        user: p.user_id ? filteredUsers.find(u => u.id === p.user_id) : null
+      };
+    });
 
     // Fetch match details for cup matches - OPTIMIZED
     const matchIds = cupMatches.map(cm => cm.match_id).filter(Boolean);
