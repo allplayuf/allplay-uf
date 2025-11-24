@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Trophy, Calendar, MapPin, Users, Target } from "lucide-react";
+import { resolveImageUrl } from "@/components/utils/imageUtils";
 
 export default function CupHeroCard({ cup, statusConfig, confirmedCount }) {
   return (
