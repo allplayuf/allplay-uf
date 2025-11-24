@@ -79,6 +79,44 @@ export default function CupDetailPage() {
     }
   });
 
+  // Expandable state for team cards
+  const [expandedTeamId, setExpandedTeamId] = useState(null);
+
+  const approveSignupMutation = useMutation({
+    mutationFn: async (participantId) => {
+      const response = await base44.functions.invoke('cups/manageSignup', {
+        participant_id: participantId,
+        action: 'approve'
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cupDetails', cupId] });
+      alert('Anmälan godkänd! ✅', 'Laget har godkänts för cupen.', { type: 'success' });
+    },
+    onError: (error) => {
+      alert('Fel', error.response?.data?.error || 'Kunde inte godkänna anmälan.', { type: 'alert' });
+    }
+  });
+
+  const handleApproveTeam = async (participantId, teamName) => {
+      approveSignupMutation.mutate(participantId);
+  };
+
+  const joinTeamMutation = useMutation({
+    mutationFn: async ({ cup_id, team_id }) => {
+      const response = await base44.functions.invoke('cups/joinCupTeam', { cup_id, team_id });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cupDetails', cupId] });
+      alert('Gick med i laget! 🎉', 'Du har lagts till i laget.', { type: 'success' });
+    },
+    onError: (error) => {
+      alert('Ett fel uppstod', error.response?.data?.error || 'Kunde inte gå med i laget.', { type: 'alert' });
+    }
+  });
+
   const handleDeleteCup = async () => {
     const shouldDelete = await confirm(
       'Ta bort turnering',
