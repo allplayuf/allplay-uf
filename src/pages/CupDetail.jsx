@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { 
   Trophy, Calendar, MapPin, Users, Target, 
   ArrowLeft, Shield, Trash2, MoreVertical,
-  CheckCircle, Clock, ListChecks, Layout, UserPlus, ChevronDown, ChevronUp
+  CheckCircle, Clock, ListChecks, Layout, UserPlus, ChevronDown, ChevronUp, X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -101,6 +101,34 @@ export default function CupDetailPage() {
 
   const handleApproveTeam = async (participantId, teamName) => {
       approveSignupMutation.mutate(participantId);
+  };
+
+  const declineSignupMutation = useMutation({
+    mutationFn: async (participantId) => {
+      const response = await base44.functions.invoke('cups/manageSignup', {
+        participant_id: participantId,
+        action: 'reject'
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cupDetails', cupId] });
+      alert('Anmälan nekad', 'Laget har nekats plats i cupen.', { type: 'info' });
+    },
+    onError: (error) => {
+      alert('Fel', error.response?.data?.error || 'Kunde inte neka anmälan.', { type: 'alert' });
+    }
+  });
+
+  const handleDeclineTeam = async (participantId, teamName) => {
+      const shouldDecline = await confirm(
+        'Neka anmälan?',
+        `Är du säker på att du vill neka ${teamName}?`,
+        { type: 'warning', confirmText: 'Neka', cancelText: 'Avbryt' }
+      );
+      if (shouldDecline) {
+          declineSignupMutation.mutate(participantId);
+      }
   };
 
   const joinTeamMutation = useMutation({
@@ -517,16 +545,26 @@ export default function CupDetailPage() {
                                                 </Button>
                                             )}
 
-                                            {/* Admin Approve Button */}
+                                            {/* Admin Approve/Decline Buttons */}
                                             {canManage && participant.status === 'pending' && (
-                                                <Button 
-                                                    onClick={() => handleApproveTeam(participant.id, participant.team.name)}
-                                                    className="flex-1 h-9 bg-[#F59E0B] hover:bg-[#D97706] text-white text-xs font-semibold gap-2"
-                                                    disabled={approveSignupMutation.isPending}
-                                                >
-                                                    <CheckCircle className="w-3 h-3" />
-                                                    {approveSignupMutation.isPending ? 'Godkänner...' : 'Godkänn lag'}
-                                                </Button>
+                                                <>
+                                                    <Button 
+                                                        onClick={() => handleApproveTeam(participant.id, participant.team?.name || participant.user?.full_name)}
+                                                        className="flex-1 h-9 bg-[#F59E0B] hover:bg-[#D97706] text-white text-xs font-semibold gap-2"
+                                                        disabled={approveSignupMutation.isPending}
+                                                    >
+                                                        <CheckCircle className="w-3 h-3" />
+                                                        {approveSignupMutation.isPending ? 'Godkänner...' : 'Godkänn'}
+                                                    </Button>
+                                                    <Button 
+                                                        onClick={() => handleDeclineTeam(participant.id, participant.team?.name || participant.user?.full_name)}
+                                                        className="flex-1 h-9 bg-[#EF4444] hover:bg-[#DC2626] text-white text-xs font-semibold gap-2"
+                                                        disabled={declineSignupMutation.isPending}
+                                                    >
+                                                        <X className="w-3 h-3" />
+                                                        {declineSignupMutation.isPending ? 'Nekar...' : 'Neka'}
+                                                    </Button>
+                                                </>
                                             )}
                                         </div>
                                     </motion.div>
