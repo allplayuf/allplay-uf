@@ -28,6 +28,7 @@ import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
 import CreateMatchForm from "../components/matches/CreateMatchForm";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import CupsWidget from "../components/dashboard/CupsWidget";
+import MatchCard from "../components/matches/MatchCard";
 
 // Query keys
 const QUERY_KEYS = {
@@ -430,68 +431,30 @@ export default function Dashboard() {
               </div>
 
               {myUpcomingMatches.length === 0 ? (
-                <Card className="bg-[#121715] rounded-[20px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029]">
-                  <CardContent className="p-8 text-center">
-                    <div className="w-16 h-16 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <Calendar className="w-8 h-8 text-[#9FC9AC]" />
-                    </div>
-                    <p className="text-sm text-[#B6C2BC] mb-6">Inga kommande matcher</p>
-                    <Link to={createPageUrl("Matches")}>
-                      <button className="inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border border-[#2BA84A]/35 px-5 text-sm font-semibold text-[#CFE8D6] transition-all hover:bg-[#2BA84A]/10 active:bg-[#2BA84A]/16">
-                        Hitta matcher
-                      </button>
-                    </Link>
-                  </CardContent>
-                </Card>
+                <div className="card-base p-8 text-center bg-[#121715]">
+                  <div className="w-12 h-12 bg-[#2BA84A]/10 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <Calendar className="w-6 h-6 text-[#2BA84A]" />
+                  </div>
+                  <p className="text-secondary text-sm mb-4">Inga kommande matcher</p>
+                  <Link to={createPageUrl("Matches")}>
+                    <button className="btn-secondary px-4 h-9 text-sm">
+                      Hitta matcher
+                    </button>
+                  </Link>
+                </div>
               ) : (
-                <div className="space-y-3">
-                  {myUpcomingMatches.map((match, index) => {
-                    const venue = venues.find(v => v.id === match.venue_id);
-                    const currentPlayersCount = (allParticipants || []).filter(p => p.match_id === match.id).length;
-                    return (
-                      <motion.div
-                        key={match.id}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.4, delay: index * 0.1, ease: "easeOut" }}
-                        whileHover={{ scale: 1.02, y: -2 }}
-                      >
-                        <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`}>
-                          <div className="bg-gradient-to-br from-[#121715] to-[#18221E] rounded-[18px] shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#223029] p-4 hover:shadow-[0_12px_32px_rgba(0,0,0,0.4)] hover:border-[#2BA84A]/30 transition-all min-h-[90px] flex items-center gap-3 group">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                <h4 className="text-base font-bold text-[#F4F7F5] group-hover:text-[#2BA84A] transition-colors">{match.title}</h4>
-                                <span className="inline-flex h-6 items-center rounded-full bg-[#2BA84A]/18 px-3 text-xs font-bold text-[#CFE8D6] ring-1 ring-[#2BA84A]/25">
-                                  {match.format}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-3 text-xs text-[#B6C2BC] flex-wrap">
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="w-3.5 h-3.5" />
-                                  {venue?.name || 'Okänd'}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <Clock className="w-3.5 h-3.5" />
-                                  {match.date} {match.time}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex-shrink-0">
-                              {match.is_spontaneous ? (
-                                <span className="text-sm font-semibold text-[#B6C2BC]">
-                                  {currentPlayersCount} anmälda
-                                </span>
-                              ) : (
-                                <span className="inline-flex h-8 items-center rounded-full bg-[#18221E] px-4 text-sm font-bold text-[#2BA84A] ring-1 ring-[#2BA84A]/25">
-                                  {currentPlayersCount}/{match.max_players}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </Link>
-                      </motion.div>
-                    );
-                  })}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {myUpcomingMatches.map((match, index) => (
+                    <div key={match.id} className="h-full">
+                        <MatchCard 
+                            match={match} 
+                            venues={venues} 
+                            user={user} 
+                            participants={allParticipants.filter(p => p.match_id === match.id)}
+                            index={index}
+                        />
+                    </div>
+                  ))}
                 </div>
               )}
             </motion.div>
