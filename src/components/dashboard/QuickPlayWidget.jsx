@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PlayCircle, MapPin, Users, Clock, ChevronRight, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
-import { createPageUrl } from "@/components/utils/helpers";
+import { createPageUrl } from "@/utils";
 
 export default function QuickPlayWidget({ matches, user, venues }) {
   if (!matches || matches.length === 0) {
