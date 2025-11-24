@@ -24,7 +24,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 // Draggable marker component with hover tooltip
-function DraggableMarker({ venue, onPositionChange }) {
+function DraggableMarker({ venue, onPositionChange, onDelete }) {
   const [position, setPosition] = useState([venue.latitude, venue.longitude]);
 
   const eventHandlers = {
@@ -79,13 +79,25 @@ function DraggableMarker({ venue, onPositionChange }) {
         <div className="p-2">
           <h3 className="font-semibold text-sm mb-1">{venue.name}</h3>
           <p className="text-xs text-gray-600 mb-2">{venue.address}, {venue.city}</p>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1 mb-3">
             {venue.formats_supported?.map(format => (
               <span key={format} className="text-[10px] bg-green-100 text-green-800 px-2 py-0.5 rounded">
                 {format}
               </span>
             ))}
           </div>
+          <Button 
+            variant="destructive" 
+            size="sm" 
+            className="w-full h-7 text-xs bg-red-600 hover:bg-red-700 text-white"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(venue.id);
+            }}
+          >
+            <Trash2 className="w-3 h-3 mr-1" />
+            Ta bort
+          </Button>
         </div>
       </Popup>
     </Marker>
@@ -350,6 +362,7 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
                       key={venue.id}
                       venue={venue}
                       onPositionChange={handlePositionChange}
+                      onDelete={handleDeleteVenue}
                     />
                   ))}
                 </MapContainer>
