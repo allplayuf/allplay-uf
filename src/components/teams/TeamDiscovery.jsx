@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Shield, Users, MapPin, Trophy, Search, ChevronRight, Lock, Plus, SlidersHorizontal } from "lucide-react";
 import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
+import { createPageUrl } from "@/components/utils/helpers";
 import RankBadge, { getRankFromElo } from "./RankBadge"; // Updated import path for RankBadge
 
 export default function TeamDiscovery({ teams, currentUser, onJoinRequest }) {
