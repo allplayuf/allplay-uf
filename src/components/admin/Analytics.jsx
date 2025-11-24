@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Users, Calendar, MapPin, TrendingUp, Activity, Trophy, Target, Zap, Trash2, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge"; 
 import { Button } from "@/components/ui/button"; 
-import { Team } from "@/entities/User";
+import { base44 } from "@/api/base44Client";
 
 
 export default function Analytics({ users, matches, venues, reports, onDeleteMatch, onDeleteTeam }) {
@@ -15,7 +15,7 @@ export default function Analytics({ users, matches, venues, reports, onDeleteMat
 
   const loadTeams = async () => {
     try {
-      const allTeams = await Team.list();
+      const allTeams = await base44.entities.Team.list();
       setTeams(allTeams);
     } catch (error) {
       console.error("Error loading teams:", error);

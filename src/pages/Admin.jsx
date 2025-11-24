@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { User, Report, Venue, Match, Team } from "@/entities/User";
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -35,7 +35,7 @@ export default function AdminPage() {
 
   const loadAdminData = async () => {
     try {
-      const user = await User.me();
+      const user = await base44.auth.me();
       
       if (user.role !== 'admin') {
         await alert('Behörighet saknas', 'Du har inte behörighet att se denna sida.', { type: 'alert' });
@@ -44,11 +44,11 @@ export default function AdminPage() {
       }
 
       const [reportsData, usersData, venuesData, matchesData, teamsData] = await Promise.all([
-        Report.list('-created_date'),
-        User.list('-created_date'),
-        Venue.list(),
-        Match.list('-created_date'),
-        Team.list('-created_date')
+        base44.entities.Report.list('-created_date'),
+        base44.entities.User.list('-created_date'),
+        base44.entities.Venue.list(),
+        base44.entities.Match.list('-created_date'),
+        base44.entities.Team.list('-created_date')
       ]);
 
       setReports(reportsData);
@@ -69,7 +69,7 @@ export default function AdminPage() {
 
   const handleReportAction = async (reportId, action, notes) => {
     try {
-      await Report.update(reportId, {
+      await base44.entities.Report.update(reportId, {
         status: action === 'resolve' ? 'resolved' : 'dismissed',
         moderator_notes: notes,
         resolved_date: new Date().toISOString(),
@@ -101,7 +101,7 @@ export default function AdminPage() {
         blocked = false;
       }
 
-      await User.update(userId, { status, blocked });
+      await base44.entities.User.update(userId, { status, blocked });
       loadAdminData();
       await alert('Uppdaterat!', 'Användarstatus uppdaterad!', { type: 'success' });
     } catch (error) {
@@ -124,7 +124,7 @@ export default function AdminPage() {
     if (!shouldDelete) return;
 
     try {
-      await Match.update(matchId, {
+      await base44.entities.Match.update(matchId, {
         status: 'cancelled',
         deleted_at: new Date().toISOString(),
         deleted_by: currentUser.id
@@ -163,7 +163,7 @@ export default function AdminPage() {
     if (!shouldDelete) return;
 
     try {
-      await Team.update(teamId, {
+      await base44.entities.Team.update(teamId, {
         is_active: false,
         deleted_at: new Date().toISOString(),
         deleted_by: currentUser.id
