@@ -1,192 +1,319 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, CheckCircle2, X, ChevronRight, User, Trophy, Target } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  MapPin, 
+  Shield, 
+  Users, 
+  Bell, 
+  ChevronRight, 
+  X, 
+  Check, 
+  Map as MapIcon,
+  Trophy,
+  UserPlus,
+  Navigation
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 
-const STEPS = [
-  { id: 'welcome', title: 'Välkommen' },
-  { id: 'skill', title: 'Erfarenhet' },
-  { id: 'position', title: 'Position' },
-  { id: 'complete', title: 'Klar' }
-];
+const ONBOARDING_STORAGE_KEY = 'allplay_onboarding_completed_v1';
 
-const SKILL_LEVELS = [
-  { value: 'beginner', label: 'Nybörjare', desc: 'Spelar för att det är kul, ny inom sporten.' },
-  { value: 'intermediate', label: 'Medel', desc: 'Spelat ett tag, kan grunderna väl.' },
-  { value: 'advanced', label: 'Avancerad', desc: 'Spelar regelbundet, hög nivå.' },
-  { value: 'elite', label: 'Elit', desc: 'Tävlingsinriktad, mycket hög nivå.' }
-];
-
-const POSITIONS = [
-  { value: 'goalkeeper', label: 'Målvakt' },
-  { value: 'defender', label: 'Försvarare' },
-  { value: 'midfielder', label: 'Mittfältare' },
-  { value: 'forward', label: 'Anfallare' }
+const SLIDES = [
+  {
+    id: "screen_1",
+    title: "Hitta matcher nära dig",
+    description: "AllPlay visar fotbollsplaner och matcher nära dig, så du slipper chattgrupper och krånglig planering.",
+    bullets: [
+      "Se planer på karta i din stad",
+      "Skapa egna matcher på sekunder",
+      "Gå med i öppna matcher i närheten"
+    ],
+    icon: MapIcon,
+    color: "#F4743B"
+  },
+  {
+    id: "screen_2",
+    title: "Spela på rätt nivå",
+    description: "Du anger din nivå och AllPlay hjälper dig hitta matcher med spelare som ligger ungefär som du.",
+    bullets: [
+      "Nivåsystem inspirerat av ELO",
+      "Matcher filtrerade på nivå",
+      "Verifiering via rapportering"
+    ],
+    tags: [
+      { label: "Nivåmatchning", color: "bg-[#2BA84A]" },
+      { label: "Trygghet", color: "bg-[#F4743B]" }
+    ],
+    icon: Shield,
+    color: "#2BA84A"
+  },
+  {
+    id: "screen_3",
+    title: "Bygg lag & hitta vänner",
+    description: "Skapa eller gå med i lag, samla badges och bygg streaks tillsammans med andra.",
+    bullets: [
+      "Skapa lag med dina vänner",
+      "Se när dina vänner spelar",
+      "Samla badges och MVP-röster"
+    ],
+    icon: Users,
+    color: "#9370DB"
+  },
+  {
+    id: "screen_4_permissions",
+    title: "För att AllPlay ska fungera",
+    description: "Vi använder din position och notiser för att visa relevanta matcher och påminna dig i tid.",
+    isPermissionScreen: true,
+    icon: Bell,
+    color: "#F59E0B"
+  }
 ];
 
 export function OnboardingModal() {
-  const [isVisible, setIsVisible] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [userData, setUserData] = useState({
-    skill_level: 'intermediate',
-    preferred_position: 'midfielder'
+  const [isOpen, setIsOpen] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [permissions, setPermissions] = useState({
+    location: false,
+    notifications: false
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const modalSeen = localStorage.getItem('allplay_onboarding_completed');
-    if (!modalSeen) {
-      setTimeout(() => setIsVisible(true), 500);
+    const hasCompleted = localStorage.getItem(ONBOARDING_STORAGE_KEY);
+    if (!hasCompleted) {
+      // Small delay for better UX on load
+      const timer = setTimeout(() => setIsOpen(true), 500);
+      return () => clearTimeout(timer);
     }
   }, []);
 
-  const handleNext = async () => {
-    if (currentStep < STEPS.length - 1) {
-      setCurrentStep(prev => prev + 1);
+  const handleComplete = () => {
+    localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
+    setIsOpen(false);
+    
+    // Check if user is authenticated, if not redirect to login/signup
+    base44.auth.isAuthenticated().then(isAuth => {
+      if (!isAuth) {
+        // Maybe redirect to a specific auth page if it exists, 
+        // or rely on the user clicking login in the header
+        // For now we just close the modal as requested
+      }
+    });
+  };
+
+  const handleNext = () => {
+    if (currentSlide < SLIDES.length - 1) {
+      setCurrentSlide(prev => prev + 1);
     } else {
-      await handleComplete();
+      handleComplete();
     }
   };
 
-  const handleComplete = async () => {
-    setIsSubmitting(true);
-    try {
-      await base44.auth.updateMe(userData);
-      localStorage.setItem('allplay_onboarding_completed', 'true');
-      setIsVisible(false);
-    } catch (error) {
-      console.error("Onboarding error:", error);
-    } finally {
-      setIsSubmitting(false);
+  const requestLocation = async () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        () => setPermissions(p => ({ ...p, location: true })),
+        (error) => console.log("Location denied", error)
+      );
     }
   };
 
-  if (!isVisible) return null;
-
-  const renderStep = () => {
-    switch (STEPS[currentStep].id) {
-      case 'welcome':
-        return (
-          <div className="space-y-6 text-center">
-            <div className="w-20 h-20 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-3xl mx-auto flex items-center justify-center shadow-xl">
-              <Trophy className="w-10 h-10 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-2">Välkommen till AllPlay!</h2>
-              <p className="text-[#B6C2BC]">Vi behöver veta lite mer om dig för att hitta rätt matcher.</p>
-            </div>
-          </div>
-        );
-      case 'skill':
-        return (
-          <div className="space-y-4">
-            <h3 className="text-xl font-bold text-white mb-4 text-center">Vilken nivå spelar du på?</h3>
-            <div className="space-y-3">
-              {SKILL_LEVELS.map((level) => (
-                <button
-                  key={level.value}
-                  onClick={() => setUserData({ ...userData, skill_level: level.value })}
-                  className={`w-full p-4 rounded-xl border transition-all text-left flex flex-col gap-1 ${
-                    userData.skill_level === level.value
-                      ? 'bg-[#2BA84A]/20 border-[#2BA84A] ring-1 ring-[#2BA84A]/50'
-                      : 'bg-[#18221E] border-[#223029] hover:border-[#2BA84A]/50'
-                  }`}
-                >
-                  <span className={`font-bold ${userData.skill_level === level.value ? 'text-[#2BA84A]' : 'text-white'}`}>
-                    {level.label}
-                  </span>
-                  <span className="text-xs text-[#B6C2BC]">{level.desc}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-      case 'position':
-        return (
-          <div className="space-y-4">
-            <h3 className="text-xl font-bold text-white mb-4 text-center">Vilken position föredrar du?</h3>
-            <div className="grid grid-cols-2 gap-3">
-              {POSITIONS.map((pos) => (
-                <button
-                  key={pos.value}
-                  onClick={() => setUserData({ ...userData, preferred_position: pos.value })}
-                  className={`p-4 rounded-xl border transition-all text-center ${
-                    userData.preferred_position === pos.value
-                      ? 'bg-[#F4743B]/20 border-[#F4743B] ring-1 ring-[#F4743B]/50 text-[#F4743B]'
-                      : 'bg-[#18221E] border-[#223029] hover:border-[#F4743B]/50 text-white'
-                  }`}
-                >
-                  <span className="font-bold">{pos.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-      case 'complete':
-        return (
-          <div className="space-y-6 text-center">
-            <div className="w-20 h-20 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-full mx-auto flex items-center justify-center shadow-xl">
-              <CheckCircle2 className="w-10 h-10 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-2">Allt klart!</h2>
-              <p className="text-[#B6C2BC]">Din profil är nu skapad. Dags att hitta din första match!</p>
-            </div>
-          </div>
-        );
-      default:
-        return null;
+  const requestNotifications = async () => {
+    if ("Notification" in window) {
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        setPermissions(p => ({ ...p, notifications: true }));
+      }
     }
   };
+
+  if (!isOpen) return null;
+
+  const slide = SLIDES[currentSlide];
+  const Icon = slide.icon;
 
   return (
     <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
-      >
+      {isOpen && (
         <motion.div
-          initial={{ scale: 0.9, opacity: 0, y: 20 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          className="bg-[#121715] border border-[#223029] rounded-[24px] w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-sm"
         >
-          {/* Progress Bar */}
-          <div className="h-1.5 bg-[#18221E] w-full">
-            <motion.div 
-              className="h-full bg-gradient-to-r from-[#2BA84A] to-[#F4743B]"
-              initial={{ width: 0 }}
-              animate={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
-            />
-          </div>
-
-          <div className="p-8 flex-1 overflow-y-auto">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentStep}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.2 }}
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="relative w-full max-w-[400px] bg-gradient-to-b from-[#040F0F] to-[#2D3A3A] rounded-[32px] border border-[#223029] shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+          >
+            {/* Top Bar */}
+            <div className="flex items-center justify-between p-6 absolute top-0 left-0 right-0 z-20">
+              <div className="w-8 h-8" /> {/* Spacer */}
+              <div className="flex gap-1.5">
+                {SLIDES.map((_, idx) => (
+                  <div
+                    key={idx}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                      idx === currentSlide 
+                        ? "w-6 bg-[#F4743B]" 
+                        : "w-1.5 bg-[#4B5563]"
+                    }`}
+                  />
+                ))}
+              </div>
+              <button 
+                onClick={handleComplete}
+                className="text-[#9CA3AF] hover:text-white text-sm font-medium px-2 py-1 rounded-lg hover:bg-white/5 transition-colors"
               >
-                {renderStep()}
-              </motion.div>
-            </AnimatePresence>
-          </div>
+                Hoppa över
+              </button>
+            </div>
 
-          <div className="p-6 border-t border-[#223029] bg-[#0F1513]">
-            <button
-              onClick={handleNext}
-              disabled={isSubmitting}
-              className="w-full h-14 rounded-xl bg-gradient-to-r from-[#2BA84A] to-[#248232] text-white font-bold text-lg hover:shadow-lg hover:shadow-[#2BA84A]/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {isSubmitting ? 'Sparar...' : (currentStep === STEPS.length - 1 ? 'Kom igång' : 'Nästa')}
-              {!isSubmitting && currentStep < STEPS.length - 1 && <ChevronRight className="w-5 h-5" />}
-            </button>
-          </div>
+            {/* Content Scroll Area */}
+            <div className="flex-1 overflow-y-auto pt-20 px-6 pb-32 scrollbar-hide">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentSlide}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="flex flex-col items-center text-center"
+                >
+                  {/* Hero Icon/Illustration */}
+                  <div className="relative w-32 h-32 mb-8">
+                    <div 
+                      className="absolute inset-0 rounded-full opacity-20 blur-2xl"
+                      style={{ backgroundColor: slide.color }}
+                    />
+                    <div className="relative w-full h-full bg-[#121715]/50 border border-white/10 rounded-full flex items-center justify-center shadow-xl ring-1 ring-white/5">
+                      <Icon 
+                        size={48} 
+                        style={{ color: slide.color }}
+                        strokeWidth={1.5}
+                      />
+                      {/* Decorative floating elements based on slide */}
+                      {slide.id === "screen_1" && (
+                        <motion.div 
+                          animate={{ y: [-5, 5, -5] }}
+                          transition={{ duration: 3, repeat: Infinity }}
+                          className="absolute -right-2 top-0 bg-[#2BA84A] p-2 rounded-full border-2 border-[#121715]"
+                        >
+                          <MapPin size={14} className="text-white" />
+                        </motion.div>
+                      )}
+                      {slide.id === "screen_2" && (
+                        <motion.div 
+                          animate={{ scale: [1, 1.1, 1] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                          className="absolute -left-2 bottom-2 bg-[#F59E0B] p-2 rounded-full border-2 border-[#121715]"
+                        >
+                          <Trophy size={14} className="text-white" />
+                        </motion.div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Text Content */}
+                  <h2 className="text-2xl font-bold text-white mb-4 px-2">
+                    {slide.title}
+                  </h2>
+                  <p className="text-[#D1D5DB] text-[15px] leading-relaxed mb-8">
+                    {slide.description}
+                  </p>
+
+                  {/* Interactive Elements */}
+                  {slide.isPermissionScreen ? (
+                    <div className="w-full space-y-3">
+                      <button
+                        onClick={requestLocation}
+                        className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                          permissions.location 
+                            ? "bg-[#2BA84A]/10 border-[#2BA84A] text-[#2BA84A]" 
+                            : "bg-[#121715] border-[#223029] text-[#F4F7F5] hover:border-[#F4743B]/50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-full ${permissions.location ? "bg-[#2BA84A]/20" : "bg-[#18221E]"}`}>
+                            <Navigation size={18} />
+                          </div>
+                          <div className="text-left">
+                            <div className="font-semibold text-sm">Platstjänster</div>
+                            <div className="text-xs opacity-70">För att hitta planer</div>
+                          </div>
+                        </div>
+                        {permissions.location && <Check size={18} />}
+                      </button>
+
+                      <button
+                        onClick={requestNotifications}
+                        className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                          permissions.notifications 
+                            ? "bg-[#2BA84A]/10 border-[#2BA84A] text-[#2BA84A]" 
+                            : "bg-[#121715] border-[#223029] text-[#F4F7F5] hover:border-[#F4743B]/50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-full ${permissions.notifications ? "bg-[#2BA84A]/20" : "bg-[#18221E]"}`}>
+                            <Bell size={18} />
+                          </div>
+                          <div className="text-left">
+                            <div className="font-semibold text-sm">Notiser</div>
+                            <div className="text-xs opacity-70">För matchinbjudningar</div>
+                          </div>
+                        </div>
+                        {permissions.notifications && <Check size={18} />}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-full space-y-4">
+                      {/* Bullets */}
+                      <div className="bg-[#121715]/50 rounded-2xl p-4 border border-white/5 space-y-3 text-left">
+                        {slide.bullets?.map((bullet, idx) => (
+                          <div key={idx} className="flex items-start gap-3 text-sm text-[#D1D5DB]">
+                            <div className="mt-1 w-1.5 h-1.5 rounded-full bg-[#F4743B] flex-shrink-0" />
+                            <span>{bullet}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Tags */}
+                      {slide.tags && (
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {slide.tags.map((tag, idx) => (
+                            <span 
+                              key={idx} 
+                              className={`px-3 py-1 rounded-full text-xs font-semibold text-white ${tag.color}`}
+                            >
+                              {tag.label}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Bottom Navigation Area - Fixed */}
+            <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#040F0F] via-[#040F0F] to-transparent z-20">
+              <Button
+                onClick={handleNext}
+                className="w-full h-12 rounded-full bg-[#F4743B] hover:bg-[#E5683A] text-white font-semibold text-lg shadow-lg hover:shadow-[#F4743B]/20 transition-all"
+              >
+                {currentSlide === SLIDES.length - 1 ? "Kom igång" : "Nästa"}
+                {currentSlide !== SLIDES.length - 1 && <ChevronRight className="w-5 h-5 ml-1" />}
+              </Button>
+            </div>
+
+          </motion.div>
         </motion.div>
-      </motion.div>
+      )}
     </AnimatePresence>
   );
 }
