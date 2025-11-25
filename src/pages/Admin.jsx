@@ -101,6 +101,27 @@ export default function AdminPage() {
         blocked = false;
       }
 
+      if (action === 'delete') {
+         const shouldDelete = await confirm(
+            'Radera användare', 
+            'Är du säker på att du vill radera denna användare? Detta kan inte ångras.',
+            { type: 'warning', confirmText: 'Radera', cancelText: 'Avbryt' }
+         );
+         
+         if (!shouldDelete) return;
+
+         const { base44 } = await import("@/api/base44Client");
+         const response = await base44.functions.invoke('admin/deleteUser', { userId });
+         
+         if (response.data.error) {
+            throw new Error(response.data.error);
+         }
+         
+         await alert('Användare raderad', 'Användaren har raderats permanent.', { type: 'success' });
+         loadAdminData();
+         return;
+      }
+
       await User.update(userId, { status, blocked });
       loadAdminData();
       await alert('Uppdaterat!', 'Användarstatus uppdaterad!', { type: 'success' });
