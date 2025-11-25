@@ -47,6 +47,7 @@ const getStatusBadge = (status) => {
 export default function MatchCard({ match, venues, user, participants = [], onJoin, onRefresh, index = 0 }) {
   // ALWAYS call hooks first, before any conditional returns
   const [participantUsers, setParticipantUsers] = useState([]);
+  const [isJoining, setIsJoining] = useState(false);
 
   useEffect(() => {
     if (participants && participants.length > 0) {
