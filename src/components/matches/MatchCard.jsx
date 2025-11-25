@@ -186,6 +186,28 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
                     }`}
                   />
                 </div>
+                {participantUsers.length > 0 && (
+                  <div className="flex items-center gap-2 pt-1">
+                    <div className="flex -space-x-2">
+                      {participantUsers.slice(0, 5).map((participant, i) => (
+                        <div 
+                          key={participant?.id || i}
+                          className="w-6 h-6 rounded-full bg-gradient-to-br from-[#2BA84A] to-[#248232] border border-[#121715] flex items-center justify-center overflow-hidden"
+                          title={participant?.full_name || 'User'}
+                        >
+                          {participant?.profile_image_url ? (
+                            <img src={participant.profile_image_url} alt={participant.full_name || 'User'} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-[9px] font-semibold text-white">{participant?.full_name?.[0] || '?'}</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {actualParticipantCount > 5 && (
+                      <span className="text-[10px] leading-[14px] text-[#B6C2BC]">+{actualParticipantCount - 5}</span>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
@@ -205,12 +227,14 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
                 </div>
               ) : isJoinable && (!match.is_spontaneous && spotsLeft > 0 || match.is_spontaneous) ? (
                 <>
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={handleJoinClick}
                     className="flex-1 bg-[#F4743B] hover:bg-[#E5683A] text-white text-sm font-semibold h-9 rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-sm"
                   >
                     Gå med
-                  </button>
+                  </motion.button>
                   
                   <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`} className="flex-shrink-0">
                     <button className="h-9 px-3 border border-[#223029] hover:bg-[#18221E] text-white text-sm font-medium rounded-lg transition-colors">
