@@ -22,42 +22,13 @@ const SKILL_LEVEL_CONFIG = {
   elite: { label: 'Elit', icon: Crown, color: 'from-[#F59E0B] to-[#D97706]', textColor: 'text-[#FDE68A]' }
 };
 
-export default function FriendsList({ friends, user, onRefresh, incomingRequests = [], onAcceptRequest, onDeclineRequest }) {
-  const [processingRequests, setProcessingRequests] = React.useState(new Set());
-
+export default function FriendsList({ friends, user, onRefresh }) {
   // Deduplicate friends based on ID
   const uniqueFriends = friends.filter((friend, index, self) => 
     index === self.findIndex((t) => t.id === friend.id)
   );
 
-  const handleAction = async (requestId, action) => {
-    if (processingRequests.has(requestId)) return;
-    
-    setProcessingRequests(prev => new Set(prev).add(requestId));
-    
-    // Small delay to allow UI to update state before calling parent
-    // This ensures the "disappear" effect feels instant
-    setTimeout(async () => {
-        try {
-            if (action === 'accept' && onAcceptRequest) {
-                await onAcceptRequest(requestId);
-            } else if (action === 'decline' && onDeclineRequest) {
-                await onDeclineRequest(requestId);
-            }
-        } finally {
-            setProcessingRequests(prev => {
-                const next = new Set(prev);
-                next.delete(requestId);
-                return next;
-            });
-        }
-    }, 0);
-  };
-
-  // Filter out processed requests to hide them immediately
-  const visibleRequests = incomingRequests.filter(req => !processingRequests.has(req.id));
-
-  if (uniqueFriends.length === 0 && visibleRequests.length === 0) {
+  if (uniqueFriends.length === 0) {
     return (
       <Card className="relative overflow-hidden bg-gradient-to-br from-[#2BA84A] to-[#0F2917] rounded-[16px] lg:rounded-[20px] p-8 sm:p-12 lg:p-16 shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029]">
         <div className="absolute top-[-30px] right-[-30px] w-28 h-28 bg-[#2BA84A]/40 rounded-full"></div>
@@ -81,60 +52,7 @@ export default function FriendsList({ friends, user, onRefresh, incomingRequests
   }
 
   return (
-    <div className="space-y-8">
-      {/* Incoming Requests Section */}
-      {visibleRequests.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-[#F4F7F5] flex items-center gap-2">
-            <UserPlus className="w-5 h-5 text-[#2BA84A]" />
-            Vänförfrågningar
-            <Badge className="bg-[#2BA84A] text-white ml-2">{visibleRequests.length}</Badge>
-          </h3>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {visibleRequests.map((request) => (
-              <motion.div
-                key={request.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                layout
-              >
-                <Card className="bg-[#18221E] border border-[#2BA84A]/30 shadow-lg rounded-[16px] overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 bg-[#223029] rounded-xl flex items-center justify-center flex-shrink-0">
-                        <User className="w-6 h-6 text-[#B6C2BC]" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-[#F4F7F5] truncate">Ny vänförfrågan</p>
-                        <p className="text-xs text-[#B6C2BC]">Vill lägga till dig</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button 
-                        onClick={() => handleAction(request.id, 'accept')}
-                        className="flex-1 bg-[#2BA84A] hover:bg-[#248232] text-white h-9 rounded-lg text-sm font-semibold"
-                      >
-                        Acceptera
-                      </Button>
-                      <Button 
-                        onClick={() => handleAction(request.id, 'decline')}
-                        variant="outline" 
-                        className="flex-1 border-[#223029] hover:bg-[#223029] text-[#B6C2BC] h-9 rounded-lg text-sm font-medium"
-                      >
-                        Neka
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Friends Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
       {uniqueFriends.map((friend, index) => {
         const friendSkill = SKILL_LEVEL_CONFIG[friend.skill_level || 'intermediate'];
         const FriendSkillIcon = friendSkill.icon;
@@ -197,7 +115,6 @@ export default function FriendsList({ friends, user, onRefresh, incomingRequests
           </motion.div>
         );
       })}
-      </div>
     </div>
   );
 }
