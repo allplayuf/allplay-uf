@@ -136,7 +136,7 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
                  </span>
                  <span className="flex items-center gap-1.5 flex-shrink-0">
                     <Clock className="w-4 h-4 flex-shrink-0 text-[#F4743B]" />
-                    <span>{match.time}</span>
+                    <span>{match.date} • {match.time}</span>
                  </span>
               </div>
             </div>
@@ -238,9 +238,20 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
                       ease: "easeInOut"
                     }}
                     onClick={handleJoinClick}
-                    className="flex-1 bg-[#F4743B] hover:bg-[#E5683A] text-white text-base font-black uppercase tracking-wide h-12 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(244,116,59,0.4)] hover:shadow-[0_0_25px_rgba(244,116,59,0.6)] border border-[#F4743B]/50"
+                    className="flex-1 bg-[#F4743B] hover:bg-[#E5683A] text-white text-base font-extrabold uppercase tracking-wide h-12 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(244,116,59,0.4)] hover:shadow-[0_0_25px_rgba(244,116,59,0.6)] border border-[#F4743B]/50 relative overflow-hidden group/btn"
                   >
-                    Gå med
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12"
+                      initial={{ x: '-100%' }}
+                      animate={{ x: '200%' }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 1.5,
+                        ease: "easeInOut",
+                        repeatDelay: 0.5
+                      }}
+                    />
+                    <span className="relative z-10">Gå med</span>
                   </motion.button>
                   
                   <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`} className="flex-shrink-0">
