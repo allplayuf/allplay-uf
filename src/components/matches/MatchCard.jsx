@@ -111,7 +111,7 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, delay: index * 0.05 }}
     >
-      <Card className={`card-base card-hover group h-full flex flex-col ${
+      <Card className={`bg-[#121715] border border-[#223029] rounded-2xl shadow-sm hover:border-[#2BA84A]/50 transition-all group h-full flex flex-col ${
         match.status === 'completed' ? 'opacity-75' : ''
       }`}>
         <CardContent className="p-4 flex flex-col h-full">
@@ -144,7 +144,7 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
 
             {/* Tags */}
             <div className="flex flex-wrap gap-1.5">
-                <span className={`inline-flex h-6 items-center rounded-md px-2 text-[11px] font-medium bg-[#18221E] border border-[#223029] text-secondary`}>
+                <span className={`inline-flex h-6 items-center rounded-md px-2 text-[11px] font-medium ${statusBadge.color} ring-1 ring-inset ring-white/10`}>
                   {statusBadge.label}
                 </span>
 
@@ -153,13 +153,13 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
                 </span>
                 
                 {match.is_team_match && (
-                    <span className="inline-flex h-6 items-center rounded-md px-2 text-[11px] font-medium bg-[#18221E] border border-[#223029] text-[#DDA5E8]">
+                    <span className="inline-flex h-6 items-center rounded-md px-2 text-[11px] font-medium bg-[#9B59B6]/20 text-[#DDA5E8] ring-1 ring-[#9B59B6]/30">
                       Lag
                     </span>
                 )}
                 
                 {!match.is_team_match && match.skill_bracket && SkillIcon && (
-                  <span className={`inline-flex h-6 items-center rounded-md px-2 text-[11px] font-medium bg-[#18221E] border border-[#223029] text-secondary`}>
+                  <span className={`inline-flex h-6 items-center rounded-md px-2 text-[11px] font-medium border border-[#223029] ${getSkillBracketColor(match.skill_bracket)}`}>
                     {getSkillBracketLabel(match.skill_bracket)}
                   </span>
                 )}
