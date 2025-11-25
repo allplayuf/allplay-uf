@@ -111,7 +111,7 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, delay: index * 0.05 }}
     >
-      <Card className={`bg-[#121715] border border-[#223029] rounded-2xl shadow-sm hover:border-[#2BA84A]/50 transition-all group h-full flex flex-col ${
+      <Card className={`bg-[#121715] border border-[#223029] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_0_30px_rgba(43,168,74,0.2)] hover:border-[#2BA84A]/50 transition-all duration-300 group h-full flex flex-col ${
         match.status === 'completed' ? 'opacity-75' : ''
       }`}>
         <CardContent className="p-4 flex flex-col h-full">
@@ -228,10 +228,23 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
               ) : isJoinable && (!match.is_spontaneous && spotsLeft > 0 || match.is_spontaneous) ? (
                 <>
                   <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    animate={{ 
+                      scale: [1, 1.02, 1],
+                      boxShadow: [
+                        "0 4px 6px -1px rgba(244, 116, 59, 0.1), 0 2px 4px -1px rgba(244, 116, 59, 0.06)",
+                        "0 10px 15px -3px rgba(244, 116, 59, 0.3), 0 4px 6px -2px rgba(244, 116, 59, 0.1)",
+                        "0 4px 6px -1px rgba(244, 116, 59, 0.1), 0 2px 4px -1px rgba(244, 116, 59, 0.06)"
+                      ]
+                    }}
+                    transition={{ 
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
                     onClick={handleJoinClick}
-                    className="flex-1 bg-[#F4743B] hover:bg-[#E5683A] text-white text-sm font-semibold h-9 rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                    className="flex-1 bg-[#F4743B] hover:bg-[#E5683A] text-white text-sm font-bold h-12 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-lg"
                   >
                     Gå med
                   </motion.button>
