@@ -96,12 +96,19 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
     e.preventDefault();
     e.stopPropagation();
     
-    if (onJoin) {
-      await onJoin(match.id);
-    }
+    if (isJoining) return;
+    setIsJoining(true);
     
-    if (onRefresh) {
-      await onRefresh();
+    try {
+      if (onJoin) {
+        await onJoin(match.id);
+      }
+      
+      if (onRefresh) {
+        await onRefresh();
+      }
+    } finally {
+      setIsJoining(false);
     }
   };
 
@@ -238,7 +245,8 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
                       ease: "easeInOut"
                     }}
                     onClick={handleJoinClick}
-                    className="flex-1 bg-[#F4743B] hover:bg-[#E5683A] text-white text-base font-extrabold uppercase tracking-wide h-12 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(244,116,59,0.4)] hover:shadow-[0_0_25px_rgba(244,116,59,0.6)] border border-[#F4743B]/50 relative overflow-hidden group/btn"
+                    disabled={isJoining}
+                    className={`flex-1 bg-[#F4743B] hover:bg-[#E5683A] text-white text-base font-bold uppercase tracking-wide h-12 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(244,116,59,0.4)] hover:shadow-[0_0_25px_rgba(244,116,59,0.6)] border border-[#F4743B]/50 relative overflow-hidden group/btn ${isJoining ? 'opacity-75 cursor-not-allowed' : ''}`}
                   >
                     <motion.div
                       className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12"
@@ -251,7 +259,7 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
                         repeatDelay: 0.5
                       }}
                     />
-                    <span className="relative z-10">Gå med</span>
+                    <span className="relative z-10">{isJoining ? 'Går med...' : 'Gå med'}</span>
                   </motion.button>
                   
                   <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`} className="flex-shrink-0">

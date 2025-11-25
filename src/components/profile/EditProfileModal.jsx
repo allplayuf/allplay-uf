@@ -32,6 +32,7 @@ const PROFILE_SECTIONS = {
     title: "Personligt",
     icon: UserIcon,
     fields: [
+      { key: 'full_name', label: 'Namn', icon: UserIcon, type: 'text', placeholder: 'Ditt för- och efternamn' },
       { key: 'bio', label: 'Bio', icon: UserIcon, type: 'textarea', placeholder: 'Berätta om dig själv...' },
       { key: 'date_of_birth', label: 'Födelsedatum', icon: Calendar, type: 'date' },
       { key: 'gender', label: 'Kön', icon: UserIcon, type: 'select', options: [
