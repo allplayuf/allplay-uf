@@ -16,8 +16,7 @@ import {
   TrendingUp,
   MapPin,
   Trophy,
-  Filter,
-  Trash2
+  Filter
 } from "lucide-react";
 
 export default function UserManagement({ users, onAction }) {
@@ -246,23 +245,13 @@ export default function UserManagement({ users, onAction }) {
                             <CheckCircle className="w-3 h-3 mr-1" />
                             Aktivera
                           </Button>
-                          )}
-
-                          <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => onAction(user.id, 'delete')}
-                          className="h-8 text-xs text-red-500 hover:text-red-400 hover:bg-red-500/10"
-                          >
-                          <Trash2 className="w-3 h-3 mr-1" />
-                          Radera
-                          </Button>
-                          </div>
-                          )}
-                          </div>
-                          </div>
-                          </div>
-                          ))}
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
           {filteredUsers.length === 0 && (
