@@ -173,14 +173,14 @@ export default function MatchDetailPage() {
 
       await base44.functions.invoke('joinMatch', { match_id: matchId });
 
-      // Show alert BEFORE reloading data to prevent flicker
+      loadMatchData();
+
+      // Success popup
       await alert(
         'Anmäld! 🎉',
         `Du har anmält dig till "${match.title}". Vi ses där!`,
         { type: 'success' }
       );
-
-      await loadMatchData();
 
     } catch (error) {
       console.error("Error joining match:", error);
@@ -360,7 +360,6 @@ export default function MatchDetailPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#0F1513] flex items-center justify-center p-4">
-         <DialogContainer />
         <div className="text-center space-y-4">
           <div className="w-12 h-12 border-4 border-[#2BA84A] border-t-transparent rounded-full animate-spin mx-auto"></div>
           <p className="text-[#F4F7F5] text-sm font-medium">Laddar match...</p>

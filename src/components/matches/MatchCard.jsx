@@ -224,10 +224,6 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
                 <div className="flex-1 h-12 flex items-center justify-center border border-[#223029] rounded-xl bg-[#18221E]">
                   <span className="text-sm font-bold text-[#7B8A83]">Avslutad</span>
                 </div>
-              ) : hasJoined ? (
-                <div className="flex-1 h-12 flex items-center justify-center border border-[#2BA84A] rounded-xl bg-[#2BA84A] shadow-inner">
-                   <span className="text-base font-bold text-[#FFFFFF]">ANMÄLD</span>
-                </div>
               ) : isJoinable && (!match.is_spontaneous && spotsLeft > 0 || match.is_spontaneous) ? (
                 <>
                   <motion.button
@@ -242,7 +238,7 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
                       ease: "easeInOut"
                     }}
                     onClick={handleJoinClick}
-                    className="flex-1 bg-[#F4743B] hover:bg-[#E5683A] text-white text-base font-bold uppercase tracking-wide h-12 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(244,116,59,0.4)] hover:shadow-[0_0_25px_rgba(244,116,59,0.6)] border border-[#F4743B]/50 relative overflow-hidden group/btn"
+                    className="flex-1 bg-[#F4743B] hover:bg-[#E5683A] text-white text-base font-extrabold uppercase tracking-wide h-12 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(244,116,59,0.4)] hover:shadow-[0_0_25px_rgba(244,116,59,0.6)] border border-[#F4743B]/50 relative overflow-hidden group/btn"
                   >
                     <motion.div
                       className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12"
