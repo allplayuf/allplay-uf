@@ -129,15 +129,14 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
                 )}
               </div>
               
-              <div className="flex items-center gap-2 text-secondary">
-                 <span className="flex items-center gap-1 truncate max-w-[150px]">
-                    <MapPin className="w-3.5 h-3.5" />
-                    {venue?.name || 'Okänd'}
+              <div className="flex items-center gap-3 text-secondary text-xs sm:text-sm mt-1">
+                 <span className="flex items-center gap-1.5 min-w-0 flex-1">
+                    <MapPin className="w-4 h-4 flex-shrink-0 text-[#2BA84A]" />
+                    <span className="truncate">{venue?.name || 'Okänd'}</span>
                  </span>
-                 <span>•</span>
-                 <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    {match.date} {match.time}
+                 <span className="flex items-center gap-1.5 flex-shrink-0">
+                    <Clock className="w-4 h-4 flex-shrink-0 text-[#F4743B]" />
+                    <span>{match.time}</span>
                  </span>
               </div>
             </div>
@@ -220,52 +219,47 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
             )}
 
             {/* Actions */}
-            <div className="flex gap-3 pt-2">
+            <div className="flex gap-3 pt-3 mt-auto">
               {match.status === 'completed' ? (
-                <div className="flex-1 py-2 text-center border border-[#223029] rounded-lg bg-[#18221E]">
-                  <span className="text-xs font-medium text-gray-500">Avslutad</span>
+                <div className="flex-1 h-12 flex items-center justify-center border border-[#223029] rounded-xl bg-[#18221E]">
+                  <span className="text-sm font-bold text-[#7B8A83]">Avslutad</span>
                 </div>
               ) : isJoinable && (!match.is_spontaneous && spotsLeft > 0 || match.is_spontaneous) ? (
                 <>
                   <motion.button
-                    whileHover={{ scale: 1.05 }}
+                    whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.95 }}
                     animate={{ 
-                      scale: [1, 1.02, 1],
-                      boxShadow: [
-                        "0 4px 6px -1px rgba(244, 116, 59, 0.1), 0 2px 4px -1px rgba(244, 116, 59, 0.06)",
-                        "0 10px 15px -3px rgba(244, 116, 59, 0.3), 0 4px 6px -2px rgba(244, 116, 59, 0.1)",
-                        "0 4px 6px -1px rgba(244, 116, 59, 0.1), 0 2px 4px -1px rgba(244, 116, 59, 0.06)"
-                      ]
+                      scale: [1, 1.03, 1],
                     }}
                     transition={{ 
-                      duration: 2,
+                      duration: 1.2,
                       repeat: Infinity,
                       ease: "easeInOut"
                     }}
                     onClick={handleJoinClick}
-                    className="flex-1 bg-[#F4743B] hover:bg-[#E5683A] text-white text-sm font-bold h-12 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-lg"
+                    className="flex-1 bg-[#F4743B] hover:bg-[#E5683A] text-white text-base font-black uppercase tracking-wide h-12 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(244,116,59,0.4)] hover:shadow-[0_0_25px_rgba(244,116,59,0.6)] border border-[#F4743B]/50"
                   >
                     Gå med
                   </motion.button>
                   
                   <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`} className="flex-shrink-0">
-                    <button className="h-9 px-3 border border-[#223029] hover:bg-[#18221E] text-white text-sm font-medium rounded-lg transition-colors">
+                    <button className="h-12 px-5 border-2 border-[#223029] hover:bg-[#18221E] hover:border-[#F4743B]/50 text-[#F4F7F5] text-sm font-bold rounded-xl transition-all">
                       Info
                     </button>
                   </Link>
                 </>
               ) : match.status === 'upcoming' && !match.is_spontaneous && spotsLeft === 0 ? (
-                <div className="flex-1 py-2 text-center border border-[#223029] rounded-lg bg-[#18221E]">
-                  <span className="text-xs font-medium text-gray-500">Fullbokad</span>
+                <div className="flex-1 h-12 flex items-center justify-center border border-[#223029] rounded-xl bg-[#18221E]">
+                  <span className="text-sm font-bold text-[#7B8A83]">Fullbokad</span>
                 </div>
               ) : null}
 
               {(match.status === 'completed' || (match.status === 'upcoming' && (!isJoinable || (spotsLeft !== null && spotsLeft <= 0)))) && (
                 <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`} className="flex-1">
-                  <button className="w-full h-9 border border-[#223029] hover:bg-[#18221E] text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-1">
+                  <button className="w-full h-12 border-2 border-[#223029] hover:bg-[#18221E] hover:border-[#2BA84A]/50 text-[#F4F7F5] text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1">
                     Detaljer
-                    <ChevronRight className="w-3 h-3" />
+                    <ChevronRight className="w-4 h-4" />
                   </button>
                 </Link>
               )}
