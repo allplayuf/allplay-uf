@@ -256,6 +256,8 @@ export default function CupDetailPage() {
             cup={cup}
             statusConfig={statusConfig}
             confirmedCount={confirmedParticipants.length}
+            canManage={canManage}
+            onAdminClick={() => setActiveTab('admin')}
           />
         </Suspense>
 

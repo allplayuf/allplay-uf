@@ -1,8 +1,8 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Trophy, Calendar, MapPin, Users, Target } from "lucide-react";
+import { Trophy, Calendar, MapPin, Users, Target, Shield } from "lucide-react";
 
-export default function CupHeroCard({ cup, statusConfig, confirmedCount }) {
+export default function CupHeroCard({ cup, statusConfig, confirmedCount, canManage, onAdminClick }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -10,6 +10,18 @@ export default function CupHeroCard({ cup, statusConfig, confirmedCount }) {
       transition={{ duration: 0.6, ease: "easeOut" }}
       className="relative overflow-hidden rounded-[24px] shadow-[0_20px_60px_rgba(0,0,0,0.4)] mb-8"
     >
+      {canManage && (
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={onAdminClick}
+          className="absolute top-6 right-6 z-50 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white p-2.5 rounded-xl shadow-lg transition-all group"
+          title="Adminpanel"
+        >
+          <Shield className="w-5 h-5 group-hover:text-[#F59E0B] transition-colors" />
+        </motion.button>
+      )}
+
       {/* Animated Background Gradient */}
       <motion.div
         className="absolute inset-0"
