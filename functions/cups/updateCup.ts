@@ -43,6 +43,7 @@ Deno.serve(async (req) => {
       entry_fee: updates.entry_fee !== undefined ? parseFloat(updates.entry_fee) : undefined,
       max_participants: updates.max_participants !== undefined ? parseInt(updates.max_participants) : undefined,
       is_public: updates.is_public,
+      status: updates.status,
     };
 
     // Remove undefined values
