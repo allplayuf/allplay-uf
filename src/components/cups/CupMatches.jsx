@@ -90,7 +90,7 @@ export default function CupMatches({ cup, matches, canManage }) {
   );
 }
 
-import MatchResultModal from "./MatchReportModal"; // Ensure this exists or use generic one
+import MatchResultModal from "./MatchResultModal";
 
 function MatchCard({ match, index, canManage }) {
   const [showReportModal, setShowReportModal] = useState(false);
