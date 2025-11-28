@@ -5,6 +5,8 @@ import { Calendar, MapPin, Clock, Trophy } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
+import { useCustomDialog } from "../ui/custom-dialog";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function CupMatches({ cup, matches, canManage }) {
   const [filter, setFilter] = useState('all');
@@ -88,7 +90,18 @@ export default function CupMatches({ cup, matches, canManage }) {
   );
 }
 
+import MatchResultModal from "./MatchReportModal"; // Ensure this exists or use generic one
+
 function MatchCard({ match, index, canManage }) {
+  const [showReportModal, setShowReportModal] = useState(false);
+  const queryClient = useQueryClient();
+  const { alert } = useCustomDialog();
+
+  const handleResultSaved = async () => {
+      await queryClient.invalidateQueries(['cupDetails']);
+      setShowReportModal(false);
+      // Optional: Show success message via alert or toast
+  };
   const hasResult = match.team_a_score !== null;
   const isLive = match.is_live;
 
@@ -182,6 +195,34 @@ function MatchCard({ match, index, canManage }) {
           </div>
         </div>
       </Link>
+      
+      {canManage && (
+        <div className="mt-2 flex justify-end">
+             <button 
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowReportModal(true);
+                }}
+                className="text-xs bg-[#2BA84A]/20 text-[#2BA84A] px-3 py-1.5 rounded-lg hover:bg-[#2BA84A]/30 transition-colors font-semibold"
+            >
+                Rapportera Resultat
+            </button>
+        </div>
+      )}
+
+      {showReportModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+              <div className="w-full max-w-md" onClick={e => e.stopPropagation()}>
+                   <MatchResultModal 
+                      match={match} 
+                      onClose={() => setShowReportModal(false)} 
+                      onSuccess={handleResultSaved}
+                      // If MatchResultModal expects specific props, adapt them here
+                   /> 
+              </div>
+          </div>
+      )}
     </motion.div>
   );
 }
