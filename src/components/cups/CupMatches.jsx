@@ -7,6 +7,7 @@ import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import { useCustomDialog } from "../ui/custom-dialog";
 import { useQueryClient } from "@tanstack/react-query";
+import MatchResultModal from "./MatchResultModal";
 
 export default function CupMatches({ cup, matches, canManage }) {
   const [filter, setFilter] = useState('all');
@@ -89,8 +90,6 @@ export default function CupMatches({ cup, matches, canManage }) {
     </Card>
   );
 }
-
-import MatchResultModal from "./MatchResultModal";
 
 function MatchCard({ match, index, canManage }) {
   const [showReportModal, setShowReportModal] = useState(false);
