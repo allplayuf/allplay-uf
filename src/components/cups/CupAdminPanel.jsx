@@ -120,6 +120,35 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
     }
   });
 
+  const deleteGroupMutation = useMutation({
+    mutationFn: async (groupId) => {
+      const res = await base44.functions.invoke('cups/manageGroups', {
+        action: 'delete_group',
+        cup_id: cup.id,
+        group_id: groupId
+      });
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['cupDetails', cup.id]);
+      alert('Grupp borttagen', 'Gruppen har raderats.', { type: 'success' });
+    },
+    onError: (error) => {
+      alert('Fel', 'Kunde inte ta bort gruppen.', { type: 'alert' });
+    }
+  });
+
+  const handleDeleteGroup = async (groupId, groupName) => {
+    const confirmed = await confirm(
+      'Ta bort grupp?',
+      `Är du säker på att du vill ta bort ${groupName}? Lag i gruppen kommer att bli grupplösa.`,
+      { type: 'destructive', confirmText: 'Ta bort', cancelText: 'Avbryt' }
+    );
+    if (confirmed) {
+      deleteGroupMutation.mutate(groupId);
+    }
+  };
+
   const assignTeamMutation = useMutation({
     mutationFn: async () => {
       const res = await base44.functions.invoke('cups/manageGroups', {
@@ -460,9 +489,19 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
                    <h4 className="text-white font-bold">Befintliga Grupper</h4>
                    {groups.length === 0 ? <p className="text-[#7B8A83] text-sm italic">Inga grupper skapade.</p> : 
                      groups.map(g => (
-                        <div key={g.id} className="bg-[#18221E] p-3 rounded-lg border border-[#223029] text-white">
-                            <span className="font-bold">{g.name}</span>
-                            <span className="text-xs text-[#7B8A83] ml-2">({g.team_ids?.length || 0} lag)</span>
+                        <div key={g.id} className="bg-[#18221E] p-3 rounded-lg border border-[#223029] text-white flex justify-between items-center">
+                            <div>
+                                <span className="font-bold">{g.name}</span>
+                                <span className="text-xs text-[#7B8A83] ml-2">({g.team_ids?.length || 0} lag)</span>
+                            </div>
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="text-[#EF4444] hover:bg-[#EF4444]/10 hover:text-[#EF4444] h-8 w-8"
+                                onClick={() => handleDeleteGroup(g.id, g.name)}
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </Button>
                         </div>
                      ))
                    }

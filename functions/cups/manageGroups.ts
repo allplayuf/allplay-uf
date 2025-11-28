@@ -21,6 +21,22 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, group });
     }
 
+    if (action === 'delete_group') {
+      // Check if group has teams assigned
+      const group = await base44.entities.CupGroup.get(group_id);
+      if (group.team_ids && group.team_ids.length > 0) {
+         // Ideally we should remove them first, but for now let's just allow deletion or warn
+         // Let's just unassign them from the group in participants
+         const participants = await base44.entities.CupParticipant.filter({ group_id: group_id });
+         for (const p of participants) {
+            await base44.asServiceRole.entities.CupParticipant.update(p.id, { group_id: null });
+         }
+      }
+      
+      await base44.asServiceRole.entities.CupGroup.delete(group_id);
+      return Response.json({ success: true });
+    }
+
     if (action === 'assign_team') {
       // Get current group of the team (via participant)
       const participants = await base44.entities.CupParticipant.filter({ cup_id, team_id });
