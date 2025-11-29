@@ -117,7 +117,9 @@ export default function MatchesPage() {
   });
 
   // Process matches data for other tabs
-  const allMatches = matchesData?.pages.flatMap(page => page.matches) || [];
+  // Filter out cup matches from general browsing
+  const allMatches = (matchesData?.pages.flatMap(page => page.matches) || [])
+    .filter(m => !m.is_cup_match);
   
   const userMatchIds = user ? allParticipants
     .filter(p => p.user_id === user.id)

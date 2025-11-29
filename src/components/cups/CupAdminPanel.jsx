@@ -74,14 +74,15 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
 
   const createScheduleMutation = useMutation({
     mutationFn: async () => {
-      const res = await base44.functions.invoke('cups/createSchedule', {
+      // Use AI generation function
+      const res = await base44.functions.invoke('cups/generateAiSchedule', {
         cup_id: cup.id
       });
       return res.data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries(['cupDetails', cup.id]);
-      alert('Schema skapat! 📅', `Skapade ${data.groups_created} grupper och matchschemat.`, { type: 'success' });
+      alert('AI-schema skapat! 🤖', `Skapade ${data.groups_created} grupper och ${data.matches_created} matcher.`, { type: 'success' });
     },
     onError: (error) => {
       alert('Fel vid schemaläggning', error.response?.data?.details || error.message || 'Kunde inte skapa schema.', { type: 'alert' });
@@ -204,9 +205,9 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
 
   const handleGenerateSchedule = async () => {
     const confirmed = await confirm(
-      'Generera spelschema?',
-      'Detta kommer att slumpa in lag i grupper och skapa matcher automatiskt. Befintliga grupper och matcher kan påverkas.',
-      { type: 'warning', confirmText: 'Generera', cancelText: 'Avbryt' }
+      'AI-Generera spelschema? 🤖',
+      'AI kommer att analysera antal lag och datum för att skapa ett optimalt upplägg. Detta kan ta några sekunder.',
+      { type: 'confirm', confirmText: 'Starta AI', cancelText: 'Avbryt' }
     );
     if (confirmed) {
       createScheduleMutation.mutate();
@@ -270,12 +271,12 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
                     <p className="text-xs text-[#7B8A83]">Skapa matcher och rapportera resultat.</p>
                 </Card>
 
-                <Card className="bg-[#18221E] border-[#223029] p-4 hover:border-[#2BA84A]/30 transition-all cursor-pointer" onClick={() => handleGenerateSchedule()}>
+                <Card className="bg-[#18221E] border-[#223029] p-4 hover:border-[#9333EA]/30 transition-all cursor-pointer" onClick={() => handleGenerateSchedule()}>
                     <div className="flex items-center gap-3 mb-2">
                         <Wand2 className="w-5 h-5 text-[#9333EA]" />
-                        <h4 className="font-bold text-white">Generera Schema</h4>
+                        <h4 className="font-bold text-white">AI-Generera Schema</h4>
                     </div>
-                    <p className="text-xs text-[#7B8A83]">Skapa automatiskt spelschema och grupper.</p>
+                    <p className="text-xs text-[#7B8A83]">Låt AI skapa grupper och spelschema automatiskt.</p>
                 </Card>
 
                  <Card className="bg-[#18221E] border-[#223029] p-4 hover:border-[#EF4444]/30 transition-all cursor-pointer" onClick={handleDeleteCup}>

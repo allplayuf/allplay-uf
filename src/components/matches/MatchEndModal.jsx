@@ -48,6 +48,13 @@ export default function MatchEndModal({
     }
   }, [participants, currentUser]);
 
+  // Check if MVP voting should be skipped (e.g. for cup matches)
+  useEffect(() => {
+    if (match.is_cup_match && step === 1) {
+      setStep(2); // Skip directly to result entry for cup matches
+    }
+  }, [match.is_cup_match, step]);
+
   const handleMVPVote = async () => {
     if (!selectedMVP) {
       // Allow skipping MVP if none selected? No, forcing selection or skip button is better.
