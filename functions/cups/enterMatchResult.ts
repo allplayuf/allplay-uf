@@ -156,6 +156,16 @@ Deno.serve(async (req) => {
           });
         }
       }
+
+      // If this is the final match, update cup status to completed and set winner
+      if (cupMatch.stage === 'final' && winnerId) {
+        const winnerTeam = await base44.entities.Team.get(winnerId);
+        await base44.entities.Cup.update(cupMatch.cup_id, {
+          status: 'completed',
+          winner_team_id: winnerId,
+          winner_team_name: winnerTeam.name
+        });
+      }
     }
 
     // Send notifications
