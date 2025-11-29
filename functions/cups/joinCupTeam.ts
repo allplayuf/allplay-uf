@@ -46,26 +46,32 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Already a member of this team' }, { status: 400 });
     }
 
-    // Check if user is already in ANOTHER team in this cup?
-    // User said "utan några frågor". I won't block them, but ideally one shouldn't play for multiple teams.
-    // Base44/Cup logic might not strictly enforce this yet, but let's leave it open as requested.
-
-    // Create active membership immediately
+    // Get team to check if captain approval is needed
+    const team = await base44.asServiceRole.entities.Team.get(team_id);
+    const isCaptain = team.captain_id === user.id;
+    const isViceCaptain = team.vice_captain_ids && team.vice_captain_ids.includes(user.id);
+    
+    // Create membership - auto-approve if captain/vice-captain, otherwise pending
     await base44.asServiceRole.entities.TeamMember.create({
         team_id: team_id,
         user_id: user.id,
         role: 'member',
-        status: 'active',
+        status: (isCaptain || isViceCaptain) ? 'active' : 'pending',
         joined_at: new Date().toISOString()
     });
 
-    // Increment team member count
-    const team = await base44.entities.Team.get(team_id);
-    await base44.asServiceRole.entities.Team.update(team_id, {
-        current_members: (team.current_members || 0) + 1
-    });
+    // Increment team member count only if approved immediately
+    if (isCaptain || isViceCaptain) {
+      await base44.asServiceRole.entities.Team.update(team_id, {
+          current_members: (team.current_members || 0) + 1
+      });
+    }
 
-    return Response.json({ success: true, message: 'Joined team successfully' });
+    return Response.json({ 
+      success: true, 
+      message: (isCaptain || isViceCaptain) ? 'Joined team successfully' : 'Request sent to team captain for approval',
+      needs_approval: !(isCaptain || isViceCaptain)
+    });
 
   } catch (error) {
     console.error('Error joining cup team:', error);

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { 
   Trophy, Calendar, MapPin, Users, Target, 
   ArrowLeft, Shield, Trash2, MoreVertical,
-  CheckCircle, Clock, ListChecks, Layout, UserPlus, ChevronDown, ChevronUp, X
+  CheckCircle, Clock, ListChecks, Layout, UserPlus, ChevronDown, ChevronUp, X, Crown
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -29,6 +29,7 @@ const CupBracket = lazy(() => import("../components/cups/CupBracket"));
 const CupMatches = lazy(() => import("../components/cups/CupMatches"));
 const CupAdminPanel = lazy(() => import("../components/cups/CupAdminPanel"));
 const CupHeroCard = lazy(() => import("../components/cups/CupHeroCard"));
+const TournamentMvpModal = lazy(() => import("../components/cups/TournamentMvpModal"));
 
 const STATUS_CONFIG = {
   upcoming: { label: 'Kommande', color: 'bg-[#F59E0B]/20 text-[#FCD34D]', dotColor: 'bg-[#F59E0B]' },
@@ -81,6 +82,7 @@ export default function CupDetailPage() {
 
   // Expandable state for team cards
   const [expandedTeamId, setExpandedTeamId] = useState(null);
+  const [showMvpModal, setShowMvpModal] = useState(false);
 
   const approveSignupMutation = useMutation({
     mutationFn: async (participantId) => {
@@ -136,9 +138,13 @@ export default function CupDetailPage() {
       const response = await base44.functions.invoke('cups/joinCupTeam', { cup_id, team_id });
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['cupDetails', cupId] });
-      alert('Gick med i laget! 🎉', 'Du har lagts till i laget.', { type: 'success' });
+      if (data.needs_approval) {
+        alert('Förfrågan skickad! ⏳', 'Lagkaptenen måste godkänna din förfrågan innan du kan delta.', { type: 'info' });
+      } else {
+        alert('Gick med i laget! 🎉', 'Du har lagts till i laget.', { type: 'success' });
+      }
     },
     onError: (error) => {
       alert('Ett fel uppstod', error.response?.data?.error || 'Kunde inte gå med i laget.', { type: 'alert' });
@@ -168,6 +174,8 @@ export default function CupDetailPage() {
   const isAdmin = user?.role === 'admin';
   const canManage = isOrganizer || isAdmin;
   const canDelete = isOrganizer || isAdmin;
+  const isFinalCompleted = cup && cup.status === 'completed';
+  const hasMvp = cup && cup.tournament_mvp_user_id;
 
   const userParticipant = participants.find(p => 
     (p.user_id === user?.id) || 
@@ -769,7 +777,50 @@ export default function CupDetailPage() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Tournament MVP Section - Only show when final is completed */}
+        {isFinalCompleted && canManage && (
+          <Card className="bg-gradient-to-br from-[#FFD700]/10 to-[#FFA500]/5 border-[#FFD700]/30 p-6 mt-6 shadow-[0_6px_18px_rgba(255,215,0,0.15)]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-[#FFD700]/20 flex items-center justify-center">
+                  <Crown className="w-7 h-7 text-[#FFD700]" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white mb-1">Turnerings-MVP</h3>
+                  {hasMvp ? (
+                    <p className="text-sm text-[#B6C2BC]">MVP har valts för denna turnering</p>
+                  ) : (
+                    <p className="text-sm text-[#B6C2BC]">Välj den bästa spelaren i turneringen</p>
+                  )}
+                </div>
+              </div>
+              <Button
+                onClick={() => setShowMvpModal(true)}
+                className="bg-gradient-to-r from-[#FFD700] to-[#FFA500] hover:from-[#FFA500] hover:to-[#FF8C00] text-black font-bold"
+              >
+                {hasMvp ? 'Ändra MVP' : 'Välj MVP'}
+              </Button>
+            </div>
+          </Card>
+        )}
       </div>
+
+      {/* Tournament MVP Modal */}
+      {showMvpModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <Suspense fallback={<PageLoadingSkeleton />}>
+            <TournamentMvpModal
+              cup={cup}
+              participants={participants}
+              onClose={() => setShowMvpModal(false)}
+              onSuccess={() => {
+                queryClient.invalidateQueries(['cupDetails', cupId]);
+              }}
+            />
+          </Suspense>
+        </div>
+      )}
     </div>
   );
 }
