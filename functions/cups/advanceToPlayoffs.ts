@@ -68,28 +68,53 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Determine playoff format based on number of teams
+    // IMPROVED: Determine playoff format and create proper bracket progression
     const numTeams = advancingTeams.length;
-    let stage = 'final';
+    let initialStage = 'final';
     
-    if (numTeams >= 16) stage = 'round_of_16';
-    else if (numTeams >= 8) stage = 'quarterfinal';
-    else if (numTeams >= 4) stage = 'semifinal';
-    else if (numTeams >= 2) stage = 'final';
+    if (numTeams >= 16) initialStage = 'round_of_16';
+    else if (numTeams >= 8) initialStage = 'quarterfinal';
+    else if (numTeams >= 4) initialStage = 'semifinal';
+    else if (numTeams >= 2) initialStage = 'final';
 
-    // Create brackets (simplified seeding - alternating groups)
+    // IMPROVED SEEDING: Cross-group matchups for fairness (1st from A vs 2nd from B, etc.)
+    const groupedTeams = {};
+    advancingTeams.forEach(team => {
+      if (!groupedTeams[team.group_name]) groupedTeams[team.group_name] = [];
+      groupedTeams[team.group_name].push(team);
+    });
+
+    // Create fair matchups: 1st place teams face 2nd place teams from different groups
+    const seededTeams = [];
+    const groupNames = Object.keys(groupedTeams);
+    
+    // Better seeding algorithm
+    for (let position = 0; position < teamsAdvancingPerGroup; position++) {
+      for (const groupName of groupNames) {
+        if (groupedTeams[groupName][position]) {
+          seededTeams.push(groupedTeams[groupName][position]);
+        }
+      }
+    }
+
     const brackets = [];
     const matches = [];
     
-    for (let i = 0; i < advancingTeams.length; i += 2) {
-      if (i + 1 >= advancingTeams.length) break; // Skip if odd number
+    // Create initial stage matches with smart seeding
+    for (let i = 0; i < Math.floor(seededTeams.length / 2); i++) {
+      const teamA = seededTeams[i];
+      const teamB = seededTeams[seededTeams.length - 1 - i]; // Mirror seeding for competitive balance
 
-      const teamA = advancingTeams[i];
-      const teamB = advancingTeams[i + 1];
+      // Create Match entity
+      const stageLabels = {
+        round_of_16: 'Åttondelsfinal',
+        quarterfinal: 'Kvartsfinal', 
+        semifinal: 'Semifinal',
+        final: 'Final'
+      };
 
-      // Create Match entity first
       const match = await base44.asServiceRole.entities.Match.create({
-        title: `${cup.name} - ${stage}`,
+        title: `${cup.name} - ${stageLabels[initialStage] || initialStage}`,
         venue_id: cup.venue_ids?.[0] || null,
         organizer_id: cup.organizer_id,
         date: cup.start_date,
@@ -107,21 +132,24 @@ Deno.serve(async (req) => {
       const cupMatch = await base44.asServiceRole.entities.CupMatch.create({
         cup_id: cup.id,
         match_id: match.id,
-        stage: stage,
+        stage: initialStage,
         team_a_id: teamA.team_id,
         team_b_id: teamB.team_id
       });
 
-      // Create Bracket
+      // Create Bracket with team names for better display
+      const teamAData = await base44.asServiceRole.entities.Team.get(teamA.team_id);
+      const teamBData = await base44.asServiceRole.entities.Team.get(teamB.team_id);
+
       const bracket = await base44.asServiceRole.entities.CupBracket.create({
         cup_id: cup.id,
         cup_match_id: cupMatch.id,
-        stage: stage,
+        stage: initialStage,
         position: brackets.length + 1,
         team_a_id: teamA.team_id,
         team_b_id: teamB.team_id,
-        team_a_name: teamA.team_name,
-        team_b_name: teamB.team_name
+        team_a_name: teamAData.name,
+        team_b_name: teamBData.name
       });
 
       brackets.push(bracket);
@@ -148,9 +176,10 @@ Deno.serve(async (req) => {
     return Response.json({ 
       success: true,
       message: 'Successfully advanced to playoffs',
-      teams_advanced: advancingTeams.length,
+      teams_advanced: seededTeams.length,
       brackets_created: brackets.length,
-      stage: stage
+      stage: initialStage,
+      seeding_info: `Matchningar skapade med smart seedning för maximal konkurrens`
     });
 
   } catch (error) {

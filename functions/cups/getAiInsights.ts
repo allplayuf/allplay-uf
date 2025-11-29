@@ -60,10 +60,10 @@ Deno.serve(async (req) => {
       }))
     };
 
-    // Build comprehensive prompt for AI
-    const prompt = `Du är en expert på fotbollsturneringar och turneringsplanering. Analysera följande turnering och ge strategiska insikter:
+    // Enhanced AI prompt with more context and better instructions
+    const prompt = `Du är en EXPERT på fotbollsturneringar, turneringsplanering och knockout-system. Analysera följande turnering DJUPGÅENDE och ge KONKRETA, GENOMFÖRBARA strategiska insikter:
 
-**Turneringsinformation:**
+**📊 TURNERINGSINFORMATION:**
 - Namn: ${analysisContext.cup_name}
 - Antal lag: ${analysisContext.total_teams}
 - Format: ${analysisContext.format}
@@ -73,19 +73,45 @@ Deno.serve(async (req) => {
 - Matcher slutförda: ${analysisContext.completed_matches}/${analysisContext.total_matches} (${analysisContext.match_completion_rate}%)
 - Har slutspel: ${analysisContext.has_playoffs ? 'Ja' : 'Nej'}
 
-**Gruppöversikt:**
+**👥 GRUPPÖVERSIKT:**
 ${analysisContext.groups_summary.map(g => `- ${g.name}: ${g.teams_count} lag, ${g.matches_played} matcher spelade`).join('\n')}
 
-**Uppdrag:**
-1. **Gruppindelning:** Föreslå det optimala antalet grupper och lag per grupp baserat på totalt ${analysisContext.total_teams} lag. Förklara varför detta är bäst.
+**🎯 UPPDRAG (ge DETALJERADE, PRAKTISKA svar):**
 
-2. **Slutspelsstrategi:** Om gruppspelet är klart eller nästan klart, analysera topplagen och ge rekommendationer för seedning i slutspelet. Föreslå matchningar som ger spännande matcher.
+1. **GRUPPINDELNING OCH OPTIMERING:**
+   - Baserat på ${analysisContext.total_teams} lag, föreslå EXAKT antal grupper och lag per grupp
+   - Förklara matematiskt VARFÖR detta är optimalt (jämnt antal, slutspelsformat, matchbelastning)
+   - Ge alternativa lösningar om nuvarande inte är optimal
+   - Diskutera balans mellan gruppspel och slutspel
 
-3. **Schemaläggning:** Identifiera potentiella flaskhalsar eller problem i spelschemat (t.ex. för många matcher per dag, ojämn fördelning). Ge konkreta lösningar.
+2. **SLUTSPELSSTRATEGI OCH BRACKET-DESIGN:**
+   - Analysera hur många lag som bör gå vidare per grupp (vanligtvis 2, men kan variera)
+   - Föreslå SPECIFIK bracket-struktur (Kvartsfinal? Semifinal? Direkt till final?)
+   - Ge KONKRETA seedning-rekommendationer (Grupp A 1:a mot Grupp B 2:a, etc.)
+   - Identifiera potentiella "drömfinal"-matchups baserat på gruppspel
+   - Föreslå spännande matchningar som undviker tidiga kollisioner mellan topplöag
 
-4. **Allmänna förbättringar:** Ge ytterligare strategiska råd för att göra turneringen mer framgångsrik och underhållande.
+3. **SCHEMALÄGGNING OCH LOGISTIK:**
+   - Identifiera SPECIFIKA flaskhalsar (t.ex. "4 matcher samma dag på samma plan")
+   - Räkna ut optimal matchfördelning per dag/vecka
+   - Ge KONKRETA tidsförslag (t.ex. "Dag 1: Gruppspel matcher 1-4, Dag 2: Matcher 5-8")
+   - Föreslå viloperioder mellan matcher för lag
+   - Överväg venue-tillgänglighet och publikflöde
 
-Var konkret, praktisk och fokusera på genomförbara åtgärder. Svara på svenska.`;
+4. **STRATEGISKA FÖRBÄTTRINGAR:**
+   - Föreslå spännande tillägg (bronsmatch, utmärkelser, sidoevent)
+   - Analysera turneringsflöde och underhållningsvärde
+   - Ge tips för att maximera publikengagemang
+   - Föreslå hur man hanterar oväntade händelser (avbokningar, oväder)
+
+**⚠️ VIKTIGT:**
+- Var EXTREM konkret med siffror och exempel
+- Ge FLERA alternativ när möjligt
+- Fokusera på GENOMFÖRBARA åtgärder, inte teoretiska ideal
+- Tänk på realism och praktiska begränsningar
+- Använd fotbollsterminologi korrekt (seedning, bracket, knockout, etc.)
+
+Svara STRUKTURERAT och DETALJERAT på svenska.`;
 
     // Call AI for insights
     const aiResponse = await base44.integrations.Core.InvokeLLM({
