@@ -12,11 +12,20 @@ Deno.serve(async (req) => {
 
         // Parse query parameters for filtering and pagination
         const url = new URL(req.url);
-        const city = url.searchParams.get('city') || null;
-        const skillLevel = url.searchParams.get('skill_level') || null;
-        const limit = parseInt(url.searchParams.get('limit') || '50');
-        const offset = parseInt(url.searchParams.get('offset') || '0');
-        const search = url.searchParams.get('search') || null;
+        let body = {};
+        try {
+            if (req.body) {
+                body = await req.json();
+            }
+        } catch (e) {
+            // ignore if no body or invalid json
+        }
+
+        const city = body.city || url.searchParams.get('city') || null;
+        const skillLevel = body.skill_level || url.searchParams.get('skill_level') || null;
+        const limit = parseInt(body.limit || url.searchParams.get('limit') || '50');
+        const offset = parseInt(body.offset || url.searchParams.get('offset') || '0');
+        const search = body.search || url.searchParams.get('search') || null;
 
         // Use service role to fetch users
         let allUsers = await base44.asServiceRole.entities.User.list();
