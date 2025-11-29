@@ -145,18 +145,46 @@ Deno.serve(async (req) => {
       };
     });
 
+    // Enrich groups with team names in standings
+    const enrichedGroups = groups.map(group => {
+      const standings = (group.standings || []).map(standing => {
+        const team = filteredTeams.find(t => t.id === standing.team_id);
+        return {
+          ...standing,
+          team_name: team?.name || 'Unknown Team'
+        };
+      });
+
+      return {
+        ...group,
+        standings
+      };
+    });
+
     // Calculate stats
     const confirmedParticipants = participants.filter(p => p.status === 'confirmed');
     const pendingParticipants = participants.filter(p => p.status === 'pending');
     const completedMatches = enrichedMatches.filter(m => m.team_a_score !== null);
 
+    // Enrich brackets with team names
+    const enrichedBrackets = brackets.map(bracket => {
+      const teamA = bracket.team_a_id ? filteredTeams.find(t => t.id === bracket.team_a_id) : null;
+      const teamB = bracket.team_b_id ? filteredTeams.find(t => t.id === bracket.team_b_id) : null;
+      
+      return {
+        ...bracket,
+        team_a_name: teamA?.name || bracket.team_a_name || 'TBD',
+        team_b_name: teamB?.name || bracket.team_b_name || 'TBD'
+      };
+    });
+
     return Response.json({ 
       success: true,
       cup,
       participants: enrichedParticipants,
-      groups,
+      groups: enrichedGroups,
       matches: enrichedMatches,
-      brackets,
+      brackets: enrichedBrackets,
       stats: {
         total_participants: participants.length,
         confirmed_participants: confirmedParticipants.length,

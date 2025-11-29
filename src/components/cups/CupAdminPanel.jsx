@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Shield, Plus, Grid, Swords, Settings, Save, Calendar, Wand2, Trash2 } from "lucide-react";
+import { Shield, Plus, Grid, Swords, Settings, Save, Calendar, Wand2, Trash2, Trophy } from "lucide-react";
 import { useCustomDialog } from "../ui/custom-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createPageUrl } from "@/utils";
@@ -197,6 +197,20 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
     }
   });
 
+  const advanceToPlayoffsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await base44.functions.invoke('cups/advanceToPlayoffs', { cup_id: cup.id });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(['cupDetails', cup.id]);
+      alert('Slutspel skapat! 🏆', `${data.teams_advanced} lag har gått vidare till ${data.stage}.`, { type: 'success' });
+    },
+    onError: (error) => {
+      alert('Fel', error.response?.data?.error || 'Kunde inte skapa slutspel.', { type: 'alert' });
+    }
+  });
+
   // --- Handlers ---
 
   const handleSaveSettings = () => {
@@ -222,6 +236,17 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
     );
     if (confirmed) {
         deleteCupMutation.mutate();
+    }
+  };
+
+  const handleAdvanceToPlayoffs = async () => {
+    const confirmed = await confirm(
+      'Avsluta gruppspel? 🏆',
+      'Top-lagen från varje grupp kommer att gå vidare till slutspel. Kontrollera att alla matcher är spelade.',
+      { type: 'confirm', confirmText: 'Starta slutspel', cancelText: 'Avbryt' }
+    );
+    if (confirmed) {
+      advanceToPlayoffsMutation.mutate();
     }
   };
 
@@ -277,6 +302,14 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
                         <h4 className="font-bold text-white">AI-Generera Schema</h4>
                     </div>
                     <p className="text-xs text-[#7B8A83]">Låt AI skapa grupper och spelschema automatiskt.</p>
+                </Card>
+
+                <Card className="bg-[#18221E] border-[#223029] p-4 hover:border-[#FFD700]/30 transition-all cursor-pointer" onClick={handleAdvanceToPlayoffs}>
+                    <div className="flex items-center gap-3 mb-2">
+                        <Trophy className="w-5 h-5 text-[#FFD700]" />
+                        <h4 className="font-bold text-white">Starta Slutspel</h4>
+                    </div>
+                    <p className="text-xs text-[#7B8A83]">Avsluta gruppspel och flytta top-lag till slutspel.</p>
                 </Card>
 
                  <Card className="bg-[#18221E] border-[#223029] p-4 hover:border-[#EF4444]/30 transition-all cursor-pointer" onClick={handleDeleteCup}>
