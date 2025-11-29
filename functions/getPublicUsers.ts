@@ -10,13 +10,13 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Parse query parameters for filtering and pagination
-        const url = new URL(req.url);
-        const city = url.searchParams.get('city') || null;
-        const skillLevel = url.searchParams.get('skill_level') || null;
-        const limit = parseInt(url.searchParams.get('limit') || '50');
-        const offset = parseInt(url.searchParams.get('offset') || '0');
-        const search = url.searchParams.get('search') || null;
+        // Parse parameters from body
+        const body = await req.json().catch(() => ({}));
+        const city = body.city || null;
+        const skillLevel = body.skill_level || null;
+        const limit = parseInt(body.limit || '50');
+        const offset = parseInt(body.offset || '0');
+        const search = body.search || null;
 
         // Use service role to fetch users
         let allUsers = await base44.asServiceRole.entities.User.list();
