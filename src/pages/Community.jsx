@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
-import { useQuery, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -114,29 +114,16 @@ export default function CommunityPage() {
     }
   }, [userError, alert]);
 
-  // Fetch public users via backend with OPTIMIZED caching (Infinite Scroll)
-  const { 
-    data: usersData, 
-    isLoading: usersLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage
-  } = useInfiniteQuery({
+  // Fetch public users via backend with OPTIMIZED caching
+  const { data: allUsers = [], isLoading: usersLoading } = useQuery({
     queryKey: QUERY_KEYS.publicUsers,
-    queryFn: async ({ pageParam = 0 }) => {
-      const response = await base44.functions.invoke('getPublicUsers', {
-        limit: 50,
-        offset: pageParam
-      });
-      return response.data;
+    queryFn: async () => {
+      const response = await base44.functions.invoke('getPublicUsers');
+      return response.data.users || [];
     },
-    getNextPageParam: (lastPage) => lastPage.nextOffset,
-    initialPageParam: 0,
     ...CACHE_STRATEGIES.STATIC,
     enabled: !!user,
   });
-
-  const allUsers = usersData?.pages.flatMap(page => page.users) || [];
 
   // Fetch public teams via backend with OPTIMIZED caching
   const { data: allTeams = [], isLoading: teamsLoading } = useQuery({
@@ -381,52 +368,247 @@ export default function CommunityPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Hero Header */}
-        <Card className="relative overflow-hidden border-0 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[24px] mb-8">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A] to-[#0F2917]"></div>
-          
-          {/* Animated Background Elements */}
-          <div className="absolute top-[-50px] right-[-50px] w-64 h-64 bg-white/10 rounded-full blur-3xl animate-pulse pointer-events-none"></div>
-          <div className="absolute bottom-[-50px] left-[-50px] w-48 h-48 bg-[#248232]/30 rounded-full blur-2xl animate-pulse pointer-events-none" style={{ animationDelay: '1s' }}></div>
-          
-          <CardContent className="relative z-10 p-8">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-              <div>
-                <h1 className="text-4xl font-black text-white mb-2 tracking-tight">Community & Lag</h1>
-                <p className="text-[#EAF6EE] text-lg max-w-xl">
-                  Bygg ditt lag, hitta spelare och utmana andra. Communityt är hjärtat i AllPlay.
-                </p>
+        {/* REDESIGNED HERO CARD WITH GREEN RINGS - Match Dashboard */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="relative overflow-hidden rounded-[20px] sm:rounded-[24px] shadow-[0_20px_60px_rgba(0,0,0,0.4)]"
+        >
+          {/* Animated Background Gradient */}
+          <motion.div 
+            className="absolute inset-0 bg-gradient-to-br from-[#2BA84A] via-[#248232] to-[#1A6029]"
+            animate={{
+              background: [
+                'linear-gradient(135deg, #2BA84A 0%, #248232 50%, #1A6029 100%)',
+                'linear-gradient(135deg, #248232 0%, #1A6029 50%, #2BA84A 100%)',
+                'linear-gradient(135deg, #2BA84A 0%, #248232 50%, #1A6029 100%)'
+              ]
+            }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          />
+
+          {/* GREEN RINGS - Match Dashboard */}
+          <motion.div 
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full border-2 border-white/10"
+            animate={{
+              scale: [1, 1.1, 1],
+              opacity: [0.3, 0.5, 0.3]
+            }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div 
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full border-2 border-white/10"
+            animate={{
+              scale: [1.1, 1, 1.1],
+              opacity: [0.2, 0.4, 0.2]
+            }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          />
+
+          {/* Animated Orbs */}
+          <motion.div
+            className="absolute top-10 right-10 w-32 h-32 bg-white/10 rounded-full blur-3xl"
+            animate={{
+              x: [0, 20, 0],
+              y: [0, -20, 0],
+              opacity: [0.3, 0.5, 0.3]
+            }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="absolute bottom-10 left-10 w-40 h-40 bg-[#0F2917]/60 rounded-full blur-3xl"
+            animate={{
+              x: [0, -20, 0],
+              y: [0, 20, 0],
+              opacity: [0.4, 0.6, 0.4]
+            }}
+            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          />
+
+          {/* Floating Particles */}
+          <motion.div
+            className="absolute top-20 left-20 w-2 h-2 bg-white/40 rounded-full"
+            animate={{
+              y: [0, -20, 0],
+              opacity: [0.4, 0.8, 0.4]
+            }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="absolute top-32 right-32 w-3 h-3 bg-white/30 rounded-full"
+            animate={{
+              y: [0, -30, 0],
+              opacity: [0.3, 0.6, 0.3]
+            }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          />
+
+          <div className="relative z-10 p-5 sm:p-6 lg:p-8">
+            {/* Header Section */}
+            <div className="flex items-start justify-between mb-6">
+              <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                {/* Profile Image with Glow */}
+                <motion.div
+                  whileHover={{ scale: 1.05, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  className="relative flex-shrink-0"
+                >
+                  <div className="absolute inset-0 bg-white/30 rounded-2xl blur-xl"></div>
+                  <div className="relative w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border-2 border-white/40 shadow-2xl overflow-hidden">
+                    {user?.profile_image_url ? (
+                      <img src={user.profile_image_url} alt="Profile" className="w-full h-full object-cover" loading="lazy" />
+                    ) : (
+                      <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-white drop-shadow-lg">
+                        {user?.full_name?.[0] || 'U'}
+                      </span>
+                    )}
+                  </div>
+                  {/* Online Indicator */}
+                  <motion.div
+                    className="absolute -bottom-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-[#10B981] rounded-full border-2 border-white shadow-lg"
+                    animate={{
+                      scale: [1, 1.2, 1],
+                    }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                </motion.div>
+
+                {/* Text Content */}
+                <div className="flex-1 min-w-0">
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <h1 className="text-xl sm:text-2xl lg:text-[32px] lg:leading-[40px] font-bold text-white mb-1 drop-shadow-lg">
+                      Community 🤝
+                    </h1>
+                    <p className="text-white/90 text-xs sm:text-sm lg:text-base font-medium drop-shadow">
+                      Hitta spelare, bygg lag och väx tillsammans
+                    </p>
+                  </motion.div>
+                </div>
               </div>
-              
-              <div className="flex gap-3">
-                 <button onClick={() => setActiveTab('find')} className="h-12 px-6 bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 text-white font-semibold rounded-xl transition-all flex items-center gap-2">
-                    <Search className="w-5 h-5" />
-                    Hitta spelare
-                 </button>
-                 <button onClick={() => setShowCreateTeamForm(true)} className="h-12 px-6 bg-[#F4743B] hover:bg-[#E5683A] text-white font-bold rounded-xl shadow-lg hover:scale-105 transition-all flex items-center gap-2">
-                    <Plus className="w-5 h-5" />
-                    Skapa lag
-                 </button>
-              </div>
+
+              {/* Quick Actions - Removed to use bottom buttons on all screens */}
             </div>
 
-            {/* Stats Row */}
-            <div className="grid grid-cols-3 gap-4 border-t border-white/10 pt-6 mt-8">
-               <div>
-                  <div className="text-3xl font-black text-white mb-1">{friendsAccepted.length}</div>
-                  <div className="text-xs font-bold text-[#EAF6EE] uppercase tracking-wider opacity-80">Vänner</div>
-               </div>
-               <div>
-                  <div className="text-3xl font-black text-white mb-1">{myTeams.length}</div>
-                  <div className="text-xs font-bold text-[#EAF6EE] uppercase tracking-wider opacity-80">Mina Lag</div>
-               </div>
-               <div>
-                  <div className="text-3xl font-black text-white mb-1">{cupsCount}</div>
-                  <div className="text-xs font-bold text-[#EAF6EE] uppercase tracking-wider opacity-80">Cuper</div>
-               </div>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-3 gap-3 sm:gap-4 auto-rows-fr">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                whileHover={{ scale: 1.03, y: -2 }}
+                className="relative group cursor-pointer h-full"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-white/25 to-white/10 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative bg-white/15 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-white/30 shadow-xl hover:border-white/50 transition-all h-full flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                      <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
+                    </div>
+                    <ArrowUpRight className="w-3 h-3 sm:w-4 sm:h-4 text-white/60 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  <div>
+                    <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-1 drop-shadow-lg">
+                      {friendsAccepted.length}
+                    </div>
+                    <div className="text-[10px] sm:text-xs lg:text-sm font-semibold text-white/80 uppercase tracking-wide truncate">
+                      Vänner
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                whileHover={{ scale: 1.03, y: -2 }}
+                onClick={() => setActiveTab('teams')}
+                className="relative group cursor-pointer h-full"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-[#9370DB]/30 to-[#7C3AED]/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative bg-white/15 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-white/30 shadow-xl hover:border-[#DDD6FE]/50 transition-all h-full flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#9370DB]/30 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                      <Target className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
+                    </div>
+                    <ArrowUpRight className="w-3 h-3 sm:w-4 sm:h-4 text-white/60 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  <div>
+                    <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-1 drop-shadow-lg">
+                      {myTeams.length}
+                    </div>
+                    <div className="text-[10px] sm:text-xs lg:text-sm font-semibold text-white/80 uppercase tracking-wide truncate">
+                      Mina Lag
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                whileHover={{ scale: 1.03, y: -2 }}
+                onClick={() => handleStatCardClick('cups')}
+                className="relative group cursor-pointer h-full"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-[#F59E0B]/30 to-[#D97706]/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative bg-white/15 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-white/30 shadow-xl hover:border-[#FCD34D]/50 transition-all h-full flex flex-col justify-between">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#F59E0B]/30 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                      <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
+                    </div>
+                    <ArrowUpRight className="w-3 h-3 sm:w-4 sm:h-4 text-white/60 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  <div>
+                    <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-1 drop-shadow-lg flex items-center gap-2">
+                      {cupsCount}
+                      {cupsCount > 0 && (
+                        <motion.span
+                          animate={{ rotate: [0, 10, -10, 0] }}
+                          transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 3 }}
+                        >
+                          🏆
+                        </motion.span>
+                      )}
+                    </div>
+                    <div className="text-[10px] sm:text-xs lg:text-sm font-semibold text-white/80 uppercase tracking-wide truncate">
+                      Aktiva Cuper
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
             </div>
-          </CardContent>
-        </Card>
+
+            {/* Action Buttons - Responsive Grid for all screens */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+              className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4"
+            >
+              <button
+                onClick={() => setActiveTab('find')}
+                className="w-full bg-white/20 backdrop-blur-sm border border-white/30 text-white h-12 sm:h-14 px-4 rounded-xl font-semibold text-sm sm:text-base shadow-lg hover:bg-white/30 transition-all flex items-center justify-center gap-2 group"
+              >
+                <Search className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+                Hitta spelare
+              </button>
+              <button
+                onClick={() => setActiveTab('teams')}
+                className="w-full bg-white/20 backdrop-blur-sm border border-white/30 text-white h-12 sm:h-14 px-4 rounded-xl font-semibold text-sm sm:text-base shadow-lg hover:bg-white/30 transition-all flex items-center justify-center gap-2 group"
+              >
+                <Target className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+                Mina Lag
+              </button>
+            </motion.div>
+          </div>
+        </motion.div>
 
         {/* Tabs - Dynamic colors based on active tab */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -537,9 +719,6 @@ export default function CommunityPage() {
                       friendships={friendships}
                       currentUser={user}
                       onAddFriend={handleAddFriend}
-                      fetchNextPage={fetchNextPage}
-                      hasNextPage={hasNextPage}
-                      isFetchingNextPage={isFetchingNextPage}
                     />
                   )}
                 </Suspense>
