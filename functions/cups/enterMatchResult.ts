@@ -46,6 +46,14 @@ Deno.serve(async (req) => {
       winnerId = cupMatch.team_a_id;
     } else if (resultData.team_b_score > resultData.team_a_score) {
       winnerId = cupMatch.team_b_id;
+    } else if (resultData.penalties && resultData.penalty_score) {
+      // If match is a draw but decided by penalties, determine winner from penalty score
+      const [penaltyA, penaltyB] = resultData.penalty_score.split('-').map(Number);
+      if (penaltyA > penaltyB) {
+        winnerId = cupMatch.team_a_id;
+      } else if (penaltyB > penaltyA) {
+        winnerId = cupMatch.team_b_id;
+      }
     }
 
     // Update cup match with service role
