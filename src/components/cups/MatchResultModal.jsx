@@ -30,7 +30,7 @@ export default function MatchResultModal({ match, onClose, onSuccess }) {
     
     setIsSubmitting(true);
     try {
-        await base44.functions.invoke('cups/enterMatchResult', {
+        const response = await base44.functions.invoke('cups/enterMatchResult', {
             cup_match_id: match.id,
             team_a_score: parseInt(teamAScore),
             team_b_score: parseInt(teamBScore),
@@ -38,7 +38,8 @@ export default function MatchResultModal({ match, onClose, onSuccess }) {
             penalties: penalties,
             penalty_score: penalties ? `${penaltyScoreA}-${penaltyScoreB}` : null
         });
-        if (onSuccess) onSuccess();
+        
+        if (onSuccess) await onSuccess();
         onClose();
     } catch (error) {
         console.error("Error reporting result:", error);
