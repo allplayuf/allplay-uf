@@ -381,44 +381,144 @@ export default function CommunityPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Clean Community Header */}
-        <div className="card-base bg-[#121715] p-6 sm:p-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
-            <div>
-              <h1 className="text-2xl font-bold text-white mb-2">Community & Lag</h1>
-              <p className="text-secondary max-w-md">
-                Bygg ditt lag, hitta spelare och utmana andra. Communityt är hjärtat i AllPlay.
-              </p>
-            </div>
-            
-            <div className="flex gap-3">
-               <button onClick={() => setActiveTab('find')} className="h-10 px-4 bg-[#18221E] border border-[#223029] hover:bg-[#223029] text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2">
-                  <Search className="w-4 h-4" />
-                  Hitta spelare
-               </button>
-               <button onClick={() => setShowCreateTeamForm(true)} className="h-10 px-4 bg-[#2BA84A] hover:bg-[#248232] text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2">
-                  <Plus className="w-4 h-4" />
-                  Skapa lag
-               </button>
-            </div>
-          </div>
+        {/* Green Hero Card (Restored Style) */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
+          <Card className="relative overflow-hidden rounded-2xl p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] border-0">
+            {/* Animated Background Gradient */}
+            <motion.div 
+              className="absolute inset-0 bg-gradient-to-br from-[#2BA84A] via-[#248232] to-[#1A6029]"
+              animate={{
+                background: [
+                  'linear-gradient(135deg, #2BA84A 0%, #248232 50%, #1A6029 100%)',
+                  'linear-gradient(135deg, #248232 0%, #1A6029 50%, #2BA84A 100%)',
+                  'linear-gradient(135deg, #2BA84A 0%, #248232 50%, #1A6029 100%)'
+                ]
+              }}
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            />
 
-          {/* Simple Stats Row */}
-          <div className="grid grid-cols-3 gap-4 border-t border-[#223029] pt-6">
-             <div>
-                <div className="text-3xl font-bold text-white mb-1">{friendsAccepted.length}</div>
-                <div className="text-xs font-medium text-secondary uppercase tracking-wider">Vänner</div>
-             </div>
-             <div>
-                <div className="text-3xl font-bold text-white mb-1">{myTeams.length}</div>
-                <div className="text-xs font-medium text-secondary uppercase tracking-wider">Mina Lag</div>
-             </div>
-             <div>
-                <div className="text-3xl font-bold text-white mb-1">{cupsCount}</div>
-                <div className="text-xs font-medium text-secondary uppercase tracking-wider">Cuper</div>
-             </div>
-          </div>
-        </div>
+            {/* GREEN RINGS */}
+            <motion.div 
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full border-2 border-white/10"
+              animate={{
+                scale: [1, 1.1, 1],
+                opacity: [0.3, 0.5, 0.3]
+              }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div 
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full border-2 border-white/10"
+              animate={{
+                scale: [1.1, 1, 1.1],
+                opacity: [0.2, 0.4, 0.2]
+              }}
+              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            />
+
+            {/* Animated Orbs */}
+            <motion.div
+              className="absolute top-10 right-10 w-32 h-32 bg-white/10 rounded-full blur-3xl"
+              animate={{
+                x: [0, 20, 0],
+                y: [0, -20, 0],
+                opacity: [0.3, 0.5, 0.3]
+              }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+              className="absolute bottom-10 left-10 w-40 h-40 bg-[#0F2917]/60 rounded-full blur-3xl"
+              animate={{
+                x: [0, -20, 0],
+                y: [0, 20, 0],
+                opacity: [0.4, 0.6, 0.4]
+              }}
+              transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            />
+
+            {/* Floating Particles */}
+            <motion.div
+              className="absolute top-20 left-20 w-2 h-2 bg-white/40 rounded-full"
+              animate={{
+                y: [0, -20, 0],
+                opacity: [0.4, 0.8, 0.4]
+              }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            />
+            
+            <div className="relative z-10">
+               {/* Header Section */}
+               <div className="flex items-center gap-4 mb-8">
+                  <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center overflow-hidden ring-2 ring-white/30 shadow-lg">
+                    {user?.profile_image_url ? (
+                      <img src={user.profile_image_url} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                       <img 
+                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png" 
+                        alt="AllPlay" 
+                        className="w-full h-full object-contain p-2"
+                      />
+                    )}
+                  </div>
+                  <div>
+                     <h1 className="text-3xl font-bold text-white flex items-center gap-2">Community 🤝</h1>
+                     <p className="text-white/90 font-medium">Hitta spelare, bygg lag och väx tillsammans</p>
+                  </div>
+               </div>
+
+               {/* Stats Cards Grid */}
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                  {/* Friends Card */}
+                  <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:bg-white/15 transition-all">
+                     <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center mb-3 text-white">
+                        <Users className="w-5 h-5" />
+                     </div>
+                     <div className="text-4xl font-bold text-white mb-1">{friendsAccepted.length}</div>
+                     <div className="text-xs font-bold text-white/70 uppercase tracking-wider">VÄNNER</div>
+                  </div>
+
+                  {/* Teams Card */}
+                  <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:bg-white/15 transition-all">
+                     <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center mb-3 text-white">
+                        <Target className="w-5 h-5" />
+                     </div>
+                     <div className="text-4xl font-bold text-white mb-1">{myTeams.length}</div>
+                     <div className="text-xs font-bold text-white/70 uppercase tracking-wider">MINA LAG</div>
+                  </div>
+
+                  {/* Cups Card */}
+                  <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:bg-white/15 transition-all">
+                     <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center mb-3 text-white">
+                        <Trophy className="w-5 h-5" />
+                     </div>
+                     <div className="text-4xl font-bold text-white mb-1">{cupsCount}</div>
+                     <div className="text-xs font-bold text-white/70 uppercase tracking-wider">AKTIVA CUPER</div>
+                  </div>
+               </div>
+
+               {/* Action Buttons */}
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <button 
+                    onClick={() => setActiveTab('find')}
+                    className="h-14 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center gap-3 text-white font-bold text-lg transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] group"
+                  >
+                     <Search className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                     Hitta spelare
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('teams')}
+                    className="h-14 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center gap-3 text-white font-bold text-lg transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] group"
+                  >
+                     <Target className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                     Mina Lag
+                  </button>
+               </div>
+            </div>
+          </Card>
+        </motion.div>
 
         {/* Tabs - Dynamic colors based on active tab */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
