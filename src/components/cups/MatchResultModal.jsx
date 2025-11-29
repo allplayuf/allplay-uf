@@ -3,20 +3,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { base44 } from "@/api/base44Client";
 import { Trophy } from 'lucide-react';
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCustomDialog } from "../ui/custom-dialog";
 
 export default function MatchResultModal({ match, onClose, onSuccess }) {
   const [teamAScore, setTeamAScore] = useState(match.team_a_score ?? '');
   const [teamBScore, setTeamBScore] = useState(match.team_b_score ?? '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { alert } = useCustomDialog();
 
   const handleSubmit = async () => {
-    if (teamAScore === '' || teamBScore === '') return;
+    if (teamAScore === '' || teamBScore === '') {
+        await alert('Felaktig inmatning', 'Vänligen fyll i båda resultaten.', { type: 'warning' });
+        return;
+    }
     
     setIsSubmitting(true);
     try {
         await base44.functions.invoke('cups/enterMatchResult', {
-            cup_match_id: match.id, // Note: MatchCard usually passes the CupMatch object
+            cup_match_id: match.id,
             team_a_score: parseInt(teamAScore),
             team_b_score: parseInt(teamBScore),
             extra_time: false,
@@ -26,6 +30,7 @@ export default function MatchResultModal({ match, onClose, onSuccess }) {
         onClose();
     } catch (error) {
         console.error("Error reporting result:", error);
+        await alert('Ett fel uppstod', error.response?.data?.error || 'Kunde inte spara resultatet. Försök igen.', { type: 'alert' });
     } finally {
         setIsSubmitting(false);
     }

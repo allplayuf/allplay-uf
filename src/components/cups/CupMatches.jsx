@@ -97,9 +97,10 @@ function MatchCard({ match, index, canManage }) {
   const { alert } = useCustomDialog();
 
   const handleResultSaved = async () => {
-      await queryClient.invalidateQueries(['cupDetails']);
+      // Invalidate specific cup details to trigger refresh
+      await queryClient.invalidateQueries(['cupDetails']); 
       setShowReportModal(false);
-      // Optional: Show success message via alert or toast
+      await alert('Resultat sparat! ✅', 'Matchen har uppdaterats.', { type: 'success' });
   };
   const hasResult = match.team_a_score !== null;
   const isLive = match.is_live;
