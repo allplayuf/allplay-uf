@@ -14,7 +14,15 @@ const SKILL_LEVEL_CONFIG = {
   elite: { label: 'Elite', icon: Crown, color: 'bg-[#F59E0B]/20 text-[#FDE68A]' }
 };
 
-export default function FindPlayers({ allUsers = [], friendships = [], currentUser, onAddFriend }) {
+export default function FindPlayers({ 
+  allUsers = [], 
+  friendships = [], 
+  currentUser, 
+  onAddFriend,
+  onLoadMore,
+  hasMore,
+  isLoadingMore 
+}) {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Ensure all arrays are defined before filtering
@@ -192,6 +200,29 @@ export default function FindPlayers({ allUsers = [], friendships = [], currentUs
           );
         })}
       </div>
+
+      {/* Load More Button */}
+      {hasMore && !searchQuery && (
+        <div className="flex justify-center pt-6 pb-2">
+          <button
+            onClick={() => onLoadMore?.()}
+            disabled={isLoadingMore}
+            className="px-6 py-3 bg-[#18221E] border border-[#223029] hover:bg-[#223029] text-[#F4F7F5] font-medium rounded-xl transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoadingMore ? (
+              <>
+                <div className="w-4 h-4 border-2 border-[#F4F7F5]/30 border-t-[#F4F7F5] rounded-full animate-spin" />
+                Laddar fler...
+              </>
+            ) : (
+              <>
+                <UserPlus className="w-4 h-4" />
+                Visa fler spelare
+              </>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Empty State */}
       {filteredUsers.length === 0 && (
