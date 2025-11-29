@@ -230,6 +230,20 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
     }
   });
 
+  const advanceToNextRoundMutation = useMutation({
+    mutationFn: async () => {
+      const response = await base44.functions.invoke('cups/advanceToNextRound', { cup_id: cup.id });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(['cupDetails', cup.id]);
+      alert('Nästa omgång skapad! 🎉', `${data.winners_advanced} lag går vidare till ${data.next_stage}.`, { type: 'success' });
+    },
+    onError: (error) => {
+      alert('Fel', error.response?.data?.details || error.response?.data?.error || 'Kunde inte skapa nästa omgång.', { type: 'alert' });
+    }
+  });
+
   // --- Handlers ---
 
   const handleSaveSettings = () => {
@@ -266,6 +280,17 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
     );
     if (confirmed) {
       advanceToPlayoffsMutation.mutate();
+    }
+  };
+
+  const handleAdvanceToNextRound = async () => {
+    const confirmed = await confirm(
+      'Gå vidare till nästa omgång? 🏆',
+      'Vinnarna från aktuell omgång kommer att matchas i nästa slutspelsmatch. Kontrollera att alla matcher är spelade och resultat är korrekt.',
+      { type: 'confirm', confirmText: 'Skapa nästa omgång', cancelText: 'Avbryt' }
+    );
+    if (confirmed) {
+      advanceToNextRoundMutation.mutate();
     }
   };
 
@@ -500,6 +525,14 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
                         <h4 className="font-bold text-white">Starta Slutspel</h4>
                     </div>
                     <p className="text-xs text-[#7B8A83]">Avsluta gruppspel och flytta top-lag till slutspel.</p>
+                </Card>
+
+                <Card className="bg-[#18221E] border-[#223029] p-4 hover:border-[#2BA84A]/30 transition-all cursor-pointer" onClick={handleAdvanceToNextRound}>
+                    <div className="flex items-center gap-3 mb-2">
+                        <Trophy className="w-5 h-5 text-[#2BA84A]" />
+                        <h4 className="font-bold text-white">Nästa Slutspelsomgång</h4>
+                    </div>
+                    <p className="text-xs text-[#7B8A83]">Skapa nästa match med vinnarna från aktuell omgång.</p>
                 </Card>
 
                  <Card className="bg-[#18221E] border-[#223029] p-4 hover:border-[#EF4444]/30 transition-all cursor-pointer" onClick={handleDeleteCup}>
