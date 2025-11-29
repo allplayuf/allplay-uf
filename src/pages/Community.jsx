@@ -381,44 +381,52 @@ export default function CommunityPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Clean Community Header */}
-        <div className="card-base bg-[#121715] p-6 sm:p-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
-            <div>
-              <h1 className="text-2xl font-bold text-white mb-2">Community & Lag</h1>
-              <p className="text-secondary max-w-md">
-                Bygg ditt lag, hitta spelare och utmana andra. Communityt är hjärtat i AllPlay.
-              </p>
+        {/* Hero Header */}
+        <Card className="relative overflow-hidden border-0 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[24px] mb-8">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A] to-[#0F2917]"></div>
+          
+          {/* Animated Background Elements */}
+          <div className="absolute top-[-50px] right-[-50px] w-64 h-64 bg-white/10 rounded-full blur-3xl animate-pulse pointer-events-none"></div>
+          <div className="absolute bottom-[-50px] left-[-50px] w-48 h-48 bg-[#248232]/30 rounded-full blur-2xl animate-pulse pointer-events-none" style={{ animationDelay: '1s' }}></div>
+          
+          <CardContent className="relative z-10 p-8">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+              <div>
+                <h1 className="text-4xl font-black text-white mb-2 tracking-tight">Community & Lag</h1>
+                <p className="text-[#EAF6EE] text-lg max-w-xl">
+                  Bygg ditt lag, hitta spelare och utmana andra. Communityt är hjärtat i AllPlay.
+                </p>
+              </div>
+              
+              <div className="flex gap-3">
+                 <button onClick={() => setActiveTab('find')} className="h-12 px-6 bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 text-white font-semibold rounded-xl transition-all flex items-center gap-2">
+                    <Search className="w-5 h-5" />
+                    Hitta spelare
+                 </button>
+                 <button onClick={() => setShowCreateTeamForm(true)} className="h-12 px-6 bg-[#F4743B] hover:bg-[#E5683A] text-white font-bold rounded-xl shadow-lg hover:scale-105 transition-all flex items-center gap-2">
+                    <Plus className="w-5 h-5" />
+                    Skapa lag
+                 </button>
+              </div>
             </div>
-            
-            <div className="flex gap-3">
-               <button onClick={() => setActiveTab('find')} className="h-10 px-4 bg-[#18221E] border border-[#223029] hover:bg-[#223029] text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2">
-                  <Search className="w-4 h-4" />
-                  Hitta spelare
-               </button>
-               <button onClick={() => setShowCreateTeamForm(true)} className="h-10 px-4 bg-[#2BA84A] hover:bg-[#248232] text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2">
-                  <Plus className="w-4 h-4" />
-                  Skapa lag
-               </button>
-            </div>
-          </div>
 
-          {/* Simple Stats Row */}
-          <div className="grid grid-cols-3 gap-4 border-t border-[#223029] pt-6">
-             <div>
-                <div className="text-3xl font-bold text-white mb-1">{friendsAccepted.length}</div>
-                <div className="text-xs font-medium text-secondary uppercase tracking-wider">Vänner</div>
-             </div>
-             <div>
-                <div className="text-3xl font-bold text-white mb-1">{myTeams.length}</div>
-                <div className="text-xs font-medium text-secondary uppercase tracking-wider">Mina Lag</div>
-             </div>
-             <div>
-                <div className="text-3xl font-bold text-white mb-1">{cupsCount}</div>
-                <div className="text-xs font-medium text-secondary uppercase tracking-wider">Cuper</div>
-             </div>
-          </div>
-        </div>
+            {/* Stats Row */}
+            <div className="grid grid-cols-3 gap-4 border-t border-white/10 pt-6 mt-8">
+               <div>
+                  <div className="text-3xl font-black text-white mb-1">{friendsAccepted.length}</div>
+                  <div className="text-xs font-bold text-[#EAF6EE] uppercase tracking-wider opacity-80">Vänner</div>
+               </div>
+               <div>
+                  <div className="text-3xl font-black text-white mb-1">{myTeams.length}</div>
+                  <div className="text-xs font-bold text-[#EAF6EE] uppercase tracking-wider opacity-80">Mina Lag</div>
+               </div>
+               <div>
+                  <div className="text-3xl font-black text-white mb-1">{cupsCount}</div>
+                  <div className="text-xs font-bold text-[#EAF6EE] uppercase tracking-wider opacity-80">Cuper</div>
+               </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Tabs - Dynamic colors based on active tab */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
