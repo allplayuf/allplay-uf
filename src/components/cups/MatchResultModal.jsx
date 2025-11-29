@@ -56,12 +56,12 @@ export default function MatchResultModal({ match, onClose, onSuccess }) {
     <div className="bg-[#121715] border border-[#223029] rounded-2xl lg:rounded-[20px] w-full p-4 lg:p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div className="flex items-center gap-2 lg:gap-3 mb-4 lg:mb-6 text-[#F59E0B]">
           <Trophy className="w-5 h-5 lg:w-6 lg:h-6" />
-          <h2 className="heading-h3">Rapportera Resultat</h2>
+          <h2 className="text-lg lg:text-xl font-bold">Rapportera Resultat</h2>
       </div>
       
       <div className="flex items-center justify-between gap-2 lg:gap-4 mb-4 lg:mb-6">
           <div className="text-center flex-1">
-              <div className="text-white mb-1 lg:mb-2 truncate body-small" style={{ fontWeight: 600 }}>{match.team_a_name}</div>
+              <div className="font-bold text-white text-xs lg:text-sm mb-1 lg:mb-2 truncate">{match.team_a_name}</div>
               <Input 
                   type="number" 
                   value={teamAScore}
@@ -71,7 +71,7 @@ export default function MatchResultModal({ match, onClose, onSuccess }) {
           </div>
           <div className="text-[#7B8A83] font-bold text-lg lg:text-xl pt-4 lg:pt-6">-</div>
           <div className="text-center flex-1">
-              <div className="text-white mb-1 lg:mb-2 truncate body-small" style={{ fontWeight: 600 }}>{match.team_b_name}</div>
+              <div className="font-bold text-white text-xs lg:text-sm mb-1 lg:mb-2 truncate">{match.team_b_name}</div>
               <Input 
                   type="number" 
                   value={teamBScore}
@@ -84,7 +84,7 @@ export default function MatchResultModal({ match, onClose, onSuccess }) {
       {/* Extra Options - Mobile Optimized */}
       <div className="space-y-2 lg:space-y-3 mb-4 lg:mb-6">
           <div className="flex items-center justify-between bg-[#18221E] p-2.5 lg:p-3 rounded-lg border border-[#223029]">
-              <span className="text-white body-small" style={{ fontWeight: 500 }}>Förlängning</span>
+              <span className="text-xs lg:text-sm font-medium text-white">Förlängning</span>
               <button
                   type="button"
                   onClick={() => setExtraTime(!extraTime)}
@@ -101,7 +101,7 @@ export default function MatchResultModal({ match, onClose, onSuccess }) {
           {isDraw && (
               <div className="bg-[#18221E] p-2.5 lg:p-3 rounded-lg border border-[#F59E0B]/30 space-y-2 lg:space-y-3">
                   <div className="flex items-center justify-between">
-                      <span className="text-white body-small" style={{ fontWeight: 500 }}>Straffar (oavgjort)</span>
+                      <span className="text-xs lg:text-sm font-medium text-white">Straffar (oavgjort)</span>
                       <button
                           type="button"
                           onClick={() => {
@@ -158,14 +158,14 @@ export default function MatchResultModal({ match, onClose, onSuccess }) {
           <Button 
               variant="outline" 
               onClick={onClose}
-              className="flex-1 border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] hover:text-white h-10 lg:h-11 btn-secondary-text"
+              className="flex-1 border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] hover:text-white h-10 lg:h-11 text-sm lg:text-base"
           >
               Avbryt
           </Button>
           <Button 
               onClick={handleSubmit}
               disabled={isSubmitting || teamAScore === '' || teamBScore === ''}
-              className="flex-1 bg-[#2BA84A] hover:bg-[#248232] text-white h-10 lg:h-11 btn-secondary-text"
+              className="flex-1 bg-[#2BA84A] hover:bg-[#248232] text-white h-10 lg:h-11 text-sm lg:text-base"
           >
               {isSubmitting ? 'Sparar...' : 'Spara resultat'}
           </Button>

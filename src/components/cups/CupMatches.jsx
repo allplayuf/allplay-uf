@@ -33,8 +33,8 @@ export default function CupMatches({ cup, matches, canManage }) {
               <Trophy className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-white tracking-tight heading-h2">{filteredMatches.length > 0 ? 'Cup Matcher' : 'Matcher'}</h2>
-              <p className="text-white/80 body-small" style={{ fontWeight: 500 }}>{filteredMatches.length} matcher i turneringen</p>
+              <h2 className="text-lg lg:text-2xl font-black text-white tracking-tight">Cup Matcher</h2>
+              <p className="text-white/80 text-xs lg:text-sm font-medium">{filteredMatches.length} matcher i turneringen</p>
             </div>
           </div>
 
@@ -42,7 +42,7 @@ export default function CupMatches({ cup, matches, canManage }) {
           <div className="flex items-center gap-1 lg:gap-2 bg-black/20 backdrop-blur-sm p-1 lg:p-1.5 rounded-lg lg:rounded-xl border border-white/20">
             <button
               onClick={() => setFilter('all')}
-              className={`flex-1 h-9 lg:h-10 px-2 lg:px-5 rounded-md lg:rounded-lg transition-all match-tag ${
+              className={`flex-1 h-9 lg:h-10 px-2 lg:px-5 rounded-md lg:rounded-lg text-xs lg:text-sm font-bold transition-all ${
                 filter === 'all'
                   ? 'bg-white text-[#D97706] shadow-lg'
                   : 'text-white/80 hover:text-white hover:bg-white/10'
@@ -147,9 +147,9 @@ function MatchCard({ match, index, canManage }) {
               <Trophy className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-white" />
             </div>
             <div>
-              <div className="text-white match-tag">{stageLabels[match.stage] || match.stage}</div>
+              <div className="text-white font-bold text-xs lg:text-sm">{stageLabels[match.stage] || match.stage}</div>
               {match.group_id && (
-                <div className="text-white/80 body-xs">Gruppspel</div>
+                <div className="text-white/80 text-[10px] lg:text-xs">Gruppspel</div>
               )}
             </div>
           </div>
@@ -175,33 +175,33 @@ function MatchCard({ match, index, canManage }) {
           <div className="space-y-2 lg:space-y-3 mb-3 lg:mb-4">
             <Link to={match.match_id ? `${createPageUrl("MatchDetail")}?id=${match.match_id}` : '#'}>
               <div className="flex items-center justify-between p-3 lg:p-4 bg-gradient-to-r from-[#18221E] to-[#0F1513] rounded-lg lg:rounded-xl border-2 border-[#223029] hover:border-[#F59E0B]/30 transition-all group-hover:scale-[1.01]">
-                <span className="text-[#F4F7F5] truncate flex-1 match-title">
+                <span className="text-sm lg:text-base font-bold text-[#F4F7F5] truncate flex-1">
                   {match.team_a_name || 'Lag A'}
                 </span>
                 {hasResult && (
-                  <span className="text-[#F59E0B] ml-2 lg:ml-4 stat-number">{match.team_a_score}</span>
+                  <span className="text-2xl lg:text-3xl font-black text-[#F59E0B] ml-2 lg:ml-4">{match.team_a_score}</span>
                 )}
               </div>
 
               <div className="flex items-center justify-center -my-1">
                 <div className="px-3 lg:px-4 py-0.5 lg:py-1 bg-[#F59E0B]/20 rounded-full border border-[#F59E0B]/30">
-                  <span className="text-[#FCD34D] tracking-widest body-xs" style={{ fontWeight: 700 }}>VS</span>
+                  <span className="text-[10px] lg:text-xs font-black text-[#FCD34D] tracking-widest">VS</span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between p-3 lg:p-4 bg-gradient-to-r from-[#0F1513] to-[#18221E] rounded-lg lg:rounded-xl border-2 border-[#223029] hover:border-[#F59E0B]/30 transition-all group-hover:scale-[1.01]">
-                <span className="text-[#F4F7F5] truncate flex-1 match-title">
+                <span className="text-sm lg:text-base font-bold text-[#F4F7F5] truncate flex-1">
                   {match.team_b_name || 'Lag B'}
                 </span>
                 {hasResult && (
-                  <span className="text-[#F59E0B] ml-2 lg:ml-4 stat-number">{match.team_b_score}</span>
+                  <span className="text-2xl lg:text-3xl font-black text-[#F59E0B] ml-2 lg:ml-4">{match.team_b_score}</span>
                 )}
               </div>
             </Link>
           </div>
 
           {/* Match Info Bar - Mobile Optimized */}
-          <div className="flex flex-wrap items-center gap-2 lg:gap-3 bg-[#0F1513] p-2 lg:p-3 rounded-lg border border-[#223029] match-details">
+          <div className="flex flex-wrap items-center gap-2 lg:gap-3 text-[10px] lg:text-xs font-medium bg-[#0F1513] p-2 lg:p-3 rounded-lg border border-[#223029]">
             {match.date && (
               <div className="flex items-center gap-1 lg:gap-1.5 text-[#B6C2BC]">
                 <Calendar className="w-3 h-3 lg:w-4 lg:h-4 text-[#F59E0B]" />
@@ -233,7 +233,7 @@ function MatchCard({ match, index, canManage }) {
                     e.stopPropagation();
                     setShowReportModal(true);
                 }}
-                className="flex-1 h-10 lg:h-11 bg-gradient-to-r from-[#2BA84A] to-[#248232] hover:from-[#248232] hover:to-[#1D6B28] text-white rounded-lg lg:rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-1.5 lg:gap-2 btn-secondary-text"
+                className="flex-1 h-10 lg:h-11 bg-gradient-to-r from-[#2BA84A] to-[#248232] hover:from-[#248232] hover:to-[#1D6B28] text-white font-bold rounded-lg lg:rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-1.5 lg:gap-2 text-sm lg:text-base"
             >
                 <Trophy className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
                 <span className="hidden sm:inline">Rapportera Resultat</span>
@@ -246,7 +246,7 @@ function MatchCard({ match, index, canManage }) {
                     e.stopPropagation();
                     setShowEditModal(true);
                 }}
-                className="flex-1 h-10 lg:h-11 bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white rounded-lg lg:rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-1.5 lg:gap-2 btn-secondary-text"
+                className="flex-1 h-10 lg:h-11 bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white font-bold rounded-lg lg:rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-1.5 lg:gap-2 text-sm lg:text-base"
             >
                 <Settings className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
                 <span className="hidden sm:inline">Ändra Resultat</span>

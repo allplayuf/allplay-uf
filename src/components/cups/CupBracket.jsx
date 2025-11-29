@@ -42,7 +42,7 @@ export default function CupBracket({ cup, brackets, matches }) {
     <div className="space-y-8">
       <div className="flex items-center gap-2 mb-4">
         <Trophy className="w-5 h-5 text-[#FFD700]" />
-        <h2 className="text-[#F4F7F5] heading-h2">Slutspelsutslagning</h2>
+        <h2 className="text-xl font-bold text-[#F4F7F5]">Slutspelsutslagning</h2>
       </div>
 
       {/* BRACKET FLOW VISUALIZATION */}
@@ -79,16 +79,16 @@ export default function CupBracket({ cup, brackets, matches }) {
               <div className="relative mb-6">
                 <div className={`bg-gradient-to-r ${stageColor.bg} rounded-xl p-4 border ${stageColor.border} shadow-lg`}>
                   <div className="flex items-center justify-between">
-                    <h3 className={`${stageColor.textColor} flex items-center gap-3 heading-h3`}>
+                    <h3 className={`text-lg font-bold ${stageColor.textColor} flex items-center gap-3`}>
                       {stage === 'bronze' && <Award className="w-6 h-6" />}
                       {stage !== 'bronze' && <Trophy className="w-6 h-6" />}
                       {stageLabels[stage]}
-                      <Badge className="bg-white/20 text-white border-0 badge-text">
+                      <Badge className="bg-white/20 text-white border-0 text-xs font-bold">
                         {stageBrackets.length} {stageBrackets.length === 1 ? 'match' : 'matcher'}
                       </Badge>
                     </h3>
                     {stage !== 'bronze' && (
-                      <div className="flex items-center gap-2 text-white/70 body-xs" style={{ fontWeight: 500 }}>
+                      <div className="flex items-center gap-2 text-xs text-white/70 font-medium">
                         <span>Vinnare går vidare</span>
                         <span className="text-lg">→</span>
                       </div>
@@ -287,10 +287,10 @@ function FinalMatchCard({ bracket, match, cup }) {
                 </div>
               </motion.div>
               
-              <h1 className="text-white mb-2 tracking-tight uppercase heading-h1" style={{ fontSize: '40px', lineHeight: '48px', fontWeight: 700 }}>
+              <h2 className="text-3xl lg:text-5xl font-black text-white mb-2 tracking-tight uppercase">
                 FINAL
-              </h1>
-              <p className="text-white/90 body-small" style={{ fontWeight: 600 }}>{cup.name}</p>
+              </h2>
+              <p className="text-white/90 text-sm lg:text-base font-bold">{cup.name}</p>
             </div>
           </div>
 
@@ -315,16 +315,16 @@ function FinalMatchCard({ bracket, match, cup }) {
                 )}
                 <div className="relative flex items-center justify-between">
                   <div className="flex-1">
-                    <div className="text-[#B6C2BC] mb-1 uppercase body-xs" style={{ fontWeight: 600 }}>Finalist 1</div>
-                    <h2 className="text-white mb-1 heading-h2" style={{ fontSize: '28px', lineHeight: '34px', fontWeight: 700 }}>
+                    <div className="text-xs text-[#B6C2BC] mb-1 font-bold uppercase">Finalist 1</div>
+                    <h3 className="text-2xl lg:text-3xl font-black text-white mb-1">
                       {bracket.team_a_name || 'TBD'}
-                    </h2>
+                    </h3>
                   </div>
                   <div className="flex items-center gap-3">
                     {hasResult && (
-                      <span className={`stat-number ${
+                      <span className={`text-5xl lg:text-6xl font-black ${
                         winner === 'a' ? 'text-[#FFD700]' : 'text-[#7B8A83]'
-                      }`} style={{ fontSize: '56px', lineHeight: '60px' }}>
+                      }`}>
                         {match.team_a_score}
                       </span>
                     )}
@@ -369,16 +369,16 @@ function FinalMatchCard({ bracket, match, cup }) {
                 )}
                 <div className="relative flex items-center justify-between">
                   <div className="flex-1">
-                    <div className="text-[#B6C2BC] mb-1 uppercase body-xs" style={{ fontWeight: 600 }}>Finalist 2</div>
-                    <h2 className="text-white mb-1 heading-h2" style={{ fontSize: '28px', lineHeight: '34px', fontWeight: 700 }}>
+                    <div className="text-xs text-[#B6C2BC] mb-1 font-bold uppercase">Finalist 2</div>
+                    <h3 className="text-2xl lg:text-3xl font-black text-white mb-1">
                       {bracket.team_b_name || 'TBD'}
-                    </h2>
+                    </h3>
                   </div>
                   <div className="flex items-center gap-3">
                     {hasResult && (
-                      <span className={`stat-number ${
+                      <span className={`text-5xl lg:text-6xl font-black ${
                         winner === 'b' ? 'text-[#FFD700]' : 'text-[#7B8A83]'
-                      }`} style={{ fontSize: '56px', lineHeight: '60px' }}>
+                      }`}>
                         {match.team_b_score}
                       </span>
                     )}
@@ -403,29 +403,29 @@ function FinalMatchCard({ bracket, match, cup }) {
                 className="bg-gradient-to-r from-[#FFD700] via-[#FFA500] to-[#FFD700] rounded-2xl p-6 text-center shadow-2xl"
               >
                 <Trophy className="w-12 h-12 text-white mx-auto mb-3" />
-                <div className="text-white/80 uppercase tracking-widest mb-1 badge-text">Mästare</div>
-                <h2 className="text-white tracking-tight mb-2 heading-h1" style={{ fontSize: '36px', lineHeight: '42px', fontWeight: 700 }}>
+                <div className="text-xs text-white/80 font-bold uppercase tracking-widest mb-1">Mästare</div>
+                <h2 className="text-3xl lg:text-4xl font-black text-white tracking-tight mb-2">
                   {winnerName}
                 </h2>
-                <p className="text-white/90 body-small" style={{ fontWeight: 500 }}>Grattis till er fantastiska vinst! 🏆</p>
+                <p className="text-white/90 text-sm font-medium">Grattis till er fantastiska vinst! 🏆</p>
               </motion.div>
             )}
 
             {/* Match Details */}
             <div className="mt-6 flex flex-wrap gap-3 justify-center">
               {match.extra_time && (
-                <Badge className="bg-[#FFA500]/20 text-[#FFA500] border-0 px-4 py-2 badge-text" style={{ fontSize: '14px' }}>
+                <Badge className="bg-[#FFA500]/20 text-[#FFA500] border-0 text-sm font-bold px-4 py-2">
                   Förlängning
                 </Badge>
               )}
               {match.penalties && (
-                <Badge className="bg-[#EF4444]/20 text-[#EF4444] border-0 px-4 py-2 badge-text" style={{ fontSize: '14px' }}>
+                <Badge className="bg-[#EF4444]/20 text-[#EF4444] border-0 text-sm font-bold px-4 py-2">
                   Straffar {match.penalty_score}
                 </Badge>
               )}
               {match.match_id && (
                 <Link to={`${createPageUrl("MatchDetail")}?id=${match.match_id}`}>
-                  <Badge className="bg-[#18221E] text-[#FFD700] hover:bg-[#FFD700]/20 border-0 px-4 py-2 cursor-pointer transition-all badge-text" style={{ fontSize: '14px' }}>
+                  <Badge className="bg-[#18221E] text-[#FFD700] hover:bg-[#FFD700]/20 border-0 text-sm font-bold px-4 py-2 cursor-pointer transition-all">
                     Se matchdetaljer →
                   </Badge>
                 </Link>

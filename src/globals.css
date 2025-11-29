@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
-
+css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,121 +8,12 @@
     background-color: #131816;
     margin: 0;
     padding: 0;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    font-weight: 400;
   }
   
   * {
     transition-property: color, background-color, border-color, opacity;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 100ms;
-  }
-
-  /* Typography Scale */
-  h1, .heading-h1 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 600;
-    font-size: 32px;
-    line-height: 38px;
-  }
-
-  h2, .heading-h2 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 600;
-    font-size: 24px;
-    line-height: 30px;
-  }
-
-  h3, .heading-h3 {
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    font-size: 20px;
-    line-height: 26px;
-  }
-
-  h4, .heading-h4 {
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 18px;
-    line-height: 24px;
-  }
-
-  .body-regular {
-    font-family: 'Inter', sans-serif;
-    font-weight: 400;
-    font-size: 16px;
-    line-height: 22px;
-  }
-
-  .body-small {
-    font-family: 'Inter', sans-serif;
-    font-weight: 400;
-    font-size: 14px;
-    line-height: 18px;
-  }
-
-  .body-xs {
-    font-family: 'Inter', sans-serif;
-    font-weight: 400;
-    font-size: 12px;
-    line-height: 16px;
-  }
-
-  .btn-primary-text {
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    font-size: 18px;
-    line-height: 22px;
-    letter-spacing: 0.2px;
-  }
-
-  .btn-secondary-text {
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 16px;
-    line-height: 20px;
-  }
-
-  .nav-tab-label {
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 12px;
-    line-height: 14px;
-  }
-
-  .badge-text {
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 600;
-    font-size: 12px;
-    line-height: 14px;
-  }
-
-  .stat-number {
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 700;
-    font-size: 32px;
-    line-height: 36px;
-  }
-
-  .match-title {
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    font-size: 18px;
-    line-height: 22px;
-  }
-
-  .match-details {
-    font-family: 'Inter', sans-serif;
-    font-weight: 400;
-    font-size: 14px;
-    line-height: 18px;
-  }
-
-  .match-tag {
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    font-size: 12px;
-    line-height: 16px;
   }
 }
 
@@ -151,27 +41,6 @@
 
 .animate-pulse {
   animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Mature Design Utility Classes */
-.card-base {
-  @apply bg-[#121715] border border-[#223029] rounded-xl shadow-sm transition-all duration-200;
-}
-
-.card-hover {
-  @apply hover:border-[#2BA84A]/30 hover:shadow-md;
-}
-
-.btn-primary {
-  @apply bg-[#2BA84A] hover:bg-[#248232] text-white font-medium rounded-lg shadow-sm transition-all;
-}
-
-.btn-secondary {
-  @apply bg-transparent border border-[#223029] hover:bg-[#18221E] text-[#F4F7F5] font-medium rounded-lg transition-all;
-}
-
-.text-secondary {
-  @apply text-[#B6C2BC] text-sm;
 }
 
 .will-change-transform {
