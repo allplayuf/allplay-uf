@@ -274,14 +274,14 @@ export default function CupDetailPage() {
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <h1 className="text-xl font-bold text-white mb-1 line-clamp-2">{cup.name}</h1>
+                    <h1 className="text-white mb-1 line-clamp-2 heading-h2">{cup.name}</h1>
                     <Badge className={`${statusConfig.color} border-0 text-xs font-semibold h-6 px-2`}>
                       {statusConfig.label}
                     </Badge>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-white/90 text-sm">
+                <div className="grid grid-cols-2 gap-2 text-white/90 body-small">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 flex-shrink-0" />
                     <span className="truncate">{cup.location}</span>
@@ -303,7 +303,7 @@ export default function CupDetailPage() {
                 {canManage && (
                   <Button 
                     onClick={() => setActiveTab('admin')}
-                    className="w-full mt-4 bg-white/10 hover:bg-white/20 text-white border border-white/30 font-semibold h-10"
+                    className="w-full mt-4 bg-white/10 hover:bg-white/20 text-white border border-white/30 h-10 btn-secondary-text"
                   >
                     <Shield className="w-4 h-4 mr-2" />
                     Admin Panel
