@@ -387,7 +387,7 @@ export default function CommunityPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <Card className="relative overflow-hidden rounded-2xl p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] border-0">
+          <Card className="relative overflow-hidden rounded-2xl p-4 sm:p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] border-0">
             {/* Animated Background Gradient */}
             <motion.div 
               className="absolute inset-0 bg-gradient-to-br from-[#2BA84A] via-[#248232] to-[#1A6029]"
@@ -464,55 +464,55 @@ export default function CommunityPage() {
                     )}
                   </div>
                   <div>
-                     <h1 className="text-3xl font-bold text-white flex items-center gap-2">Community 🤝</h1>
-                     <p className="text-white/90 font-medium">Hitta spelare, bygg lag och väx tillsammans</p>
+                     <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">Community 🤝</h1>
+                     <p className="text-white/90 font-medium text-sm sm:text-base">Hitta spelare, bygg lag och väx tillsammans</p>
                   </div>
                </div>
 
                {/* Stats Cards Grid */}
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+               <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-8">
                   {/* Friends Card */}
-                  <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:bg-white/15 transition-all">
-                     <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center mb-3 text-white">
-                        <Users className="w-5 h-5" />
+                  <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl p-2 sm:p-4 hover:bg-white/15 transition-all">
+                     <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-white/20 flex items-center justify-center mb-3 text-white">
+                        <Users className="w-4 h-4 sm:w-5 sm:h-5" />
                      </div>
-                     <div className="text-4xl font-bold text-white mb-1">{friendsAccepted.length}</div>
-                     <div className="text-xs font-bold text-white/70 uppercase tracking-wider">VÄNNER</div>
+                     <div className="text-2xl sm:text-4xl font-bold text-white mb-1">{friendsAccepted.length}</div>
+                     <div className="text-[10px] sm:text-xs font-bold text-white/70 uppercase tracking-wider">VÄNNER</div>
                   </div>
 
                   {/* Teams Card */}
-                  <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:bg-white/15 transition-all">
-                     <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center mb-3 text-white">
-                        <Target className="w-5 h-5" />
+                  <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl p-2 sm:p-4 hover:bg-white/15 transition-all">
+                     <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-white/20 flex items-center justify-center mb-3 text-white">
+                        <Target className="w-4 h-4 sm:w-5 sm:h-5" />
                      </div>
-                     <div className="text-4xl font-bold text-white mb-1">{myTeams.length}</div>
-                     <div className="text-xs font-bold text-white/70 uppercase tracking-wider">MINA LAG</div>
+                     <div className="text-2xl sm:text-4xl font-bold text-white mb-1">{myTeams.length}</div>
+                     <div className="text-[10px] sm:text-xs font-bold text-white/70 uppercase tracking-wider">MINA LAG</div>
                   </div>
 
                   {/* Cups Card */}
-                  <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl p-4 hover:bg-white/15 transition-all">
-                     <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center mb-3 text-white">
-                        <Trophy className="w-5 h-5" />
+                  <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl p-2 sm:p-4 hover:bg-white/15 transition-all">
+                     <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-white/20 flex items-center justify-center mb-3 text-white">
+                        <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
                      </div>
-                     <div className="text-4xl font-bold text-white mb-1">{cupsCount}</div>
-                     <div className="text-xs font-bold text-white/70 uppercase tracking-wider">AKTIVA CUPER</div>
+                     <div className="text-2xl sm:text-4xl font-bold text-white mb-1">{cupsCount}</div>
+                     <div className="text-[10px] sm:text-xs font-bold text-white/70 uppercase tracking-wider">AKTIVA CUPER</div>
                   </div>
                </div>
 
                {/* Action Buttons */}
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <button 
                     onClick={() => setActiveTab('find')}
-                    className="h-14 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center gap-3 text-white font-bold text-lg transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] group"
+                    className="h-12 sm:h-14 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center gap-2 sm:gap-3 text-white font-bold text-sm sm:text-lg transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] group"
                   >
-                     <Search className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                     <Search className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
                      Hitta spelare
                   </button>
                   <button 
                     onClick={() => setActiveTab('teams')}
-                    className="h-14 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center gap-3 text-white font-bold text-lg transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] group"
+                    className="h-12 sm:h-14 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center gap-2 sm:gap-3 text-white font-bold text-sm sm:text-lg transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] group"
                   >
-                     <Target className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                     <Target className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
                      Mina Lag
                   </button>
                </div>
