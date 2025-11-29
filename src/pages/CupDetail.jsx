@@ -342,6 +342,31 @@ export default function CupDetailPage() {
               transition={{ duration: 0.2 }}
               className="space-y-6"
             >
+              {cup.status === 'completed' && (
+                <Card className="bg-gradient-to-br from-[#F59E0B]/20 to-[#D97706]/10 border border-[#F59E0B]/30 rounded-2xl shadow-[0_6px_18px_rgba(245,158,11,0.15)] overflow-hidden relative">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-[#F59E0B]/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
+                  <CardContent className="p-8 text-center relative z-10">
+                    <motion.div 
+                      initial={{ scale: 0 }} 
+                      animate={{ scale: 1 }} 
+                      transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                      className="w-24 h-24 bg-gradient-to-br from-[#F59E0B] to-[#D97706] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg ring-4 ring-[#F59E0B]/20"
+                    >
+                      <Trophy className="w-12 h-12 text-white" />
+                    </motion.div>
+                    <h2 className="text-3xl font-black text-[#F4F7F5] mb-2 uppercase tracking-tight">Turnering Avslutad</h2>
+                    <p className="text-[#B6C2BC] text-lg mb-6">Grattis till vinnarna!</p>
+                    
+                    {cup.winner_team_name && (
+                      <div className="inline-block px-8 py-4 bg-[#18221E]/80 backdrop-blur-sm rounded-2xl border border-[#F59E0B]/30 shadow-xl">
+                        <div className="text-xs text-[#F59E0B] font-bold uppercase tracking-widest mb-1">Mästare</div>
+                        <div className="text-4xl font-black text-white tracking-tight">{cup.winner_team_name}</div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Quick Stats */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <Card className="bg-[#121715] border-[#223029] rounded-xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">

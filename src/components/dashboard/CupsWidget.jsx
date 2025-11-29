@@ -47,9 +47,14 @@ export default function CupsWidget() {
           cup.is_public !== false && 
           (cup.status === 'registration_open' || 
            cup.status === 'upcoming' || 
-           cup.status === 'ongoing') &&
-          cup.start_date >= today
+           cup.status === 'ongoing' ||
+           cup.status === 'completed') // Include completed cups
         )
+        .sort((a, b) => {
+          // Sort: Ongoing > Registration/Upcoming > Completed
+          const statusOrder = { ongoing: 0, registration_open: 1, upcoming: 2, completed: 3 };
+          return (statusOrder[a.status] || 4) - (statusOrder[b.status] || 4);
+        })
         .slice(0, 3);
     },
     staleTime: 60 * 1000,

@@ -124,9 +124,15 @@ export default function CupHeroCard({ cup, statusConfig, confirmedCount, canMana
             </motion.h1>
             <div className="flex items-center gap-2 flex-wrap">
               <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full ${statusConfig.color} border-0 font-semibold text-sm shadow-lg`}>
-                <div className={`w-2 h-2 rounded-full ${statusConfig.dotColor} animate-pulse`}></div>
+                <div className={`w-2 h-2 rounded-full ${statusConfig.dotColor} ${cup.status === 'completed' ? '' : 'animate-pulse'}`}></div>
                 {statusConfig.label}
               </div>
+              {cup.status === 'completed' && (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#2BA84A]/20 text-[#2BA84A] border-0 font-semibold text-sm shadow-lg">
+                  <Trophy className="w-3 h-3" />
+                  Vinnare: {cup.winner_team_name || 'Okänd'}
+                </div>
+              )}
             </div>
           </div>
         </div>
