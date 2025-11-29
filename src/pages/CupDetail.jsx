@@ -258,26 +258,81 @@ export default function CupDetailPage() {
           )}
         </div>
 
-        {/* Hero Header with Rings */}
+        {/* Hero Header - Mobile Optimized */}
         <Suspense fallback={<PageLoadingSkeleton />}>
-          <CupHeroCard 
-            cup={cup}
-            statusConfig={statusConfig}
-            confirmedCount={confirmedParticipants.length}
-            canManage={canManage}
-            onAdminClick={() => setActiveTab('admin')}
-          />
+          <div className="lg:hidden">
+            <Card className="bg-gradient-to-br from-[#2BA84A] to-[#0F2917] rounded-2xl shadow-xl border border-[#223029] relative overflow-hidden mb-6">
+              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
+              
+              <CardContent className="p-5 relative z-10">
+                <div className="flex items-start gap-3 mb-4">
+                  {cup.logo_url ? (
+                    <img src={cup.logo_url} alt={cup.name} className="w-14 h-14 rounded-xl object-cover shadow-lg ring-2 ring-white/20" />
+                  ) : (
+                    <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg ring-2 ring-white/20">
+                      <Trophy className="w-7 h-7 text-white" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h1 className="text-xl font-bold text-white mb-1 line-clamp-2">{cup.name}</h1>
+                    <Badge className={`${statusConfig.color} border-0 text-xs font-semibold h-6 px-2`}>
+                      {statusConfig.label}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-white/90 text-sm">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate">{cup.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 flex-shrink-0" />
+                    <span>{confirmedParticipants.length} lag</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate">{new Date(cup.start_date).toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' })}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Target className="w-4 h-4 flex-shrink-0" />
+                    <span>{cup.format}</span>
+                  </div>
+                </div>
+
+                {canManage && (
+                  <Button 
+                    onClick={() => setActiveTab('admin')}
+                    className="w-full mt-4 bg-white/10 hover:bg-white/20 text-white border border-white/30 font-semibold h-10"
+                  >
+                    <Shield className="w-4 h-4 mr-2" />
+                    Admin Panel
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="hidden lg:block">
+            <CupHeroCard 
+              cup={cup}
+              statusConfig={statusConfig}
+              confirmedCount={confirmedParticipants.length}
+              canManage={canManage}
+              onAdminClick={() => setActiveTab('admin')}
+            />
+          </div>
         </Suspense>
 
-        {/* User Signup Status Below Hero */}
+        {/* User Signup Status Below Hero - Mobile Optimized */}
         {userParticipant && (
-          <Card className="bg-[#121715] border-[#223029] rounded-2xl shadow-xl mb-6">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-6 h-6 text-[#2BA84A] flex-shrink-0" />
+          <Card className="bg-[#121715] border-[#223029] rounded-xl lg:rounded-2xl shadow-xl mb-4 lg:mb-6">
+            <CardContent className="p-3 lg:p-4">
+              <div className="flex items-center gap-2 lg:gap-3">
+                <CheckCircle className="w-5 h-5 lg:w-6 lg:h-6 text-[#2BA84A] flex-shrink-0" />
                 <div>
-                  <p className="font-semibold text-[#F4F7F5] text-sm">Du är anmäld till denna turnering!</p>
-                  <p className="text-xs text-[#B6C2BC]">
+                  <p className="font-semibold text-[#F4F7F5] text-xs lg:text-sm">Du är anmäld till denna turnering!</p>
+                  <p className="text-[10px] lg:text-xs text-[#B6C2BC]">
                     Status: {userParticipant.status === 'confirmed' ? '✓ Bekräftad' : '⏳ Väntar på godkännande'}
                   </p>
                 </div>
@@ -286,54 +341,54 @@ export default function CupDetailPage() {
           </Card>
         )}
 
-        {/* Navigation Tabs - UTAN ADMIN TAB */}
-        <div className="bg-[#121715] border border-[#223029] rounded-2xl p-2 mb-8 shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
-          <div className="grid grid-cols-4 gap-2">
+        {/* Navigation Tabs - Mobile Optimized */}
+        <div className="bg-[#121715] border border-[#223029] rounded-xl lg:rounded-2xl p-1.5 lg:p-2 mb-6 lg:mb-8 shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
+          <div className="grid grid-cols-4 gap-1 lg:gap-2">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`h-11 px-2 sm:px-4 rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 ${
+              className={`h-10 lg:h-11 px-1 lg:px-4 rounded-lg lg:rounded-xl font-semibold text-[10px] lg:text-sm transition-all flex flex-col lg:flex-row items-center justify-center gap-0.5 lg:gap-2 ${
                 activeTab === 'overview'
                   ? 'bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30'
                   : 'bg-transparent text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
               }`}
             >
-              <Trophy className="w-4 h-4 flex-shrink-0" />
+              <Trophy className="w-3.5 h-3.5 lg:w-4 lg:h-4 flex-shrink-0" />
               <span className="truncate">Översikt</span>
             </button>
 
             <button
               onClick={() => setActiveTab('signup')}
-              className={`h-11 px-2 sm:px-4 rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 ${
+              className={`h-10 lg:h-11 px-1 lg:px-4 rounded-lg lg:rounded-xl font-semibold text-[10px] lg:text-sm transition-all flex flex-col lg:flex-row items-center justify-center gap-0.5 lg:gap-2 ${
                 activeTab === 'signup'
                   ? 'bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30'
                   : 'bg-transparent text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
               }`}
             >
-              <Users className="w-4 h-4 flex-shrink-0" />
+              <Users className="w-3.5 h-3.5 lg:w-4 lg:h-4 flex-shrink-0" />
               <span className="truncate">Anmälan</span>
             </button>
 
             <button
               onClick={() => setActiveTab('schedule')}
-              className={`h-11 px-2 sm:px-4 rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 ${
+              className={`h-10 lg:h-11 px-1 lg:px-4 rounded-lg lg:rounded-xl font-semibold text-[10px] lg:text-sm transition-all flex flex-col lg:flex-row items-center justify-center gap-0.5 lg:gap-2 ${
                 activeTab === 'schedule'
                   ? 'bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30'
                   : 'bg-transparent text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
               }`}
             >
-              <Layout className="w-4 h-4 flex-shrink-0" />
+              <Layout className="w-3.5 h-3.5 lg:w-4 lg:h-4 flex-shrink-0" />
               <span className="truncate">Schema</span>
             </button>
 
             <button
               onClick={() => setActiveTab('matches')}
-              className={`h-11 px-2 sm:px-4 rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 ${
+              className={`h-10 lg:h-11 px-1 lg:px-4 rounded-lg lg:rounded-xl font-semibold text-[10px] lg:text-sm transition-all flex flex-col lg:flex-row items-center justify-center gap-0.5 lg:gap-2 ${
                 activeTab === 'matches'
                   ? 'bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30'
                   : 'bg-transparent text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
               }`}
             >
-              <ListChecks className="w-4 h-4 flex-shrink-0" />
+              <ListChecks className="w-3.5 h-3.5 lg:w-4 lg:h-4 flex-shrink-0" />
               <span className="truncate">Matcher</span>
             </button>
           </div>
@@ -375,39 +430,39 @@ export default function CupDetailPage() {
                 </Card>
               )}
 
-              {/* Quick Stats */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Quick Stats - Mobile Optimized */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
                 <Card className="bg-[#121715] border-[#223029] rounded-xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
-                  <CardContent className="p-5 text-center">
-                    <Users className="w-6 h-6 text-[#F59E0B] mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-[#F4F7F5] mb-1">{stats.confirmed_participants || 0}</div>
-                    <div className="text-xs text-[#B6C2BC] font-medium">Bekräftade</div>
+                  <CardContent className="p-3 lg:p-5 text-center">
+                    <Users className="w-5 h-5 lg:w-6 lg:h-6 text-[#F59E0B] mx-auto mb-1 lg:mb-2" />
+                    <div className="text-xl lg:text-2xl font-bold text-[#F4F7F5] mb-0.5 lg:mb-1">{stats.confirmed_participants || 0}</div>
+                    <div className="text-[10px] lg:text-xs text-[#B6C2BC] font-medium">Bekräftade</div>
                   </CardContent>
                 </Card>
                 
                 <Card className="bg-[#121715] border-[#223029] rounded-xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
-                  <CardContent className="p-5 text-center">
-                    <ListChecks className="w-6 h-6 text-[#F59E0B] mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-[#F4F7F5] mb-1">{stats.total_matches || 0}</div>
-                    <div className="text-xs text-[#B6C2BC] font-medium">Matcher</div>
+                  <CardContent className="p-3 lg:p-5 text-center">
+                    <ListChecks className="w-5 h-5 lg:w-6 lg:h-6 text-[#F59E0B] mx-auto mb-1 lg:mb-2" />
+                    <div className="text-xl lg:text-2xl font-bold text-[#F4F7F5] mb-0.5 lg:mb-1">{stats.total_matches || 0}</div>
+                    <div className="text-[10px] lg:text-xs text-[#B6C2BC] font-medium">Matcher</div>
                   </CardContent>
                 </Card>
                 
                 <Card className="bg-[#121715] border-[#223029] rounded-xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
-                  <CardContent className="p-5 text-center">
-                    <CheckCircle className="w-6 h-6 text-[#2BA84A] mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-[#F4F7F5] mb-1">{stats.completed_matches || 0}</div>
-                    <div className="text-xs text-[#B6C2BC] font-medium">Spelade</div>
+                  <CardContent className="p-3 lg:p-5 text-center">
+                    <CheckCircle className="w-5 h-5 lg:w-6 lg:h-6 text-[#2BA84A] mx-auto mb-1 lg:mb-2" />
+                    <div className="text-xl lg:text-2xl font-bold text-[#F4F7F5] mb-0.5 lg:mb-1">{stats.completed_matches || 0}</div>
+                    <div className="text-[10px] lg:text-xs text-[#B6C2BC] font-medium">Spelade</div>
                   </CardContent>
                 </Card>
                 
                 <Card className="bg-[#121715] border-[#223029] rounded-xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
-                  <CardContent className="p-5 text-center">
-                    <Clock className="w-6 h-6 text-[#F59E0B] mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-[#F4F7F5] mb-1">
+                  <CardContent className="p-3 lg:p-5 text-center">
+                    <Clock className="w-5 h-5 lg:w-6 lg:h-6 text-[#F59E0B] mx-auto mb-1 lg:mb-2" />
+                    <div className="text-xl lg:text-2xl font-bold text-[#F4F7F5] mb-0.5 lg:mb-1">
                       {(stats.total_matches || 0) - (stats.completed_matches || 0)}
                     </div>
-                    <div className="text-xs text-[#B6C2BC] font-medium">Kommande</div>
+                    <div className="text-[10px] lg:text-xs text-[#B6C2BC] font-medium">Kommande</div>
                   </CardContent>
                 </Card>
               </div>

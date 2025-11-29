@@ -40,14 +40,18 @@ Deno.serve(async (req) => {
       }, { status: 403 });
     }
 
-    // Determine winner
+    // Determine winner - CRITICAL: Penalties decide knockout matches
     let winnerId = null;
+    
+    // First check regular time
     if (resultData.team_a_score > resultData.team_b_score) {
       winnerId = cupMatch.team_a_id;
     } else if (resultData.team_b_score > resultData.team_a_score) {
       winnerId = cupMatch.team_b_id;
-    } else if (resultData.penalties && resultData.penalty_score) {
-      // If match is a draw but decided by penalties, determine winner from penalty score
+    }
+    
+    // If draw and penalties were taken (knockout stage), penalty winner advances
+    if (!winnerId && resultData.penalties && resultData.penalty_score) {
       const [penaltyA, penaltyB] = resultData.penalty_score.split('-').map(Number);
       if (penaltyA > penaltyB) {
         winnerId = cupMatch.team_a_id;
