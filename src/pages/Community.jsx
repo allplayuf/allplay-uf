@@ -387,7 +387,7 @@ export default function CommunityPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          <Card className="relative overflow-hidden rounded-2xl p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] border-0">
+          <Card className="relative overflow-hidden rounded-2xl p-4 sm:p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] border-0">
             {/* Animated Background Gradient */}
             <motion.div 
               className="absolute inset-0 bg-gradient-to-br from-[#2BA84A] via-[#248232] to-[#1A6029]"
@@ -451,8 +451,8 @@ export default function CommunityPage() {
             
             <div className="relative z-10">
                {/* Header Section */}
-               <div className="flex items-center gap-4 mb-8">
-                  <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center overflow-hidden ring-2 ring-white/30 shadow-lg">
+               <div className="flex flex-col sm:flex-row items-center gap-4 mb-6 sm:mb-8 text-center sm:text-left">
+                  <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center overflow-hidden ring-2 ring-white/30 shadow-lg flex-shrink-0">
                     {user?.profile_image_url ? (
                       <img src={user.profile_image_url} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
