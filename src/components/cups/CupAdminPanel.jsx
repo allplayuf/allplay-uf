@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Shield, Plus, Grid, Swords, Settings, Save, Calendar, Wand2, Trash2, Trophy } from "lucide-react";
+import { Shield, Plus, Grid, Swords, Settings, Save, Calendar, Wand2, Trash2, Trophy, Sparkles, TrendingUp, Target, AlertCircle } from "lucide-react";
 import { useCustomDialog } from "../ui/custom-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createPageUrl } from "@/utils";
@@ -22,6 +22,8 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
   
   const [activeTab, setActiveTab] = useState('overview');
   const [editingGroup, setEditingGroup] = useState(null);
+  const [aiInsights, setAiInsights] = useState(null);
+  const [loadingInsights, setLoadingInsights] = useState(false);
   
   // --- Manual Team State ---
   const [newTeamName, setNewTeamName] = useState("");
@@ -278,6 +280,20 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
     }
   };
 
+  const handleGetAiInsights = async () => {
+    setLoadingInsights(true);
+    try {
+      const response = await base44.functions.invoke('cups/getAiInsights', { cup_id: cup.id });
+      setAiInsights(response.data.insights);
+      setActiveTab('ai');
+    } catch (error) {
+      console.error('Error getting AI insights:', error);
+      alert('Fel', 'Kunde inte hämta AI-insikter. Försök igen.', { type: 'alert' });
+    } finally {
+      setLoadingInsights(false);
+    }
+  };
+
   // Filter confirmed teams for selection
   const confirmedTeams = participants
     .filter(p => p.status === 'confirmed' || p.status === 'active')
@@ -289,8 +305,9 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
 
       <Card className="bg-[#121715] border-[#223029] rounded-2xl p-1 shadow-2xl">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-5 bg-transparent">
+          <TabsList className="grid grid-cols-6 bg-transparent">
             <TabsTrigger value="overview" className="data-[state=active]:bg-[#2BA84A]/20 data-[state=active]:text-[#2BA84A] text-[10px] sm:text-sm">Översikt</TabsTrigger>
+            <TabsTrigger value="ai" className="data-[state=active]:bg-[#9333EA]/20 data-[state=active]:text-[#C084FC] text-[10px] sm:text-sm">AI 🤖</TabsTrigger>
             <TabsTrigger value="settings" className="data-[state=active]:bg-[#2BA84A]/20 data-[state=active]:text-[#2BA84A] text-[10px] sm:text-sm">Inställningar</TabsTrigger>
             <TabsTrigger value="teams" className="data-[state=active]:bg-[#2BA84A]/20 data-[state=active]:text-[#2BA84A] text-[10px] sm:text-sm">Lag</TabsTrigger>
             <TabsTrigger value="groups" className="data-[state=active]:bg-[#2BA84A]/20 data-[state=active]:text-[#2BA84A] text-[10px] sm:text-sm">Grupper</TabsTrigger>
@@ -299,6 +316,143 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
 
           <div className="p-4 sm:p-6">
             
+            {/* AI INSIGHTS TAB */}
+            <TabsContent value="ai" className="space-y-6">
+              {loadingInsights ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 border-4 border-[#9333EA] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-[#B6C2BC] font-medium">AI analyserar turneringen...</p>
+                </div>
+              ) : !aiInsights ? (
+                <div className="text-center py-12">
+                  <Sparkles className="w-16 h-16 text-[#9333EA] mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-white mb-2">AI-Strategi Assistent</h3>
+                  <p className="text-[#B6C2BC] mb-6">Få intelligenta rekommendationer för att optimera din turnering</p>
+                  <button 
+                    onClick={handleGetAiInsights}
+                    className="bg-gradient-to-r from-[#9333EA] to-[#7C3AED] hover:from-[#7C3AED] hover:to-[#6D28D9] text-white px-6 py-3 rounded-xl font-bold shadow-lg transition-all"
+                  >
+                    Analysera Turnering
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Group Optimization */}
+                  <Card className="bg-gradient-to-br from-[#2BA84A]/10 to-[#248232]/5 border-[#2BA84A]/30 p-5">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-[#2BA84A]/20 flex items-center justify-center">
+                        <Target className="w-5 h-5 text-[#2BA84A]" />
+                      </div>
+                      <h3 className="text-lg font-bold text-white">Gruppoptimering</h3>
+                    </div>
+                    <div className="bg-[#0F1513] rounded-lg p-4 mb-3">
+                      <div className="grid sm:grid-cols-2 gap-4 mb-3">
+                        <div>
+                          <div className="text-xs text-[#7B8A83] mb-1">Rekommenderade Grupper</div>
+                          <div className="text-2xl font-bold text-[#2BA84A]">{aiInsights.group_optimization?.recommended_groups}</div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-[#7B8A83] mb-1">Lag per Grupp</div>
+                          <div className="text-2xl font-bold text-[#2BA84A]">{aiInsights.group_optimization?.teams_per_group}</div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-[#B6C2BC]">{aiInsights.group_optimization?.reasoning}</p>
+                    </div>
+                  </Card>
+
+                  {/* Playoff Recommendations */}
+                  <Card className="bg-gradient-to-br from-[#F59E0B]/10 to-[#D97706]/5 border-[#F59E0B]/30 p-5">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-[#F59E0B]/20 flex items-center justify-center">
+                        <Trophy className="w-5 h-5 text-[#F59E0B]" />
+                      </div>
+                      <h3 className="text-lg font-bold text-white">Slutspelsstrategi</h3>
+                    </div>
+                    <div className="bg-[#0F1513] rounded-lg p-4 mb-3">
+                      <div className="mb-3">
+                        <div className="text-xs text-[#7B8A83] mb-2">Seedning-strategi</div>
+                        <p className="text-sm text-[#B6C2BC]">{aiInsights.playoff_recommendations?.seeding_strategy}</p>
+                      </div>
+                      {aiInsights.playoff_recommendations?.key_matchups?.length > 0 && (
+                        <div className="mb-3">
+                          <div className="text-xs text-[#7B8A83] mb-2">Nyckel-matcher</div>
+                          <ul className="space-y-1">
+                            {aiInsights.playoff_recommendations.key_matchups.map((matchup, idx) => (
+                              <li key={idx} className="text-sm text-[#F4F7F5] flex items-start gap-2">
+                                <span className="text-[#F59E0B]">•</span>
+                                {matchup}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      <p className="text-sm text-[#B6C2BC]">{aiInsights.playoff_recommendations?.notes}</p>
+                    </div>
+                  </Card>
+
+                  {/* Schedule Analysis */}
+                  <Card className="bg-gradient-to-br from-[#EF4444]/10 to-[#DC2626]/5 border-[#EF4444]/30 p-5">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-[#EF4444]/20 flex items-center justify-center">
+                        <AlertCircle className="w-5 h-5 text-[#EF4444]" />
+                      </div>
+                      <h3 className="text-lg font-bold text-white">Schema-analys</h3>
+                    </div>
+                    <div className="bg-[#0F1513] rounded-lg p-4 space-y-3">
+                      {aiInsights.schedule_analysis?.bottlenecks?.length > 0 && (
+                        <div>
+                          <div className="text-xs text-[#7B8A83] mb-2">Flaskhalsar</div>
+                          <ul className="space-y-1">
+                            {aiInsights.schedule_analysis.bottlenecks.map((bottleneck, idx) => (
+                              <li key={idx} className="text-sm text-[#FCA5A5] flex items-start gap-2">
+                                <span>⚠️</span>
+                                {bottleneck}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {aiInsights.schedule_analysis?.solutions?.length > 0 && (
+                        <div>
+                          <div className="text-xs text-[#7B8A83] mb-2">Lösningar</div>
+                          <ul className="space-y-1">
+                            {aiInsights.schedule_analysis.solutions.map((solution, idx) => (
+                              <li key={idx} className="text-sm text-[#2BA84A] flex items-start gap-2">
+                                <span>✓</span>
+                                {solution}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      <p className="text-sm text-[#B6C2BC] pt-2 border-t border-[#223029]">{aiInsights.schedule_analysis?.optimization_tips}</p>
+                    </div>
+                  </Card>
+
+                  {/* General Insights */}
+                  <Card className="bg-gradient-to-br from-[#4169E1]/10 to-[#3457D5]/5 border-[#4169E1]/30 p-5">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-[#4169E1]/20 flex items-center justify-center">
+                        <TrendingUp className="w-5 h-5 text-[#4169E1]" />
+                      </div>
+                      <h3 className="text-lg font-bold text-white">Allmänna Insikter</h3>
+                    </div>
+                    <div className="bg-[#0F1513] rounded-lg p-4">
+                      <p className="text-sm text-[#B6C2BC] whitespace-pre-line">{aiInsights.general_insights}</p>
+                    </div>
+                  </Card>
+
+                  <button
+                    onClick={handleGetAiInsights}
+                    className="w-full h-11 bg-[#18221E] hover:bg-[#223029] text-[#B6C2BC] hover:text-white border border-[#223029] rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Analysera igen
+                  </button>
+                </div>
+              )}
+            </TabsContent>
+
             {/* OVERVIEW TAB */}
             <TabsContent value="overview" className="space-y-6">
               <div className="text-center text-[#B6C2BC] mb-8">
@@ -322,6 +476,14 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
                         <h4 className="font-bold text-white">Matcher</h4>
                     </div>
                     <p className="text-xs text-[#7B8A83]">Skapa matcher och rapportera resultat.</p>
+                </Card>
+
+                <Card className="bg-[#18221E] border-[#223029] p-4 hover:border-[#9333EA]/30 transition-all cursor-pointer" onClick={handleGetAiInsights}>
+                    <div className="flex items-center gap-3 mb-2">
+                        <Sparkles className="w-5 h-5 text-[#9333EA]" />
+                        <h4 className="font-bold text-white">AI-Strategi Insikter</h4>
+                    </div>
+                    <p className="text-xs text-[#7B8A83]">Få AI-drivna rekommendationer för optimering.</p>
                 </Card>
 
                 <Card className="bg-[#18221E] border-[#223029] p-4 hover:border-[#9333EA]/30 transition-all cursor-pointer" onClick={() => handleGenerateSchedule()}>

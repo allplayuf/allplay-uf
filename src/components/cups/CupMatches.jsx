@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Clock, Trophy } from "lucide-react";
+import { Calendar, MapPin, Clock, Trophy, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
@@ -101,6 +101,7 @@ export default function CupMatches({ cup, matches, canManage }) {
 
 function MatchCard({ match, index, canManage }) {
   const [showReportModal, setShowReportModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const queryClient = useQueryClient();
   const { alert } = useCustomDialog();
 
@@ -108,6 +109,7 @@ function MatchCard({ match, index, canManage }) {
       // Invalidate specific cup details to trigger refresh
       await queryClient.invalidateQueries(['cupDetails']); 
       setShowReportModal(false);
+      setShowEditModal(false);
       await alert('Resultat sparat! ✅', 'Matchen har uppdaterats.', { type: 'success' });
   };
   const hasResult = match.team_a_score !== null;
@@ -224,19 +226,33 @@ function MatchCard({ match, index, canManage }) {
         </CardContent>
       </Card>
       
-      {canManage && !hasResult && (
-        <div className="mt-3">
+      {canManage && (
+        <div className="mt-3 flex gap-2">
+          {!hasResult ? (
              <button 
                 onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     setShowReportModal(true);
                 }}
-                className="w-full h-11 bg-gradient-to-r from-[#2BA84A] to-[#248232] hover:from-[#248232] hover:to-[#1D6B28] text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+                className="flex-1 h-11 bg-gradient-to-r from-[#2BA84A] to-[#248232] hover:from-[#248232] hover:to-[#1D6B28] text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
             >
                 <Trophy className="w-4 h-4" />
                 Rapportera Resultat
             </button>
+          ) : (
+            <button 
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowEditModal(true);
+                }}
+                className="flex-1 h-11 bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+            >
+                <Settings className="w-4 h-4" />
+                Ändra Resultat
+            </button>
+          )}
         </div>
       )}
 
@@ -247,7 +263,18 @@ function MatchCard({ match, index, canManage }) {
                       match={match} 
                       onClose={() => setShowReportModal(false)} 
                       onSuccess={handleResultSaved}
-                      // If MatchResultModal expects specific props, adapt them here
+                   /> 
+              </div>
+          </div>
+      )}
+
+      {showEditModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+              <div className="w-full max-w-md" onClick={e => e.stopPropagation()}>
+                   <MatchResultModal 
+                      match={match} 
+                      onClose={() => setShowEditModal(false)} 
+                      onSuccess={handleResultSaved}
                    /> 
               </div>
           </div>
