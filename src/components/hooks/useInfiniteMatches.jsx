@@ -15,9 +15,9 @@ export function useInfiniteMatches(filters = {}) {
       let filteredMatches = allMatches;
       const today = new Date().toISOString().split('T')[0];
       
-      // Filter by status and date
+      // Filter by status and date, EXCLUDE cup matches
       filteredMatches = filteredMatches.filter(m => 
-        m.status === 'upcoming' && m.date >= today
+        m.status === 'upcoming' && m.date >= today && !m.is_cup_match
       );
       
       // Apply city filter if provided

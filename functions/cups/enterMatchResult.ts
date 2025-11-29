@@ -1,6 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
-import { validateCupMatchResult } from '../utils/cupValidation.js';
-import { canEnterCupMatchResult } from '../utils/cupPermissions.js';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
 Deno.serve(async (req) => {
   try {
@@ -15,26 +13,27 @@ Deno.serve(async (req) => {
     const resultData = await req.json();
 
     // Validate input
-    const validation = validateCupMatchResult(resultData);
-    if (!validation.isValid) {
+    if (!resultData.cup_match_id || resultData.team_a_score === undefined || resultData.team_b_score === undefined) {
       return Response.json({ 
         error: 'Validation failed',
-        details: validation.errors 
+        details: 'Missing required fields' 
       }, { status: 400 });
     }
 
     // Get cup match
-    const cupMatch = await base44.entities.CupMatch.get(resultData.cup_match_id);
+    const cupMatch = await base44.asServiceRole.entities.CupMatch.get(resultData.cup_match_id);
     
-    // Check permissions
-    let hasPermission = false;
-    if (user.role === 'admin') {
-      hasPermission = true;
-    } else {
-      hasPermission = await canEnterCupMatchResult(base44, user, resultData.cup_match_id);
+    if (!cupMatch) {
+      return Response.json({ 
+        error: 'Cup match not found' 
+      }, { status: 404 });
     }
 
-    if (!hasPermission) {
+    // Get cup to verify permissions
+    const cup = await base44.asServiceRole.entities.Cup.get(cupMatch.cup_id);
+    
+    // Check permissions - only organizer or admin can enter results
+    if (cup.organizer_id !== user.id && user.role !== 'admin') {
       return Response.json({ 
         error: 'Forbidden',
         details: 'You do not have permission to enter match results' 
@@ -49,8 +48,8 @@ Deno.serve(async (req) => {
       winnerId = cupMatch.team_b_id;
     }
 
-    // Update cup match
-    await base44.entities.CupMatch.update(resultData.cup_match_id, {
+    // Update cup match with service role
+    await base44.asServiceRole.entities.CupMatch.update(resultData.cup_match_id, {
       team_a_score: resultData.team_a_score,
       team_b_score: resultData.team_b_score,
       extra_time: resultData.extra_time || false,
@@ -62,16 +61,21 @@ Deno.serve(async (req) => {
       is_live: false
     });
 
-    // Update regular match entity
-    await base44.entities.Match.update(cupMatch.match_id, {
-      status: 'completed',
-      final_score: `${resultData.team_a_score}-${resultData.team_b_score}`,
-      completed_at: new Date().toISOString()
-    });
+    // Update regular match entity with service role
+    if (cupMatch.match_id) {
+      await base44.asServiceRole.entities.Match.update(cupMatch.match_id, {
+        status: 'completed',
+        team_a_score: resultData.team_a_score,
+        team_b_score: resultData.team_b_score,
+        final_score: `${resultData.team_a_score}-${resultData.team_b_score}`,
+        completed_at: new Date().toISOString(),
+        result_reported_by: user.id
+      });
+    }
 
     // Update group standings if group stage match
     if (cupMatch.stage === 'group' && cupMatch.group_id) {
-      const group = await base44.entities.CupGroup.get(cupMatch.group_id);
+      const group = await base44.asServiceRole.entities.CupGroup.get(cupMatch.group_id);
       const standings = group.standings || [];
       
       // Find or create standings for both teams
@@ -130,28 +134,28 @@ Deno.serve(async (req) => {
         return b.goal_difference - a.goal_difference;
       });
 
-      await base44.entities.CupGroup.update(cupMatch.group_id, { standings });
+      await base44.asServiceRole.entities.CupGroup.update(cupMatch.group_id, { standings });
     }
 
     // Update bracket if playoff match
     if (['quarterfinal', 'semifinal', 'final', 'bronze'].includes(cupMatch.stage)) {
-      const bracket = await base44.entities.CupBracket.filter({
+      const brackets = await base44.asServiceRole.entities.CupBracket.filter({
         cup_match_id: resultData.cup_match_id
       });
       
-      if (bracket.length > 0) {
-        await base44.entities.CupBracket.update(bracket[0].id, {
+      if (brackets.length > 0) {
+        await base44.asServiceRole.entities.CupBracket.update(brackets[0].id, {
           winner_id: winnerId
         });
 
         // Advance winner to next bracket if applicable
-        if (bracket[0].next_bracket_id && winnerId) {
-          const nextBracket = await base44.entities.CupBracket.get(bracket[0].next_bracket_id);
+        if (brackets[0].next_bracket_id && winnerId) {
+          const nextBracket = await base44.asServiceRole.entities.CupBracket.get(brackets[0].next_bracket_id);
           
           // Determine if winner goes to team_a or team_b slot
           const updateField = nextBracket.team_a_id ? 'team_b_id' : 'team_a_id';
           
-          await base44.entities.CupBracket.update(bracket[0].next_bracket_id, {
+          await base44.asServiceRole.entities.CupBracket.update(brackets[0].next_bracket_id, {
             [updateField]: winnerId
           });
         }
@@ -159,26 +163,13 @@ Deno.serve(async (req) => {
 
       // If this is the final match, update cup status to completed and set winner
       if (cupMatch.stage === 'final' && winnerId) {
-        const winnerTeam = await base44.entities.Team.get(winnerId);
-        await base44.entities.Cup.update(cupMatch.cup_id, {
+        const winnerTeam = await base44.asServiceRole.entities.Team.get(winnerId);
+        await base44.asServiceRole.entities.Cup.update(cupMatch.cup_id, {
           status: 'completed',
           winner_team_id: winnerId,
           winner_team_name: winnerTeam.name
         });
       }
-    }
-
-    // Send notifications
-    const cup = await base44.entities.Cup.get(cupMatch.cup_id);
-    if (cup.notifications_enabled) {
-      await base44.entities.CupNotification.create({
-        cup_id: cupMatch.cup_id,
-        recipient_type: 'all',
-        type: 'result_update',
-        title: 'Matchresultat inlagt',
-        message: `Resultat: ${cupMatch.team_a_name} ${resultData.team_a_score} - ${resultData.team_b_score} ${cupMatch.team_b_name}`,
-        match_id: cupMatch.match_id
-      });
     }
 
     return Response.json({ 
