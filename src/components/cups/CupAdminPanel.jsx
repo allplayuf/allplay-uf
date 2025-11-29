@@ -21,6 +21,7 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
   const navigate = useNavigate();
   
   const [activeTab, setActiveTab] = useState('overview');
+  const [editingGroup, setEditingGroup] = useState(null);
   
   // --- Manual Team State ---
   const [newTeamName, setNewTeamName] = useState("");
@@ -166,6 +167,22 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
     }
   });
 
+  const removeTeamFromGroupMutation = useMutation({
+    mutationFn: async ({ groupId, teamId }) => {
+      const res = await base44.functions.invoke('cups/manageGroups', {
+        action: 'remove_team',
+        cup_id: cup.id,
+        group_id: groupId,
+        team_id: teamId
+      });
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['cupDetails', cup.id]);
+      alert('Lag borttaget', 'Laget har tagits bort från gruppen.', { type: 'success' });
+    }
+  });
+
   const createMatchMutation = useMutation({
     mutationFn: async () => {
       const res = await base44.functions.invoke('cups/createManualMatch', {
@@ -247,6 +264,17 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
     );
     if (confirmed) {
       advanceToPlayoffsMutation.mutate();
+    }
+  };
+
+  const handleRemoveTeamFromGroup = async (groupId, teamId, teamName) => {
+    const confirmed = await confirm(
+      'Ta bort lag från grupp?',
+      `Vill du ta bort ${teamName} från gruppen?`,
+      { type: 'warning', confirmText: 'Ta bort', cancelText: 'Avbryt' }
+    );
+    if (confirmed) {
+      removeTeamFromGroupMutation.mutate({ groupId, teamId });
     }
   };
 
@@ -523,19 +551,58 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
                    <h4 className="text-white font-bold">Befintliga Grupper</h4>
                    {groups.length === 0 ? <p className="text-[#7B8A83] text-sm italic">Inga grupper skapade.</p> : 
                      groups.map(g => (
-                        <div key={g.id} className="bg-[#18221E] p-3 rounded-lg border border-[#223029] text-white flex justify-between items-center">
-                            <div>
-                                <span className="font-bold">{g.name}</span>
-                                <span className="text-xs text-[#7B8A83] ml-2">({g.team_ids?.length || 0} lag)</span>
+                        <div key={g.id} className="bg-[#18221E] p-3 rounded-lg border border-[#223029] text-white">
+                            <div className="flex justify-between items-center mb-2">
+                                <div>
+                                    <span className="font-bold">{g.name}</span>
+                                    <span className="text-xs text-[#7B8A83] ml-2">({g.team_ids?.length || 0} lag)</span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="text-[#2BA84A] hover:bg-[#2BA84A]/10 hover:text-[#2BA84A] h-8 w-8"
+                                        onClick={() => setEditingGroup(editingGroup?.id === g.id ? null : g)}
+                                    >
+                                        <Grid className="w-4 h-4" />
+                                    </Button>
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="text-[#EF4444] hover:bg-[#EF4444]/10 hover:text-[#EF4444] h-8 w-8"
+                                        onClick={() => handleDeleteGroup(g.id, g.name)}
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                </div>
                             </div>
-                            <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="text-[#EF4444] hover:bg-[#EF4444]/10 hover:text-[#EF4444] h-8 w-8"
-                                onClick={() => handleDeleteGroup(g.id, g.name)}
-                            >
-                                <Trash2 className="w-4 h-4" />
-                            </Button>
+                            
+                            {editingGroup?.id === g.id && (
+                                <div className="mt-3 pt-3 border-t border-[#223029] space-y-2">
+                                    <div className="text-xs font-semibold text-[#B6C2BC] mb-2">Lag i gruppen:</div>
+                                    {g.team_ids?.length === 0 ? (
+                                        <p className="text-xs text-[#7B8A83] italic">Inga lag i denna grupp</p>
+                                    ) : (
+                                        g.team_ids?.map(teamId => {
+                                            const team = confirmedTeams.find(t => t.id === teamId);
+                                            if (!team) return null;
+                                            return (
+                                                <div key={teamId} className="flex justify-between items-center bg-[#0F1513] p-2 rounded-lg">
+                                                    <span className="text-sm">{team.name}</span>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="text-[#EF4444] hover:bg-[#EF4444]/10 h-6 px-2"
+                                                        onClick={() => handleRemoveTeamFromGroup(g.id, teamId, team.name)}
+                                                    >
+                                                        <Trash2 className="w-3 h-3" />
+                                                    </Button>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                            )}
                         </div>
                      ))
                    }

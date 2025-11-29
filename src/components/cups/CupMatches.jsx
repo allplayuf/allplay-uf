@@ -22,72 +22,80 @@ export default function CupMatches({ cup, matches, canManage }) {
   const completedCount = matches.filter(m => m.team_a_score !== null).length;
 
   return (
-    <Card className="bg-[#121715] border-[#223029] rounded-2xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
-      <CardContent className="p-6">
+    <div className="space-y-6">
+      {/* PREMIUM HEADER */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#F59E0B] via-[#D97706] to-[#B45309] p-6 shadow-[0_8px_24px_rgba(245,158,11,0.3)]">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
         
-        {/* Header with Filter Tabs - PERFECTLY ALIGNED */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <h2 className="text-xl font-bold text-[#F4F7F5] flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-[#F59E0B]" />
-            Matcher ({filteredMatches.length})
-          </h2>
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <Trophy className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-white tracking-tight">Cup Matcher</h2>
+                <p className="text-white/80 text-sm font-medium">{filteredMatches.length} matcher i turneringen</p>
+              </div>
+            </div>
+          </div>
 
           {/* Filter Tabs */}
-          <div className="flex items-center gap-2 bg-[#0F1513] p-1 rounded-xl border border-[#223029]">
+          <div className="flex items-center gap-2 bg-black/20 backdrop-blur-sm p-1.5 rounded-xl border border-white/20">
             <button
               onClick={() => setFilter('all')}
-              className={`h-9 px-4 rounded-lg text-sm font-semibold transition-all ${
+              className={`h-10 px-5 rounded-lg text-sm font-bold transition-all ${
                 filter === 'all'
-                  ? 'bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30'
-                  : 'text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
+                  ? 'bg-white text-[#D97706] shadow-lg'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
             >
               Alla
             </button>
             <button
               onClick={() => setFilter('upcoming')}
-              className={`h-9 px-4 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
+              className={`h-10 px-5 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
                 filter === 'upcoming'
-                  ? 'bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30'
-                  : 'text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
+                  ? 'bg-white text-[#D97706] shadow-lg'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
             >
               Kommande <span className="hidden sm:inline">({upcomingCount})</span>
             </button>
             <button
               onClick={() => setFilter('completed')}
-              className={`h-9 px-4 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
+              className={`h-10 px-5 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
                 filter === 'completed'
-                  ? 'bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30'
-                  : 'text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
+                  ? 'bg-white text-[#D97706] shadow-lg'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
             >
               Spelade <span className="hidden sm:inline">({completedCount})</span>
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Matches List */}
-        {filteredMatches.length === 0 ? (
-          <div className="text-center py-12">
-            <Trophy className="w-16 h-16 text-[#7B8A83] mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-[#F4F7F5] mb-2">Inga matcher än</h3>
-            <p className="text-[#B6C2BC]">Matcher kommer att skapas när schemat genereras.</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {filteredMatches.map((match, index) => (
-              <MatchCard 
-                key={match.id} 
-                match={match} 
-                index={index}
-                canManage={canManage}
-              />
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      {/* Matches Grid */}
+      {filteredMatches.length === 0 ? (
+        <Card className="bg-[#121715] border-[#223029] rounded-2xl p-12 text-center">
+          <Trophy className="w-16 h-16 text-[#7B8A83] mx-auto mb-4" />
+          <h3 className="text-xl font-bold text-[#F4F7F5] mb-2">Inga matcher än</h3>
+          <p className="text-[#B6C2BC]">Matcher kommer att skapas när schemat genereras.</p>
+        </Card>
+      ) : (
+        <div className="grid gap-4">
+          {filteredMatches.map((match, index) => (
+            <MatchCard 
+              key={match.id} 
+              match={match} 
+              index={index}
+              canManage={canManage}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -114,98 +122,119 @@ function MatchCard({ match, index, canManage }) {
     bronze: 'Bronsmatch'
   };
 
+  const stageColors = {
+    group: 'from-[#2BA84A] to-[#248232]',
+    round_of_16: 'from-[#4169E1] to-[#3457D5]',
+    quarterfinal: 'from-[#9370DB] to-[#7C3AED]',
+    semifinal: 'from-[#F59E0B] to-[#D97706]',
+    final: 'from-[#FFD700] to-[#FFA500]',
+    bronze: 'from-[#CD7F32] to-[#A0522D]'
+  };
+
+  const stageGradient = stageColors[match.stage] || stageColors.group;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, delay: index * 0.03 }}
     >
-      <Link to={match.match_id ? `${createPageUrl("MatchDetail")}?id=${match.match_id}` : '#'}>
-        <div className="bg-[#18221E] border border-[#223029] hover:border-[#F59E0B]/30 rounded-xl transition-all group p-4">
-          
-          {/* Header Row */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Badge className="bg-[#F59E0B]/20 text-[#FCD34D] border-0 text-xs font-semibold h-6 px-3">
-                {stageLabels[match.stage] || match.stage}
-              </Badge>
-              {isLive && (
-                <Badge className="bg-[#EF4444]/20 text-[#EF4444] border-0 text-xs font-semibold h-6 px-3 flex items-center gap-1">
-                  <div className="w-1.5 h-1.5 bg-[#EF4444] rounded-full animate-pulse"></div>
-                  LIVE
-                </Badge>
+      <Card className="bg-[#121715] border-[#223029] rounded-2xl overflow-hidden hover:border-[#F59E0B]/50 transition-all shadow-[0_4px_12px_rgba(0,0,0,0.15)] hover:shadow-[0_8px_24px_rgba(245,158,11,0.2)] group">
+        {/* Stage Header Banner */}
+        <div className={`bg-gradient-to-r ${stageGradient} px-4 py-3 flex items-center justify-between`}>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <Trophy className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <div className="text-white font-bold text-sm">{stageLabels[match.stage] || match.stage}</div>
+              {match.group_id && (
+                <div className="text-white/80 text-xs">Gruppspel</div>
               )}
             </div>
-
-            {hasResult && (
-              <div className="flex items-center gap-2 text-xs">
-                {match.extra_time && (
-                  <span className="text-[#FCD34D] font-semibold">EF</span>
-                )}
-                {match.penalties && (
-                  <span className="text-[#EF4444] font-semibold">STR</span>
-                )}
-              </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {isLive && (
+              <Badge className="bg-[#EF4444] text-white border-0 text-xs font-bold px-2 py-1 flex items-center gap-1.5 shadow-lg">
+                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                LIVE
+              </Badge>
+            )}
+            {hasResult && match.extra_time && (
+              <Badge className="bg-white/20 text-white border-0 text-xs font-bold">EF</Badge>
+            )}
+            {hasResult && match.penalties && (
+              <Badge className="bg-white/20 text-white border-0 text-xs font-bold">STR</Badge>
             )}
           </div>
+        </div>
 
-          {/* Teams */}
-          <div className="space-y-2 mb-4">
-            <div className="flex items-center justify-between p-3 bg-[#0F1513] rounded-lg border border-[#223029]">
-              <span className="text-sm font-semibold text-[#F4F7F5] truncate">
-                {match.team_a_name || 'Lag A'}
-              </span>
-              {hasResult && (
-                <span className="text-lg font-bold text-[#F4F7F5] ml-2">{match.team_a_score}</span>
-              )}
-            </div>
+        <CardContent className="p-5">
+          {/* Teams Battle */}
+          <div className="space-y-3 mb-4">
+            <Link to={match.match_id ? `${createPageUrl("MatchDetail")}?id=${match.match_id}` : '#'}>
+              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-[#18221E] to-[#0F1513] rounded-xl border-2 border-[#223029] hover:border-[#F59E0B]/30 transition-all group-hover:scale-[1.01]">
+                <span className="text-base font-bold text-[#F4F7F5] truncate flex-1">
+                  {match.team_a_name || 'Lag A'}
+                </span>
+                {hasResult && (
+                  <span className="text-3xl font-black text-[#F59E0B] ml-4">{match.team_a_score}</span>
+                )}
+              </div>
 
-            <div className="text-center text-xs text-[#7B8A83] font-semibold">VS</div>
+              <div className="flex items-center justify-center -my-1">
+                <div className="px-4 py-1 bg-[#F59E0B]/20 rounded-full border border-[#F59E0B]/30">
+                  <span className="text-xs font-black text-[#FCD34D] tracking-widest">VS</span>
+                </div>
+              </div>
 
-            <div className="flex items-center justify-between p-3 bg-[#0F1513] rounded-lg border border-[#223029]">
-              <span className="text-sm font-semibold text-[#F4F7F5] truncate">
-                {match.team_b_name || 'Lag B'}
-              </span>
-              {hasResult && (
-                <span className="text-lg font-bold text-[#F4F7F5] ml-2">{match.team_b_score}</span>
-              )}
-            </div>
+              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-[#0F1513] to-[#18221E] rounded-xl border-2 border-[#223029] hover:border-[#F59E0B]/30 transition-all group-hover:scale-[1.01]">
+                <span className="text-base font-bold text-[#F4F7F5] truncate flex-1">
+                  {match.team_b_name || 'Lag B'}
+                </span>
+                {hasResult && (
+                  <span className="text-3xl font-black text-[#F59E0B] ml-4">{match.team_b_score}</span>
+                )}
+              </div>
+            </Link>
           </div>
 
-          {/* Match Info */}
-          <div className="flex flex-wrap items-center gap-3 text-xs text-[#B6C2BC]">
+          {/* Match Info Bar */}
+          <div className="flex flex-wrap items-center gap-3 text-xs font-medium bg-[#0F1513] p-3 rounded-lg border border-[#223029]">
             {match.date && (
-              <div className="flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-1.5 text-[#B6C2BC]">
+                <Calendar className="w-4 h-4 text-[#F59E0B]" />
                 {new Date(match.date).toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' })}
               </div>
             )}
             {match.time && (
-              <div className="flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-1.5 text-[#B6C2BC]">
+                <Clock className="w-4 h-4 text-[#F59E0B]" />
                 {match.time}
               </div>
             )}
             {match.venue_name && (
-              <div className="flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-1.5 text-[#B6C2BC] flex-1 min-w-0">
+                <MapPin className="w-4 h-4 text-[#F59E0B] flex-shrink-0" />
                 <span className="truncate">{match.venue_name}</span>
               </div>
             )}
           </div>
-        </div>
-      </Link>
+        </CardContent>
+      </Card>
       
-      {canManage && (
-        <div className="mt-2 flex justify-end">
+      {canManage && !hasResult && (
+        <div className="mt-3">
              <button 
                 onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     setShowReportModal(true);
                 }}
-                className="text-xs bg-[#2BA84A]/20 text-[#2BA84A] px-3 py-1.5 rounded-lg hover:bg-[#2BA84A]/30 transition-colors font-semibold"
+                className="w-full h-11 bg-gradient-to-r from-[#2BA84A] to-[#248232] hover:from-[#248232] hover:to-[#1D6B28] text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
             >
+                <Trophy className="w-4 h-4" />
                 Rapportera Resultat
             </button>
         </div>
