@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Search, MapPin, UserPlus, CheckCircle, Clock, Target, TrendingUp, Shield, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -14,7 +15,15 @@ const SKILL_LEVEL_CONFIG = {
   elite: { label: 'Elite', icon: Crown, color: 'bg-[#F59E0B]/20 text-[#FDE68A]' }
 };
 
-export default function FindPlayers({ allUsers = [], friendships = [], currentUser, onAddFriend }) {
+export default function FindPlayers({ 
+  allUsers = [], 
+  friendships = [], 
+  currentUser, 
+  onAddFriend,
+  fetchNextPage,
+  hasNextPage,
+  isFetchingNextPage
+}) {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Ensure all arrays are defined before filtering
@@ -208,6 +217,20 @@ export default function FindPlayers({ allUsers = [], friendships = [], currentUs
             </p>
           </CardContent>
         </Card>
+      )}
+
+      {/* Load More Button */}
+      {hasNextPage && (
+        <div className="flex justify-center pt-4 pb-8">
+          <Button 
+            variant="outline" 
+            onClick={() => fetchNextPage()} 
+            disabled={isFetchingNextPage}
+            className="border-[#2BA84A] text-[#2BA84A] hover:bg-[#2BA84A]/10"
+          >
+            {isFetchingNextPage ? 'Laddar...' : 'Visa fler'}
+          </Button>
+        </div>
       )}
     </div>
   );
