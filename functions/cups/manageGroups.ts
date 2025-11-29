@@ -89,6 +89,32 @@ Deno.serve(async (req) => {
       return Response.json({ success: true });
     }
 
+    if (action === 'remove_team') {
+      if (!group_id || !team_id) {
+        return Response.json({ error: 'Group ID and Team ID required' }, { status: 400 });
+      }
+
+      // Remove from group
+      const group = await base44.asServiceRole.entities.CupGroup.get(group_id);
+      const updatedTeamIds = (group.team_ids || []).filter(id => id !== team_id);
+      const updatedStandings = (group.standings || []).filter(s => s.team_id !== team_id);
+
+      await base44.asServiceRole.entities.CupGroup.update(group_id, {
+        team_ids: updatedTeamIds,
+        standings: updatedStandings
+      });
+
+      // Update participant to remove group assignment
+      const participants = await base44.entities.CupParticipant.filter({ cup_id, team_id });
+      if (participants.length > 0) {
+        await base44.asServiceRole.entities.CupParticipant.update(participants[0].id, {
+          group_id: null
+        });
+      }
+
+      return Response.json({ success: true });
+    }
+
     return Response.json({ error: 'Invalid action' }, { status: 400 });
 
   } catch (error) {
