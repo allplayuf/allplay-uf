@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -23,6 +22,7 @@ export default function EditCupModal({ cup, onClose }) {
     location: cup.location || '',
     venue_ids: cup.venue_ids || [],
     logo_url: cup.logo_url || '',
+    detail_logo_url: cup.detail_logo_url || '',
     start_date: cup.start_date || '',
     end_date: cup.end_date || '',
     start_time: cup.start_time || '',
@@ -37,6 +37,9 @@ export default function EditCupModal({ cup, onClose }) {
 
   const [logoPreview, setLogoPreview] = useState(cup.logo_url || '');
   const [uploadingLogo, setUploadingLogo] = useState(false);
+
+  const [detailLogoPreview, setDetailLogoPreview] = useState(cup.detail_logo_url || '');
+  const [uploadingDetailLogo, setUploadingDetailLogo] = useState(false);
 
   // Fetch venues
   const { data: venues = [] } = useQuery({
@@ -74,6 +77,38 @@ export default function EditCupModal({ cup, onClose }) {
       alert('Uppladdning misslyckades', 'Kunde inte ladda upp loggan.', { type: 'alert' });
     } finally {
       setUploadingLogo(false);
+    }
+  };
+
+  const handleDetailLogoChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Ogiltigt filformat', 'Vänligen välj en bildfil.', { type: 'alert' });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Filen är för stor', 'Loggan måste vara mindre än 5MB.', { type: 'alert' });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setDetailLogoPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+
+    setUploadingDetailLogo(true);
+    try {
+      const uploadResult = await base44.integrations.Core.UploadFile({ file });
+      setFormData(prev => ({ ...prev, detail_logo_url: uploadResult.file_url }));
+    } catch (error) {
+      console.error('Error uploading detail logo:', error);
+      alert('Uppladdning misslyckades', 'Kunde inte ladda upp loggan.', { type: 'alert' });
+    } finally {
+      setUploadingDetailLogo(false);
     }
   };
 
@@ -145,16 +180,16 @@ export default function EditCupModal({ cup, onClose }) {
           {/* Form */}
           <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
             
-            {/* Logo */}
+            {/* List Logo */}
             <div className="space-y-3">
               <Label className="text-[#F4F7F5] font-semibold flex items-center gap-2">
                 <ImageIcon className="w-4 h-4 text-[#F59E0B]" />
-                Turneringslogga
+                Listlogga (Översikt)
               </Label>
               <div className="flex items-center gap-4">
                 {logoPreview && (
                   <div className="w-20 h-20 rounded-xl overflow-hidden border-2 border-[#F59E0B]/30 flex-shrink-0">
-                    <img src={logoPreview} alt="Logo" className="w-full h-full object-cover" />
+                    <img src={logoPreview} alt="List logo" className="w-full h-full object-cover" />
                   </div>
                 )}
                 <div className="flex-1">
@@ -178,6 +213,45 @@ export default function EditCupModal({ cup, onClose }) {
                     >
                       <Upload className="w-4 h-4" />
                       {uploadingLogo ? 'Laddar upp...' : logoPreview ? 'Ändra logga' : 'Ladda upp logga'}
+                    </Button>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Detail Logo */}
+            <div className="space-y-3">
+              <Label className="text-[#F4F7F5] font-semibold flex items-center gap-2">
+                <Trophy className="w-4 h-4 text-[#FFD700]" />
+                Hero-logga (Detaljsida)
+              </Label>
+              <div className="flex items-center gap-4">
+                {detailLogoPreview && (
+                  <div className="w-20 h-20 rounded-xl overflow-hidden border-2 border-[#FFD700]/30 flex-shrink-0">
+                    <img src={detailLogoPreview} alt="Detail logo" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleDetailLogoChange}
+                    className="hidden"
+                    id="detail-logo-upload-edit"
+                  />
+                  <label htmlFor="detail-logo-upload-edit">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full h-11 border-[#FFD700]/50 text-[#FFD700] hover:bg-[#FFD700]/10 gap-2 font-semibold"
+                      disabled={uploadingDetailLogo}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        document.getElementById('detail-logo-upload-edit').click();
+                      }}
+                    >
+                      <Upload className="w-4 h-4" />
+                      {uploadingDetailLogo ? 'Laddar upp...' : detailLogoPreview ? 'Ändra logga' : 'Ladda upp logga'}
                     </Button>
                   </label>
                 </div>
@@ -374,7 +448,7 @@ export default function EditCupModal({ cup, onClose }) {
             </Button>
             <Button
               onClick={handleSubmit}
-              disabled={updateCupMutation.isPending || uploadingLogo}
+              disabled={updateCupMutation.isPending || uploadingLogo || uploadingDetailLogo}
               className="flex-1 h-12 bg-[#F59E0B] hover:bg-[#D97706] text-[#FFFFFF] gap-2 font-semibold shadow-lg"
             >
               <Save className="w-4 h-4" />

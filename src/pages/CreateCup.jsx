@@ -25,6 +25,7 @@ export default function CreateCupPage() {
     location: '',
     venue_ids: [],
     logo_url: '',
+    detail_logo_url: '',
     start_date: '',
     end_date: '',
     start_time: '10:00',
@@ -51,6 +52,10 @@ export default function CreateCupPage() {
   const [logoPreview, setLogoPreview] = useState('');
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
+  const [detailLogoFile, setDetailLogoFile] = useState(null);
+  const [detailLogoPreview, setDetailLogoPreview] = useState('');
+  const [uploadingDetailLogo, setUploadingDetailLogo] = useState(false);
+
   // Fetch venues
   const { data: venues = [] } = useQuery({
     queryKey: ['venues'],
@@ -63,13 +68,11 @@ export default function CreateCupPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       alert('Ogiltigt filformat', 'Vänligen välj en bildfil.', { type: 'alert' });
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       alert('Filen är för stor', 'Loggan måste vara mindre än 5MB.', { type: 'alert' });
       return;
@@ -77,14 +80,12 @@ export default function CreateCupPage() {
 
     setLogoFile(file);
     
-    // Show preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setLogoPreview(reader.result);
     };
     reader.readAsDataURL(file);
 
-    // Upload immediately
     setUploadingLogo(true);
     try {
       const uploadResult = await base44.integrations.Core.UploadFile({ file });
@@ -94,6 +95,41 @@ export default function CreateCupPage() {
       alert('Uppladdning misslyckades', 'Kunde inte ladda upp loggan.', { type: 'alert' });
     } finally {
       setUploadingLogo(false);
+    }
+  };
+
+  // Handle detail logo upload
+  const handleDetailLogoChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Ogiltigt filformat', 'Vänligen välj en bildfil.', { type: 'alert' });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Filen är för stor', 'Loggan måste vara mindre än 5MB.', { type: 'alert' });
+      return;
+    }
+
+    setDetailLogoFile(file);
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setDetailLogoPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+
+    setUploadingDetailLogo(true);
+    try {
+      const uploadResult = await base44.integrations.Core.UploadFile({ file });
+      setFormData(prev => ({ ...prev, detail_logo_url: uploadResult.file_url }));
+    } catch (error) {
+      console.error('Error uploading detail logo:', error);
+      alert('Uppladdning misslyckades', 'Kunde inte ladda upp loggan.', { type: 'alert' });
+    } finally {
+      setUploadingDetailLogo(false);
     }
   };
 
@@ -193,16 +229,16 @@ export default function CreateCupPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               
-              {/* Logo Upload */}
+              {/* Logo Upload - List View */}
               <div className="space-y-2">
                 <Label className="text-[#F4F7F5] font-semibold flex items-center gap-2">
                   <ImageIcon className="w-4 h-4 text-[#F59E0B]" />
-                  Turneringslogga
+                  Listlogga (Cup-översikt)
                 </Label>
                 <div className="flex items-center gap-4">
                   {logoPreview && (
                     <div className="w-20 h-20 rounded-xl overflow-hidden border-2 border-[#F59E0B]/30 flex-shrink-0">
-                      <img src={logoPreview} alt="Logo preview" className="w-full h-full object-cover" />
+                      <img src={logoPreview} alt="List logo" className="w-full h-full object-cover" />
                     </div>
                   )}
                   <div className="flex-1">
@@ -228,7 +264,47 @@ export default function CreateCupPage() {
                         {uploadingLogo ? 'Laddar upp...' : logoPreview ? 'Ändra logga' : 'Ladda upp logga'}
                       </Button>
                     </label>
-                    <p className="text-xs text-[#B6C2BC] mt-2">Max 5MB, PNG/JPG/GIF</p>
+                    <p className="text-xs text-[#B6C2BC] mt-2">Visas i cup-översikten</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Detail Logo Upload - Detail Page */}
+              <div className="space-y-2">
+                <Label className="text-[#F4F7F5] font-semibold flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-[#FFD700]" />
+                  Hero-logga (Cup-detaljsida)
+                </Label>
+                <div className="flex items-center gap-4">
+                  {detailLogoPreview && (
+                    <div className="w-20 h-20 rounded-xl overflow-hidden border-2 border-[#FFD700]/30 flex-shrink-0">
+                      <img src={detailLogoPreview} alt="Detail logo" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleDetailLogoChange}
+                      className="hidden"
+                      id="detail-logo-upload"
+                    />
+                    <label htmlFor="detail-logo-upload">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/10 gap-2"
+                        disabled={uploadingDetailLogo}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          document.getElementById('detail-logo-upload').click();
+                        }}
+                      >
+                        <Upload className="w-4 h-4" />
+                        {uploadingDetailLogo ? 'Laddar upp...' : detailLogoPreview ? 'Ändra logga' : 'Ladda upp logga'}
+                      </Button>
+                    </label>
+                    <p className="text-xs text-[#B6C2BC] mt-2">Visas i cup-hero när man klickar in</p>
                   </div>
                 </div>
               </div>
@@ -584,7 +660,7 @@ export default function CreateCupPage() {
             
             <Button 
               type="submit" 
-              disabled={createCupMutation.isPending || uploadingLogo}
+              disabled={createCupMutation.isPending || uploadingLogo || uploadingDetailLogo}
               className="flex-1 bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] text-white gap-2 font-semibold shadow-lg"
             >
               <Trophy className="w-4 h-4" />
