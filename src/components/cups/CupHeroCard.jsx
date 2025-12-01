@@ -36,25 +36,7 @@ export default function CupHeroCard({ cup, statusConfig, confirmedCount, canMana
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      {/* Enhanced Glowing Rings */}
-      <motion.div 
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] lg:w-[700px] lg:h-[700px] rounded-full border-2 border-[#F59E0B]/20"
-        animate={{
-          scale: [1, 1.15, 1],
-          rotate: [0, 90, 0],
-          opacity: [0.2, 0.4, 0.2]
-        }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div 
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] lg:w-[900px] lg:h-[900px] rounded-full border border-[#FFD700]/10"
-        animate={{
-          scale: [1.1, 1, 1.1],
-          rotate: [0, -90, 0],
-          opacity: [0.15, 0.3, 0.15]
-        }}
-        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 3 }}
-      />
+
 
       {/* Ambient Orbs */}
       <motion.div
