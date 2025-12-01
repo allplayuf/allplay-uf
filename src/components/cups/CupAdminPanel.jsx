@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Shield, Plus, Grid, Swords, Settings, Save, Calendar, Wand2, Trash2, Trophy, Sparkles, TrendingUp, Target, AlertCircle, Upload, ImageIcon } from "lucide-react";
+import { Shield, Plus, Grid, Swords, Settings, Save, Calendar, Wand2, Trash2, Trophy, Sparkles, TrendingUp, Target, AlertCircle } from "lucide-react";
 import { useCustomDialog } from "../ui/custom-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createPageUrl } from "@/utils";
@@ -52,15 +52,8 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
     max_participants: cup.max_participants || 16,
     is_public: cup.is_public ?? true,
     rules: cup.rules || "",
-    prize: cup.prize || "",
-    logo_url: cup.logo_url || "",
-    detail_logo_url: cup.detail_logo_url || ""
+    prize: cup.prize || ""
   });
-
-  const [logoPreview, setLogoPreview] = useState(cup.logo_url || '');
-  const [uploadingLogo, setUploadingLogo] = useState(false);
-  const [detailLogoPreview, setDetailLogoPreview] = useState(cup.detail_logo_url || '');
-  const [uploadingDetailLogo, setUploadingDetailLogo] = useState(false);
 
   // --- Mutations ---
 
@@ -252,66 +245,6 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
   });
 
   // --- Handlers ---
-
-  const handleLogoChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      alert('Ogiltigt filformat', 'Vänligen välj en bildfil.', { type: 'alert' });
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Filen är för stor', 'Loggan måste vara mindre än 5MB.', { type: 'alert' });
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = () => setLogoPreview(reader.result);
-    reader.readAsDataURL(file);
-
-    setUploadingLogo(true);
-    try {
-      const uploadResult = await base44.integrations.Core.UploadFile({ file });
-      setSettingsForm(prev => ({ ...prev, logo_url: uploadResult.file_url }));
-    } catch (error) {
-      console.error('Error uploading logo:', error);
-      alert('Uppladdning misslyckades', 'Kunde inte ladda upp loggan.', { type: 'alert' });
-    } finally {
-      setUploadingLogo(false);
-    }
-  };
-
-  const handleDetailLogoChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      alert('Ogiltigt filformat', 'Vänligen välj en bildfil.', { type: 'alert' });
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Filen är för stor', 'Loggan måste vara mindre än 5MB.', { type: 'alert' });
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = () => setDetailLogoPreview(reader.result);
-    reader.readAsDataURL(file);
-
-    setUploadingDetailLogo(true);
-    try {
-      const uploadResult = await base44.integrations.Core.UploadFile({ file });
-      setSettingsForm(prev => ({ ...prev, detail_logo_url: uploadResult.file_url }));
-    } catch (error) {
-      console.error('Error uploading detail logo:', error);
-      alert('Uppladdning misslyckades', 'Kunde inte ladda upp loggan.', { type: 'alert' });
-    } finally {
-      setUploadingDetailLogo(false);
-    }
-  };
 
   const handleSaveSettings = () => {
     updateCupMutation.mutate(settingsForm);
@@ -615,85 +548,6 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
             {/* SETTINGS TAB */}
             <TabsContent value="settings" className="space-y-6">
                 <div className="grid gap-4">
-                    {/* Logo Uploads */}
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label className="text-white font-semibold flex items-center gap-2">
-                          <ImageIcon className="w-4 h-4 text-[#F59E0B]" />
-                          Listlogga
-                        </Label>
-                        <div className="flex items-center gap-3">
-                          {logoPreview && (
-                            <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-[#F59E0B]/30 flex-shrink-0">
-                              <img src={logoPreview} alt="List logo" className="w-full h-full object-cover" />
-                            </div>
-                          )}
-                          <div className="flex-1">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handleLogoChange}
-                              className="hidden"
-                              id="admin-logo-upload"
-                            />
-                            <label htmlFor="admin-logo-upload">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                className="w-full border-[#F59E0B]/30 text-[#F59E0B] hover:bg-[#F59E0B]/10 gap-2 text-xs"
-                                disabled={uploadingLogo}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  document.getElementById('admin-logo-upload').click();
-                                }}
-                              >
-                                <Upload className="w-3 h-3" />
-                                {uploadingLogo ? 'Laddar...' : 'Byt logga'}
-                              </Button>
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="text-white font-semibold flex items-center gap-2">
-                          <Trophy className="w-4 h-4 text-[#FFD700]" />
-                          Hero-logga
-                        </Label>
-                        <div className="flex items-center gap-3">
-                          {detailLogoPreview && (
-                            <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-[#FFD700]/30 flex-shrink-0">
-                              <img src={detailLogoPreview} alt="Hero logo" className="w-full h-full object-cover" />
-                            </div>
-                          )}
-                          <div className="flex-1">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handleDetailLogoChange}
-                              className="hidden"
-                              id="admin-detail-logo-upload"
-                            />
-                            <label htmlFor="admin-detail-logo-upload">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                className="w-full border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/10 gap-2 text-xs"
-                                disabled={uploadingDetailLogo}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  document.getElementById('admin-detail-logo-upload').click();
-                                }}
-                              >
-                                <Upload className="w-3 h-3" />
-                                {uploadingDetailLogo ? 'Laddar...' : 'Byt logga'}
-                              </Button>
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
                     <div className="grid sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label className="text-white">Cupnamn</Label>
@@ -786,10 +640,10 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
 
                     <Button 
                         onClick={handleSaveSettings}
-                        disabled={updateCupMutation.isPending || uploadingLogo || uploadingDetailLogo}
+                        disabled={updateCupMutation.isPending}
                         className="w-full bg-[#2BA84A] hover:bg-[#248232] text-white mt-4 h-12 text-lg font-bold"
                     >
-                        {updateCupMutation.isPending ? 'Sparar...' : uploadingLogo || uploadingDetailLogo ? 'Laddar upp...' : 'Spara ändringar'}
+                        {updateCupMutation.isPending ? 'Sparar...' : 'Spara ändringar'}
                     </Button>
                 </div>
             </TabsContent>
