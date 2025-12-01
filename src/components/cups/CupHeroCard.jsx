@@ -78,28 +78,7 @@ export default function CupHeroCard({ cup, statusConfig, confirmedCount, canMana
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
       />
 
-      {/* Floating Light Particles */}
-      {[...Array(8)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-1 h-1 lg:w-2 lg:h-2 bg-[#FFD700]/60 rounded-full"
-          style={{
-            left: `${15 + i * 12}%`,
-            top: `${25 + (i % 4) * 20}%`,
-          }}
-          animate={{
-            y: [0, -40, 0],
-            opacity: [0.2, 0.7, 0.2],
-            scale: [1, 1.5, 1]
-          }}
-          transition={{
-            duration: 4 + i * 0.5,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: i * 0.4,
-          }}
-        />
-      ))}
+
 
       <div className="relative z-10 p-6 sm:p-8 lg:p-12">
         {/* Enhanced Logo & Title Section */}
