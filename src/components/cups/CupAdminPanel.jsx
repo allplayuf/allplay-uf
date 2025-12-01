@@ -55,6 +55,13 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
     prize: cup.prize || ""
   });
 
+  // --- Logo Upload State ---
+  const [listLogoFile, setListLogoFile] = useState(null);
+  const [listLogoPreview, setListLogoPreview] = useState(cup.logo_url || null);
+  const [detailLogoFile, setDetailLogoFile] = useState(null);
+  const [detailLogoPreview, setDetailLogoPreview] = useState(cup.detail_logo_url || null);
+  const [uploadingLogos, setUploadingLogos] = useState(false);
+
   // --- Mutations ---
 
   const updateCupMutation = useMutation({
@@ -246,8 +253,47 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
 
   // --- Handlers ---
 
-  const handleSaveSettings = () => {
-    updateCupMutation.mutate(settingsForm);
+  const handleListLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setListLogoFile(file);
+      setListLogoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleDetailLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setDetailLogoFile(file);
+      setDetailLogoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    let updates = { ...settingsForm };
+    
+    // Upload logos if changed
+    if (listLogoFile || detailLogoFile) {
+      setUploadingLogos(true);
+      try {
+        if (listLogoFile) {
+          const { file_url } = await base44.integrations.Core.UploadFile({ file: listLogoFile });
+          updates.logo_url = file_url;
+        }
+        if (detailLogoFile) {
+          const { file_url } = await base44.integrations.Core.UploadFile({ file: detailLogoFile });
+          updates.detail_logo_url = file_url;
+        }
+      } catch (error) {
+        console.error('Logo upload error:', error);
+        alert('Fel vid uppladdning', 'Kunde inte ladda upp logotyp.', { type: 'alert' });
+        setUploadingLogos(false);
+        return;
+      }
+      setUploadingLogos(false);
+    }
+    
+    updateCupMutation.mutate(updates);
   };
 
   const handleGenerateSchedule = async () => {
@@ -567,6 +613,63 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
                         </div>
                     </div>
 
+                    {/* Logo Upload Section */}
+                    <div className="grid sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label className="text-white font-semibold">Listlogo (kompakt)</Label>
+                            <div className="bg-[#18221E] border-2 border-dashed border-[#223029] rounded-xl p-4 hover:border-[#F59E0B]/40 transition-all">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleListLogoChange}
+                                    className="hidden"
+                                    id="list-logo-upload"
+                                />
+                                <label htmlFor="list-logo-upload" className="cursor-pointer block">
+                                    {listLogoPreview ? (
+                                        <div className="text-center">
+                                            <img src={listLogoPreview} alt="List Logo" className="w-20 h-20 object-cover rounded-xl mx-auto mb-2 ring-2 ring-[#F59E0B]/40" />
+                                            <p className="text-xs text-[#2BA84A] font-medium">Klicka för att ändra</p>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center">
+                                            <Trophy className="w-12 h-12 text-[#7B8A83] mx-auto mb-2" />
+                                            <p className="text-xs text-[#7B8A83]">Klicka för att ladda upp</p>
+                                        </div>
+                                    )}
+                                </label>
+                            </div>
+                            <p className="text-[10px] text-[#7B8A83]">Används i listvy och miniatyrbilder</p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label className="text-white font-semibold">Hero-logo (stor)</Label>
+                            <div className="bg-[#18221E] border-2 border-dashed border-[#223029] rounded-xl p-4 hover:border-[#F59E0B]/40 transition-all">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleDetailLogoChange}
+                                    className="hidden"
+                                    id="detail-logo-upload"
+                                />
+                                <label htmlFor="detail-logo-upload" className="cursor-pointer block">
+                                    {detailLogoPreview ? (
+                                        <div className="text-center">
+                                            <img src={detailLogoPreview} alt="Detail Logo" className="w-20 h-20 object-cover rounded-xl mx-auto mb-2 ring-2 ring-[#F59E0B]/40" />
+                                            <p className="text-xs text-[#2BA84A] font-medium">Klicka för att ändra</p>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center">
+                                            <Trophy className="w-12 h-12 text-[#7B8A83] mx-auto mb-2" />
+                                            <p className="text-xs text-[#7B8A83]">Klicka för att ladda upp</p>
+                                        </div>
+                                    )}
+                                </label>
+                            </div>
+                            <p className="text-[10px] text-[#7B8A83]">Används på detaljsidans hero-sektion</p>
+                        </div>
+                    </div>
+
                     <div className="grid sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label className="text-white">Startdatum</Label>
@@ -640,10 +743,10 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
 
                     <Button 
                         onClick={handleSaveSettings}
-                        disabled={updateCupMutation.isPending}
-                        className="w-full bg-[#2BA84A] hover:bg-[#248232] text-white mt-4 h-12 text-lg font-bold"
+                        disabled={updateCupMutation.isPending || uploadingLogos}
+                        className="w-full bg-gradient-to-r from-[#2BA84A] to-[#248232] hover:from-[#248232] hover:to-[#1D6B28] text-white mt-4 h-12 text-lg font-bold shadow-lg"
                     >
-                        {updateCupMutation.isPending ? 'Sparar...' : 'Spara ändringar'}
+                        {uploadingLogos ? 'Laddar upp logotyper...' : updateCupMutation.isPending ? 'Sparar...' : 'Spara ändringar'}
                     </Button>
                 </div>
             </TabsContent>
