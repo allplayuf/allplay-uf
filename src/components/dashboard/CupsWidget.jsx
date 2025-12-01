@@ -46,14 +46,12 @@ export default function CupsWidget() {
         .filter(cup => 
           cup.is_public !== false && 
           (cup.status === 'registration_open' || 
-           cup.status === 'upcoming' || 
-           cup.status === 'ongoing' ||
-           cup.status === 'completed') // Include completed cups
+           cup.status === 'upcoming')
         )
         .sort((a, b) => {
-          // Sort: Ongoing > Registration/Upcoming > Completed
-          const statusOrder = { ongoing: 0, registration_open: 1, upcoming: 2, completed: 3 };
-          return (statusOrder[a.status] || 4) - (statusOrder[b.status] || 4);
+          // Sort: Registration open first, then upcoming
+          const statusOrder = { registration_open: 0, upcoming: 1 };
+          return (statusOrder[a.status] || 2) - (statusOrder[b.status] || 2);
         })
         .slice(0, 3);
     },
