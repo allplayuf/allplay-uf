@@ -142,20 +142,6 @@ export default function CupHeroCard({ cup, statusConfig, confirmedCount, canMana
               {/* Corner Accents */}
               <div className="absolute -top-3 -right-3 w-8 h-8 border-t-4 border-r-4 border-[#FFD700] rounded-tr-2xl"></div>
               <div className="absolute -bottom-3 -left-3 w-8 h-8 border-b-4 border-l-4 border-[#FFD700] rounded-bl-2xl"></div>
-              
-              {/* Shine Effect */}
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent"
-                animate={{
-                  x: ['-100%', '200%']
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  repeatDelay: 2,
-                  ease: "easeInOut"
-                }}
-              />
             </motion.div>
           )}
 
