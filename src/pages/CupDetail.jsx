@@ -258,139 +258,93 @@ export default function CupDetailPage() {
           )}
         </div>
 
-        {/* Hero Header - Mobile Optimized */}
+        {/* Hero Header - Responsive with detail_logo_url */}
         <Suspense fallback={<PageLoadingSkeleton />}>
-          <div className="lg:hidden">
-            <Card className="bg-gradient-to-br from-[#2BA84A] to-[#0F2917] rounded-2xl shadow-xl border border-[#223029] relative overflow-hidden mb-6">
-              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
-              
-              <CardContent className="p-5 relative z-10">
-                <div className="flex items-start gap-3 mb-4">
-                  {cup.logo_url ? (
-                    <img src={cup.logo_url} alt={cup.name} className="w-14 h-14 rounded-xl object-cover shadow-lg ring-2 ring-white/20" />
-                  ) : (
-                    <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg ring-2 ring-white/20">
-                      <Trophy className="w-7 h-7 text-white" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <h1 className="text-xl font-bold text-white mb-1 line-clamp-2">{cup.name}</h1>
-                    <Badge className={`${statusConfig.color} border-0 text-xs font-semibold h-6 px-2`}>
-                      {statusConfig.label}
-                    </Badge>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 text-white/90 text-sm">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 flex-shrink-0" />
-                    <span className="truncate">{cup.location}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 flex-shrink-0" />
-                    <span>{confirmedParticipants.length} lag</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 flex-shrink-0" />
-                    <span className="truncate">{new Date(cup.start_date).toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' })}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Target className="w-4 h-4 flex-shrink-0" />
-                    <span>{cup.format}</span>
-                  </div>
-                </div>
-
-                {canManage && (
-                  <Button 
-                    onClick={() => setActiveTab('admin')}
-                    className="w-full mt-4 bg-white/10 hover:bg-white/20 text-white border border-white/30 font-semibold h-10"
-                  >
-                    <Shield className="w-4 h-4 mr-2" />
-                    Admin Panel
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="hidden lg:block">
-            <CupHeroCard 
-              cup={cup}
-              statusConfig={statusConfig}
-              confirmedCount={confirmedParticipants.length}
-              canManage={canManage}
-              onAdminClick={() => setActiveTab('admin')}
-            />
-          </div>
+          <CupHeroCard 
+            cup={cup}
+            statusConfig={statusConfig}
+            confirmedCount={confirmedParticipants.length}
+            canManage={canManage}
+            onAdminClick={() => setActiveTab('admin')}
+          />
         </Suspense>
 
-        {/* User Signup Status Below Hero - Mobile Optimized */}
+        {/* User Signup Status - Mobile Optimized */}
         {userParticipant && (
-          <Card className="bg-[#121715] border-[#223029] rounded-xl lg:rounded-2xl shadow-xl mb-4 lg:mb-6">
-            <CardContent className="p-3 lg:p-4">
-              <div className="flex items-center gap-2 lg:gap-3">
-                <CheckCircle className="w-5 h-5 lg:w-6 lg:h-6 text-[#2BA84A] flex-shrink-0" />
-                <div>
-                  <p className="font-semibold text-[#F4F7F5] text-xs lg:text-sm">Du är anmäld till denna turnering!</p>
-                  <p className="text-[10px] lg:text-xs text-[#B6C2BC]">
-                    Status: {userParticipant.status === 'confirmed' ? '✓ Bekräftad' : '⏳ Väntar på godkännande'}
-                  </p>
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <Card className="bg-gradient-to-r from-[#2BA84A]/20 to-[#248232]/10 border-[#2BA84A]/40 rounded-2xl shadow-lg mb-6">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 lg:w-12 lg:h-12 bg-[#2BA84A]/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="w-5 h-5 lg:w-6 lg:h-6 text-[#2BA84A]" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold text-[#F4F7F5] text-sm lg:text-base">Du deltar i turneringen!</p>
+                    <p className="text-xs lg:text-sm text-[#B6C2BC]">
+                      Status: {userParticipant.status === 'confirmed' ? '✅ Bekräftad' : '⏳ Väntar på godkännande'}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
         )}
 
-        {/* Navigation Tabs - Mobile Optimized */}
-        <div className="bg-[#121715] border border-[#223029] rounded-xl lg:rounded-2xl p-1.5 lg:p-2 mb-6 lg:mb-8 shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
-          <div className="grid grid-cols-4 gap-1 lg:gap-2">
-            <button
-              onClick={() => setActiveTab('overview')}
-              className={`h-10 lg:h-11 px-1 lg:px-4 rounded-lg lg:rounded-xl font-semibold text-[10px] lg:text-sm transition-all flex flex-col lg:flex-row items-center justify-center gap-0.5 lg:gap-2 ${
-                activeTab === 'overview'
-                  ? 'bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30'
-                  : 'bg-transparent text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
-              }`}
-            >
-              <Trophy className="w-3.5 h-3.5 lg:w-4 lg:h-4 flex-shrink-0" />
-              <span className="truncate">Översikt</span>
-            </button>
+        {/* Navigation Tabs - Enhanced Mobile */}
+        <div className="sticky top-0 z-30 bg-[#0F1513]/95 backdrop-blur-xl -mx-4 px-4 sm:mx-0 sm:px-0 py-2 sm:py-0 mb-6 lg:mb-8">
+          <div className="bg-[#121715] border border-[#223029] rounded-xl lg:rounded-2xl p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
+            <div className="grid grid-cols-4 gap-1 lg:gap-2">
+              <button
+                onClick={() => setActiveTab('overview')}
+                className={`h-12 lg:h-12 px-2 lg:px-4 rounded-xl font-bold text-[11px] lg:text-sm transition-all flex flex-col lg:flex-row items-center justify-center gap-1 ${
+                  activeTab === 'overview'
+                    ? 'bg-gradient-to-br from-[#F59E0B] to-[#D97706] text-white shadow-lg scale-105'
+                    : 'bg-transparent text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
+                }`}
+              >
+                <Trophy className="w-4 h-4 lg:w-5 lg:h-5" />
+                <span className="hidden sm:inline">Översikt</span>
+              </button>
 
-            <button
-              onClick={() => setActiveTab('signup')}
-              className={`h-10 lg:h-11 px-1 lg:px-4 rounded-lg lg:rounded-xl font-semibold text-[10px] lg:text-sm transition-all flex flex-col lg:flex-row items-center justify-center gap-0.5 lg:gap-2 ${
-                activeTab === 'signup'
-                  ? 'bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30'
-                  : 'bg-transparent text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
-              }`}
-            >
-              <Users className="w-3.5 h-3.5 lg:w-4 lg:h-4 flex-shrink-0" />
-              <span className="truncate">Anmälan</span>
-            </button>
+              <button
+                onClick={() => setActiveTab('signup')}
+                className={`h-12 lg:h-12 px-2 lg:px-4 rounded-xl font-bold text-[11px] lg:text-sm transition-all flex flex-col lg:flex-row items-center justify-center gap-1 ${
+                  activeTab === 'signup'
+                    ? 'bg-gradient-to-br from-[#F59E0B] to-[#D97706] text-white shadow-lg scale-105'
+                    : 'bg-transparent text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
+                }`}
+              >
+                <Users className="w-4 h-4 lg:w-5 lg:h-5" />
+                <span className="hidden sm:inline">Anmälan</span>
+              </button>
 
-            <button
-              onClick={() => setActiveTab('schedule')}
-              className={`h-10 lg:h-11 px-1 lg:px-4 rounded-lg lg:rounded-xl font-semibold text-[10px] lg:text-sm transition-all flex flex-col lg:flex-row items-center justify-center gap-0.5 lg:gap-2 ${
-                activeTab === 'schedule'
-                  ? 'bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30'
-                  : 'bg-transparent text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
-              }`}
-            >
-              <Layout className="w-3.5 h-3.5 lg:w-4 lg:h-4 flex-shrink-0" />
-              <span className="truncate">Schema</span>
-            </button>
+              <button
+                onClick={() => setActiveTab('schedule')}
+                className={`h-12 lg:h-12 px-2 lg:px-4 rounded-xl font-bold text-[11px] lg:text-sm transition-all flex flex-col lg:flex-row items-center justify-center gap-1 ${
+                  activeTab === 'schedule'
+                    ? 'bg-gradient-to-br from-[#F59E0B] to-[#D97706] text-white shadow-lg scale-105'
+                    : 'bg-transparent text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
+                }`}
+              >
+                <Layout className="w-4 h-4 lg:w-5 lg:h-5" />
+                <span className="hidden sm:inline">Schema</span>
+              </button>
 
-            <button
-              onClick={() => setActiveTab('matches')}
-              className={`h-10 lg:h-11 px-1 lg:px-4 rounded-lg lg:rounded-xl font-semibold text-[10px] lg:text-sm transition-all flex flex-col lg:flex-row items-center justify-center gap-0.5 lg:gap-2 ${
-                activeTab === 'matches'
-                  ? 'bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30'
-                  : 'bg-transparent text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
-              }`}
-            >
-              <ListChecks className="w-3.5 h-3.5 lg:w-4 lg:h-4 flex-shrink-0" />
-              <span className="truncate">Matcher</span>
-            </button>
+              <button
+                onClick={() => setActiveTab('matches')}
+                className={`h-12 lg:h-12 px-2 lg:px-4 rounded-xl font-bold text-[11px] lg:text-sm transition-all flex flex-col lg:flex-row items-center justify-center gap-1 ${
+                  activeTab === 'matches'
+                    ? 'bg-gradient-to-br from-[#F59E0B] to-[#D97706] text-white shadow-lg scale-105'
+                    : 'bg-transparent text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
+                }`}
+              >
+                <ListChecks className="w-4 h-4 lg:w-5 lg:h-5" />
+                <span className="hidden sm:inline">Matcher</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -430,93 +384,110 @@ export default function CupDetailPage() {
                 </Card>
               )}
 
-              {/* Quick Stats - Mobile Optimized */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-                <Card className="bg-[#121715] border-[#223029] rounded-xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
-                  <CardContent className="p-3 lg:p-5 text-center">
-                    <Users className="w-5 h-5 lg:w-6 lg:h-6 text-[#F59E0B] mx-auto mb-1 lg:mb-2" />
-                    <div className="text-xl lg:text-2xl font-bold text-[#F4F7F5] mb-0.5 lg:mb-1">{stats.confirmed_participants || 0}</div>
-                    <div className="text-[10px] lg:text-xs text-[#B6C2BC] font-medium">Bekräftade</div>
-                  </CardContent>
-                </Card>
+              {/* Quick Stats - Enhanced Mobile */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5">
+                <motion.div whileHover={{ y: -4, scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Card className="bg-gradient-to-br from-[#121715] to-[#0F1513] border-[#223029] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.3)] hover:border-[#F59E0B]/40 transition-all">
+                    <CardContent className="p-4 lg:p-6 text-center">
+                      <div className="w-10 h-10 lg:w-12 lg:h-12 bg-[#F59E0B]/20 rounded-xl flex items-center justify-center mx-auto mb-3 ring-2 ring-[#F59E0B]/30">
+                        <Users className="w-5 h-5 lg:w-6 lg:h-6 text-[#F59E0B]" />
+                      </div>
+                      <div className="text-2xl lg:text-3xl font-black text-[#F4F7F5] mb-1">{stats.confirmed_participants || 0}</div>
+                      <div className="text-[10px] lg:text-xs text-[#B6C2BC] font-bold uppercase tracking-wider">Bekräftade</div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
                 
-                <Card className="bg-[#121715] border-[#223029] rounded-xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
-                  <CardContent className="p-3 lg:p-5 text-center">
-                    <ListChecks className="w-5 h-5 lg:w-6 lg:h-6 text-[#F59E0B] mx-auto mb-1 lg:mb-2" />
-                    <div className="text-xl lg:text-2xl font-bold text-[#F4F7F5] mb-0.5 lg:mb-1">{stats.total_matches || 0}</div>
-                    <div className="text-[10px] lg:text-xs text-[#B6C2BC] font-medium">Matcher</div>
-                  </CardContent>
-                </Card>
+                <motion.div whileHover={{ y: -4, scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Card className="bg-gradient-to-br from-[#121715] to-[#0F1513] border-[#223029] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.3)] hover:border-[#4169E1]/40 transition-all">
+                    <CardContent className="p-4 lg:p-6 text-center">
+                      <div className="w-10 h-10 lg:w-12 lg:h-12 bg-[#4169E1]/20 rounded-xl flex items-center justify-center mx-auto mb-3 ring-2 ring-[#4169E1]/30">
+                        <ListChecks className="w-5 h-5 lg:w-6 lg:h-6 text-[#4169E1]" />
+                      </div>
+                      <div className="text-2xl lg:text-3xl font-black text-[#F4F7F5] mb-1">{stats.total_matches || 0}</div>
+                      <div className="text-[10px] lg:text-xs text-[#B6C2BC] font-bold uppercase tracking-wider">Matcher</div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
                 
-                <Card className="bg-[#121715] border-[#223029] rounded-xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
-                  <CardContent className="p-3 lg:p-5 text-center">
-                    <CheckCircle className="w-5 h-5 lg:w-6 lg:h-6 text-[#2BA84A] mx-auto mb-1 lg:mb-2" />
-                    <div className="text-xl lg:text-2xl font-bold text-[#F4F7F5] mb-0.5 lg:mb-1">{stats.completed_matches || 0}</div>
-                    <div className="text-[10px] lg:text-xs text-[#B6C2BC] font-medium">Spelade</div>
-                  </CardContent>
-                </Card>
+                <motion.div whileHover={{ y: -4, scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Card className="bg-gradient-to-br from-[#121715] to-[#0F1513] border-[#223029] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.3)] hover:border-[#2BA84A]/40 transition-all">
+                    <CardContent className="p-4 lg:p-6 text-center">
+                      <div className="w-10 h-10 lg:w-12 lg:h-12 bg-[#2BA84A]/20 rounded-xl flex items-center justify-center mx-auto mb-3 ring-2 ring-[#2BA84A]/30">
+                        <CheckCircle className="w-5 h-5 lg:w-6 lg:h-6 text-[#2BA84A]" />
+                      </div>
+                      <div className="text-2xl lg:text-3xl font-black text-[#F4F7F5] mb-1">{stats.completed_matches || 0}</div>
+                      <div className="text-[10px] lg:text-xs text-[#B6C2BC] font-bold uppercase tracking-wider">Spelade</div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
                 
-                <Card className="bg-[#121715] border-[#223029] rounded-xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
-                  <CardContent className="p-3 lg:p-5 text-center">
-                    <Clock className="w-5 h-5 lg:w-6 lg:h-6 text-[#F59E0B] mx-auto mb-1 lg:mb-2" />
-                    <div className="text-xl lg:text-2xl font-bold text-[#F4F7F5] mb-0.5 lg:mb-1">
-                      {(stats.total_matches || 0) - (stats.completed_matches || 0)}
-                    </div>
-                    <div className="text-[10px] lg:text-xs text-[#B6C2BC] font-medium">Kommande</div>
-                  </CardContent>
-                </Card>
+                <motion.div whileHover={{ y: -4, scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Card className="bg-gradient-to-br from-[#121715] to-[#0F1513] border-[#223029] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.3)] hover:border-[#9370DB]/40 transition-all">
+                    <CardContent className="p-4 lg:p-6 text-center">
+                      <div className="w-10 h-10 lg:w-12 lg:h-12 bg-[#9370DB]/20 rounded-xl flex items-center justify-center mx-auto mb-3 ring-2 ring-[#9370DB]/30">
+                        <Clock className="w-5 h-5 lg:w-6 lg:h-6 text-[#9370DB]" />
+                      </div>
+                      <div className="text-2xl lg:text-3xl font-black text-[#F4F7F5] mb-1">
+                        {(stats.total_matches || 0) - (stats.completed_matches || 0)}
+                      </div>
+                      <div className="text-[10px] lg:text-xs text-[#B6C2BC] font-bold uppercase tracking-wider">Kommande</div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               </div>
 
-              {/* About Section */}
+              {/* About Section - Mobile Enhanced */}
               {(cup.description || cup.prize || cup.rules) && (
-                <Card className="bg-[#121715] border-[#223029] rounded-2xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
-                  <CardContent className="p-6 space-y-6">
+                <Card className="bg-[#121715] border-[#223029] rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
+                  <CardContent className="p-4 lg:p-6 space-y-5 lg:space-y-6">
                     
                     {cup.description && (
                       <div>
-                        <h3 className="text-sm font-semibold text-[#7B8A83] uppercase tracking-wide mb-3">Beskrivning</h3>
-                        <p className="text-[#F4F7F5] leading-relaxed">{cup.description}</p>
+                        <h3 className="text-xs lg:text-sm font-bold text-[#7B8A83] uppercase tracking-wider mb-3">Beskrivning</h3>
+                        <p className="text-sm lg:text-base text-[#F4F7F5] leading-relaxed">{cup.description}</p>
                       </div>
                     )}
 
                     {cup.prize && (
                       <div>
-                        <h3 className="text-sm font-semibold text-[#7B8A83] uppercase tracking-wide mb-3">Priser</h3>
-                        <div className="p-4 bg-gradient-to-r from-[#FFD700]/10 to-[#FFA500]/10 rounded-xl border border-[#FFD700]/30">
-                          <p className="text-[#F4F7F5] font-bold text-lg">{cup.prize}</p>
+                        <h3 className="text-xs lg:text-sm font-bold text-[#7B8A83] uppercase tracking-wider mb-3">Priser</h3>
+                        <div className="p-4 lg:p-5 bg-gradient-to-r from-[#FFD700]/15 to-[#FFA500]/10 rounded-xl border-2 border-[#FFD700]/40 shadow-lg">
+                          <Trophy className="w-6 h-6 text-[#FFD700] mb-2" />
+                          <p className="text-[#F4F7F5] font-black text-base lg:text-xl">{cup.prize}</p>
                         </div>
                       </div>
                     )}
 
-                    {/* Tournament Details Grid */}
-                    <div className="grid sm:grid-cols-2 gap-4">
+                    {/* Tournament Details Grid - Mobile Enhanced */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
                       {cup.entry_fee > 0 && (
-                        <div className="p-4 bg-[#0F1513] rounded-xl border border-[#223029]">
-                          <p className="text-xs text-[#7B8A83] mb-1">Anmälningsavgift</p>
-                          <p className="text-lg font-bold text-[#FCD34D]">{cup.entry_fee} kr</p>
+                        <div className="p-4 bg-gradient-to-br from-[#0F1513] to-[#121715] rounded-xl border border-[#223029] hover:border-[#F59E0B]/30 transition-all">
+                          <p className="text-[10px] lg:text-xs text-[#7B8A83] font-bold uppercase tracking-wider mb-2">Avgift</p>
+                          <p className="text-xl lg:text-2xl font-black text-[#FCD34D]">{cup.entry_fee} kr</p>
                         </div>
                       )}
 
                       {cup.has_group_stage && (
-                        <div className="p-4 bg-[#0F1513] rounded-xl border border-[#223029]">
-                          <p className="text-xs text-[#7B8A83] mb-1">Gruppspel</p>
-                          <p className="text-lg font-bold text-[#2BA84A]">✓ {cup.number_of_groups} grupper</p>
+                        <div className="p-4 bg-gradient-to-br from-[#0F1513] to-[#121715] rounded-xl border border-[#223029] hover:border-[#2BA84A]/30 transition-all">
+                          <p className="text-[10px] lg:text-xs text-[#7B8A83] font-bold uppercase tracking-wider mb-2">Gruppspel</p>
+                          <p className="text-xl lg:text-2xl font-black text-[#2BA84A]">✓ {cup.number_of_groups} grupper</p>
                         </div>
                       )}
 
                       {cup.has_playoffs && (
-                        <div className="p-4 bg-[#0F1513] rounded-xl border border-[#223029]">
-                          <p className="text-xs text-[#7B8A83] mb-1">Slutspel</p>
-                          <p className="text-lg font-bold text-[#2BA84A]">✓ Aktiverat</p>
+                        <div className="p-4 bg-gradient-to-br from-[#0F1513] to-[#121715] rounded-xl border border-[#223029] hover:border-[#FFD700]/30 transition-all">
+                          <p className="text-[10px] lg:text-xs text-[#7B8A83] font-bold uppercase tracking-wider mb-2">Slutspel</p>
+                          <p className="text-xl lg:text-2xl font-black text-[#FFD700]">✓ Aktiverat</p>
                         </div>
                       )}
                     </div>
 
                     {cup.rules && (
                       <div>
-                        <h3 className="text-sm font-semibold text-[#7B8A83] uppercase tracking-wide mb-3">Regler</h3>
-                        <div className="max-h-64 overflow-y-auto p-4 bg-[#0F1513] rounded-xl border border-[#223029]">
-                          <p className="text-[#F4F7F5] whitespace-pre-wrap leading-relaxed">{cup.rules}</p>
+                        <h3 className="text-xs lg:text-sm font-bold text-[#7B8A83] uppercase tracking-wider mb-3">Regler</h3>
+                        <div className="max-h-64 overflow-y-auto p-4 lg:p-5 bg-[#0F1513] rounded-xl border border-[#223029]">
+                          <p className="text-sm lg:text-base text-[#F4F7F5] whitespace-pre-wrap leading-relaxed">{cup.rules}</p>
                         </div>
                       </div>
                     )}
@@ -524,20 +495,23 @@ export default function CupDetailPage() {
                 </Card>
               )}
 
-              {/* Participating Teams/Players */}
-              <Card className="bg-[#121715] border-[#223029] rounded-2xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-bold text-[#F4F7F5] mb-4">
+              {/* Participating Teams/Players - Mobile Enhanced */}
+              <Card className="bg-[#121715] border-[#223029] rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
+                <CardContent className="p-4 lg:p-6">
+                  <h3 className="text-base lg:text-lg font-black text-[#F4F7F5] mb-4 flex items-center gap-2">
+                    <Users className="w-5 h-5 text-[#F59E0B]" />
                     Anmälda {cup.signup_type === 'team' ? 'Lag' : 'Spelare'} ({displayedParticipants.length})
                   </h3>
                   
                   {displayedParticipants.length === 0 ? (
                     <div className="text-center py-12">
-                      <Users className="w-12 h-12 text-[#7B8A83] mx-auto mb-3" />
-                      <p className="text-[#B6C2BC]">Inga deltagare än</p>
+                      <div className="w-16 h-16 bg-[#18221E] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <Users className="w-8 h-8 text-[#7B8A83]" />
+                      </div>
+                      <p className="text-sm text-[#B6C2BC]">Inga deltagare än</p>
                     </div>
                   ) : (
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
                       {displayedParticipants.map((participant, index) => (
                         <motion.div
                           key={participant.id}
@@ -546,112 +520,130 @@ export default function CupDetailPage() {
                           transition={{ delay: index * 0.03 }}
                         >
                           <div 
-                            className={`bg-[#18221E] rounded-xl border border-[#223029] transition-all overflow-hidden ${expandedTeamId === participant.id ? 'ring-1 ring-[#F59E0B]/30' : 'hover:border-[#F59E0B]/30'}`}
+                            className={`bg-gradient-to-br from-[#18221E] to-[#121715] rounded-xl border border-[#223029] transition-all overflow-hidden ${expandedTeamId === participant.id ? 'ring-2 ring-[#F59E0B]/40 shadow-lg' : 'hover:border-[#F59E0B]/40 hover:shadow-md'}`}
                           >
                             <div 
-                                className="flex items-center gap-3 p-3 cursor-pointer"
+                                className="flex items-center gap-3 p-4 cursor-pointer active:scale-98 transition-transform"
                                 onClick={() => setExpandedTeamId(expandedTeamId === participant.id ? null : participant.id)}
                             >
                                 {cup.signup_type === 'team' && participant.team ? (
                                   <>
                                     {participant.team.logo_url ? (
-                                      <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
+                                      <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl overflow-hidden flex-shrink-0 ring-2 ring-[#223029]">
                                         <img src={participant.team.logo_url} alt={participant.team.name} className="w-full h-full object-cover" />
                                       </div>
                                     ) : (
-                                      <div className="w-10 h-10 bg-[#F59E0B]/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <Users className="w-5 h-5 text-[#F59E0B]" />
+                                      <div className="w-12 h-12 lg:w-14 lg:h-14 bg-[#F59E0B]/20 rounded-xl flex items-center justify-center flex-shrink-0 ring-2 ring-[#F59E0B]/30">
+                                        <Users className="w-6 h-6 text-[#F59E0B]" />
                                       </div>
                                     )}
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2">
-                                            <p className="font-semibold text-[#F4F7F5] truncate text-sm">{participant.team.name}</p>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <p className="font-bold text-[#F4F7F5] truncate text-sm lg:text-base">{participant.team.name}</p>
                                             {participant.status === 'pending' && (
-                                                <Badge className="h-5 bg-[#EAB308]/20 text-[#FDE047] border-0 px-1.5 text-[10px]">Väntar</Badge>
+                                                <Badge className="h-5 bg-[#EAB308]/20 text-[#FDE047] border-0 px-2 text-[10px] font-bold">Väntar</Badge>
                                             )}
                                         </div>
-                                        <p className="text-xs text-[#B6C2BC]">{participant.team.city}</p>
+                                        <p className="text-xs text-[#B6C2BC] flex items-center gap-1">
+                                          <MapPin className="w-3 h-3" />
+                                          {participant.team.city}
+                                        </p>
                                     </div>
-                                    {expandedTeamId === participant.id ? <ChevronUp className="w-4 h-4 text-[#7B8A83]" /> : <ChevronDown className="w-4 h-4 text-[#7B8A83]" />}
+                                    {expandedTeamId === participant.id ? 
+                                      <ChevronUp className="w-5 h-5 text-[#F59E0B]" /> : 
+                                      <ChevronDown className="w-5 h-5 text-[#7B8A83]" />
+                                    }
                                   </>
                                 ) : (
                                   <>
-                                    <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-full flex items-center justify-center flex-shrink-0">
-                                      <span className="text-white font-semibold text-sm">
+                                    <div className="w-12 h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-full flex items-center justify-center flex-shrink-0 ring-2 ring-[#2BA84A]/30 shadow-lg">
+                                      <span className="text-white font-bold text-base lg:text-lg">
                                         {participant.user?.full_name?.[0] || 'U'}
                                       </span>
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                      <div className="flex items-center gap-2">
-                                        <p className="font-semibold text-[#F4F7F5] truncate text-sm">{participant.user?.full_name || 'Spelare'}</p>
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <p className="font-bold text-[#F4F7F5] truncate text-sm lg:text-base">{participant.user?.full_name || 'Spelare'}</p>
                                         {participant.status === 'pending' && (
-                                            <Badge className="h-5 bg-[#EAB308]/20 text-[#FDE047] border-0 px-1.5 text-[10px]">Väntar</Badge>
+                                            <Badge className="h-5 bg-[#EAB308]/20 text-[#FDE047] border-0 px-2 text-[10px] font-bold">Väntar</Badge>
                                         )}
                                       </div>
                                       {participant.preferred_position && participant.preferred_position !== 'any' && (
-                                        <p className="text-xs text-[#B6C2BC] capitalize">{participant.preferred_position}</p>
+                                        <p className="text-xs text-[#B6C2BC] capitalize font-medium">{participant.preferred_position}</p>
                                       )}
                                     </div>
                                   </>
                                 )}
                             </div>
 
-                            {/* Expanded Content: Team Members & Join Button */}
+                            {/* Expanded Content - Mobile Enhanced */}
                             <AnimatePresence>
                                 {expandedTeamId === participant.id && cup.signup_type === 'team' && participant.team && (
                                     <motion.div 
                                         initial={{ height: 0, opacity: 0 }}
                                         animate={{ height: 'auto', opacity: 1 }}
                                         exit={{ height: 0, opacity: 0 }}
-                                        className="border-t border-[#223029] bg-[#121715]/50 px-3 py-3"
+                                        className="border-t border-[#223029] bg-[#0F1513] px-4 py-4"
                                     >
-                                        {/* Member List */}
-                                        <div className="space-y-2 mb-3">
-                                            <p className="text-xs font-semibold text-[#7B8A83] uppercase tracking-wider">Spelare ({participant.team_members?.length || 0})</p>
+                                        {/* Member List - Enhanced */}
+                                        <div className="space-y-2.5 mb-4">
+                                            <p className="text-[10px] lg:text-xs font-bold text-[#7B8A83] uppercase tracking-wider flex items-center gap-2">
+                                              <Users className="w-3 h-3" />
+                                              Spelare ({participant.team_members?.length || 0})
+                                            </p>
                                             {participant.team_members?.map(member => (
-                                                <div key={member.user_id} className="flex items-center gap-2 text-sm text-[#F4F7F5]">
-                                                    <div className="w-6 h-6 rounded-full bg-[#223029] flex items-center justify-center text-xs">
+                                                <div key={member.user_id} className="flex items-center gap-2.5 p-2 bg-[#18221E] rounded-lg">
+                                                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#2BA84A] to-[#248232] flex items-center justify-center text-xs font-bold text-white">
                                                         {member.user?.full_name?.[0] || 'U'}
                                                     </div>
-                                                    <span>{member.user?.full_name || 'Okänd spelare'}</span>
-                                                    {member.role === 'captain' && <Badge className="h-4 text-[10px] bg-[#F59E0B]/20 text-[#FCD34D] border-0 px-1">K</Badge>}
+                                                    <span className="text-xs lg:text-sm font-medium text-[#F4F7F5] flex-1">{member.user?.full_name || 'Okänd'}</span>
+                                                    {member.role === 'captain' && (
+                                                      <Badge className="h-5 text-[10px] bg-[#F59E0B]/20 text-[#FCD34D] border-0 px-2 font-bold">Kapten</Badge>
+                                                    )}
                                                 </div>
                                             ))}
                                             {(!participant.team_members || participant.team_members.length === 0) && (
-                                                <p className="text-xs text-[#B6C2BC] italic">Inga spelare listade.</p>
+                                                <p className="text-xs text-[#7B8A83] italic p-2">Inga spelare listade</p>
                                             )}
                                         </div>
 
-                                        <div className="flex gap-2">
-                                            {/* Join Button - Only if not already signed up */}
+                                        <div className="flex flex-col sm:flex-row gap-2">
                                             {!userParticipant && cup.status !== 'completed' && (
                                                 <Button 
-                                                    onClick={() => handleJoinTeam(participant.team.id, participant.team.name)}
-                                                    className="flex-1 h-9 bg-[#2BA84A] hover:bg-[#248232] text-white text-xs font-semibold gap-2"
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      handleJoinTeam(participant.team.id, participant.team.name);
+                                                    }}
+                                                    className="flex-1 h-11 bg-gradient-to-r from-[#2BA84A] to-[#248232] hover:from-[#248232] hover:to-[#1D6B28] text-white text-sm font-bold gap-2 shadow-lg"
                                                     disabled={joinTeamMutation.isPending}
                                                 >
-                                                    <UserPlus className="w-3 h-3" />
+                                                    <UserPlus className="w-4 h-4" />
                                                     {joinTeamMutation.isPending ? 'Går med...' : 'Gå med i laget'}
                                                 </Button>
                                             )}
 
-                                            {/* Admin Approve/Decline Buttons */}
                                             {canManage && participant.status === 'pending' && (
                                                 <>
                                                     <Button 
-                                                        onClick={() => handleApproveTeam(participant.id, participant.team?.name || participant.user?.full_name)}
-                                                        className="flex-1 h-9 bg-[#F59E0B] hover:bg-[#D97706] text-white text-xs font-semibold gap-2"
+                                                        onClick={(e) => {
+                                                          e.stopPropagation();
+                                                          handleApproveTeam(participant.id, participant.team?.name || participant.user?.full_name);
+                                                        }}
+                                                        className="flex-1 h-11 bg-gradient-to-r from-[#2BA84A] to-[#248232] hover:from-[#248232] hover:to-[#1D6B28] text-white text-sm font-bold gap-2 shadow-lg"
                                                         disabled={approveSignupMutation.isPending}
                                                     >
-                                                        <CheckCircle className="w-3 h-3" />
+                                                        <CheckCircle className="w-4 h-4" />
                                                         {approveSignupMutation.isPending ? 'Godkänner...' : 'Godkänn'}
                                                     </Button>
                                                     <Button 
-                                                        onClick={() => handleDeclineTeam(participant.id, participant.team?.name || participant.user?.full_name)}
-                                                        className="flex-1 h-9 bg-[#EF4444] hover:bg-[#DC2626] text-white text-xs font-semibold gap-2"
+                                                        onClick={(e) => {
+                                                          e.stopPropagation();
+                                                          handleDeclineTeam(participant.id, participant.team?.name || participant.user?.full_name);
+                                                        }}
+                                                        className="flex-1 h-11 bg-gradient-to-r from-[#EF4444] to-[#DC2626] hover:from-[#DC2626] hover:to-[#B91C1C] text-white text-sm font-bold gap-2 shadow-lg"
                                                         disabled={declineSignupMutation.isPending}
                                                     >
-                                                        <X className="w-3 h-3" />
+                                                        <X className="w-4 h-4" />
                                                         {declineSignupMutation.isPending ? 'Nekar...' : 'Neka'}
                                                     </Button>
                                                 </>
@@ -668,67 +660,86 @@ export default function CupDetailPage() {
                 </CardContent>
               </Card>
 
-              {/* Upcoming Matches Preview */}
+              {/* Upcoming Matches Preview - Mobile Enhanced */}
               {matches.length > 0 && (
-                <Card className="bg-[#121715] border-[#223029] rounded-2xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-bold text-[#F4F7F5]">Kommande Matcher</h3>
+                <Card className="bg-[#121715] border-[#223029] rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
+                  <CardContent className="p-4 lg:p-6">
+                    <div className="flex items-center justify-between mb-5">
+                      <h3 className="text-base lg:text-lg font-black text-[#F4F7F5] flex items-center gap-2">
+                        <Calendar className="w-5 h-5 text-[#F59E0B]" />
+                        Kommande Matcher
+                      </h3>
                       {matches.filter(m => !m.team_a_score && m.team_a_score !== 0).length > 5 && (
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => setActiveTab('matches')}
-                          className="text-[#F59E0B] hover:bg-[#F59E0B]/10"
+                          className="text-[#F59E0B] hover:bg-[#F59E0B]/10 text-xs lg:text-sm font-bold"
                         >
-                          Se alla
+                          Alla →
                         </Button>
                       )}
                     </div>
                     
                     <div className="space-y-3">
                       {matches.filter(m => !m.team_a_score && m.team_a_score !== 0).slice(0, 5).map((match, index) => (
-                        <Link key={match.id} to={match.match_id ? `${createPageUrl("MatchDetail")}?id=${match.match_id}` : '#'}>
-                          <div className="flex items-center justify-between p-4 bg-[#18221E] rounded-xl border border-[#223029] hover:border-[#F59E0B]/30 transition-all group">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Badge className="bg-[#F59E0B]/20 text-[#FCD34D] border-0 text-xs font-semibold">
+                        <motion.div
+                          key={match.id}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                        >
+                          <Link to={match.match_id ? `${createPageUrl("MatchDetail")}?id=${match.match_id}` : '#'}>
+                            <div className="p-4 bg-gradient-to-br from-[#18221E] to-[#121715] rounded-xl border border-[#223029] hover:border-[#F59E0B]/50 hover:shadow-lg active:scale-98 transition-all group">
+                              <div className="flex items-center gap-2 mb-3">
+                                <Badge className="bg-[#F59E0B]/20 text-[#FCD34D] border-0 text-[10px] lg:text-xs font-bold px-2 py-1">
                                   {match.stage === 'group' ? 'Grupp' : 
-                                   match.stage === 'quarterfinal' ? 'Kvartsfinal' : 
-                                   match.stage === 'semifinal' ? 'Semifinal' : 
-                                   match.stage === 'final' ? 'Final' : match.stage}
+                                   match.stage === 'quarterfinal' ? 'Kvart' : 
+                                   match.stage === 'semifinal' ? 'Semi' : 
+                                   match.stage === 'final' ? 'FINAL' : match.stage}
                                 </Badge>
+                                {match.group_id && (
+                                  <Badge className="bg-[#4169E1]/20 text-[#93C5FD] border-0 text-[10px] font-bold px-2 py-1">
+                                    Gruppspel
+                                  </Badge>
+                                )}
                               </div>
-                              <div className="text-sm font-semibold text-[#F4F7F5] mb-1">
-                                {match.team_a_name} vs {match.team_b_name}
+                              <div className="text-sm lg:text-base font-bold text-[#F4F7F5] mb-2 group-hover:text-[#F59E0B] transition-colors">
+                                {match.team_a_name} <span className="text-[#7B8A83] font-normal">vs</span> {match.team_b_name}
                               </div>
                               {match.date && (
-                                <div className="flex items-center gap-3 text-xs text-[#B6C2BC]">
-                                  <span className="flex items-center gap-1">
-                                    <Calendar className="w-3 h-3" />
+                                <div className="flex flex-wrap items-center gap-3 text-[10px] lg:text-xs text-[#B6C2BC]">
+                                  <span className="flex items-center gap-1.5 font-medium">
+                                    <Calendar className="w-3.5 h-3.5" />
                                     {new Date(match.date).toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' })}
                                   </span>
                                   {match.time && (
-                                    <span className="flex items-center gap-1">
-                                      <Clock className="w-3 h-3" />
+                                    <span className="flex items-center gap-1.5 font-medium">
+                                      <Clock className="w-3.5 h-3.5" />
                                       {match.time}
+                                    </span>
+                                  )}
+                                  {match.venue_name && (
+                                    <span className="flex items-center gap-1.5 font-medium truncate">
+                                      <MapPin className="w-3.5 h-3.5" />
+                                      {match.venue_name}
                                     </span>
                                   )}
                                 </div>
                               )}
                             </div>
-                          </div>
-                        </Link>
+                          </Link>
+                        </motion.div>
                       ))}
                     </div>
 
                     {matches.filter(m => !m.team_a_score && m.team_a_score !== 0).length > 5 && (
                       <Button
                         variant="outline"
-                        className="w-full mt-4 border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] hover:text-[#F4F7F5]"
+                        className="w-full mt-4 h-11 border-[#F59E0B]/30 text-[#F59E0B] hover:bg-[#F59E0B]/10 font-bold rounded-xl"
                         onClick={() => setActiveTab('matches')}
                       >
-                        Se alla matcher ({matches.length})
+                        Se alla matcher ({matches.length}) →
                       </Button>
                     )}
                   </CardContent>
@@ -833,31 +844,37 @@ export default function CupDetailPage() {
           )}
         </AnimatePresence>
 
-        {/* Tournament MVP Section - Only show when final is completed */}
+        {/* Tournament MVP Section - Mobile Enhanced */}
         {isFinalCompleted && canManage && (
-          <Card className="bg-gradient-to-br from-[#FFD700]/10 to-[#FFA500]/5 border-[#FFD700]/30 p-6 mt-6 shadow-[0_6px_18px_rgba(255,215,0,0.15)]">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-[#FFD700]/20 flex items-center justify-center">
-                  <Crown className="w-7 h-7 text-[#FFD700]" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <Card className="bg-gradient-to-br from-[#FFD700]/15 to-[#FFA500]/5 border-2 border-[#FFD700]/40 rounded-2xl mt-6 shadow-[0_12px_40px_rgba(255,215,0,0.3)]">
+              <CardContent className="p-5 lg:p-6">
+                <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5">
+                  <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-[#FFD700] to-[#FFA500] flex items-center justify-center shadow-xl ring-4 ring-[#FFD700]/30">
+                    <Crown className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
+                  </div>
+                  <div className="flex-1 text-center sm:text-left">
+                    <h3 className="text-lg lg:text-2xl font-black text-white mb-1">Turnerings-MVP</h3>
+                    {hasMvp ? (
+                      <p className="text-xs lg:text-sm text-[#B6C2BC] font-medium">MVP har valts för denna turnering</p>
+                    ) : (
+                      <p className="text-xs lg:text-sm text-[#B6C2BC] font-medium">Välj den bästa spelaren i turneringen</p>
+                    )}
+                  </div>
+                  <Button
+                    onClick={() => setShowMvpModal(true)}
+                    className="w-full sm:w-auto bg-gradient-to-r from-[#FFD700] to-[#FFA500] hover:from-[#FFA500] hover:to-[#FF8C00] text-black font-black text-sm lg:text-base h-12 px-6 shadow-xl rounded-xl"
+                  >
+                    <Crown className="w-4 h-4 mr-2" />
+                    {hasMvp ? 'Ändra MVP' : 'Välj MVP'}
+                  </Button>
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white mb-1">Turnerings-MVP</h3>
-                  {hasMvp ? (
-                    <p className="text-sm text-[#B6C2BC]">MVP har valts för denna turnering</p>
-                  ) : (
-                    <p className="text-sm text-[#B6C2BC]">Välj den bästa spelaren i turneringen</p>
-                  )}
-                </div>
-              </div>
-              <Button
-                onClick={() => setShowMvpModal(true)}
-                className="bg-gradient-to-r from-[#FFD700] to-[#FFA500] hover:from-[#FFA500] hover:to-[#FF8C00] text-black font-bold"
-              >
-                {hasMvp ? 'Ändra MVP' : 'Välj MVP'}
-              </Button>
-            </div>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
         )}
       </div>
 
