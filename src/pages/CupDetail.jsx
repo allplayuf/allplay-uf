@@ -188,6 +188,7 @@ export default function CupDetailPage() {
 
   const statusConfig = STATUS_CONFIG[cup.status] || STATUS_CONFIG.upcoming;
   const confirmedParticipants = participants.filter(p => p.status === 'confirmed');
+  const isCupFull = confirmedParticipants.length >= cup.max_participants;
   
   // Show both confirmed and pending participants
   // Pending ones are marked visually
@@ -310,15 +311,27 @@ export default function CupDetailPage() {
               </button>
 
               <button
-                onClick={() => setActiveTab('signup')}
-                className={`h-12 lg:h-12 px-2 lg:px-4 rounded-xl font-bold text-[11px] lg:text-sm transition-all flex flex-col lg:flex-row items-center justify-center gap-1 ${
+                onClick={() => {
+                  if (isCupFull && !userParticipant) {
+                    alert('Fullbokad! 🚫', 'Tyvärr är denna turnering fullbokad. Alla platser är upptagna.', { type: 'info' });
+                  } else {
+                    setActiveTab('signup');
+                  }
+                }}
+                className={`h-12 lg:h-12 px-2 lg:px-4 rounded-xl font-bold text-[11px] lg:text-sm transition-all flex flex-col lg:flex-row items-center justify-center gap-1 relative ${
                   activeTab === 'signup'
                     ? 'bg-gradient-to-br from-[#F59E0B] to-[#D97706] text-white shadow-lg scale-105'
+                    : isCupFull && !userParticipant
+                    ? 'bg-transparent text-[#7B8A83] opacity-50 cursor-not-allowed'
                     : 'bg-transparent text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#18221E]'
                 }`}
+                disabled={isCupFull && !userParticipant && activeTab !== 'signup'}
               >
                 <Users className="w-4 h-4 lg:w-5 lg:h-5" />
                 <span className="hidden sm:inline">Anmälan</span>
+                {isCupFull && !userParticipant && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                )}
               </button>
 
               <button
