@@ -45,12 +45,16 @@ export default function CupsWidget() {
       return allCups
         .filter(cup => 
           cup.is_public !== false && 
-          (cup.status === 'registration_open' || 
+          (cup.name === 'Futsal Fiesta 2025' || // Always show Futsal Fiesta 2025
+           cup.status === 'registration_open' || 
            cup.status === 'upcoming' ||
            cup.status === 'ongoing')
         )
         .sort((a, b) => {
-          // Sort: Ongoing > Registration open > Upcoming
+          // Prioritize Futsal Fiesta 2025 first, then status order
+          if (a.name === 'Futsal Fiesta 2025') return -1;
+          if (b.name === 'Futsal Fiesta 2025') return 1;
+          
           const statusOrder = { ongoing: 0, registration_open: 1, upcoming: 2 };
           return (statusOrder[a.status] || 3) - (statusOrder[b.status] || 3);
         })
