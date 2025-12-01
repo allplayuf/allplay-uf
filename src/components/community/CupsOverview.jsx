@@ -67,11 +67,15 @@ export default function CupsOverview({ user }) {
     cacheTime: 5 * 60 * 1000,
   });
 
-  // Categorize cups
+  // Categorize cups - Always include Futsal Fiesta 2025
   const upcomingCups = allCups.filter(c => 
+    c.name === 'Futsal Fiesta 2025' ||
     c.status === 'upcoming' || c.status === 'registration_open'
   );
-  const liveCups = allCups.filter(c => c.status === 'ongoing');
+  const liveCups = allCups.filter(c => 
+    c.name === 'Futsal Fiesta 2025' ||
+    c.status === 'ongoing'
+  );
   const completedCups = allCups.filter(c => c.status === 'completed');
 
   // Get unique cities
