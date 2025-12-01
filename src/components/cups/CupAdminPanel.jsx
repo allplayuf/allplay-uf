@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Shield, Plus, Grid, Swords, Settings, Save, Calendar, Wand2, Trash2, Trophy, Sparkles, TrendingUp, Target, AlertCircle } from "lucide-react";
+import { Shield, Plus, Grid, Swords, Settings, Save, Calendar, Wand2, Trash2, Trophy, Sparkles, TrendingUp, Target, AlertCircle, UserPlus } from "lucide-react";
 import { useCustomDialog } from "../ui/custom-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createPageUrl } from "@/utils";
@@ -533,6 +533,57 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4">
+                <Card 
+                  className={`p-4 border-2 transition-all cursor-pointer ${
+                    cup.status === 'registration_closed'
+                      ? 'bg-[#EF4444]/10 border-[#EF4444]/40 hover:border-[#EF4444]/60'
+                      : 'bg-[#2BA84A]/10 border-[#2BA84A]/40 hover:border-[#2BA84A]/60'
+                  }`}
+                  onClick={async () => {
+                    if (cup.status === 'registration_closed') {
+                      const shouldOpen = await confirm(
+                        'Öppna anmälan?',
+                        'Detta gör att lag/spelare kan anmäla sig igen.',
+                        { type: 'confirm', confirmText: 'Öppna', cancelText: 'Avbryt' }
+                      );
+                      if (shouldOpen) {
+                        updateCupMutation.mutate({ status: 'registration_open' });
+                      }
+                    } else {
+                      const shouldClose = await confirm(
+                        'Stäng anmälan?',
+                        'Detta stänger alla lag och förhindrar nya anmälningar.',
+                        { type: 'warning', confirmText: 'Stäng', cancelText: 'Avbryt' }
+                      );
+                      if (shouldClose) {
+                        updateCupMutation.mutate({ status: 'registration_closed' });
+                      }
+                    }
+                  }}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                      cup.status === 'registration_closed' 
+                        ? 'bg-[#EF4444]/20' 
+                        : 'bg-[#2BA84A]/20'
+                    }`}>
+                      <UserPlus className={`w-5 h-5 ${
+                        cup.status === 'registration_closed' 
+                          ? 'text-[#EF4444]' 
+                          : 'text-[#2BA84A]'
+                      }`} />
+                    </div>
+                    <h4 className="font-bold text-white">
+                      {cup.status === 'registration_closed' ? '🔒 Anmälan Stängd' : '✅ Anmälan Öppen'}
+                    </h4>
+                  </div>
+                  <p className="text-xs text-[#7B8A83]">
+                    {cup.status === 'registration_closed' 
+                      ? 'Klicka för att öppna anmälan igen' 
+                      : 'Klicka för att stänga anmälan'}
+                  </p>
+                </Card>
+
                 <Card className="bg-[#18221E] border-[#223029] p-4 hover:border-[#F59E0B]/30 transition-all cursor-pointer" onClick={() => setActiveTab('settings')}>
                     <div className="flex items-center gap-3 mb-2">
                         <Settings className="w-5 h-5 text-[#F59E0B]" />
