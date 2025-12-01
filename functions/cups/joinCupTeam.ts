@@ -18,6 +18,11 @@ Deno.serve(async (req) => {
     // Verify cup exists
     const cup = await base44.entities.Cup.get(cup_id);
     
+    // Check if registration is closed
+    if (cup.status === 'registration_closed') {
+      return Response.json({ error: 'Anmälan är stängd för denna turnering' }, { status: 403 });
+    }
+    
     // Verify team exists and is in the cup
     const participation = await base44.entities.CupParticipant.filter({
         cup_id,
