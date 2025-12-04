@@ -110,21 +110,6 @@ export default function EditProfilePage() {
       return 'Namnet får inte vara längre än 50 tecken';
     }
 
-    // Check for profanity
-    try {
-      const response = await base44.functions.invoke('profanityFilter', {
-        text: name,
-        field: 'full_name'
-      });
-
-      if (!response.data.isClean) {
-        return response.data.message || 'Namnet innehåller olämpligt språk';
-      }
-    } catch (error) {
-      console.error('Error validating name:', error);
-      // Allow name on error (fail open)
-    }
-
     return null;
   };
 
