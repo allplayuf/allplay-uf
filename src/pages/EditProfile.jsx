@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { User } from "@/entities/User";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -76,7 +75,7 @@ export default function EditProfilePage() {
 
   const loadUserData = async () => {
     try {
-      const currentUser = await User.me();
+      const currentUser = await base44.auth.me();
       setUser(currentUser);
       setFormData({
         full_name: currentUser.full_name || '',
@@ -166,7 +165,7 @@ export default function EditProfilePage() {
         dataToSave.cityNormalized = formData.city.trim().toLowerCase();
       }
       
-      await User.updateMyUserData(dataToSave);
+      await base44.auth.updateMe(dataToSave);
       alert('Profil uppdaterad!');
       navigate(createPageUrl("Profile"));
     } catch (error) {
