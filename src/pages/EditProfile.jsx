@@ -80,7 +80,7 @@ export default function EditProfilePage() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       setFormData({
-        full_name: currentUser.full_name || '',
+        full_name: currentUser.display_name || currentUser.full_name || '',
         bio: currentUser.bio || '',
         date_of_birth: currentUser.date_of_birth || '',
         gender: currentUser.gender || '',
@@ -141,15 +141,9 @@ export default function EditProfilePage() {
 
     setIsSaving(true);
     try {
-      // Update full_name separately via backend function
-      if (formData.full_name && formData.full_name.trim() !== user.full_name) {
-        await base44.functions.invoke('auth/updateUserName', {
-          full_name: formData.full_name.trim()
-        });
-      }
-
-      // Update other profile data
+      // Update profile data including display_name
       await base44.auth.updateMe({
+        display_name: formData.full_name.trim(),
         bio: formData.bio,
         date_of_birth: formData.date_of_birth,
         gender: formData.gender,

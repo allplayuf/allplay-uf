@@ -559,7 +559,7 @@ export default function ProfilePage() {
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <h1 className="text-3xl font-bold text-[#FFFFFF] mb-1 break-words">
-                    {displayUser?.full_name}
+                    {displayUser?.display_name || displayUser?.full_name}
                   </h1>
                   <p className="text-[#FFFFFF]/90 text-base mb-4 break-words">
                     {displayUser?.bio || 'Spela. Tillsammans. ⚽'}
@@ -785,7 +785,7 @@ export default function ProfilePage() {
                                           }
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                          <h4 className="font-semibold text-[#F4F7F5] text-sm truncate">{friend.full_name}</h4>
+                                          <h4 className="font-semibold text-[#F4F7F5] text-sm truncate">{friend.display_name || friend.full_name}</h4>
                                           <div className="flex items-center gap-1 text-xs text-[#B6C2BC]">
                                             <MapPin className="w-3 h-3" />
                                             {friend.city}
