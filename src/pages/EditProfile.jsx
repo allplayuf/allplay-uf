@@ -141,8 +141,15 @@ export default function EditProfilePage() {
 
     setIsSaving(true);
     try {
+      // Update full_name separately via backend function
+      if (formData.full_name && formData.full_name.trim() !== user.full_name) {
+        await base44.functions.invoke('auth/updateUserName', {
+          full_name: formData.full_name.trim()
+        });
+      }
+
+      // Update other profile data
       await base44.auth.updateMe({
-        full_name: formData.full_name.trim(),
         bio: formData.bio,
         date_of_birth: formData.date_of_birth,
         gender: formData.gender,
