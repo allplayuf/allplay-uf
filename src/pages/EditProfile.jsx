@@ -141,8 +141,7 @@ export default function EditProfilePage() {
 
     setIsSaving(true);
     try {
-      // Update the User entity directly to ensure name changes are saved
-      await base44.entities.User.update(user.id, {
+      await base44.auth.updateMe({
         full_name: formData.full_name.trim(),
         bio: formData.bio,
         date_of_birth: formData.date_of_birth,
@@ -159,8 +158,9 @@ export default function EditProfilePage() {
         blocked: formData.blocked === true || formData.blocked === 'true'
       });
       
-      // Invalidate cache to refresh user data everywhere
+      // Force immediate cache invalidation
       queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.refetchQueries({ queryKey: ['user'] });
       
       alert('Profil uppdaterad!');
       navigate(createPageUrl("Profile"));
