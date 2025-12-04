@@ -23,6 +23,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
+import { useQueryClient } from "@tanstack/react-query";
 
 const SKILL_LEVELS = [
   { value: 'beginner', label: 'Nybörjare', icon: Target, color: 'from-[#10B981] to-[#059669]', textColor: 'text-[#A7F3D0]' },
@@ -37,6 +38,7 @@ const AVAILABILITY = ['weekdays', 'weekends', 'evenings', 'mornings', 'flexible'
 
 export default function EditProfilePage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -166,6 +168,10 @@ export default function EditProfilePage() {
       }
       
       await base44.auth.updateMe(dataToSave);
+      
+      // Invalidate cache to refresh user data everywhere
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      
       alert('Profil uppdaterad!');
       navigate(createPageUrl("Profile"));
     } catch (error) {
