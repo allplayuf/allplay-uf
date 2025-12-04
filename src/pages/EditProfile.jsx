@@ -141,18 +141,23 @@ export default function EditProfilePage() {
 
     setIsSaving(true);
     try {
-      const dataToSave = {
-        ...formData,
+      // Update the User entity directly to ensure name changes are saved
+      await base44.entities.User.update(user.id, {
         full_name: formData.full_name.trim(),
+        bio: formData.bio,
+        date_of_birth: formData.date_of_birth,
+        gender: formData.gender,
+        nationality: formData.nationality,
+        city: formData.city,
+        cityNormalized: formData.city ? formData.city.trim().toLowerCase() : undefined,
+        skill_level: formData.skill_level,
+        favorite_club: formData.favorite_club,
+        favorite_positions: formData.favorite_positions,
+        preferred_match_types: formData.preferred_match_types,
+        availability: formData.availability,
         publicProfile: formData.publicProfile === true || formData.publicProfile === 'true',
         blocked: formData.blocked === true || formData.blocked === 'true'
-      };
-      
-      if (formData.city) {
-        dataToSave.cityNormalized = formData.city.trim().toLowerCase();
-      }
-      
-      await base44.auth.updateMe(dataToSave);
+      });
       
       // Invalidate cache to refresh user data everywhere
       queryClient.invalidateQueries({ queryKey: ['user'] });
