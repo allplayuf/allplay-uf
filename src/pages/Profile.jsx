@@ -85,7 +85,7 @@ export default function ProfilePage() {
     staleTime: 10 * 60 * 1000, // 10 minutes
     cacheTime: 30 * 60 * 1000, // 30 minutes
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: 'always', // Always refetch when component mounts to get latest data
     retry: false,
   });
 
