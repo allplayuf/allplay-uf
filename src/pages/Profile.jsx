@@ -446,7 +446,7 @@ export default function ProfilePage() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative overflow-hidden rounded-3xl shadow-[0_30px_90px_rgba(0,0,0,0.5)] border border-[#2BA84A]/30"
+          className="relative overflow-hidden rounded-3xl shadow-[0_30px_90px_rgba(0,0,0,0.5),0_0_28px_6px_rgba(40,180,90,0.18)] border border-[#2BA84A]/30"
         >
           {/* Dark gradient base */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#1A1A1A] via-[#0F1513] to-[#0A0D0B]"></div>
@@ -618,26 +618,55 @@ export default function ProfilePage() {
               transition={{ delay: 0.6 }}
               className="grid grid-cols-3 gap-2 sm:gap-3 mb-3 sm:mb-4"
             >
-              <div className="bg-gradient-to-br from-[#FFFFFF]/15 to-[#FFFFFF]/5 backdrop-blur-xl border border-white/30 rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center">
-                <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-1">
+              <motion.div 
+                whileHover={{ y: -2, scale: 1.02 }}
+                className="bg-gradient-to-br from-[#FFFFFF]/15 to-[#FFFFFF]/5 backdrop-blur-xl border border-white/30 rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center"
+              >
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center mx-auto mb-2">
+                  <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
+                </div>
+                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-0.5">
                   {displayUser?.matches_played || 0}
                 </div>
                 <div className="text-[10px] sm:text-xs text-white/70 font-semibold">Matcher</div>
-              </div>
+              </motion.div>
               
-              <div className="bg-gradient-to-br from-[#F4743B]/20 to-[#F4743B]/5 backdrop-blur-xl border border-[#F4743B]/40 rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center">
-                <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#FDE3D2] mb-1">
+              <motion.div 
+                whileHover={{ y: -2, scale: 1.02 }}
+                className="bg-gradient-to-br from-[#F4743B]/20 to-[#F4743B]/5 backdrop-blur-xl border border-[#F4743B]/40 rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center"
+              >
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#F4743B]/30 rounded-lg sm:rounded-xl flex items-center justify-center mx-auto mb-2">
+                  <Award className="w-4 h-4 sm:w-5 sm:h-5 text-[#FDE3D2]" strokeWidth={2.5} />
+                </div>
+                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-[#FDE3D2] mb-0.5">
                   {displayUser?.mvp_count || 0}
                 </div>
                 <div className="text-[10px] sm:text-xs text-[#FDE3D2]/70 font-semibold">MVPs</div>
-              </div>
+              </motion.div>
               
-              <div className="bg-gradient-to-br from-[#F59E0B]/20 to-[#F59E0B]/5 backdrop-blur-xl border border-[#F59E0B]/40 rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center">
-                <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#FDE68A] mb-1">
+              <motion.div 
+                whileHover={{ y: -2, scale: 1.02 }}
+                className="bg-gradient-to-br from-[#F59E0B]/20 to-[#F59E0B]/5 backdrop-blur-xl border border-[#F59E0B]/40 rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center"
+              >
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#F59E0B]/30 rounded-lg sm:rounded-xl flex items-center justify-center mx-auto mb-2">
+                  <motion.div
+                    animate={{
+                      scale: [1, 1.1, 1]
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-[#FDE68A]" strokeWidth={2.5} />
+                  </motion.div>
+                </div>
+                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-[#FDE68A] mb-0.5">
                   {displayUser?.current_streak || 0}
                 </div>
                 <div className="text-[10px] sm:text-xs text-[#FDE68A]/70 font-semibold">Streak</div>
-              </div>
+              </motion.div>
             </motion.div>
 
             {/* Action Buttons - In Hero */}
