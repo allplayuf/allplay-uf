@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +8,7 @@ import { Search, MapPin, UserPlus, CheckCircle, Clock, Target, TrendingUp, Shiel
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
+import { debounce } from "lodash";
 
 const SKILL_LEVEL_CONFIG = {
   beginner: { label: 'Nybörjare', icon: Target, color: 'bg-[#10B981]/20 text-[#A7F3D0]' },
@@ -14,24 +17,38 @@ const SKILL_LEVEL_CONFIG = {
   elite: { label: 'Elite', icon: Crown, color: 'bg-[#F59E0B]/20 text-[#FDE68A]' }
 };
 
-export default function FindPlayers({ allUsers = [], friendships = [], currentUser, onAddFriend, onLoadMore, hasMore, isLoadingMore }) {
+export default function FindPlayers({ friendships = [], currentUser, onAddFriend }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
 
-  // Ensure all arrays are defined before filtering
-  const safeUsers = Array.isArray(allUsers) ? allUsers : [];
-  const safeFriendships = Array.isArray(friendships) ? friendships : [];
+  // Debounce search query
+  const debouncedSetQuery = useCallback(
+    debounce((query) => {
+      setDebouncedQuery(query);
+    }, 300),
+    []
+  );
 
-  // Filter users based on search
-  const filteredUsers = safeUsers.filter(u => {
-    if (!u || !currentUser) return false;
-    if (u.id === currentUser?.id) return false; // Don't show current user
-    
-    const matchesSearch = !searchQuery || 
-      u.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.city?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    return matchesSearch;
+  useEffect(() => {
+    debouncedSetQuery(searchQuery);
+  }, [searchQuery, debouncedSetQuery]);
+
+  // Fetch users with search
+  const { data: searchResults, isLoading } = useQuery({
+    queryKey: ['searchPlayers', debouncedQuery],
+    queryFn: async () => {
+      const response = await base44.functions.invoke('players/searchPlayers', {
+        search_query: debouncedQuery,
+        limit: 50
+      });
+      return response.data.users || [];
+    },
+    enabled: !!currentUser,
+    staleTime: 30 * 1000,
   });
+
+  const safeFriendships = Array.isArray(friendships) ? friendships : [];
+  const filteredUsers = searchResults || [];
 
   // Get friendship status for a user
   const getFriendshipStatus = (userId) => {
@@ -66,13 +83,18 @@ export default function FindPlayers({ allUsers = [], friendships = [], currentUs
       {/* Results count */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-[#B6C2BC]">
-          {filteredUsers.length} {filteredUsers.length === 1 ? 'spelare' : 'spelare'} hittade
+          {isLoading ? 'Söker...' : `${filteredUsers.length} ${filteredUsers.length === 1 ? 'spelare' : 'spelare'} hittade`}
         </p>
       </div>
 
       {/* Player List */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredUsers.map((player, index) => {
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <div className="w-12 h-12 border-4 border-[#2BA84A] border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      ) : (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredUsers.map((player, index) => {
           if (!player) return null;
           
           const friendshipStatus = getFriendshipStatus(player.id);
@@ -106,7 +128,7 @@ export default function FindPlayers({ allUsers = [], friendships = [], currentUs
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-semibold text-[#F4F7F5] text-sm truncate">
-                          {player.full_name || 'Okänd spelare'}
+                          {player.display_name || player.full_name || 'Okänd spelare'}
                         </h4>
                         <div className="flex items-center gap-1 text-xs text-[#B6C2BC]">
                           <MapPin className="w-3 h-3" />
@@ -191,10 +213,11 @@ export default function FindPlayers({ allUsers = [], friendships = [], currentUs
             </motion.div>
           );
         })}
-      </div>
+        </div>
+      )}
 
       {/* Empty State */}
-      {filteredUsers.length === 0 && (
+      {!isLoading && filteredUsers.length === 0 && (
         <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[20px]">
           <CardContent className="p-12 text-center">
             <div className="w-16 h-16 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-4 ring-1 ring-[#2BA84A]/30">
@@ -208,28 +231,6 @@ export default function FindPlayers({ allUsers = [], friendships = [], currentUs
             </p>
           </CardContent>
         </Card>
-      )}
-
-      {/* Show More Button */}
-      {hasMore && filteredUsers.length > 0 && !searchQuery && (
-        <div className="flex justify-center pt-4 pb-8">
-          <motion.button
-            onClick={() => onLoadMore()}
-            disabled={isLoadingMore}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="px-8 py-3 bg-[#18221E] hover:bg-[#223029] text-[#F4F7F5] font-medium rounded-xl border border-[#223029] shadow-sm transition-colors disabled:opacity-50 flex items-center gap-2"
-          >
-            {isLoadingMore ? (
-              <>
-                <div className="w-4 h-4 border-2 border-[#2BA84A] border-t-transparent rounded-full animate-spin" />
-                <span>Laddar fler...</span>
-              </>
-            ) : (
-              <span>Visa fler spelare</span>
-            )}
-          </motion.button>
-        </div>
       )}
     </div>
   );
