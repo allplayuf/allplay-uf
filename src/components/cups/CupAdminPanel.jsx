@@ -27,6 +27,8 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
   
   // --- Manual Team State ---
   const [newTeamName, setNewTeamName] = useState("");
+  const [editingTeamId, setEditingTeamId] = useState(null);
+  const [editingTeamName, setEditingTeamName] = useState("");
 
   // --- Group Management State ---
   const [newGroupName, setNewGroupName] = useState("");
@@ -112,6 +114,21 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
       queryClient.invalidateQueries(['cupDetails', cup.id]);
       setNewTeamName("");
       alert('Lag skapat', 'Laget har lagts till manuellt.', { type: 'success' });
+    }
+  });
+
+  const updateTeamNameMutation = useMutation({
+    mutationFn: async ({ teamId, newName }) => {
+      await base44.entities.Team.update(teamId, { name: newName });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['cupDetails', cup.id]);
+      setEditingTeamId(null);
+      setEditingTeamName("");
+      alert('Lagnamn uppdaterat', 'Laget har fått ett nytt namn.', { type: 'success' });
+    },
+    onError: (error) => {
+      alert('Fel', 'Kunde inte uppdatera lagnamnet.', { type: 'alert' });
     }
   });
 
@@ -830,8 +847,57 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
                 ) : (
                     confirmedTeams.map(team => (
                     <div key={team.id} className="bg-[#18221E] p-3 rounded-lg flex justify-between items-center text-white border border-[#223029]">
-                        <span>{team.name}</span>
-                        <Badge className="bg-[#2BA84A]/20 text-[#2BA84A]">Bekräftad</Badge>
+                        {editingTeamId === team.id ? (
+                          <div className="flex-1 flex gap-2 items-center">
+                            <Input
+                              value={editingTeamName}
+                              onChange={(e) => setEditingTeamName(e.target.value)}
+                              className="bg-[#0F1513] border-[#223029] text-white h-9"
+                              autoFocus
+                            />
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                if (editingTeamName.trim()) {
+                                  updateTeamNameMutation.mutate({ teamId: team.id, newName: editingTeamName.trim() });
+                                }
+                              }}
+                              disabled={!editingTeamName.trim() || updateTeamNameMutation.isPending}
+                              className="bg-[#2BA84A] hover:bg-[#248232] h-9"
+                            >
+                              Spara
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                setEditingTeamId(null);
+                                setEditingTeamName("");
+                              }}
+                              className="h-9"
+                            >
+                              Avbryt
+                            </Button>
+                          </div>
+                        ) : (
+                          <>
+                            <span>{team.name}</span>
+                            <div className="flex gap-2 items-center">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  setEditingTeamId(team.id);
+                                  setEditingTeamName(team.name);
+                                }}
+                                className="text-[#F59E0B] hover:bg-[#F59E0B]/10 h-8 px-2 text-xs"
+                              >
+                                Redigera
+                              </Button>
+                              <Badge className="bg-[#2BA84A]/20 text-[#2BA84A]">Bekräftad</Badge>
+                            </div>
+                          </>
+                        )}
                     </div>
                     ))
                 )}
