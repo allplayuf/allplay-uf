@@ -120,23 +120,39 @@ export default function MatchDetailPage() {
       setMatch(matchData);
       setUser(currentUser);
 
-      // Load friendships
-      const allFriendships = await base44.entities.Friendship.list();
-      setFriendships(allFriendships);
+      // Optimize: Load only friendships for current user
+      const [sentFriendships, receivedFriendships] = await Promise.all([
+        base44.entities.Friendship.filter({ requester_id: currentUser.id }),
+        base44.entities.Friendship.filter({ addressee_id: currentUser.id })
+      ]);
+      setFriendships([...sentFriendships, ...receivedFriendships]);
 
+      // Load venue and participants in parallel
+      const promises = [
+        base44.entities.MatchParticipant.filter({ match_id: matchId })
+      ];
+      
       if (matchData.venue_id) {
-        const venueData = await base44.entities.Venue.get(matchData.venue_id);
-        setVenue(venueData);
+        promises.push(base44.entities.Venue.get(matchData.venue_id));
       }
 
-      // Keep existing participant fetching
-      const participantData = await base44.entities.MatchParticipant.filter({ match_id: matchId });
-      const participantUsers = await Promise.all(
-        participantData.map(async (p) => {
-          const userData = await base44.entities.User.get(p.user_id);
-          return { ...userData, participantInfo: p };
-        })
-      );
+      const results = await Promise.all(promises);
+      const participantData = results[0];
+      
+      if (results[1]) {
+        setVenue(results[1]);
+      }
+
+      // Batch load participant users
+      const userIds = participantData.map(p => p.user_id);
+      const allUsers = await base44.entities.User.list();
+      const userMap = new Map(allUsers.map(u => [u.id, u]));
+      
+      const participantUsers = participantData.map(p => ({
+        ...userMap.get(p.user_id),
+        participantInfo: p
+      })).filter(Boolean);
+      
       setParticipants(participantUsers);
 
     } catch (error) {
