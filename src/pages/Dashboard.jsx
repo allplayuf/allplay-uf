@@ -451,7 +451,7 @@ export default function Dashboard() {
                 }}
                 className="relative flex-shrink-0"
               >
-                <div className="relative w-16 h-16 sm:w-24 sm:h-24 lg:w-32 lg:h-32 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-[#FFFFFF]/30 shadow-[0_20px_60px_rgba(43,168,74,0.4)] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm flex items-center justify-center">
+                <div className="relative w-16 h-16 sm:w-24 sm:h-24 lg:w-32 lg:h-32 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-[#2BA84A]/60 shadow-[0_20px_60px_rgba(43,168,74,0.4)] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm flex items-center justify-center">
                   {user?.profile_image_url ? (
                     <img src={user.profile_image_url} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
@@ -496,9 +496,9 @@ export default function Dashboard() {
                   className="relative group"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/30 to-[#248232]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-white/30 sm:border-white/40 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:border-[#2BA84A]/60 transition-all h-20 sm:h-24 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-xl bg-[#2BA84A]/20 flex items-center justify-center ring-2 ring-[#2BA84A]/30 flex-shrink-0">
-                      <MapPin className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[#86EFAC]" strokeWidth={2.5} />
+                  <div className="relative bg-gradient-to-br from-[#2BA84A]/25 via-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#2BA84A]/40 sm:border-[#2BA84A]/50 shadow-[0_8px_24px_rgba(43,168,74,0.2)] hover:border-[#2BA84A]/80 hover:shadow-[0_12px_32px_rgba(43,168,74,0.3)] transition-all h-20 sm:h-24 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
+                    <div className="w-9 h-9 sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-xl bg-[#2BA84A]/30 flex items-center justify-center ring-2 ring-[#2BA84A]/40 flex-shrink-0">
+                      <MapPin className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#86EFAC]" strokeWidth={2.5} />
                     </div>
                     <span className="text-[10px] sm:text-xs lg:text-sm font-bold text-white text-center">Hitta Planer</span>
                   </div>
@@ -512,9 +512,9 @@ export default function Dashboard() {
                 className="relative group cursor-pointer"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-[#F4743B]/30 to-[#E5683A]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-white/30 sm:border-white/40 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:border-[#F4743B]/60 transition-all h-20 sm:h-24 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-xl bg-[#F4743B]/20 flex items-center justify-center ring-2 ring-[#F4743B]/30 flex-shrink-0">
-                    <Plus className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[#FDE3D2]" strokeWidth={2.5} />
+                <div className="relative bg-gradient-to-br from-[#F4743B]/25 via-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#F4743B]/40 sm:border-[#F4743B]/50 shadow-[0_8px_24px_rgba(244,116,59,0.2)] hover:border-[#F4743B]/80 hover:shadow-[0_12px_32px_rgba(244,116,59,0.3)] transition-all h-20 sm:h-24 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
+                  <div className="w-9 h-9 sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-xl bg-[#F4743B]/30 flex items-center justify-center ring-2 ring-[#F4743B]/40 flex-shrink-0">
+                    <Plus className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#FDE3D2]" strokeWidth={2.5} />
                   </div>
                   <span className="text-[10px] sm:text-xs lg:text-sm font-bold text-white text-center">Skapa match</span>
                 </div>
@@ -527,9 +527,9 @@ export default function Dashboard() {
                   className="relative group"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-[#9370DB]/30 to-[#7C3AED]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-white/30 sm:border-white/40 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:border-[#9370DB]/60 transition-all h-20 sm:h-24 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-xl bg-[#9370DB]/20 flex items-center justify-center ring-2 ring-[#9370DB]/30 flex-shrink-0">
-                      <Users className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[#DDD6FE]" strokeWidth={2.5} />
+                  <div className="relative bg-gradient-to-br from-[#9370DB]/25 via-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#9370DB]/40 sm:border-[#9370DB]/50 shadow-[0_8px_24px_rgba(147,112,219,0.2)] hover:border-[#9370DB]/80 hover:shadow-[0_12px_32px_rgba(147,112,219,0.3)] transition-all h-20 sm:h-24 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
+                    <div className="w-9 h-9 sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-xl bg-[#9370DB]/30 flex items-center justify-center ring-2 ring-[#9370DB]/40 flex-shrink-0">
+                      <Users className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#DDD6FE]" strokeWidth={2.5} />
                     </div>
                     <span className="text-[10px] sm:text-xs lg:text-sm font-bold text-white text-center">Vänner & lag</span>
                   </div>
@@ -640,28 +640,7 @@ export default function Dashboard() {
                     <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8" strokeWidth={3} />
                   </motion.div>
 
-                  {/* Floating particles */}
-                  {[...Array(8)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      className="absolute w-1.5 h-1.5 bg-white/80 rounded-full"
-                      style={{
-                        left: `${10 + i * 11}%`,
-                        top: `${30 + (i % 2) * 40}%`,
-                      }}
-                      animate={{
-                        y: [-10, -25, -10],
-                        opacity: [0, 1, 0],
-                        scale: [0.5, 1, 0.5]
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        delay: i * 0.15,
-                        ease: "easeOut"
-                      }}
-                    />
-                  ))}
+
                 </motion.button>
               </Link>
             </motion.div>
