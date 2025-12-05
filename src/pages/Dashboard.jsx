@@ -988,9 +988,55 @@ export default function Dashboard() {
           </motion.div>
         </div>
 
+        {/* About AllPlay Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 1.0, ease: "easeOut" }}
+        >
+          <Link to={createPageUrl("AboutAllPlay")}>
+            <motion.div
+              whileHover={{ scale: 1.02, y: -4 }}
+              whileTap={{ scale: 0.98 }}
+              className="relative overflow-hidden rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#223029] bg-gradient-to-br from-[#121715] to-[#0F1513] hover:border-[#2BA84A]/30 transition-all cursor-pointer"
+            >
+              <div className="flex flex-col sm:flex-row items-center sm:items-stretch gap-4 p-5 sm:p-6">
+                {/* Image */}
+                <div className="w-full sm:w-40 h-40 sm:h-auto rounded-xl overflow-hidden flex-shrink-0">
+                  <img 
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/afd97d702_P10905801.jpg"
+                    alt="AllPlay Team"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 flex flex-col justify-between min-w-0 text-center sm:text-left">
+                  <div>
+                    <h3 className="text-xl font-bold text-[#F4F7F5] mb-2">
+                      Lär känna AllPlay
+                    </h3>
+                    <p className="text-sm text-[#B6C2BC] leading-relaxed">
+                      Vi bygger AllPlay för att göra spontanfotboll enkel, trygg och tillgänglig. Läs om varför appen finns, hur den funkar och vilka som står bakom.
+                    </p>
+                  </div>
+
+                  <motion.button
+                    whileHover={{ x: 4 }}
+                    className="mt-4 inline-flex items-center justify-center sm:justify-start gap-2 text-[#2BA84A] font-semibold text-sm"
+                  >
+                    <span>Om AllPlay</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </Link>
+        </motion.div>
 
 
-      </div>
-    </div>
-  );
-}
+
+        </div>
+        </div>
+        );
+        }
