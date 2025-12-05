@@ -225,11 +225,61 @@ export default function Dashboard() {
     .slice(0, 3) : [];
 
   // Prepare notifications
-  const notifications = [
-    { type: 'venue', title: 'Ny plan har lagts till', subtitle: 'Grimsta IP i din stad' },
-    { type: 'feature', title: 'Nya funktioner i appen', subtitle: 'Kolla in turneringar!' },
-    ...(friendsInUpcomingMatchesCount > 0 ? [{ type: 'social', title: `${friendsInUpcomingMatchesCount} vänner spelar snart`, subtitle: 'Gå med i deras matcher' }] : [])
-  ];
+  const notifications = [];
+  
+  // Nya matcher nära användaren
+  if (nearbyMatches.length > 0) {
+    notifications.push({
+      type: 'match',
+      title: 'Ny match skapad nära dig!',
+      subtitle: `${nearbyMatches[0].title} på ${nearbyMatches[0].venue?.name}`
+    });
+  }
+
+  // Vänner i kommande matcher
+  if (friendsInUpcomingMatchesCount > 0) {
+    notifications.push({
+      type: 'social',
+      title: `${friendsInUpcomingMatchesCount} ${friendsInUpcomingMatchesCount === 1 ? 'vän' : 'vänner'} spelar snart`,
+      subtitle: 'Gå med i deras matcher'
+    });
+  }
+
+  // Påminnelse om kommande match
+  if (myUpcomingMatches.length > 0 && timeUntilMatch < 24 * 60) {
+    notifications.push({
+      type: 'reminder',
+      title: 'Din match är snart!',
+      subtitle: `${myUpcomingMatches[0].title} börjar om ${Math.floor(timeUntilMatch / 60)}h`
+    });
+  }
+
+  // Achievements
+  if (weeklyStats.mvps >= 2) {
+    notifications.push({
+      type: 'achievement',
+      title: 'Du är på gång!',
+      subtitle: `${weeklyStats.mvps} MVPs denna vecka 🔥`
+    });
+  }
+
+  // Nya funktioner
+  notifications.push({
+    type: 'feature',
+    title: 'Kolla in turneringar!',
+    subtitle: 'Tävla mot andra lag'
+  });
+
+  // Nya planer
+  notifications.push({
+    type: 'venue',
+    title: 'Ny plan har lagts till',
+    subtitle: 'Grimsta IP i din stad'
+  });
+
+  // Räkna tid till nästa match
+  const timeUntilMatch = myUpcomingMatches.length > 0 ? 
+    (new Date(`${myUpcomingMatches[0].date}T${myUpcomingMatches[0].time}`) - new Date()) / (1000 * 60) : Infinity;
 
   // Calculate weekly stats
   const weekAgo = new Date();
@@ -360,17 +410,6 @@ export default function Dashboard() {
       </AnimatePresence>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-
-        {/* Notifications Slider */}
-        {notifications.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            <NotificationsSlider notifications={notifications} />
-          </motion.div>
-        )}
 
         {/* Premium Hero Card - Community Style */}
         <motion.div
