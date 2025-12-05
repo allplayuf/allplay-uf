@@ -482,78 +482,47 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Premium Stats Grid */}
+            {/* Action Buttons Grid */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-5 mb-4 sm:mb-6 lg:mb-8"
+              className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6"
             >
-              <motion.div 
-                whileHover={{ y: -6, scale: 1.03 }}
+              <Link to={createPageUrl('Map')}>
+                <motion.div
+                  whileHover={{ y: -4, scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="bg-gradient-to-br from-[#2BA84A]/30 to-[#248232]/20 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border-2 border-white/40 hover:border-[#2BA84A]/60 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.4)] transition-all flex flex-col items-center justify-center gap-2 h-24 sm:h-28"
+                >
+                  <MapPin className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" strokeWidth={2.5} />
+                  <span className="text-xs sm:text-sm lg:text-base font-bold text-white text-center">Hitta Planer</span>
+                </motion.div>
+              </Link>
+              
+              <motion.div
+                whileHover={{ y: -4, scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
-                className="relative group"
+                onClick={() => setShowCreateMatchModal(true)}
+                className="bg-gradient-to-br from-[#F4743B]/30 to-[#E5683A]/20 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border-2 border-white/40 hover:border-[#F4743B]/60 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.4)] transition-all flex flex-col items-center justify-center gap-2 h-24 sm:h-28 cursor-pointer"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/30 to-[#248232]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-white/30 sm:border-white/40 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:border-[#2BA84A]/60 transition-all">
-                  <div className="flex flex-col items-center text-center space-y-2">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl bg-[#2BA84A]/20 flex items-center justify-center ring-2 ring-[#2BA84A]/30 flex-shrink-0">
-                      <Trophy className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#86EFAC]" strokeWidth={2.5} />
-                    </div>
-                    <div className="space-y-0.5">
-                      <p className="text-white font-black text-2xl sm:text-3xl lg:text-4xl drop-shadow-lg leading-none">
-                        {user?.matches_played || 0}
-                      </p>
-                      <span className="text-white/70 text-[10px] sm:text-xs lg:text-sm font-bold uppercase tracking-wider block">Matcher</span>
-                    </div>
-                  </div>
-                </div>
+                <Plus className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" strokeWidth={2.5} />
+                <span className="text-xs sm:text-sm lg:text-base font-bold text-white text-center">Skapa match</span>
               </motion.div>
 
-              <motion.div 
-                whileHover={{ y: -6, scale: 1.03 }}
-                whileTap={{ scale: 0.98 }}
-                className="relative group"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-[#F4743B]/30 to-[#E5683A]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-white/30 sm:border-white/40 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:border-[#F4743B]/60 transition-all">
-                  <div className="flex flex-col items-center text-center space-y-2">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl bg-[#F4743B]/20 flex items-center justify-center ring-2 ring-[#F4743B]/30 flex-shrink-0">
-                      <Star className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#FDE3D2]" strokeWidth={2.5} />
-                    </div>
-                    <div className="space-y-0.5">
-                      <p className="text-white font-black text-2xl sm:text-3xl lg:text-4xl drop-shadow-lg leading-none">
-                        {user?.mvp_count || 0}
-                      </p>
-                      <span className="text-white/70 text-[10px] sm:text-xs lg:text-sm font-bold uppercase tracking-wider block">MVPs</span>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.div 
-                whileHover={{ y: -6, scale: 1.03 }}
-                whileTap={{ scale: 0.98 }}
-                className="relative group"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-[#F59E0B]/30 to-[#D97706]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-white/30 sm:border-white/40 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:border-[#F59E0B]/60 transition-all">
-                  <div className="flex flex-col items-center text-center space-y-2">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl bg-[#F59E0B]/20 flex items-center justify-center ring-2 ring-[#F59E0B]/30 flex-shrink-0">
-                      <Flame className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#FCD34D]" strokeWidth={2.5} />
-                    </div>
-                    <div className="space-y-0.5">
-                      <p className="text-white font-black text-2xl sm:text-3xl lg:text-4xl drop-shadow-lg leading-none">
-                        {user?.current_streak || 0}
-                      </p>
-                      <span className="text-white/70 text-[10px] sm:text-xs lg:text-sm font-bold uppercase tracking-wider block">Streak</span>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
+              <Link to={createPageUrl('Community')}>
+                <motion.div
+                  whileHover={{ y: -4, scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="bg-gradient-to-br from-[#9370DB]/30 to-[#7C3AED]/20 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border-2 border-white/40 hover:border-[#9370DB]/60 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.4)] transition-all flex flex-col items-center justify-center gap-2 h-24 sm:h-28"
+                >
+                  <Users className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" strokeWidth={2.5} />
+                  <span className="text-xs sm:text-sm lg:text-base font-bold text-white text-center">Vänner & lag</span>
+                </motion.div>
+              </Link>
             </motion.div>
 
-            {/* Action Button - Hitta spontana matcher */}
+            {/* Hitta spontana matcher - Stark vit animation */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -561,13 +530,77 @@ export default function Dashboard() {
             >
               <Link to={createPageUrl("Matches")}>
                 <motion.button
-                  whileHover={{ y: -4, scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="h-12 sm:h-14 lg:h-16 w-full bg-gradient-to-r from-[#2BA84A]/20 to-[#248232]/10 hover:from-[#2BA84A]/30 hover:to-[#248232]/20 backdrop-blur-xl border-2 border-white/40 hover:border-[#2BA84A]/60 rounded-xl flex items-center justify-center gap-2 text-white font-black text-sm sm:text-base lg:text-lg transition-all shadow-xl"
+                  whileHover={{ scale: 1.03, y: -4 }}
+                  whileTap={{ scale: 0.97 }}
+                  animate={{
+                    boxShadow: [
+                      '0 0 0 0 rgba(255,255,255,0)',
+                      '0 0 0 8px rgba(255,255,255,0.1)',
+                      '0 0 0 12px rgba(255,255,255,0)',
+                    ]
+                  }}
+                  transition={{
+                    boxShadow: {
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }
+                  }}
+                  className="relative h-14 sm:h-16 lg:h-20 w-full bg-white text-[#0F1513] rounded-2xl flex items-center justify-center gap-3 font-black text-base sm:text-lg lg:text-2xl transition-all shadow-[0_12px_40px_rgba(255,255,255,0.4)] hover:shadow-[0_16px_56px_rgba(255,255,255,0.6)] overflow-hidden group"
                 >
-                  <PlayCircle className="w-5 h-5 lg:w-6 lg:h-6" strokeWidth={2.5} />
-                  <span>Hitta spontana matcher nu</span>
-                  <ChevronRight className="w-5 h-5 lg:w-6 lg:h-6" strokeWidth={2.5} />
+                  {/* Animated shine effect */}
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                    initial={{ x: '-100%' }}
+                    animate={{ x: '200%' }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      repeatDelay: 1,
+                      ease: "easeInOut"
+                    }}
+                  />
+                  
+                  {/* Pulsating glow */}
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0"
+                    animate={{
+                      opacity: [0.5, 1, 0.5]
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+
+                  <motion.div
+                    animate={{
+                      rotate: [0, 360]
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "linear"
+                    }}
+                    className="relative z-10"
+                  >
+                    <PlayCircle className="w-6 h-6 sm:w-7 sm:h-7 lg:w-9 lg:h-9" strokeWidth={2.5} />
+                  </motion.div>
+                  <span className="relative z-10 group-hover:scale-105 transition-transform">Hitta spontana matcher nu</span>
+                  <motion.div
+                    animate={{
+                      x: [0, 8, 0]
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                    className="relative z-10"
+                  >
+                    <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7 lg:w-9 lg:h-9" strokeWidth={3} />
+                  </motion.div>
                 </motion.button>
               </Link>
             </motion.div>
