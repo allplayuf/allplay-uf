@@ -482,7 +482,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Action Buttons Grid */}
+            {/* Action Buttons Grid - Community Style */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -490,39 +490,54 @@ export default function Dashboard() {
               className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6"
             >
               <Link to={createPageUrl('Map')}>
-                <motion.div
-                  whileHover={{ y: -4, scale: 1.03 }}
+                <motion.div 
+                  whileHover={{ y: -6, scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
-                  className="bg-gradient-to-br from-[#2BA84A]/30 to-[#248232]/20 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border-2 border-white/40 hover:border-[#2BA84A]/60 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.4)] transition-all flex flex-col items-center justify-center gap-2 h-24 sm:h-28"
+                  className="relative group"
                 >
-                  <MapPin className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" strokeWidth={2.5} />
-                  <span className="text-xs sm:text-sm lg:text-base font-bold text-white text-center">Hitta Planer</span>
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/30 to-[#248232]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-white/30 sm:border-white/40 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:border-[#2BA84A]/60 transition-all h-20 sm:h-24 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-xl bg-[#2BA84A]/20 flex items-center justify-center ring-2 ring-[#2BA84A]/30 flex-shrink-0">
+                      <MapPin className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[#86EFAC]" strokeWidth={2.5} />
+                    </div>
+                    <span className="text-[10px] sm:text-xs lg:text-sm font-bold text-white text-center">Hitta Planer</span>
+                  </div>
                 </motion.div>
               </Link>
               
-              <motion.div
-                whileHover={{ y: -4, scale: 1.03 }}
+              <motion.div 
+                whileHover={{ y: -6, scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setShowCreateMatchModal(true)}
-                className="bg-gradient-to-br from-[#F4743B]/30 to-[#E5683A]/20 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border-2 border-white/40 hover:border-[#F4743B]/60 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.4)] transition-all flex flex-col items-center justify-center gap-2 h-24 sm:h-28 cursor-pointer"
+                className="relative group cursor-pointer"
               >
-                <Plus className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" strokeWidth={2.5} />
-                <span className="text-xs sm:text-sm lg:text-base font-bold text-white text-center">Skapa match</span>
+                <div className="absolute inset-0 bg-gradient-to-br from-[#F4743B]/30 to-[#E5683A]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-white/30 sm:border-white/40 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:border-[#F4743B]/60 transition-all h-20 sm:h-24 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-xl bg-[#F4743B]/20 flex items-center justify-center ring-2 ring-[#F4743B]/30 flex-shrink-0">
+                    <Plus className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[#FDE3D2]" strokeWidth={2.5} />
+                  </div>
+                  <span className="text-[10px] sm:text-xs lg:text-sm font-bold text-white text-center">Skapa match</span>
+                </div>
               </motion.div>
 
               <Link to={createPageUrl('Community')}>
-                <motion.div
-                  whileHover={{ y: -4, scale: 1.03 }}
+                <motion.div 
+                  whileHover={{ y: -6, scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
-                  className="bg-gradient-to-br from-[#9370DB]/30 to-[#7C3AED]/20 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border-2 border-white/40 hover:border-[#9370DB]/60 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.4)] transition-all flex flex-col items-center justify-center gap-2 h-24 sm:h-28"
+                  className="relative group"
                 >
-                  <Users className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" strokeWidth={2.5} />
-                  <span className="text-xs sm:text-sm lg:text-base font-bold text-white text-center">Vänner & lag</span>
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#9370DB]/30 to-[#7C3AED]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-white/30 sm:border-white/40 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:border-[#9370DB]/60 transition-all h-20 sm:h-24 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-xl bg-[#9370DB]/20 flex items-center justify-center ring-2 ring-[#9370DB]/30 flex-shrink-0">
+                      <Users className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[#DDD6FE]" strokeWidth={2.5} />
+                    </div>
+                    <span className="text-[10px] sm:text-xs lg:text-sm font-bold text-white text-center">Vänner & lag</span>
+                  </div>
                 </motion.div>
               </Link>
             </motion.div>
 
-            {/* Hitta spontana matcher - Stark vit animation */}
+            {/* Hitta spontana matcher - Extremt klickbar knapp */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -530,13 +545,17 @@ export default function Dashboard() {
             >
               <Link to={createPageUrl("Matches")}>
                 <motion.button
-                  whileHover={{ scale: 1.03, y: -4 }}
-                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ 
+                    scale: 1.02,
+                    y: -4,
+                    boxShadow: '0 20px 70px rgba(43,168,74,0.6)'
+                  }}
+                  whileTap={{ scale: 0.98 }}
                   animate={{
                     boxShadow: [
-                      '0 0 0 0 rgba(255,255,255,0)',
-                      '0 0 0 8px rgba(255,255,255,0.1)',
-                      '0 0 0 12px rgba(255,255,255,0)',
+                      '0 8px 32px rgba(43,168,74,0.4)',
+                      '0 12px 48px rgba(43,168,74,0.5)',
+                      '0 8px 32px rgba(43,168,74,0.4)',
                     ]
                   }}
                   transition={{
@@ -546,26 +565,26 @@ export default function Dashboard() {
                       ease: "easeInOut"
                     }
                   }}
-                  className="relative h-14 sm:h-16 lg:h-20 w-full bg-white text-[#0F1513] rounded-2xl flex items-center justify-center gap-3 font-black text-base sm:text-lg lg:text-2xl transition-all shadow-[0_12px_40px_rgba(255,255,255,0.4)] hover:shadow-[0_16px_56px_rgba(255,255,255,0.6)] overflow-hidden group"
+                  className="relative h-14 sm:h-16 lg:h-20 w-full bg-gradient-to-r from-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center gap-2 sm:gap-3 font-black text-sm sm:text-base lg:text-xl text-white overflow-hidden group"
                 >
-                  {/* Animated shine effect */}
+                  {/* Animated background pulse */}
                   <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
-                    initial={{ x: '-100%' }}
-                    animate={{ x: '200%' }}
+                    className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0"
+                    animate={{
+                      x: ['-100%', '200%']
+                    }}
                     transition={{
-                      duration: 2,
+                      duration: 3,
                       repeat: Infinity,
-                      repeatDelay: 1,
-                      ease: "easeInOut"
+                      ease: "linear"
                     }}
                   />
                   
-                  {/* Pulsating glow */}
+                  {/* Glow effect */}
                   <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0"
+                    className="absolute inset-0 bg-white/10"
                     animate={{
-                      opacity: [0.5, 1, 0.5]
+                      opacity: [0.3, 0.6, 0.3]
                     }}
                     transition={{
                       duration: 1.5,
@@ -576,21 +595,7 @@ export default function Dashboard() {
 
                   <motion.div
                     animate={{
-                      rotate: [0, 360]
-                    }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: "linear"
-                    }}
-                    className="relative z-10"
-                  >
-                    <PlayCircle className="w-6 h-6 sm:w-7 sm:h-7 lg:w-9 lg:h-9" strokeWidth={2.5} />
-                  </motion.div>
-                  <span className="relative z-10 group-hover:scale-105 transition-transform">Hitta spontana matcher nu</span>
-                  <motion.div
-                    animate={{
-                      x: [0, 8, 0]
+                      scale: [1, 1.1, 1]
                     }}
                     transition={{
                       duration: 1.5,
@@ -599,7 +604,21 @@ export default function Dashboard() {
                     }}
                     className="relative z-10"
                   >
-                    <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7 lg:w-9 lg:h-9" strokeWidth={3} />
+                    <PlayCircle className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8" strokeWidth={2.5} />
+                  </motion.div>
+                  <span className="relative z-10">Hitta spontana matcher nu</span>
+                  <motion.div
+                    animate={{
+                      x: [0, 5, 0]
+                    }}
+                    transition={{
+                      duration: 1.2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                    className="relative z-10"
+                  >
+                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8" strokeWidth={3} />
                   </motion.div>
                 </motion.button>
               </Link>
@@ -935,18 +954,7 @@ export default function Dashboard() {
           </motion.div>
         </div>
 
-        {/* Simple Bottom Banner */}
-        <div className="card-base p-6 flex items-center justify-between gap-4 bg-[#121715]/50">
-           <div>
-              <h3 className="text-white font-semibold">Ingen match inbokad?</h3>
-              <p className="text-secondary text-sm">Kolla kartan för att hitta lediga planer nära dig.</p>
-           </div>
-           <Link to={createPageUrl('Map')}>
-              <button className="h-10 px-4 bg-[#18221E] border border-[#223029] hover:bg-[#223029] text-white text-sm font-medium rounded-lg transition-colors">
-                 Hitta planer
-              </button>
-           </Link>
-        </div>
+
 
       </div>
     </div>
