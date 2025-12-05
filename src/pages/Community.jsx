@@ -510,9 +510,9 @@ export default function CommunityPage() {
                   )}
                 </div>
                 
-                {/* Corner Accents */}
-                <div className="absolute -top-3 -right-3 w-8 h-8 border-t-4 border-r-4 border-[#2BA84A] rounded-tr-2xl"></div>
-                <div className="absolute -bottom-3 -left-3 w-8 h-8 border-b-4 border-l-4 border-[#2BA84A] rounded-bl-2xl"></div>
+                {/* Corner Accents - Only on desktop */}
+                <div className="hidden lg:block absolute -top-3 -right-3 w-8 h-8 border-t-4 border-r-4 border-[#2BA84A] rounded-tr-2xl"></div>
+                <div className="hidden lg:block absolute -bottom-3 -left-3 w-8 h-8 border-b-4 border-l-4 border-[#2BA84A] rounded-bl-2xl"></div>
               </motion.div>
 
               {/* Title Section - Aligned with logo */}
