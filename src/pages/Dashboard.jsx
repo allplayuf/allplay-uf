@@ -395,7 +395,7 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
 
         {/* Premium Hero Card - Community Style */}
         <motion.div
@@ -481,7 +481,7 @@ export default function Dashboard() {
             />
           ))}
 
-          <div className="relative z-10 px-[22px] pt-[26px] pb-[26px] sm:px-6 sm:pt-8 sm:pb-8 lg:px-10 lg:pt-12 lg:pb-12">
+          <div className="relative z-10 px-[22px] pt-[32px] pb-[32px] sm:px-6 sm:pt-10 sm:pb-10 lg:px-10 lg:pt-12 lg:pb-12">
             <div className="flex items-center gap-3 sm:gap-4 lg:gap-6 mb-[14px] sm:mb-5 lg:mb-7">
               
               {/* Profile Image - Small border */}
@@ -542,9 +542,9 @@ export default function Dashboard() {
                   className="relative group"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/30 to-[#248232]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="relative bg-gradient-to-br from-[#2BA84A]/25 via-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#2BA84A]/40 sm:border-[#2BA84A]/50 shadow-[0_8px_24px_rgba(43,168,74,0.2)] hover:border-[#2BA84A]/80 hover:shadow-[0_12px_32px_rgba(43,168,74,0.3)] transition-all h-[88px] sm:h-24 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
-                    <div className="w-9 h-9 sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-xl bg-[#2BA84A]/30 flex items-center justify-center ring-2 ring-[#2BA84A]/40 flex-shrink-0">
-                      <MapPin className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#86EFAC]" strokeWidth={2.5} />
+                  <div className="relative bg-gradient-to-br from-[#2BA84A]/25 via-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#2BA84A]/40 sm:border-[#2BA84A]/50 shadow-[0_8px_24px_rgba(43,168,74,0.2)] hover:border-[#2BA84A]/80 hover:shadow-[0_12px_32px_rgba(43,168,74,0.3)] transition-all h-[100px] sm:h-28 lg:h-32 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 rounded-xl bg-[#2BA84A]/30 flex items-center justify-center ring-2 ring-[#2BA84A]/40 flex-shrink-0">
+                      <MapPin className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-[#86EFAC]" strokeWidth={2.5} />
                     </div>
                     <span className="text-[10px] sm:text-xs lg:text-sm font-bold text-white text-center">Hitta Planer</span>
                   </div>
@@ -558,9 +558,9 @@ export default function Dashboard() {
                 className="relative group cursor-pointer"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-[#F4743B]/30 to-[#E5683A]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-[#F4743B]/25 via-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#F4743B]/40 sm:border-[#F4743B]/50 shadow-[0_8px_24px_rgba(244,116,59,0.2)] hover:border-[#F4743B]/80 hover:shadow-[0_12px_32px_rgba(244,116,59,0.3)] transition-all h-[88px] sm:h-24 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
-                  <div className="w-9 h-9 sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-xl bg-[#F4743B]/30 flex items-center justify-center ring-2 ring-[#F4743B]/40 flex-shrink-0">
-                    <Plus className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#FDE3D2]" strokeWidth={2.5} />
+                <div className="relative bg-gradient-to-br from-[#F4743B]/25 via-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#F4743B]/40 sm:border-[#F4743B]/50 shadow-[0_8px_24px_rgba(244,116,59,0.2)] hover:border-[#F4743B]/80 hover:shadow-[0_12px_32px_rgba(244,116,59,0.3)] transition-all h-[100px] sm:h-28 lg:h-32 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 rounded-xl bg-[#F4743B]/30 flex items-center justify-center ring-2 ring-[#F4743B]/40 flex-shrink-0">
+                    <Plus className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-[#FDE3D2]" strokeWidth={2.5} />
                   </div>
                   <span className="text-[10px] sm:text-xs lg:text-sm font-bold text-white text-center">Skapa match</span>
                 </div>
@@ -573,9 +573,9 @@ export default function Dashboard() {
                   className="relative group"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-[#9370DB]/30 to-[#7C3AED]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="relative bg-gradient-to-br from-[#9370DB]/25 via-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#9370DB]/40 sm:border-[#9370DB]/50 shadow-[0_8px_24px_rgba(147,112,219,0.2)] hover:border-[#9370DB]/80 hover:shadow-[0_12px_32px_rgba(147,112,219,0.3)] transition-all h-[88px] sm:h-24 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
-                    <div className="w-9 h-9 sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-xl bg-[#9370DB]/30 flex items-center justify-center ring-2 ring-[#9370DB]/40 flex-shrink-0">
-                      <Users className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#DDD6FE]" strokeWidth={2.5} />
+                  <div className="relative bg-gradient-to-br from-[#9370DB]/25 via-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#9370DB]/40 sm:border-[#9370DB]/50 shadow-[0_8px_24px_rgba(147,112,219,0.2)] hover:border-[#9370DB]/80 hover:shadow-[0_12px_32px_rgba(147,112,219,0.3)] transition-all h-[100px] sm:h-28 lg:h-32 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 rounded-xl bg-[#9370DB]/30 flex items-center justify-center ring-2 ring-[#9370DB]/40 flex-shrink-0">
+                      <Users className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-[#DDD6FE]" strokeWidth={2.5} />
                     </div>
                     <span className="text-[9px] sm:text-xs lg:text-sm font-bold text-white text-center leading-tight">Vänner &<br className="sm:hidden" />lag</span>
                   </div>
@@ -679,8 +679,8 @@ export default function Dashboard() {
         )}
 
         {/* Main Content */}
-        <div className="grid lg:grid-cols-12 gap-5 sm:gap-6">
-          <div className="lg:col-span-8 space-y-5 sm:space-y-6">
+        <div className="grid lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-8 space-y-8">
             {/* Upcoming Matches */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -804,69 +804,7 @@ export default function Dashboard() {
               </motion.div>
             )}
 
-            {quickPlayMatches.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.8, ease: "easeOut" }}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 bg-gradient-to-br from-[#F4743B]/20 to-[#F4743B]/10 rounded-xl flex items-center justify-center">
-                      <PlayCircle className="w-5 h-5 text-[#F4743B]" strokeWidth={2.5} />
-                    </div>
-                    <h2 className="text-lg sm:text-xl font-bold text-[#F4F7F5]">Snabbspel</h2>
-                  </div>
-                  <Link to={createPageUrl("Matches")} className="text-sm font-semibold text-[#F4743B] hover:text-[#FDE3D2] flex items-center gap-1 transition-colors">
-                    Se alla
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
-                <div className="space-y-3">
-                  {quickPlayMatches.slice(0, 5).map((match, index) => {
-                    const venue = venues.find(v => v.id === match.venue_id);
-                    const currentPlayersCount = (allParticipants || []).filter(p => p.match_id === match.id).length;
-                    return (
-                      <motion.div
-                        key={match.id}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.4, delay: index * 0.1, ease: "easeOut" }}
-                        whileHover={{ scale: 1.02, y: -2 }}
-                      >
-                        <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`}>
-                          <div className="bg-gradient-to-br from-[#121715] to-[#18221E] rounded-[18px] shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#223029] p-4 hover:shadow-[0_12px_32px_rgba(0,0,0,0.4)] hover:border-[#F4743B]/30 transition-all min-h-[90px] flex items-center gap-3 group">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                <h4 className="text-base font-bold text-[#F4F7F5] group-hover:text-[#F4743B] transition-colors">{match.title}</h4>
-                                <span className="inline-flex h-6 items-center rounded-full bg-[#F4743B]/18 px-3 text-xs font-bold text-[#FDE3D2] ring-1 ring-[#F4743B]/25">
-                                  {match.format}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-3 text-xs text-[#B6C2BC]">
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="w-3.5 h-3.5" />
-                                  {venue?.name || 'Okänd'}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <Clock className="w-3.5 h-3.5" />
-                                  {match.date} {match.time}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex-shrink-0">
-                              <span className="inline-flex h-8 items-center rounded-full bg-[#18221E] px-4 text-sm font-bold text-[#F4743B] ring-1 ring-[#F4743B]/25">
-                                {currentPlayersCount}/{match.max_players}
-                              </span>
-                            </div>
-                          </div>
-                        </Link>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            )}
+
           </div>
 
           {/* Right Column */}
@@ -874,7 +812,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.9, ease: "easeOut" }}
-            className="lg:col-span-4 space-y-5 sm:space-y-6 sticky top-24 self-start"
+            className="lg:col-span-4 space-y-8 sticky top-24 self-start"
           >
             {/* Cups Widget */}
             <CupsWidget />
