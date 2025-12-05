@@ -179,6 +179,23 @@ export default function CupHeroCard({ cup, statusConfig, confirmedCount, canMana
               {cup.name}
             </motion.h1>
             
+            {/* Special button for Futsal Fiesta 2025 */}
+            {cup.name === "Futsal Fiesta 2025" && (
+              <motion.a
+                href="https://nationernascup.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="inline-flex items-center gap-2 mt-3 mb-4 px-5 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border-2 border-white/40 hover:border-white/60 rounded-xl text-white font-bold text-sm lg:text-base transition-all shadow-xl hover:shadow-2xl"
+              >
+                🎫 Köp biljetter här / Läs mer
+              </motion.a>
+            )}
+            
             {cup.description && (
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
