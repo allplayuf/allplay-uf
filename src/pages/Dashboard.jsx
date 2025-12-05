@@ -435,8 +435,8 @@ export default function Dashboard() {
             />
           ))}
 
-          <div className="relative z-10 p-4 sm:p-6 lg:p-10">
-            <div className="flex items-center gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-5 lg:mb-7">
+          <div className="relative z-10 p-3 sm:p-5 lg:p-8">
+            <div className="flex items-center gap-3 sm:gap-4 lg:gap-6 mb-3 sm:mb-4 lg:mb-5">
               
               {/* Profile Image - Small border */}
               <motion.div
@@ -466,7 +466,7 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="text-xl sm:text-2xl lg:text-4xl font-black text-white tracking-tight mb-1 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] leading-tight"
+                  className="text-xl sm:text-2xl lg:text-4xl font-black text-white tracking-tight mb-0.5 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] leading-tight"
                 >
                   Välkommen tillbaka, {user?.full_name?.split(' ')[0]}!
                 </motion.h1>
@@ -475,7 +475,7 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
-                  className="text-white/90 text-xs sm:text-sm lg:text-base font-medium leading-snug"
+                  className="text-white/85 text-[11px] sm:text-[13px] lg:text-[15px] font-medium leading-snug"
                 >
                   Dags att dominera planen idag! 🔥
                 </motion.p>
@@ -487,7 +487,7 @@ export default function Dashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="grid grid-cols-3 gap-3 sm:gap-3 lg:gap-4 mb-3 sm:mb-4 lg:mb-5"
+              className="grid grid-cols-3 gap-2.5 sm:gap-3 lg:gap-4 mb-3 sm:mb-4 lg:mb-5"
             >
               <Link to={createPageUrl('Map')}>
                 <motion.div 
