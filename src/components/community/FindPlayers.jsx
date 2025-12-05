@@ -20,7 +20,6 @@ const SKILL_LEVEL_CONFIG = {
 export default function FindPlayers({ friendships = [], currentUser, onAddFriend }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [selectedLetter, setSelectedLetter] = useState('');
   const [displayLimit, setDisplayLimit] = useState(12);
 
   // Debounce search query
@@ -37,7 +36,7 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
 
   // Fetch users with search
   const { data: searchResults, isLoading } = useQuery({
-    queryKey: ['searchPlayers', debouncedQuery, selectedLetter],
+    queryKey: ['searchPlayers', debouncedQuery],
     queryFn: async () => {
       const response = await base44.functions.invoke('players/searchPlayers', {
         search_query: debouncedQuery,
@@ -51,27 +50,16 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
 
   const safeFriendships = Array.isArray(friendships) ? friendships : [];
   
-  // Filter by selected letter
-  let filteredUsers = searchResults || [];
-  if (selectedLetter) {
-    filteredUsers = filteredUsers.filter(u => 
-      (u.display_name || u.full_name || '').charAt(0).toUpperCase() === selectedLetter
-    );
-  }
+  // Sort alphabetically by name
+  let filteredUsers = (searchResults || []).sort((a, b) => {
+    const nameA = (a.display_name || a.full_name || '').toLowerCase();
+    const nameB = (b.display_name || b.full_name || '').toLowerCase();
+    return nameA.localeCompare(nameB);
+  });
 
   // Apply display limit
   const displayedUsers = filteredUsers.slice(0, displayLimit);
   const hasMore = filteredUsers.length > displayLimit;
-
-  // Get alphabet for filtering
-  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ'.split('');
-  
-  // Get available letters
-  const availableLetters = new Set(
-    (searchResults || []).map(u => 
-      (u.display_name || u.full_name || '').charAt(0).toUpperCase()
-    )
-  );
 
   // Get friendship status for a user
   const getFriendshipStatus = (userId) => {
@@ -100,60 +88,16 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
           value={searchQuery}
           onChange={(e) => {
             setSearchQuery(e.target.value);
-            setSelectedLetter('');
             setDisplayLimit(12);
           }}
           className="pl-10 bg-[#18221E] border border-[#223029] text-[#F4F7F5] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/30 placeholder:text-[#7B8A83] rounded-[14px] h-12"
         />
       </div>
 
-      {/* Alphabet Filter */}
-      {!searchQuery && (
-        <div className="bg-[#121715] border border-[#223029] rounded-xl p-3 shadow-sm">
-          <div className="flex flex-wrap gap-1.5 justify-center">
-            <button
-              onClick={() => {
-                setSelectedLetter('');
-                setDisplayLimit(12);
-              }}
-              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                !selectedLetter
-                  ? 'bg-[#2BA84A] text-white'
-                  : 'bg-[#18221E] text-[#B6C2BC] hover:bg-[#223029]'
-              }`}
-            >
-              Alla
-            </button>
-            {alphabet.map(letter => (
-              <button
-                key={letter}
-                onClick={() => {
-                  setSelectedLetter(letter);
-                  setDisplayLimit(12);
-                }}
-                disabled={!availableLetters.has(letter)}
-                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                  selectedLetter === letter
-                    ? 'bg-[#2BA84A] text-white'
-                    : availableLetters.has(letter)
-                    ? 'bg-[#18221E] text-[#B6C2BC] hover:bg-[#223029] hover:text-[#F4F7F5]'
-                    : 'bg-[#0F1513] text-[#7B8A83]/30 cursor-not-allowed'
-                }`}
-              >
-                {letter}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Results count */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-[#B6C2BC]">
-          {isLoading ? 'Söker...' : selectedLetter 
-            ? `${filteredUsers.length} ${filteredUsers.length === 1 ? 'spelare' : 'spelare'} på ${selectedLetter}`
-            : `${filteredUsers.length} ${filteredUsers.length === 1 ? 'spelare' : 'spelare'} hittade`
-          }
+          {isLoading ? 'Söker...' : `${filteredUsers.length} ${filteredUsers.length === 1 ? 'spelare' : 'spelare'} hittade`}
         </p>
         {displayedUsers.length < filteredUsers.length && (
           <p className="text-sm text-[#7B8A83]">
@@ -302,7 +246,7 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
               Inga spelare hittades
             </h3>
             <p className="text-[14px] leading-[20px] text-[#B6C2BC]">
-              {selectedLetter ? `Inga spelare på bokstav ${selectedLetter}` : 'Prova att söka efter något annat.'}
+              Prova att söka efter något annat.
             </p>
           </CardContent>
         </Card>
