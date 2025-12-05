@@ -30,10 +30,8 @@ import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import CupsWidget from "../components/dashboard/CupsWidget";
 import MatchCard from "../components/matches/MatchCard";
 import NotificationsSlider from "../components/dashboard/NotificationsSlider";
-import PerformanceOverview from "../components/dashboard/PerformanceOverview";
 import PersonalRecommendations from "../components/dashboard/PersonalRecommendations";
 import NextMatchCard from "../components/dashboard/NextMatchCard";
-import NearbyVenuesPreview from "../components/dashboard/NearbyVenuesPreview";
 
 // Query keys
 const QUERY_KEYS = {
@@ -225,24 +223,6 @@ export default function Dashboard() {
     .filter(m => m.distance < 10)
     .sort((a, b) => a.distance - b.distance)
     .slice(0, 3) : [];
-
-  // Calculate nearby venues
-  const nearbyVenues = userLocation ? venues
-    .map(venue => {
-      if (!venue.latitude || !venue.longitude) {
-        return { ...venue, distance: Infinity };
-      }
-      const distance = calculateDistance(
-        userLocation.lat,
-        userLocation.lng,
-        parseFloat(venue.latitude),
-        parseFloat(venue.longitude)
-      );
-      return { ...venue, distance };
-    })
-    .filter(v => v.distance < 10 && v.is_active !== false)
-    .sort((a, b) => a.distance - b.distance)
-    .slice(0, 5) : [];
 
   // Prepare notifications
   const notifications = [
@@ -876,16 +856,6 @@ export default function Dashboard() {
 
             {/* Cups Widget */}
             <CupsWidget />
-
-            {/* Performance Overview */}
-            <PerformanceOverview 
-              weeklyStats={weeklyStats}
-              recentActivity={recentActivity}
-              user={user}
-            />
-
-            {/* Nearby Venues Preview */}
-            <NearbyVenuesPreview venues={nearbyVenues} userLocation={userLocation} />
 
             {/* Personal Recommendations */}
             <PersonalRecommendations 

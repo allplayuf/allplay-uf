@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, MapPin, Users, Clock, Share2, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import ShareMatchModal from "./ShareMatchModal";
 
 export default function NextMatchCard({ match, venue, participants = [] }) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0 });
+  const [showShareModal, setShowShareModal] = useState(false);
 
   useEffect(() => {
     if (!match) return;
@@ -51,26 +53,21 @@ export default function NextMatchCard({ match, venue, participants = [] }) {
     );
   }
 
-  const handleShare = async (e) => {
+  const handleShare = (e) => {
     e.preventDefault();
-    const shareData = {
-      title: match.title,
-      text: `Gå med i ${match.title}!`,
-      url: `${window.location.origin}${createPageUrl("MatchDetail")}?id=${match.id}`
-    };
-
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch (err) {
-        console.log('Share cancelled');
-      }
-    } else {
-      navigator.clipboard.writeText(shareData.url);
-    }
+    setShowShareModal(true);
   };
 
   return (
+    <>
+      <AnimatePresence>
+        {showShareModal && (
+          <ShareMatchModal
+            match={match}
+            onClose={() => setShowShareModal(false)}
+          />
+        )}
+      </AnimatePresence>
     <Card className="bg-gradient-to-br from-[#121715] to-[#0F2917]/30 rounded-[20px] shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#2BA84A]/20 overflow-hidden">
       <CardContent className="p-0">
         {/* Header */}
@@ -165,5 +162,6 @@ export default function NextMatchCard({ match, venue, participants = [] }) {
         </div>
       </CardContent>
     </Card>
+    </>
   );
 }
