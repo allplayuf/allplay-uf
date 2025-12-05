@@ -621,19 +621,11 @@ export default function CommunityPage() {
                 transition={{ duration: 0.25 }}
               >
                 <Suspense fallback={<PageLoadingSkeleton />}>
-                  {!allUsers || allUsers.length === 0 ? (
-                    <NoPlayersFound />
-                  ) : (
-                    <FindPlayers
-                      allUsers={allUsers}
-                      friendships={friendships}
-                      currentUser={user}
-                      onAddFriend={handleAddFriend}
-                      onLoadMore={fetchNextPage}
-                      hasMore={hasNextPage}
-                      isLoadingMore={isFetchingNextPage}
-                    />
-                  )}
+                  <FindPlayers
+                    friendships={friendships}
+                    currentUser={user}
+                    onAddFriend={handleAddFriend}
+                  />
                 </Suspense>
               </motion.div>
             </TabsContent>
