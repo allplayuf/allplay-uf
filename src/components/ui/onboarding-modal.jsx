@@ -78,6 +78,7 @@ export function OnboardingModal() {
     location: false,
     notifications: false
   });
+  const [isProcessingReferral, setIsProcessingReferral] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -89,18 +90,62 @@ export function OnboardingModal() {
     }
   }, []);
 
-  const handleComplete = () => {
+  // Check for referral code on mount
+  useEffect(() => {
+    const processReferral = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const referralCode = urlParams.get('ref');
+      
+      if (referralCode && !isProcessingReferral) {
+        setIsProcessingReferral(true);
+        try {
+          const isAuth = await base44.auth.isAuthenticated();
+          if (isAuth) {
+            const user = await base44.auth.me();
+            
+            // Only process if user doesn't already have a referrer
+            if (!user.referred_by) {
+              await base44.functions.invoke('auth/handleReferralSignup', {
+                userId: user.id,
+                referralCode: referralCode
+              });
+            }
+          } else {
+            // Store referral code for after signup
+            sessionStorage.setItem('pending_referral_code', referralCode);
+          }
+        } catch (error) {
+          console.error('Error processing referral:', error);
+        } finally {
+          setIsProcessingReferral(false);
+        }
+      }
+    };
+
+    processReferral();
+  }, [isProcessingReferral]);
+
+  const handleComplete = async () => {
     localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
     setIsOpen(false);
     
-    // Check if user is authenticated, if not redirect to login/signup
-    base44.auth.isAuthenticated().then(isAuth => {
-      if (!isAuth) {
-        // Maybe redirect to a specific auth page if it exists, 
-        // or rely on the user clicking login in the header
-        // For now we just close the modal as requested
+    // Check if user is authenticated and process pending referral
+    const isAuth = await base44.auth.isAuthenticated();
+    if (isAuth) {
+      const pendingReferral = sessionStorage.getItem('pending_referral_code');
+      if (pendingReferral) {
+        try {
+          const user = await base44.auth.me();
+          await base44.functions.invoke('auth/handleReferralSignup', {
+            userId: user.id,
+            referralCode: pendingReferral
+          });
+          sessionStorage.removeItem('pending_referral_code');
+        } catch (error) {
+          console.error('Error processing pending referral:', error);
+        }
       }
-    });
+    }
   };
 
   const handleNext = () => {
