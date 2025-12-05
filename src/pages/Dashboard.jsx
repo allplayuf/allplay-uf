@@ -681,7 +681,19 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
+        {/* Inbox Widget */}
+        <InboxWidget />
 
+        {/* Notifications Slider */}
+        {notifications.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <NotificationsSlider notifications={notifications} />
+          </motion.div>
+        )}
 
         {/* Main Content */}
         <div className="grid lg:grid-cols-12 gap-5 sm:gap-6">
