@@ -224,6 +224,29 @@ export default function Dashboard() {
     .sort((a, b) => a.distance - b.distance)
     .slice(0, 3) : [];
 
+  // Calculate weekly stats
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+
+  const weeklyMatches = allMatches.filter(m => {
+    if (m.status !== 'completed') return false;
+    if (!m.completed_at) return false;
+    const completedDate = new Date(m.completed_at);
+    return completedDate > weekAgo && userMatchIds.includes(m.id);
+  });
+
+  const weeklyMvps = weeklyMatches.filter(m => m.mvp_user_id === user?.id).length;
+
+  const weeklyStats = {
+    matchesPlayed: weeklyMatches.length,
+    mvps: weeklyMvps,
+    goal: 5
+  };
+
+  // Räkna tid till nästa match
+  const timeUntilMatch = myUpcomingMatches.length > 0 ? 
+    (new Date(`${myUpcomingMatches[0].date}T${myUpcomingMatches[0].time}`) - new Date()) / (1000 * 60) : Infinity;
+
   // Prepare notifications
   const notifications = [];
   
@@ -276,29 +299,6 @@ export default function Dashboard() {
     title: 'Ny plan har lagts till',
     subtitle: 'Grimsta IP i din stad'
   });
-
-  // Räkna tid till nästa match
-  const timeUntilMatch = myUpcomingMatches.length > 0 ? 
-    (new Date(`${myUpcomingMatches[0].date}T${myUpcomingMatches[0].time}`) - new Date()) / (1000 * 60) : Infinity;
-
-  // Calculate weekly stats
-  const weekAgo = new Date();
-  weekAgo.setDate(weekAgo.getDate() - 7);
-
-  const weeklyMatches = allMatches.filter(m => {
-    if (m.status !== 'completed') return false;
-    if (!m.completed_at) return false;
-    const completedDate = new Date(m.completed_at);
-    return completedDate > weekAgo && userMatchIds.includes(m.id);
-  });
-
-  const weeklyMvps = weeklyMatches.filter(m => m.mvp_user_id === user?.id).length;
-
-  const weeklyStats = {
-    matchesPlayed: weeklyMatches.length,
-    mvps: weeklyMvps,
-    goal: 5
-  };
 
   // Calculate recent activity
   const recentMatchesForActivity = allMatches
