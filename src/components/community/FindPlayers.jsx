@@ -40,7 +40,7 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
     queryFn: async () => {
       const response = await base44.functions.invoke('players/searchPlayers', {
         search_query: debouncedQuery,
-        limit: 200
+        limit: 999
       });
       return response.data.users || [];
     },
@@ -57,6 +57,9 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
     return nameA.localeCompare(nameB);
   });
 
+  // Total count is always the full list (when no search query)
+  const totalCount = searchResults?.length || 0;
+  
   // Apply display limit
   const displayedUsers = filteredUsers.slice(0, displayLimit);
   const hasMore = filteredUsers.length > displayLimit;
@@ -97,11 +100,14 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
       {/* Results count */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-[#B6C2BC]">
-          {isLoading ? 'Söker...' : `${filteredUsers.length} ${filteredUsers.length === 1 ? 'spelare' : 'spelare'} hittade`}
+          {isLoading ? 'Söker...' : debouncedQuery 
+            ? `${filteredUsers.length} ${filteredUsers.length === 1 ? 'spelare' : 'spelare'} hittade`
+            : `${totalCount} ${totalCount === 1 ? 'spelare' : 'spelare'} hittade`
+          }
         </p>
-        {displayedUsers.length < filteredUsers.length && (
+        {displayedUsers.length < (debouncedQuery ? filteredUsers.length : totalCount) && (
           <p className="text-sm text-[#7B8A83]">
-            Visar {displayedUsers.length} av {filteredUsers.length}
+            Visar {displayedUsers.length} av {debouncedQuery ? filteredUsers.length : totalCount}
           </p>
         )}
       </div>
