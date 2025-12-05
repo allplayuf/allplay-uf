@@ -356,8 +356,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          style={{ transform: 'scale(1.12)' }}
-          className="relative overflow-hidden rounded-[22px] shadow-[0_30px_90px_rgba(0,0,0,0.5),0_0_28px_6px_rgba(40,180,90,0.18)] border border-[#2BA84A]/30 max-w-[92%] mx-auto mt-3 mb-6"
+          className="relative overflow-hidden rounded-3xl shadow-[0_30px_90px_rgba(0,0,0,0.5)] border border-[#2BA84A]/30"
         >
           {/* Dark gradient base */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#1A1A1A] via-[#0F1513] to-[#0A0D0B]"></div>
@@ -436,8 +435,8 @@ export default function Dashboard() {
             />
           ))}
 
-          <div className="relative z-10 px-[22px] pt-[28px] pb-[26px] sm:px-6 sm:pt-8 sm:pb-7 lg:px-10 lg:pt-10 lg:pb-9">
-            <div className="flex items-center gap-3 sm:gap-4 lg:gap-6 mb-[18px] sm:mb-5 lg:mb-6">
+          <div className="relative z-10 p-3 sm:p-5 lg:p-8">
+            <div className="flex items-center gap-3 sm:gap-4 lg:gap-6 mb-3 sm:mb-4 lg:mb-5">
               
               {/* Profile Image - Small border */}
               <motion.div
@@ -467,8 +466,7 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="text-[22px] sm:text-[28px] lg:text-[42px] font-[800] text-white mb-0.5 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] leading-tight"
-                  style={{ letterSpacing: '-0.2px' }}
+                  className="text-xl sm:text-2xl lg:text-4xl font-black text-white tracking-tight mb-0.5 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] leading-tight"
                 >
                   Välkommen tillbaka, {user?.full_name?.split(' ')[0]}!
                 </motion.h1>
@@ -477,8 +475,7 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
-                  className="text-[14px] font-medium leading-snug text-white"
-                  style={{ opacity: 0.85 }}
+                  className="text-white/85 text-[11px] sm:text-[13px] lg:text-[15px] font-medium leading-snug"
                 >
                   Dags att dominera planen idag! 🔥
                 </motion.p>
@@ -490,7 +487,7 @@ export default function Dashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="grid grid-cols-3 gap-4 sm:gap-5 lg:gap-6 mb-[22px] sm:mb-6 lg:mb-7"
+              className="grid grid-cols-3 gap-2.5 sm:gap-3 lg:gap-4 mb-3 sm:mb-4 lg:mb-5"
             >
               <Link to={createPageUrl('Map')}>
                 <motion.div 
@@ -498,10 +495,10 @@ export default function Dashboard() {
                   whileTap={{ scale: 0.98 }}
                   className="relative group"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/30 to-[#248232]/20 rounded-[18px] sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="relative bg-gradient-to-br from-[#2BA84A]/25 via-white/10 to-white/5 backdrop-blur-xl rounded-[18px] sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#2BA84A]/40 sm:border-[#2BA84A]/50 shadow-[0_8px_24px_rgba(43,168,74,0.2),inset_0_0_12px_rgba(0,0,0,0.35)] hover:border-[#2BA84A]/80 hover:shadow-[0_12px_32px_rgba(43,168,74,0.3)] transition-all w-[82px] h-[82px] sm:w-24 sm:h-24 lg:w-28 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
-                    <div className="w-[32px] h-[32px] sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-xl bg-[#2BA84A]/30 flex items-center justify-center ring-2 ring-[#2BA84A]/40 flex-shrink-0">
-                      <MapPin className="w-[20px] h-[20px] sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#86EFAC]" strokeWidth={2.5} />
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/30 to-[#248232]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="relative bg-gradient-to-br from-[#2BA84A]/25 via-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#2BA84A]/40 sm:border-[#2BA84A]/50 shadow-[0_8px_24px_rgba(43,168,74,0.2)] hover:border-[#2BA84A]/80 hover:shadow-[0_12px_32px_rgba(43,168,74,0.3)] transition-all h-20 sm:h-24 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
+                    <div className="w-9 h-9 sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-xl bg-[#2BA84A]/30 flex items-center justify-center ring-2 ring-[#2BA84A]/40 flex-shrink-0">
+                      <MapPin className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#86EFAC]" strokeWidth={2.5} />
                     </div>
                     <span className="text-[10px] sm:text-xs lg:text-sm font-bold text-white text-center">Hitta Planer</span>
                   </div>
@@ -514,10 +511,10 @@ export default function Dashboard() {
                 onClick={() => setShowCreateMatchModal(true)}
                 className="relative group cursor-pointer"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-[#F4743B]/30 to-[#E5683A]/20 rounded-[18px] sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-[#F4743B]/25 via-white/10 to-white/5 backdrop-blur-xl rounded-[18px] sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#F4743B]/40 sm:border-[#F4743B]/50 shadow-[0_8px_24px_rgba(244,116,59,0.2),inset_0_0_12px_rgba(0,0,0,0.35)] hover:border-[#F4743B]/80 hover:shadow-[0_12px_32px_rgba(244,116,59,0.3)] transition-all w-[82px] h-[82px] sm:w-24 sm:h-24 lg:w-28 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
-                  <div className="w-[32px] h-[32px] sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-xl bg-[#F4743B]/30 flex items-center justify-center ring-2 ring-[#F4743B]/40 flex-shrink-0">
-                    <Plus className="w-[20px] h-[20px] sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#FDE3D2]" strokeWidth={2.5} />
+                <div className="absolute inset-0 bg-gradient-to-br from-[#F4743B]/30 to-[#E5683A]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative bg-gradient-to-br from-[#F4743B]/25 via-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#F4743B]/40 sm:border-[#F4743B]/50 shadow-[0_8px_24px_rgba(244,116,59,0.2)] hover:border-[#F4743B]/80 hover:shadow-[0_12px_32px_rgba(244,116,59,0.3)] transition-all h-20 sm:h-24 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
+                  <div className="w-9 h-9 sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-xl bg-[#F4743B]/30 flex items-center justify-center ring-2 ring-[#F4743B]/40 flex-shrink-0">
+                    <Plus className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#FDE3D2]" strokeWidth={2.5} />
                   </div>
                   <span className="text-[10px] sm:text-xs lg:text-sm font-bold text-white text-center">Skapa match</span>
                 </div>
@@ -529,10 +526,10 @@ export default function Dashboard() {
                   whileTap={{ scale: 0.98 }}
                   className="relative group"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#9370DB]/30 to-[#7C3AED]/20 rounded-[18px] sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="relative bg-gradient-to-br from-[#9370DB]/25 via-white/10 to-white/5 backdrop-blur-xl rounded-[18px] sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#9370DB]/40 sm:border-[#9370DB]/50 shadow-[0_8px_24px_rgba(147,112,219,0.2),inset_0_0_12px_rgba(0,0,0,0.35)] hover:border-[#9370DB]/80 hover:shadow-[0_12px_32px_rgba(147,112,219,0.3)] transition-all w-[82px] h-[82px] sm:w-24 sm:h-24 lg:w-28 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
-                    <div className="w-[32px] h-[32px] sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-xl bg-[#9370DB]/30 flex items-center justify-center ring-2 ring-[#9370DB]/40 flex-shrink-0">
-                      <Users className="w-[20px] h-[20px] sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#DDD6FE]" strokeWidth={2.5} />
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#9370DB]/30 to-[#7C3AED]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="relative bg-gradient-to-br from-[#9370DB]/25 via-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#9370DB]/40 sm:border-[#9370DB]/50 shadow-[0_8px_24px_rgba(147,112,219,0.2)] hover:border-[#9370DB]/80 hover:shadow-[0_12px_32px_rgba(147,112,219,0.3)] transition-all h-20 sm:h-24 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
+                    <div className="w-9 h-9 sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-xl bg-[#9370DB]/30 flex items-center justify-center ring-2 ring-[#9370DB]/40 flex-shrink-0">
+                      <Users className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#DDD6FE]" strokeWidth={2.5} />
                     </div>
                     <span className="text-[10px] sm:text-xs lg:text-sm font-bold text-white text-center">Vänner & lag</span>
                   </div>
@@ -553,12 +550,12 @@ export default function Dashboard() {
                     y: -4,
                     boxShadow: '0 25px 80px rgba(43,168,74,0.8)'
                   }}
-                  whileTap={{ scale: 0.97 }}
+                  whileTap={{ scale: 0.98 }}
                   animate={{
                     boxShadow: [
-                      '0 12px 50px rgba(60,255,120,0.22)',
-                      '0 18px 70px rgba(60,255,120,0.32)',
-                      '0 12px 50px rgba(60,255,120,0.22)',
+                      '0 12px 50px rgba(43,168,74,0.6)',
+                      '0 18px 70px rgba(43,168,74,0.8)',
+                      '0 12px 50px rgba(43,168,74,0.6)',
                     ]
                   }}
                   transition={{
@@ -566,20 +563,13 @@ export default function Dashboard() {
                       duration: 2,
                       repeat: Infinity,
                       ease: "easeInOut"
-                    },
-                    scale: {
-                      duration: 0.12,
-                      ease: "easeOut"
                     }
                   }}
-                  className="relative h-[58px] sm:h-16 lg:h-20 w-full bg-gradient-to-b from-[#2BA84A] to-[#1F7A36] rounded-[24px] flex items-center justify-center gap-2 sm:gap-3 font-[700] text-[17px] sm:text-lg lg:text-xl text-white overflow-hidden shadow-[0_0_22px_rgba(60,255,120,0.22)]"
+                  className="relative h-14 sm:h-16 lg:h-20 w-full bg-gradient-to-r from-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center gap-2 sm:gap-3 font-black text-sm sm:text-base lg:text-xl text-white overflow-hidden"
                 >
-                  {/* Inner gradient highlight */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-white/12 via-transparent to-transparent rounded-[24px]" style={{ height: '20%' }} />
-
                   {/* Outer glow pulse */}
                   <motion.div
-                    className="absolute -inset-1 bg-gradient-to-b from-[#2BA84A] to-[#1F7A36] rounded-[24px] blur-xl"
+                    className="absolute -inset-1 bg-gradient-to-r from-[#2BA84A] to-[#248232] rounded-2xl blur-xl"
                     animate={{
                       opacity: [0.5, 0.8, 0.5]
                     }}
@@ -592,7 +582,7 @@ export default function Dashboard() {
 
                   {/* Sweeping shine effect */}
                   <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent rounded-[24px]"
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
                     animate={{
                       x: ['-100%', '200%']
                     }}
@@ -606,7 +596,7 @@ export default function Dashboard() {
 
                   {/* Pulsating overlay */}
                   <motion.div
-                    className="absolute inset-0 bg-white/10 rounded-[24px]"
+                    className="absolute inset-0 bg-white/10"
                     animate={{
                       opacity: [0.1, 0.3, 0.1]
                     }}
@@ -629,7 +619,7 @@ export default function Dashboard() {
                     }}
                     className="relative z-10"
                   >
-                    <PlayCircle className="w-[20px] h-[20px] sm:w-6 sm:h-6 lg:w-8 lg:h-8" strokeWidth={2.5} />
+                    <PlayCircle className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8" strokeWidth={2.5} />
                   </motion.div>
 
                   {/* Text */}
@@ -647,7 +637,7 @@ export default function Dashboard() {
                     }}
                     className="relative z-10"
                   >
-                    <ChevronRight className="w-[20px] h-[20px] sm:w-6 sm:h-6 lg:w-8 lg:h-8" strokeWidth={3} />
+                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8" strokeWidth={3} />
                   </motion.div>
 
 
