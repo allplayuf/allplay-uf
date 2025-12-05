@@ -597,7 +597,7 @@ export default function ProfilePage() {
                 </motion.p>
 
                 {/* Chips */}
-                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2">
                   <Badge className="h-7 px-2.5 sm:px-3 bg-transparent border border-[#FFFFFF]/30 text-[#FFFFFF] text-[10px] sm:text-xs">
                     <MapPin className="w-3 h-3 mr-1" />
                     {displayUser?.city || 'Stockholm'}
