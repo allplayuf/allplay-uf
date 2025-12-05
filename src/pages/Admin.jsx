@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Users, Flag, MapPin, BarChart, AlertTriangle, RefreshCw, Trophy, Sparkles } from "lucide-react";
+import { Shield, Users, Flag, MapPin, BarChart, AlertTriangle, RefreshCw, Trophy, Sparkles, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useCustomDialog } from "../components/ui/custom-dialog";
@@ -15,6 +15,7 @@ import VenueManagement from "../components/admin/VenueManagement";
 import Analytics from "../components/admin/Analytics";
 import MatchManagement from "../components/admin/MatchManagement";
 import TeamManagement from "../components/admin/TeamManagement";
+import NotificationManagement from "../components/admin/NotificationManagement";
 
 export default function AdminPage() {
   const [reports, setReports] = useState([]);
@@ -414,6 +415,10 @@ export default function AdminPage() {
               <BarChart className="w-4 h-4" />
               Statistik
             </TabsTrigger>
+            <TabsTrigger value="notifications" className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-[#FFFFFF] text-[#FFFFFF]/70">
+              <Bell className="w-4 h-4" />
+              Notiser
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="reports">
@@ -463,6 +468,10 @@ export default function AdminPage() {
               onDeleteMatch={handleDeleteMatch}
               onDeleteTeam={handleDeleteTeam}
             />
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <NotificationManagement />
           </TabsContent>
         </Tabs>
       </div>
