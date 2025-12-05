@@ -466,10 +466,10 @@ export default function CommunityPage() {
           ))}
 
           <div className="relative z-10 p-6 sm:p-8 lg:p-12">
-            {/* Enhanced Header with Logo - Mobile Optimized */}
-            <div className="flex flex-col items-center text-center mb-6 sm:mb-8 lg:mb-10">
+            {/* Enhanced Header with Logo - Aligned horizontally */}
+            <div className="flex items-center gap-4 sm:gap-6 mb-6 sm:mb-8 lg:mb-10">
               
-              {/* Logo with 3D Effect - Smaller on mobile */}
+              {/* Logo with 3D Effect - Same frame on all sizes */}
               <motion.div
                 initial={{ scale: 0.8, opacity: 0, rotateY: -30 }}
                 animate={{ 
@@ -481,11 +481,11 @@ export default function CommunityPage() {
                   duration: 0.8,
                   ease: "easeOut"
                 }}
-                className="relative group mb-6"
+                className="relative group flex-shrink-0"
               >
                 {/* Epic Glow */}
                 <motion.div 
-                  className="absolute -inset-4 sm:-inset-6 bg-gradient-to-r from-[#2BA84A]/50 via-[#248232]/50 to-[#2BA84A]/50 rounded-full blur-3xl"
+                  className="absolute -inset-6 bg-gradient-to-r from-[#2BA84A]/50 via-[#248232]/50 to-[#2BA84A]/50 rounded-full blur-3xl"
                   animate={{
                     scale: [1, 1.2, 1],
                     opacity: [0.5, 0.8, 0.5]
@@ -493,8 +493,8 @@ export default function CommunityPage() {
                   transition={{ duration: 3, repeat: Infinity }}
                 />
                 
-                {/* Logo Frame - Responsive sizing */}
-                <div className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-40 lg:h-40 rounded-2xl sm:rounded-3xl overflow-hidden border-3 sm:border-4 border-[#2BA84A]/60 shadow-[0_20px_60px_rgba(43,168,74,0.4)] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm transform group-hover:rotate-3 transition-transform duration-500 flex items-center justify-center">
+                {/* Logo Frame - Consistent border on all sizes */}
+                <div className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-40 lg:h-40 rounded-3xl overflow-hidden border-4 border-[#2BA84A]/60 shadow-[0_20px_60px_rgba(43,168,74,0.4)] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm transform group-hover:rotate-3 transition-transform duration-500 flex items-center justify-center">
                   {user?.profile_image_url ? (
                     <img 
                       src={user.profile_image_url} 
@@ -510,18 +510,18 @@ export default function CommunityPage() {
                   )}
                 </div>
                 
-                {/* Corner Accents - Smaller on mobile */}
-                <div className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 w-6 h-6 sm:w-8 sm:h-8 border-t-3 sm:border-t-4 border-r-3 sm:border-r-4 border-[#2BA84A] rounded-tr-xl sm:rounded-tr-2xl"></div>
-                <div className="absolute -bottom-2 -left-2 sm:-bottom-3 sm:-left-3 w-6 h-6 sm:w-8 sm:h-8 border-b-3 sm:border-b-4 border-l-3 sm:border-l-4 border-[#2BA84A] rounded-bl-xl sm:rounded-bl-2xl"></div>
+                {/* Corner Accents */}
+                <div className="absolute -top-3 -right-3 w-8 h-8 border-t-4 border-r-4 border-[#2BA84A] rounded-tr-2xl"></div>
+                <div className="absolute -bottom-3 -left-3 w-8 h-8 border-b-4 border-l-4 border-[#2BA84A] rounded-bl-2xl"></div>
               </motion.div>
 
-              {/* Title Section - Centered and compact on mobile */}
-              <div className="flex-1">
+              {/* Title Section - Aligned with logo */}
+              <div className="flex-1 min-w-0">
                 <motion.h1
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="text-2xl sm:text-3xl lg:text-5xl font-black text-white tracking-tight mb-2 sm:mb-3 lg:mb-4 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)]"
+                  className="text-2xl sm:text-3xl lg:text-5xl font-black text-white tracking-tight mb-1 sm:mb-2 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)]"
                 >
                   Community 🤝
                 </motion.h1>
@@ -530,14 +530,14 @@ export default function CommunityPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
-                  className="text-white/90 text-sm sm:text-base lg:text-xl font-medium max-w-2xl leading-relaxed mx-auto"
+                  className="text-white/90 text-xs sm:text-sm lg:text-xl font-medium leading-relaxed"
                 >
                   Hitta spelare, bygg lag och väx tillsammans
                 </motion.p>
               </div>
             </div>
 
-            {/* Premium Stats Grid - Mobile Optimized */}
+            {/* Premium Stats Grid - Numbers centered in icons */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -551,15 +551,15 @@ export default function CommunityPage() {
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/30 to-[#248232]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div className="relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-white/30 sm:border-white/40 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:border-[#2BA84A]/60 transition-all">
-                  <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 mb-2 sm:mb-3">
-                    <div className="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-lg sm:rounded-xl bg-[#2BA84A]/20 flex items-center justify-center ring-1 sm:ring-2 ring-[#2BA84A]/30">
-                      <Heart className="w-4 h-4 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-[#86EFAC]" strokeWidth={2.5} />
+                  <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-lg sm:rounded-xl bg-[#2BA84A]/20 flex items-center justify-center ring-1 sm:ring-2 ring-[#2BA84A]/30 relative">
+                      <Heart className="w-4 h-4 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-[#86EFAC] absolute" strokeWidth={2.5} />
+                      <span className="text-white font-black text-xs sm:text-sm lg:text-base drop-shadow-lg relative z-10">
+                        {friendsAccepted.length}
+                      </span>
                     </div>
                     <span className="text-white/70 text-[9px] sm:text-[10px] lg:text-xs font-bold uppercase tracking-wider">Vänner</span>
                   </div>
-                  <p className="text-white font-black text-xl sm:text-2xl lg:text-3xl drop-shadow-lg">
-                    {friendsAccepted.length}
-                  </p>
                 </div>
               </motion.div>
 
@@ -570,15 +570,15 @@ export default function CommunityPage() {
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-[#9370DB]/30 to-[#7C3AED]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div className="relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-white/30 sm:border-white/40 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:border-[#9370DB]/60 transition-all">
-                  <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 mb-2 sm:mb-3">
-                    <div className="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-lg sm:rounded-xl bg-[#9370DB]/20 flex items-center justify-center ring-1 sm:ring-2 ring-[#9370DB]/30">
-                      <Users className="w-4 h-4 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-[#DDD6FE]" strokeWidth={2.5} />
+                  <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-lg sm:rounded-xl bg-[#9370DB]/20 flex items-center justify-center ring-1 sm:ring-2 ring-[#9370DB]/30 relative">
+                      <Users className="w-4 h-4 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-[#DDD6FE] absolute" strokeWidth={2.5} />
+                      <span className="text-white font-black text-xs sm:text-sm lg:text-base drop-shadow-lg relative z-10">
+                        {myTeams.length}
+                      </span>
                     </div>
                     <span className="text-white/70 text-[9px] sm:text-[10px] lg:text-xs font-bold uppercase tracking-wider">Lag</span>
                   </div>
-                  <p className="text-white font-black text-xl sm:text-2xl lg:text-3xl drop-shadow-lg">
-                    {myTeams.length}
-                  </p>
                 </div>
               </motion.div>
 
@@ -589,47 +589,17 @@ export default function CommunityPage() {
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-[#F59E0B]/30 to-[#D97706]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div className="relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-white/30 sm:border-white/40 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:border-[#F59E0B]/60 transition-all">
-                  <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 mb-2 sm:mb-3">
-                    <div className="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-lg sm:rounded-xl bg-[#F59E0B]/20 flex items-center justify-center ring-1 sm:ring-2 ring-[#F59E0B]/30">
-                      <Trophy className="w-4 h-4 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-[#FCD34D]" strokeWidth={2.5} />
+                  <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-lg sm:rounded-xl bg-[#F59E0B]/20 flex items-center justify-center ring-1 sm:ring-2 ring-[#F59E0B]/30 relative">
+                      <Trophy className="w-4 h-4 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-[#FCD34D] absolute" strokeWidth={2.5} />
+                      <span className="text-white font-black text-xs sm:text-sm lg:text-base drop-shadow-lg relative z-10">
+                        {cupsCount}
+                      </span>
                     </div>
                     <span className="text-white/70 text-[9px] sm:text-[10px] lg:text-xs font-bold uppercase tracking-wider">Cuper</span>
                   </div>
-                  <p className="text-white font-black text-xl sm:text-2xl lg:text-3xl drop-shadow-lg">
-                    {cupsCount}
-                  </p>
                 </div>
               </motion.div>
-            </motion.div>
-
-            {/* Title for mobile - appears below stats */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="lg:hidden text-center mb-6"
-            >
-              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-2 drop-shadow-[0_6px_12px_rgba(0,0,0,0.6)]">
-                Community 🤝
-              </h1>
-              <p className="text-white/90 text-sm sm:text-base font-medium leading-relaxed">
-                Hitta spelare, bygg lag och väx tillsammans
-              </p>
-            </motion.div>
-
-            {/* Title for desktop - appears with logo */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="hidden lg:block text-center mb-8"
-            >
-              <h1 className="text-5xl font-black text-white tracking-tight mb-3 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)]">
-                Community 🤝
-              </h1>
-              <p className="text-white/95 text-xl font-medium leading-relaxed">
-                Hitta spelare, bygg lag och väx tillsammans
-              </p>
             </motion.div>
 
             {/* Action Buttons - Mobile Optimized */}
@@ -645,9 +615,8 @@ export default function CommunityPage() {
                 onClick={() => setActiveTab('find')}
                 className="h-11 sm:h-12 lg:h-14 bg-gradient-to-r from-[#2BA84A]/20 to-[#248232]/10 hover:from-[#2BA84A]/30 hover:to-[#248232]/20 backdrop-blur-xl border-2 border-white/40 hover:border-[#2BA84A]/60 rounded-xl flex items-center justify-center gap-2 text-white font-black text-xs sm:text-sm lg:text-base transition-all shadow-xl"
               >
-                <UserPlus className="w-4 h-4 sm:w-4 sm:h-4 lg:w-5 lg:h-5" strokeWidth={2.5} />
-                <span className="hidden sm:inline">Hitta spelare</span>
-                <span className="sm:hidden">Hitta</span>
+                <UserPlus className="w-4 h-4 lg:w-5 lg:h-5" strokeWidth={2.5} />
+                <span>Hitta spelare</span>
               </motion.button>
               <motion.button
                 whileHover={{ y: -4, scale: 1.02 }}
@@ -655,9 +624,8 @@ export default function CommunityPage() {
                 onClick={() => setActiveTab('teams')}
                 className="h-11 sm:h-12 lg:h-14 bg-gradient-to-r from-[#9370DB]/20 to-[#7C3AED]/10 hover:from-[#9370DB]/30 hover:to-[#7C3AED]/20 backdrop-blur-xl border-2 border-white/40 hover:border-[#9370DB]/60 rounded-xl flex items-center justify-center gap-2 text-white font-black text-xs sm:text-sm lg:text-base transition-all shadow-xl"
               >
-                <Users className="w-4 h-4 sm:w-4 sm:h-4 lg:w-5 lg:h-5" strokeWidth={2.5} />
-                <span className="hidden sm:inline">Mina Lag</span>
-                <span className="sm:hidden">Lag</span>
+                <Target className="w-4 h-4 lg:w-5 lg:h-5" strokeWidth={2.5} />
+                <span>Mina Lag</span>
               </motion.button>
             </motion.div>
           </div>
