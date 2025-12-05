@@ -537,7 +537,7 @@ export default function Dashboard() {
               </Link>
             </motion.div>
 
-            {/* Hitta spontana matcher - ULTRA KLICKBAR med stark animation */}
+            {/* Hitta spontana matcher - Kraftfull animation */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -546,78 +546,31 @@ export default function Dashboard() {
               <Link to={createPageUrl("Matches")}>
                 <motion.button
                   whileHover={{ 
-                    scale: 1.03,
-                    y: -6,
+                    scale: 1.02,
+                    y: -4,
+                    boxShadow: '0 25px 80px rgba(43,168,74,0.8)'
                   }}
-                  whileTap={{ scale: 0.97 }}
+                  whileTap={{ scale: 0.98 }}
                   animate={{
                     boxShadow: [
-                      '0 10px 40px rgba(43,168,74,0.5), 0 0 0 0 rgba(43,168,74,0.4)',
-                      '0 15px 60px rgba(43,168,74,0.7), 0 0 0 8px rgba(43,168,74,0.2)',
-                      '0 10px 40px rgba(43,168,74,0.5), 0 0 0 0 rgba(43,168,74,0.4)',
+                      '0 12px 50px rgba(43,168,74,0.6)',
+                      '0 18px 70px rgba(43,168,74,0.8)',
+                      '0 12px 50px rgba(43,168,74,0.6)',
                     ]
                   }}
                   transition={{
                     boxShadow: {
-                      duration: 1.5,
+                      duration: 2,
                       repeat: Infinity,
                       ease: "easeInOut"
                     }
                   }}
-                  className="relative h-14 sm:h-16 lg:h-20 w-full bg-gradient-to-r from-[#2BA84A] via-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center gap-2 sm:gap-3 font-black text-sm sm:text-base lg:text-xl text-white overflow-hidden group"
+                  className="relative h-14 sm:h-16 lg:h-20 w-full bg-gradient-to-r from-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center gap-2 sm:gap-3 font-black text-sm sm:text-base lg:text-xl text-white overflow-hidden"
                 >
-                  {/* Pulsating border glow */}
+                  {/* Outer glow pulse */}
                   <motion.div
-                    className="absolute inset-0 rounded-2xl"
+                    className="absolute -inset-1 bg-gradient-to-r from-[#2BA84A] to-[#248232] rounded-2xl blur-xl"
                     animate={{
-                      boxShadow: [
-                        'inset 0 0 20px rgba(255,255,255,0.2)',
-                        'inset 0 0 40px rgba(255,255,255,0.4)',
-                        'inset 0 0 20px rgba(255,255,255,0.2)',
-                      ]
-                    }}
-                    transition={{
-                      duration: 1.5,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  />
-
-                  {/* Multiple animated shine waves */}
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent"
-                    animate={{
-                      x: ['-200%', '200%']
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "linear",
-                      repeatDelay: 0.5
-                    }}
-                  />
-                  
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-                    animate={{
-                      x: ['-200%', '200%']
-                    }}
-                    transition={{
-                      duration: 2.5,
-                      repeat: Infinity,
-                      ease: "linear",
-                      delay: 0.5
-                    }}
-                  />
-                  
-                  {/* Radial pulse from center */}
-                  <motion.div
-                    className="absolute inset-0"
-                    style={{
-                      background: 'radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, transparent 70%)'
-                    }}
-                    animate={{
-                      scale: [0.8, 1.2, 0.8],
                       opacity: [0.5, 0.8, 0.5]
                     }}
                     transition={{
@@ -627,32 +580,58 @@ export default function Dashboard() {
                     }}
                   />
 
-                  {/* Rotating icon */}
+                  {/* Sweeping shine effect */}
                   <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
                     animate={{
-                      scale: [1, 1.15, 1],
-                      rotate: [0, 10, -10, 0]
+                      x: ['-100%', '200%']
                     }}
                     transition={{
-                      duration: 2,
+                      duration: 2.5,
+                      repeat: Infinity,
+                      ease: "linear",
+                      repeatDelay: 1
+                    }}
+                  />
+
+                  {/* Pulsating overlay */}
+                  <motion.div
+                    className="absolute inset-0 bg-white/10"
+                    animate={{
+                      opacity: [0.1, 0.3, 0.1]
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+
+                  {/* Icon */}
+                  <motion.div
+                    animate={{
+                      scale: [1, 1.1, 1]
+                    }}
+                    transition={{
+                      duration: 1.5,
                       repeat: Infinity,
                       ease: "easeInOut"
                     }}
                     className="relative z-10"
                   >
-                    <PlayCircle className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8" strokeWidth={2.5} fill="white" fillOpacity={0.2} />
+                    <PlayCircle className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8" strokeWidth={2.5} />
                   </motion.div>
-                  
+
+                  {/* Text */}
                   <span className="relative z-10">Hitta spontana matcher nu</span>
-                  
-                  {/* Bouncing arrow */}
+
+                  {/* Arrow */}
                   <motion.div
                     animate={{
-                      x: [0, 8, 0],
-                      scale: [1, 1.2, 1]
+                      x: [0, 6, 0]
                     }}
                     transition={{
-                      duration: 1,
+                      duration: 1.5,
                       repeat: Infinity,
                       ease: "easeInOut"
                     }}
@@ -660,25 +639,25 @@ export default function Dashboard() {
                   >
                     <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8" strokeWidth={3} />
                   </motion.div>
-                  
-                  {/* Sparkle particles */}
-                  {[...Array(6)].map((_, i) => (
+
+                  {/* Floating particles */}
+                  {[...Array(8)].map((_, i) => (
                     <motion.div
                       key={i}
-                      className="absolute w-1 h-1 bg-white rounded-full"
+                      className="absolute w-1.5 h-1.5 bg-white/80 rounded-full"
                       style={{
-                        left: `${20 + i * 15}%`,
-                        top: '50%',
+                        left: `${10 + i * 11}%`,
+                        top: `${30 + (i % 2) * 40}%`,
                       }}
                       animate={{
-                        y: [0, -20, 0],
+                        y: [-10, -25, -10],
                         opacity: [0, 1, 0],
-                        scale: [0, 1.5, 0]
+                        scale: [0.5, 1, 0.5]
                       }}
                       transition={{
-                        duration: 1.5,
+                        duration: 2,
                         repeat: Infinity,
-                        delay: i * 0.2,
+                        delay: i * 0.15,
                         ease: "easeOut"
                       }}
                     />
