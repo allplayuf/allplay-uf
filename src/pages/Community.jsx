@@ -493,8 +493,8 @@ export default function CommunityPage() {
                   transition={{ duration: 3, repeat: Infinity }}
                 />
                 
-                {/* Logo Frame - No border on mobile */}
-                <div className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-40 lg:h-40 rounded-3xl overflow-hidden border-0 sm:border-4 sm:border-[#2BA84A]/60 shadow-[0_20px_60px_rgba(43,168,74,0.4)] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm transform group-hover:rotate-3 transition-transform duration-500 flex items-center justify-center">
+                {/* Logo Frame - Small border on all sizes */}
+                <div className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-40 lg:h-40 rounded-3xl overflow-hidden border-2 border-[#FFFFFF]/30 shadow-[0_20px_60px_rgba(43,168,74,0.4)] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm transform group-hover:rotate-3 transition-transform duration-500 flex items-center justify-center">
                   {user?.profile_image_url ? (
                     <img 
                       src={user.profile_image_url} 
@@ -509,10 +509,6 @@ export default function CommunityPage() {
                     />
                   )}
                 </div>
-                
-                {/* Corner Accents - Hidden on mobile */}
-                <div className="hidden sm:block absolute -top-3 -right-3 w-8 h-8 border-t-4 border-r-4 border-[#2BA84A] rounded-tr-2xl"></div>
-                <div className="hidden sm:block absolute -bottom-3 -left-3 w-8 h-8 border-b-4 border-l-4 border-[#2BA84A] rounded-bl-2xl"></div>
               </motion.div>
 
               {/* Title Section - Aligned with logo */}
