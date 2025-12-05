@@ -525,8 +525,8 @@ export default function ProfilePage() {
             />
           ))}
           
-          <div className="relative z-10 p-6 sm:p-8 lg:p-12">
-            <div className="flex items-center gap-4 sm:gap-6 mb-6 sm:mb-8 lg:mb-10">
+          <div className="relative z-10 px-4 pt-5 pb-5 sm:px-8 sm:pt-8 sm:pb-8 lg:px-12 lg:pt-12 lg:pb-12">
+            <div className="flex items-center gap-3 sm:gap-6 mb-4 sm:mb-6 lg:mb-8">
               
               {/* Profile Image - Small border */}
               <motion.div
@@ -541,7 +541,7 @@ export default function ProfilePage() {
                 }}
                 className="relative flex-shrink-0"
               >
-                <div className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-3xl overflow-hidden border-2 border-[#FFFFFF]/30 shadow-[0_20px_60px_rgba(43,168,74,0.4)] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm flex items-center justify-center">
+                <div className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-[#FFFFFF]/30 shadow-[0_20px_60px_rgba(43,168,74,0.4)] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm flex items-center justify-center">
                   {displayUser?.profile_image_url ? (
                     <img
                       src={displayUser.profile_image_url}
@@ -582,7 +582,7 @@ export default function ProfilePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight mb-1 sm:mb-2 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)]"
+                  className="text-xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight mb-1 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] leading-tight"
                 >
                   {displayUser?.display_name || displayUser?.full_name}
                 </motion.h1>
@@ -591,25 +591,21 @@ export default function ProfilePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
-                  className="text-white/90 text-xs sm:text-sm lg:text-base font-medium leading-relaxed mb-3"
+                  className="text-white/85 text-[11px] sm:text-sm lg:text-base font-medium leading-snug mb-3 sm:mb-4"
                 >
                   {displayUser?.bio || 'AllPlays officiella konto'}
                 </motion.p>
 
                 {/* Chips */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge className="h-7 px-3 bg-transparent border border-[#FFFFFF]/30 text-[#FFFFFF] text-xs">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                  <Badge className="h-7 px-2.5 sm:px-3 bg-transparent border border-[#FFFFFF]/30 text-[#FFFFFF] text-[10px] sm:text-xs">
                     <MapPin className="w-3 h-3 mr-1" />
                     {displayUser?.city || 'Stockholm'}
                   </Badge>
                   
-                  <Badge className={`h-7 px-3 bg-gradient-to-r ${skillLevel.color} border-0 ${skillLevel.textColor} text-xs font-semibold`}>
+                  <Badge className={`h-7 px-2.5 sm:px-3 bg-gradient-to-r ${skillLevel.color} border-0 ${skillLevel.textColor} text-[10px] sm:text-xs font-semibold`}>
                     <SkillIcon className="w-3 h-3 mr-1" />
                     {skillLevel.label}
-                  </Badge>
-
-                  <Badge className="h-7 px-3 bg-transparent border border-[#FFFFFF]/30 text-[#FFFFFF] text-xs">
-                    Medlem sedan {memberSince}
                   </Badge>
                 </div>
               </div>
@@ -621,13 +617,13 @@ export default function ProfilePage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7 }}
-                className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4"
+                className="grid grid-cols-2 gap-2 sm:gap-3"
               >
                 <Link to={createPageUrl("EditProfile")} className="block">
                   <motion.button
                     whileHover={{ y: -4, scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="h-11 sm:h-12 lg:h-14 w-full bg-gradient-to-r from-[#FFFFFF]/20 to-[#FFFFFF]/10 hover:from-[#FFFFFF]/30 hover:to-[#FFFFFF]/20 backdrop-blur-xl border-2 border-white/40 hover:border-white/60 rounded-xl flex items-center justify-center gap-2 text-white font-black text-xs sm:text-sm lg:text-base transition-all shadow-xl"
+                    className="h-12 sm:h-12 lg:h-14 w-full bg-gradient-to-r from-[#FFFFFF]/20 to-[#FFFFFF]/10 hover:from-[#FFFFFF]/30 hover:to-[#FFFFFF]/20 backdrop-blur-xl border-2 border-white/40 hover:border-white/60 rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 text-white font-black text-sm sm:text-sm lg:text-base transition-all shadow-xl"
                   >
                     <Edit className="w-4 h-4 lg:w-5 lg:h-5" strokeWidth={2.5} />
                     <span>Redigera</span>
@@ -637,11 +633,10 @@ export default function ProfilePage() {
                   whileHover={{ y: -4, scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setShowQRModal(true)}
-                  className="h-11 sm:h-12 lg:h-14 bg-gradient-to-r from-[#FFFFFF]/20 to-[#FFFFFF]/10 hover:from-[#FFFFFF]/30 hover:to-[#FFFFFF]/20 backdrop-blur-xl border-2 border-white/40 hover:border-white/60 rounded-xl flex items-center justify-center gap-2 text-white font-black text-xs sm:text-sm lg:text-base transition-all shadow-xl"
+                  className="h-12 sm:h-12 lg:h-14 bg-gradient-to-r from-[#FFFFFF]/20 to-[#FFFFFF]/10 hover:from-[#FFFFFF]/30 hover:to-[#FFFFFF]/20 backdrop-blur-xl border-2 border-white/40 hover:border-white/60 rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 text-white font-black text-sm sm:text-sm lg:text-base transition-all shadow-xl"
                 >
                   <QrCode className="w-4 h-4 lg:w-5 lg:h-5" strokeWidth={2.5} />
-                  <span className="hidden sm:inline">Bjud in</span>
-                  <span className="sm:hidden">QR</span>
+                  <span>Bjud in</span>
                 </motion.button>
               </motion.div>
             )}
