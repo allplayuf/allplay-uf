@@ -137,7 +137,10 @@ const ICON_MAP = {
   'social': Link,
   'team_builder': UserPlus,
   'supporter': MessageSquarePlus,
-  'cup_participant': Trophy
+  'cup_participant': Trophy,
+  'recruiter': UserPlus,
+  'community_builder': Users,
+  'matchmaker_elite': HeartHandshake
 };
 
 const ALL_BADGES = [
@@ -154,7 +157,10 @@ const ALL_BADGES = [
   { id: 'social', name: 'Social', description: 'Ha aktiva vänner', category: 'social', tiers: { bronze: 5, silver: 10, gold: 25, diamond: 50 }, stat: 'friends_count' },
   { id: 'team_builder', name: 'Team Builder', description: 'Skapa och hantera lag', category: 'social', tiers: { bronze: 1, silver: 2, gold: 3, diamond: 5 }, stat: 'teams_created' },
   { id: 'supporter', name: 'Supporter', description: 'Ge feedback', category: 'special', tiers: { bronze: 1, silver: 5, gold: 10, diamond: 20 }, stat: 'feedback_count' },
-  { id: 'cup_participant', name: 'Turneringsspelare', description: 'Delta i turneringar', category: 'matches', tiers: { bronze: 1, silver: 3, gold: 5, diamond: 10 }, stat: 'cups_participated' }
+  { id: 'cup_participant', name: 'Turneringsspelare', description: 'Delta i turneringar', category: 'matches', tiers: { bronze: 1, silver: 3, gold: 5, diamond: 10 }, stat: 'cups_participated' },
+  { id: 'recruiter', name: 'AllPlay Recruiter', description: 'Bjud in vänner (endast via invites)', category: 'special', tiers: { bronze: 1, silver: 1, gold: 1, diamond: 1 }, stat: 'verified_referrals', isExclusive: true },
+  { id: 'community_builder', name: 'Community Builder', description: 'Bygg communityt (endast via invites)', category: 'special', tiers: { bronze: 5, silver: 5, gold: 5, diamond: 5 }, stat: 'verified_referrals', isExclusive: true },
+  { id: 'matchmaker_elite', name: 'Matchmaker Elite', description: 'Mästare på invites (endast via invites)', category: 'special', tiers: { bronze: 10, silver: 10, gold: 10, diamond: 10 }, stat: 'verified_referrals', isExclusive: true }
 ];
 
 const BadgeDetailModal = ({ badge, userValue, earnedTier, onClose }) => {
@@ -291,6 +297,23 @@ const BadgeDetailModal = ({ badge, userValue, earnedTier, onClose }) => {
             </div>
           </div>
 
+          {/* Exclusive Badge Notice */}
+          {badge.isExclusive && (
+            <div className="bg-gradient-to-r from-[#FFD700]/20 to-[#FFA500]/20 rounded-xl p-4 border border-[#FFD700]/30">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-[#FFD700]/30 flex items-center justify-center flex-shrink-0">
+                  <Star className="w-4 h-4 text-[#FFD700]" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-[#FFD700] mb-1">Exklusiv Badge</p>
+                  <p className="text-xs text-[#F4F7F5] leading-relaxed">
+                    Denna badge kan endast erhållas genom att bjuda in vänner till AllPlay. Dela din referral-länk eller QR-kod!
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Tips */}
           <div className="bg-[#18221E] rounded-xl p-4 border border-[#223029]">
             <div className="flex items-start gap-3">
@@ -300,11 +323,12 @@ const BadgeDetailModal = ({ badge, userValue, earnedTier, onClose }) => {
               <div>
                 <p className="text-xs font-bold text-[#F4F7F5] mb-1">Tips</p>
                 <p className="text-xs text-[#B6C2BC] leading-relaxed">
-                  {badge.category === 'matches' && 'Fortsätt spela matcher för att låsa upp fler nivåer!'}
-                  {badge.category === 'social' && 'Bjud in fler vänner och bygg ditt nätverk!'}
-                  {badge.category === 'skill' && 'Ge ditt bästa i varje match för att bli MVP!'}
-                  {badge.category === 'dedication' && 'Håll streaken vid liv genom att spela regelbundet!'}
-                  {badge.category === 'special' && 'Denna badge är något extra speciellt - fortsätt utforska!'}
+                  {badge.isExclusive && 'Dela din referral-länk eller QR-kod från din profil för att bjuda in vänner!'}
+                  {!badge.isExclusive && badge.category === 'matches' && 'Fortsätt spela matcher för att låsa upp fler nivåer!'}
+                  {!badge.isExclusive && badge.category === 'social' && 'Bjud in fler vänner och bygg ditt nätverk!'}
+                  {!badge.isExclusive && badge.category === 'skill' && 'Ge ditt bästa i varje match för att bli MVP!'}
+                  {!badge.isExclusive && badge.category === 'dedication' && 'Håll streaken vid liv genom att spela regelbundet!'}
+                  {!badge.isExclusive && badge.category === 'special' && 'Denna badge är något extra speciellt - fortsätt utforska!'}
                 </p>
               </div>
             </div>
@@ -368,6 +392,15 @@ const BadgeComponent = ({ badge, userValue, earnedTier, onClick }) => {
           <categoryConfig.icon className="w-3 h-3 sm:hidden" />
         </Badge>
       </div>
+
+      {/* Exclusive Badge Indicator */}
+      {badge.isExclusive && (
+        <div className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2">
+          <Badge className="text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-[#000000] border-0 font-bold shadow-[0_0_12px_rgba(255,215,0,0.6)]">
+            Exklusiv
+          </Badge>
+        </div>
+      )}
 
       {/* Badge Icon - RESPONSIVE SIZE */}
       <div 
