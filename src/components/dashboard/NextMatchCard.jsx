@@ -4,11 +4,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, MapPin, Users, Clock, Share2, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 import ShareMatchModal from "./ShareMatchModal";
 
 export default function NextMatchCard({ match, venue, participants = [] }) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0 });
   const [showShareModal, setShowShareModal] = useState(false);
+
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['allUsers'],
+    queryFn: async () => await base44.entities.User.list(),
+    enabled: participants.length > 0,
+  });
 
   useEffect(() => {
     if (!match) return;
@@ -131,14 +139,21 @@ export default function NextMatchCard({ match, venue, participants = [] }) {
             <div>
               <p className="text-xs font-semibold text-[#B6C2BC] mb-2">Anmälda spelare</p>
               <div className="flex -space-x-2">
-                {participants.slice(0, 5).map((participant, index) => (
-                  <div
-                    key={participant.id}
-                    className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2BA84A] to-[#248232] flex items-center justify-center ring-2 ring-[#121715] text-white text-xs font-semibold"
-                  >
-                    {participant.user_id?.[0] || 'U'}
-                  </div>
-                ))}
+                {participants.slice(0, 5).map((participant, index) => {
+                  const user = allUsers.find(u => u.id === participant.user_id);
+                  return (
+                    <div
+                      key={participant.id}
+                      className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2BA84A] to-[#248232] flex items-center justify-center ring-2 ring-[#121715] text-white text-xs font-semibold overflow-hidden"
+                    >
+                      {user?.profile_image_url ? (
+                        <img src={user.profile_image_url} alt={user.full_name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span>{user?.full_name?.[0] || 'U'}</span>
+                      )}
+                    </div>
+                  );
+                })}
                 {participants.length > 5 && (
                   <div className="w-8 h-8 rounded-full bg-[#18221E] flex items-center justify-center ring-2 ring-[#121715] text-[#2BA84A] text-xs font-semibold">
                     +{participants.length - 5}

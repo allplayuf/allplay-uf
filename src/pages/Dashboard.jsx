@@ -30,8 +30,8 @@ import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import CupsWidget from "../components/dashboard/CupsWidget";
 import MatchCard from "../components/matches/MatchCard";
 import NotificationsSlider from "../components/dashboard/NotificationsSlider";
-import PersonalRecommendations from "../components/dashboard/PersonalRecommendations";
 import NextMatchCard from "../components/dashboard/NextMatchCard";
+import InboxWidget from "../components/dashboard/InboxWidget";
 
 // Query keys
 const QUERY_KEYS = {
@@ -230,11 +230,6 @@ export default function Dashboard() {
     { type: 'feature', title: 'Nya funktioner i appen', subtitle: 'Kolla in turneringar!' },
     ...(friendsInUpcomingMatchesCount > 0 ? [{ type: 'social', title: `${friendsInUpcomingMatchesCount} vänner spelar snart`, subtitle: 'Gå med i deras matcher' }] : [])
   ];
-
-  // Get recommendations
-  const recommendedPlayers = [];
-  const recommendedTeams = [];
-  const recommendedMatches = quickPlayMatches.slice(0, 2);
 
   // Calculate weekly stats
   const weekAgo = new Date();
@@ -847,21 +842,14 @@ export default function Dashboard() {
             transition={{ duration: 0.6, delay: 0.9, ease: "easeOut" }}
             className="lg:col-span-4 space-y-5 sm:space-y-6 sticky top-24 self-start"
           >
+            {/* Cups Widget */}
+            <CupsWidget />
+
             {/* Next Match Card */}
             <NextMatchCard 
               match={myUpcomingMatches[0]} 
               venue={myUpcomingMatches[0] ? venues.find(v => v.id === myUpcomingMatches[0].venue_id) : null}
               participants={myUpcomingMatches[0] ? allParticipants.filter(p => p.match_id === myUpcomingMatches[0].id) : []}
-            />
-
-            {/* Cups Widget */}
-            <CupsWidget />
-
-            {/* Personal Recommendations */}
-            <PersonalRecommendations 
-              players={recommendedPlayers}
-              teams={recommendedTeams}
-              matches={recommendedMatches}
             />
           </motion.div>
         </div>
