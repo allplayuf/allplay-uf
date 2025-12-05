@@ -31,7 +31,6 @@ import CupsWidget from "../components/dashboard/CupsWidget";
 import MatchCard from "../components/matches/MatchCard";
 import NotificationsSlider from "../components/dashboard/NotificationsSlider";
 import NextMatchCard from "../components/dashboard/NextMatchCard";
-import InboxWidget from "../components/dashboard/InboxWidget";
 
 // Query keys
 const QUERY_KEYS = {
@@ -88,6 +87,17 @@ export default function Dashboard() {
       return await base44.entities.MatchParticipant.list();
     },
     ...CACHE_STRATEGIES.REALTIME,
+    enabled: !!user,
+  });
+
+  // Fetch admin notifications
+  const { data: adminNotifications = [] } = useQuery({
+    queryKey: ['adminNotifications'],
+    queryFn: async () => {
+      const notifs = await base44.entities.AdminNotification.filter({ is_active: true });
+      return notifs.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+    },
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
     enabled: !!user,
   });
 
@@ -247,58 +257,34 @@ export default function Dashboard() {
   const timeUntilMatch = myUpcomingMatches.length > 0 ? 
     (new Date(`${myUpcomingMatches[0].date}T${myUpcomingMatches[0].time}`) - new Date()) / (1000 * 60) : Infinity;
 
-  // Prepare notifications
-  const notifications = [];
-  
-  // Nya matcher nära användaren
-  if (nearbyMatches.length > 0) {
-    notifications.push({
+  // Prepare notifications - combine admin notifications with dynamic ones
+  const notifications = [
+    ...adminNotifications,
+    // Nya matcher nära användaren
+    ...(nearbyMatches.length > 0 ? [{
       type: 'match',
       title: 'Ny match skapad nära dig!',
       subtitle: `${nearbyMatches[0].title} på ${nearbyMatches[0].venue?.name}`
-    });
-  }
-
-  // Vänner i kommande matcher
-  if (friendsInUpcomingMatchesCount > 0) {
-    notifications.push({
+    }] : []),
+    // Vänner i kommande matcher
+    ...(friendsInUpcomingMatchesCount > 0 ? [{
       type: 'social',
       title: `${friendsInUpcomingMatchesCount} ${friendsInUpcomingMatchesCount === 1 ? 'vän' : 'vänner'} spelar snart`,
       subtitle: 'Gå med i deras matcher'
-    });
-  }
-
-  // Påminnelse om kommande match
-  if (myUpcomingMatches.length > 0 && timeUntilMatch < 24 * 60) {
-    notifications.push({
+    }] : []),
+    // Påminnelse om kommande match
+    ...(myUpcomingMatches.length > 0 && timeUntilMatch < 24 * 60 ? [{
       type: 'reminder',
       title: 'Din match är snart!',
       subtitle: `${myUpcomingMatches[0].title} börjar om ${Math.floor(timeUntilMatch / 60)}h`
-    });
-  }
-
-  // Achievements
-  if (weeklyStats.mvps >= 2) {
-    notifications.push({
+    }] : []),
+    // Achievements
+    ...(weeklyStats.mvps >= 2 ? [{
       type: 'achievement',
       title: 'Du är på gång!',
       subtitle: `${weeklyStats.mvps} MVPs denna vecka 🔥`
-    });
-  }
-
-  // Nya funktioner
-  notifications.push({
-    type: 'feature',
-    title: 'Kolla in turneringar!',
-    subtitle: 'Tävla mot andra lag'
-  });
-
-  // Nya planer
-  notifications.push({
-    type: 'venue',
-    title: 'Ny plan har lagts till',
-    subtitle: 'Grimsta IP i din stad'
-  });
+    }] : [])
+  ];
 
   // Calculate recent activity
   const recentMatchesForActivity = allMatches
@@ -680,9 +666,6 @@ export default function Dashboard() {
             </motion.div>
           </div>
         </motion.div>
-
-        {/* Inbox Widget */}
-        <InboxWidget />
 
         {/* Notifications Slider */}
         {notifications.length > 0 && (
