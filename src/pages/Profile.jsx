@@ -566,10 +566,10 @@ export default function ProfilePage() {
                     />
                     <label htmlFor="profile-image-upload">
                       <button
-                        className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#F4743B] rounded-xl flex items-center justify-center text-[#FFFFFF] ring-2 ring-[#FFFFFF] hover:bg-[#E5683A] transition-all duration-150 hover:shadow-lg hover:scale-105"
+                        className="absolute -bottom-2 -right-2 w-8 h-8 sm:w-10 sm:h-10 bg-[#F4743B] rounded-xl flex items-center justify-center text-[#FFFFFF] ring-2 ring-[#FFFFFF] hover:bg-[#E5683A] transition-all duration-150 hover:shadow-lg hover:scale-105"
                         onClick={() => document.getElementById('profile-image-upload').click()}
                       >
-                        <Camera className="w-5 h-5" />
+                        <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
                       </button>
                     </label>
                   </>
@@ -610,6 +610,35 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
+
+            {/* Stats Grid */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="grid grid-cols-3 gap-2 sm:gap-3 mb-3 sm:mb-4"
+            >
+              <div className="bg-gradient-to-br from-[#FFFFFF]/15 to-[#FFFFFF]/5 backdrop-blur-xl border border-white/30 rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center">
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-1">
+                  {displayUser?.matches_played || 0}
+                </div>
+                <div className="text-[10px] sm:text-xs text-white/70 font-semibold">Matcher</div>
+              </div>
+              
+              <div className="bg-gradient-to-br from-[#F4743B]/20 to-[#F4743B]/5 backdrop-blur-xl border border-[#F4743B]/40 rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center">
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#FDE3D2] mb-1">
+                  {displayUser?.mvp_count || 0}
+                </div>
+                <div className="text-[10px] sm:text-xs text-[#FDE3D2]/70 font-semibold">MVPs</div>
+              </div>
+              
+              <div className="bg-gradient-to-br from-[#F59E0B]/20 to-[#F59E0B]/5 backdrop-blur-xl border border-[#F59E0B]/40 rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center">
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#FDE68A] mb-1">
+                  {displayUser?.current_streak || 0}
+                </div>
+                <div className="text-[10px] sm:text-xs text-[#FDE68A]/70 font-semibold">Streak</div>
+              </div>
+            </motion.div>
 
             {/* Action Buttons - In Hero */}
             {!isViewingOtherProfile && (
