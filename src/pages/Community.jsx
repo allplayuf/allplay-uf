@@ -537,7 +537,7 @@ export default function CommunityPage() {
               </div>
             </div>
 
-            {/* Premium Stats Grid - Numbers centered in icons */}
+            {/* Premium Stats Grid - Centered numbers and fixed icon positions */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -550,15 +550,17 @@ export default function CommunityPage() {
                 className="relative group"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/30 to-[#248232]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-white/30 sm:border-white/40 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:border-[#2BA84A]/60 transition-all">
-                  <div className="flex items-center gap-2 mb-2 sm:mb-3">
-                    <div className="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-lg sm:rounded-xl bg-[#2BA84A]/20 flex items-center justify-center ring-1 sm:ring-2 ring-[#2BA84A]/30 relative">
-                      <Heart className="w-4 h-4 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-[#86EFAC] absolute" strokeWidth={2.5} />
-                      <span className="text-white font-black text-xs sm:text-sm lg:text-base drop-shadow-lg relative z-10">
-                        {friendsAccepted.length}
-                      </span>
+                <div className="relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-white/30 sm:border-white/40 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:border-[#2BA84A]/60 transition-all">
+                  <div className="flex flex-col items-center text-center space-y-2">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl bg-[#2BA84A]/20 flex items-center justify-center ring-2 ring-[#2BA84A]/30 flex-shrink-0">
+                      <Heart className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#86EFAC]" strokeWidth={2.5} />
                     </div>
-                    <span className="text-white/70 text-[9px] sm:text-[10px] lg:text-xs font-bold uppercase tracking-wider">Vänner</span>
+                    <div className="space-y-0.5">
+                      <p className="text-white font-black text-2xl sm:text-3xl lg:text-4xl drop-shadow-lg leading-none">
+                        {friendsAccepted.length}
+                      </p>
+                      <span className="text-white/70 text-[10px] sm:text-xs lg:text-sm font-bold uppercase tracking-wider block">Vänner</span>
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -569,15 +571,17 @@ export default function CommunityPage() {
                 className="relative group"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-[#9370DB]/30 to-[#7C3AED]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-white/30 sm:border-white/40 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:border-[#9370DB]/60 transition-all">
-                  <div className="flex items-center gap-2 mb-2 sm:mb-3">
-                    <div className="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-lg sm:rounded-xl bg-[#9370DB]/20 flex items-center justify-center ring-1 sm:ring-2 ring-[#9370DB]/30 relative">
-                      <Users className="w-4 h-4 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-[#DDD6FE] absolute" strokeWidth={2.5} />
-                      <span className="text-white font-black text-xs sm:text-sm lg:text-base drop-shadow-lg relative z-10">
-                        {myTeams.length}
-                      </span>
+                <div className="relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-white/30 sm:border-white/40 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:border-[#9370DB]/60 transition-all">
+                  <div className="flex flex-col items-center text-center space-y-2">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl bg-[#9370DB]/20 flex items-center justify-center ring-2 ring-[#9370DB]/30 flex-shrink-0">
+                      <Users className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#DDD6FE]" strokeWidth={2.5} />
                     </div>
-                    <span className="text-white/70 text-[9px] sm:text-[10px] lg:text-xs font-bold uppercase tracking-wider">Lag</span>
+                    <div className="space-y-0.5">
+                      <p className="text-white font-black text-2xl sm:text-3xl lg:text-4xl drop-shadow-lg leading-none">
+                        {myTeams.length}
+                      </p>
+                      <span className="text-white/70 text-[10px] sm:text-xs lg:text-sm font-bold uppercase tracking-wider block">Lag</span>
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -588,15 +592,17 @@ export default function CommunityPage() {
                 className="relative group"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-[#F59E0B]/30 to-[#D97706]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-white/30 sm:border-white/40 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:border-[#F59E0B]/60 transition-all">
-                  <div className="flex items-center gap-2 mb-2 sm:mb-3">
-                    <div className="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-lg sm:rounded-xl bg-[#F59E0B]/20 flex items-center justify-center ring-1 sm:ring-2 ring-[#F59E0B]/30 relative">
-                      <Trophy className="w-4 h-4 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-[#FCD34D] absolute" strokeWidth={2.5} />
-                      <span className="text-white font-black text-xs sm:text-sm lg:text-base drop-shadow-lg relative z-10">
-                        {cupsCount}
-                      </span>
+                <div className="relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-white/30 sm:border-white/40 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:border-[#F59E0B]/60 transition-all">
+                  <div className="flex flex-col items-center text-center space-y-2">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl bg-[#F59E0B]/20 flex items-center justify-center ring-2 ring-[#F59E0B]/30 flex-shrink-0">
+                      <Trophy className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#FCD34D]" strokeWidth={2.5} />
                     </div>
-                    <span className="text-white/70 text-[9px] sm:text-[10px] lg:text-xs font-bold uppercase tracking-wider">Cuper</span>
+                    <div className="space-y-0.5">
+                      <p className="text-white font-black text-2xl sm:text-3xl lg:text-4xl drop-shadow-lg leading-none">
+                        {cupsCount}
+                      </p>
+                      <span className="text-white/70 text-[10px] sm:text-xs lg:text-sm font-bold uppercase tracking-wider block">Cuper</span>
+                    </div>
                   </div>
                 </div>
               </motion.div>
