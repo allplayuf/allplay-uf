@@ -435,8 +435,8 @@ export default function Dashboard() {
             />
           ))}
 
-          <div className="relative z-10 p-6 sm:p-8 lg:p-12">
-            <div className="flex items-center gap-4 sm:gap-6 mb-6 sm:mb-8 lg:mb-10">
+          <div className="relative z-10 p-4 sm:p-6 lg:p-10">
+            <div className="flex items-center gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-5 lg:mb-7">
               
               {/* Profile Image - Small border */}
               <motion.div
@@ -451,11 +451,11 @@ export default function Dashboard() {
                 }}
                 className="relative flex-shrink-0"
               >
-                <div className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-3xl overflow-hidden border-2 border-[#FFFFFF]/30 shadow-[0_20px_60px_rgba(43,168,74,0.4)] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm flex items-center justify-center">
+                <div className="relative w-16 h-16 sm:w-24 sm:h-24 lg:w-32 lg:h-32 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-[#FFFFFF]/30 shadow-[0_20px_60px_rgba(43,168,74,0.4)] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm flex items-center justify-center">
                   {user?.profile_image_url ? (
                     <img src={user.profile_image_url} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-4xl font-bold text-[#FFFFFF]">{user?.full_name?.[0] || 'U'}</span>
+                    <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#FFFFFF]">{user?.full_name?.[0] || 'U'}</span>
                   )}
                 </div>
               </motion.div>
@@ -466,7 +466,7 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight mb-1 sm:mb-2 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)]"
+                  className="text-xl sm:text-2xl lg:text-4xl font-black text-white tracking-tight mb-1 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] leading-tight"
                 >
                   Välkommen tillbaka, {user?.full_name?.split(' ')[0]}!
                 </motion.h1>
@@ -475,7 +475,7 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
-                  className="text-white/90 text-xs sm:text-sm lg:text-base font-medium leading-relaxed mb-3"
+                  className="text-white/90 text-xs sm:text-sm lg:text-base font-medium leading-snug"
                 >
                   Dags att dominera planen idag! 🔥
                 </motion.p>
@@ -487,7 +487,7 @@ export default function Dashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6"
+              className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4 mb-3 sm:mb-4 lg:mb-5"
             >
               <Link to={createPageUrl('Map')}>
                 <motion.div 
@@ -537,7 +537,7 @@ export default function Dashboard() {
               </Link>
             </motion.div>
 
-            {/* Hitta spontana matcher - Extremt klickbar knapp */}
+            {/* Hitta spontana matcher - ULTRA KLICKBAR med stark animation */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -546,45 +546,35 @@ export default function Dashboard() {
               <Link to={createPageUrl("Matches")}>
                 <motion.button
                   whileHover={{ 
-                    scale: 1.02,
-                    y: -4,
-                    boxShadow: '0 20px 70px rgba(43,168,74,0.6)'
+                    scale: 1.03,
+                    y: -6,
                   }}
-                  whileTap={{ scale: 0.98 }}
+                  whileTap={{ scale: 0.97 }}
                   animate={{
                     boxShadow: [
-                      '0 8px 32px rgba(43,168,74,0.4)',
-                      '0 12px 48px rgba(43,168,74,0.5)',
-                      '0 8px 32px rgba(43,168,74,0.4)',
+                      '0 10px 40px rgba(43,168,74,0.5), 0 0 0 0 rgba(43,168,74,0.4)',
+                      '0 15px 60px rgba(43,168,74,0.7), 0 0 0 8px rgba(43,168,74,0.2)',
+                      '0 10px 40px rgba(43,168,74,0.5), 0 0 0 0 rgba(43,168,74,0.4)',
                     ]
                   }}
                   transition={{
                     boxShadow: {
-                      duration: 2,
+                      duration: 1.5,
                       repeat: Infinity,
                       ease: "easeInOut"
                     }
                   }}
-                  className="relative h-14 sm:h-16 lg:h-20 w-full bg-gradient-to-r from-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center gap-2 sm:gap-3 font-black text-sm sm:text-base lg:text-xl text-white overflow-hidden group"
+                  className="relative h-14 sm:h-16 lg:h-20 w-full bg-gradient-to-r from-[#2BA84A] via-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center gap-2 sm:gap-3 font-black text-sm sm:text-base lg:text-xl text-white overflow-hidden group"
                 >
-                  {/* Animated background pulse */}
+                  {/* Pulsating border glow */}
                   <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0"
+                    className="absolute inset-0 rounded-2xl"
                     animate={{
-                      x: ['-100%', '200%']
-                    }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: "linear"
-                    }}
-                  />
-                  
-                  {/* Glow effect */}
-                  <motion.div
-                    className="absolute inset-0 bg-white/10"
-                    animate={{
-                      opacity: [0.3, 0.6, 0.3]
+                      boxShadow: [
+                        'inset 0 0 20px rgba(255,255,255,0.2)',
+                        'inset 0 0 40px rgba(255,255,255,0.4)',
+                        'inset 0 0 20px rgba(255,255,255,0.2)',
+                      ]
                     }}
                     transition={{
                       duration: 1.5,
@@ -593,26 +583,76 @@ export default function Dashboard() {
                     }}
                   />
 
+                  {/* Multiple animated shine waves */}
                   <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent"
                     animate={{
-                      scale: [1, 1.1, 1]
+                      x: ['-200%', '200%']
                     }}
                     transition={{
-                      duration: 1.5,
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "linear",
+                      repeatDelay: 0.5
+                    }}
+                  />
+                  
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                    animate={{
+                      x: ['-200%', '200%']
+                    }}
+                    transition={{
+                      duration: 2.5,
+                      repeat: Infinity,
+                      ease: "linear",
+                      delay: 0.5
+                    }}
+                  />
+                  
+                  {/* Radial pulse from center */}
+                  <motion.div
+                    className="absolute inset-0"
+                    style={{
+                      background: 'radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, transparent 70%)'
+                    }}
+                    animate={{
+                      scale: [0.8, 1.2, 0.8],
+                      opacity: [0.5, 0.8, 0.5]
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+
+                  {/* Rotating icon */}
+                  <motion.div
+                    animate={{
+                      scale: [1, 1.15, 1],
+                      rotate: [0, 10, -10, 0]
+                    }}
+                    transition={{
+                      duration: 2,
                       repeat: Infinity,
                       ease: "easeInOut"
                     }}
                     className="relative z-10"
                   >
-                    <PlayCircle className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8" strokeWidth={2.5} />
+                    <PlayCircle className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8" strokeWidth={2.5} fill="white" fillOpacity={0.2} />
                   </motion.div>
+                  
                   <span className="relative z-10">Hitta spontana matcher nu</span>
+                  
+                  {/* Bouncing arrow */}
                   <motion.div
                     animate={{
-                      x: [0, 5, 0]
+                      x: [0, 8, 0],
+                      scale: [1, 1.2, 1]
                     }}
                     transition={{
-                      duration: 1.2,
+                      duration: 1,
                       repeat: Infinity,
                       ease: "easeInOut"
                     }}
@@ -620,46 +660,36 @@ export default function Dashboard() {
                   >
                     <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8" strokeWidth={3} />
                   </motion.div>
+                  
+                  {/* Sparkle particles */}
+                  {[...Array(6)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      className="absolute w-1 h-1 bg-white rounded-full"
+                      style={{
+                        left: `${20 + i * 15}%`,
+                        top: '50%',
+                      }}
+                      animate={{
+                        y: [0, -20, 0],
+                        opacity: [0, 1, 0],
+                        scale: [0, 1.5, 0]
+                      }}
+                      transition={{
+                        duration: 1.5,
+                        repeat: Infinity,
+                        delay: i * 0.2,
+                        ease: "easeOut"
+                      }}
+                    />
+                  ))}
                 </motion.button>
               </Link>
             </motion.div>
           </div>
         </motion.div>
 
-        {/* Navigation Grid - Hitta planer, Skapa match, Vänner & lag */}
-        <div className="grid grid-cols-3 gap-3 sm:gap-4">
-          <Link to={createPageUrl('Map')}>
-            <motion.div
-              whileHover={{ y: -4, scale: 1.03 }}
-              whileTap={{ scale: 0.98 }}
-              className="bg-[#2BA84A] rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center gap-2 h-24 sm:h-28 shadow-lg hover:shadow-xl transition-all"
-            >
-              <MapPin className="w-6 h-6 sm:w-8 sm:h-8 text-white" strokeWidth={2.5} />
-              <span className="text-xs sm:text-sm font-bold text-white text-center">Hitta Planer</span>
-            </motion.div>
-          </Link>
-          
-          <motion.div
-            whileHover={{ y: -4, scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setShowCreateMatchModal(true)}
-            className="bg-[#F4743B] rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center gap-2 h-24 sm:h-28 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-          >
-            <Plus className="w-6 h-6 sm:w-8 sm:h-8 text-white" strokeWidth={2.5} />
-            <span className="text-xs sm:text-sm font-bold text-white text-center">Skapa match</span>
-          </motion.div>
 
-          <Link to={createPageUrl('Community')}>
-            <motion.div
-              whileHover={{ y: -4, scale: 1.03 }}
-              whileTap={{ scale: 0.98 }}
-              className="bg-[#9370DB] rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center gap-2 h-24 sm:h-28 shadow-lg hover:shadow-xl transition-all"
-            >
-              <Users className="w-6 h-6 sm:w-8 sm:h-8 text-white" strokeWidth={2.5} />
-              <span className="text-xs sm:text-sm font-bold text-white text-center">Vänner & lag</span>
-            </motion.div>
-          </Link>
-        </div>
 
         {/* Main Content */}
         <div className="grid lg:grid-cols-3 gap-5 sm:gap-6">
