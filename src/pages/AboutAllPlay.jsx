@@ -128,10 +128,10 @@ export default function AboutAllPlay() {
           <div className="grid gap-4 mb-6">
             {[
               { name: "Isak Landström", role: "CMO (marknadschef)", image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/598d84457_P1090552.jpg" },
-              { name: "Matija Cvitic", role: "CEO (verkställande direktör)", image: null },
-              { name: "Joong-seop Hong", role: "CTO (teknisk chef)", image: null },
-              { name: "Iris Waldenborg", role: "COO (operativ chef)", image: null },
-              { name: "Simon Halef Schmidt", role: "CFO (ekonomichef)", image: null }
+              { name: "Matija Cvitic", role: "CEO (verkställande direktör)", image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/f63c59c55_P1090553.jpg" },
+              { name: "Joong-seop Hong", role: "CTO (teknisk chef)", image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/9a7654026_P1090555.jpg" },
+              { name: "Iris Waldenborg", role: "COO (operativ chef)", image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/d19e7d62a_P1090565.jpg" },
+              { name: "Simon Halef Schmidt", role: "CFO (ekonomichef)", image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/1be963c95_P1090576.jpg" }
             ].map((member, index) => (
               <motion.div
                 key={index}
@@ -140,20 +140,16 @@ export default function AboutAllPlay() {
                 transition={{ delay: 0.7 + index * 0.1 }}
                 className="flex items-center gap-4 p-4 bg-[#121715] rounded-xl"
               >
-                <div className="w-12 h-12 bg-gradient-to-br from-[#F4743B] to-[#E5683A] rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0">
-                  {member.image ? (
-                    <img 
-                      src={member.image} 
-                      alt={member.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-white font-bold text-lg">{member.name[0]}</span>
-                  )}
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-[#F4743B] to-[#E5683A] rounded-2xl overflow-hidden flex items-center justify-center flex-shrink-0 ring-2 ring-[#F4743B]/30">
+                  <img 
+                    src={member.image} 
+                    alt={member.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-[#F4F7F5]">{member.name}</h3>
-                  <p className="text-sm text-[#B6C2BC]">{member.role}</p>
+                  <h3 className="font-semibold text-[#F4F7F5] text-base sm:text-lg">{member.name}</h3>
+                  <p className="text-sm sm:text-base text-[#B6C2BC]">{member.role}</p>
                 </div>
               </motion.div>
             ))}
