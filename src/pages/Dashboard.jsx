@@ -356,10 +356,10 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative overflow-hidden rounded-3xl shadow-[0_40px_90px_rgba(0,0,0,0.5),0_10px_28px_6px_rgba(40,180,90,0.18)] border border-[#2BA84A]/35"
+          className="relative overflow-hidden rounded-3xl shadow-[0_30px_90px_rgba(0,0,0,0.5),0_0_28px_6px_rgba(40,180,90,0.18)] border border-[#2BA84A]/30"
         >
           {/* Dark gradient base */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#1E1E1E] via-[#131816] to-[#0E100E]"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-[#1A1A1A] via-[#0F1513] to-[#0A0D0B]"></div>
           
           {/* Green animated overlay */}
           <motion.div
@@ -466,7 +466,7 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="text-xl sm:text-2xl lg:text-4xl font-black text-white tracking-tight mb-[6px] drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] leading-tight"
+                  className="text-xl sm:text-2xl lg:text-4xl font-black text-white tracking-tight mb-0.5 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] leading-tight"
                 >
                   Välkommen tillbaka, {user?.full_name?.split(' ')[0]}!
                 </motion.h1>
@@ -475,7 +475,7 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
-                  className="text-white/90 text-[11px] sm:text-[13px] lg:text-[15px] font-medium leading-snug"
+                  className="text-white/85 text-[11px] sm:text-[13px] lg:text-[15px] font-medium leading-snug"
                 >
                   Dags att dominera planen idag! 🔥
                 </motion.p>
@@ -496,9 +496,9 @@ export default function Dashboard() {
                   className="relative group"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/30 to-[#248232]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="relative bg-gradient-to-br from-[#2BA84A]/13 via-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#2BA84A]/40 sm:border-[#2BA84A]/50 shadow-[0_8px_24px_rgba(43,168,74,0.2),inset_0_0_12px_rgba(0,0,0,0.25)] hover:border-[#2BA84A]/80 hover:shadow-[0_12px_32px_rgba(43,168,74,0.3)] transition-all h-[88px] sm:h-24 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
+                  <div className="relative bg-gradient-to-br from-[#2BA84A]/25 via-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#2BA84A]/40 sm:border-[#2BA84A]/50 shadow-[0_8px_24px_rgba(43,168,74,0.2)] hover:border-[#2BA84A]/80 hover:shadow-[0_12px_32px_rgba(43,168,74,0.3)] transition-all h-[88px] sm:h-24 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
                     <div className="w-9 h-9 sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-xl bg-[#2BA84A]/30 flex items-center justify-center ring-2 ring-[#2BA84A]/40 flex-shrink-0">
-                      <MapPin className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[#86EFAC]" strokeWidth={2.5} />
+                      <MapPin className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#86EFAC]" strokeWidth={2.5} />
                     </div>
                     <span className="text-[10px] sm:text-xs lg:text-sm font-bold text-white text-center">Hitta Planer</span>
                   </div>
@@ -512,9 +512,9 @@ export default function Dashboard() {
                 className="relative group cursor-pointer"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-[#F4743B]/30 to-[#E5683A]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-[#F4743B]/13 via-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#F4743B]/40 sm:border-[#F4743B]/50 shadow-[0_8px_24px_rgba(244,116,59,0.2),inset_0_0_12px_rgba(0,0,0,0.25)] hover:border-[#F4743B]/80 hover:shadow-[0_12px_32px_rgba(244,116,59,0.3)] transition-all h-[88px] sm:h-24 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
+                <div className="relative bg-gradient-to-br from-[#F4743B]/25 via-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#F4743B]/40 sm:border-[#F4743B]/50 shadow-[0_8px_24px_rgba(244,116,59,0.2)] hover:border-[#F4743B]/80 hover:shadow-[0_12px_32px_rgba(244,116,59,0.3)] transition-all h-[88px] sm:h-24 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
                   <div className="w-9 h-9 sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-xl bg-[#F4743B]/30 flex items-center justify-center ring-2 ring-[#F4743B]/40 flex-shrink-0">
-                    <Plus className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[#FDE3D2]" strokeWidth={2.5} />
+                    <Plus className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#FDE3D2]" strokeWidth={2.5} />
                   </div>
                   <span className="text-[10px] sm:text-xs lg:text-sm font-bold text-white text-center">Skapa match</span>
                 </div>
@@ -527,9 +527,9 @@ export default function Dashboard() {
                   className="relative group"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-[#9370DB]/30 to-[#7C3AED]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="relative bg-gradient-to-br from-[#9370DB]/13 via-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#9370DB]/40 sm:border-[#9370DB]/50 shadow-[0_8px_24px_rgba(147,112,219,0.2),inset_0_0_12px_rgba(0,0,0,0.25)] hover:border-[#9370DB]/80 hover:shadow-[0_12px_32px_rgba(147,112,219,0.3)] transition-all h-[88px] sm:h-24 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
+                  <div className="relative bg-gradient-to-br from-[#9370DB]/25 via-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#9370DB]/40 sm:border-[#9370DB]/50 shadow-[0_8px_24px_rgba(147,112,219,0.2)] hover:border-[#9370DB]/80 hover:shadow-[0_12px_32px_rgba(147,112,219,0.3)] transition-all h-[88px] sm:h-24 lg:h-28 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
                     <div className="w-9 h-9 sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-xl bg-[#9370DB]/30 flex items-center justify-center ring-2 ring-[#9370DB]/40 flex-shrink-0">
-                      <Users className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[#DDD6FE]" strokeWidth={2.5} />
+                      <Users className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#DDD6FE]" strokeWidth={2.5} />
                     </div>
                     <span className="text-[10px] sm:text-xs lg:text-sm font-bold text-white text-center">Vänner & lag</span>
                   </div>
@@ -565,7 +565,7 @@ export default function Dashboard() {
                       ease: "easeInOut"
                     }
                   }}
-                  className="relative h-[60px] sm:h-16 lg:h-20 w-full bg-gradient-to-r from-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center gap-1.5 sm:gap-2.5 font-bold text-[18px] sm:text-lg lg:text-xl text-white overflow-hidden"
+                  className="relative h-[60px] sm:h-16 lg:h-20 w-full bg-gradient-to-r from-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center gap-2 sm:gap-3 font-black text-sm sm:text-base lg:text-xl text-white overflow-hidden"
                 >
                   {/* Outer glow pulse */}
                   <motion.div
@@ -579,12 +579,6 @@ export default function Dashboard() {
                       ease: "easeInOut"
                     }}
                   />
-
-                  {/* Top highlight */}
-                  <div className="absolute inset-x-0 top-0 h-[25%] bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
-                  
-                  {/* Bottom darkening */}
-                  <div className="absolute inset-x-0 bottom-0 h-[20%] bg-gradient-to-t from-black/8 to-transparent pointer-events-none" />
 
                   {/* Sweeping shine effect */}
                   <motion.div
@@ -625,7 +619,7 @@ export default function Dashboard() {
                     }}
                     className="relative z-10"
                   >
-                    <PlayCircle className="w-6 h-6 sm:w-7 sm:h-7 lg:w-9 lg:h-9" strokeWidth={2.5} />
+                    <PlayCircle className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8" strokeWidth={2.5} />
                   </motion.div>
 
                   {/* Text */}
@@ -643,7 +637,7 @@ export default function Dashboard() {
                     }}
                     className="relative z-10"
                   >
-                    <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7 lg:w-9 lg:h-9" strokeWidth={3} />
+                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8" strokeWidth={3} />
                   </motion.div>
 
 
