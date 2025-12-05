@@ -681,7 +681,7 @@ export default function ProfilePage() {
                   <motion.button
                     whileHover={{ y: -4, scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="h-12 sm:h-12 lg:h-14 w-full bg-gradient-to-r from-[#FFFFFF]/20 to-[#FFFFFF]/10 hover:from-[#FFFFFF]/30 hover:to-[#FFFFFF]/20 backdrop-blur-xl border-2 border-white/40 hover:border-white/60 rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 text-white font-black text-sm sm:text-sm lg:text-base transition-all shadow-xl"
+                    className="h-12 sm:h-12 lg:h-14 w-full bg-gradient-to-r from-[#FFFFFF]/20 to-[#FFFFFF]/10 hover:from-[#FFFFFF]/30 hover:to-[#FFFFFF]/20 backdrop-blur-xl border border-white/30 hover:border-white/50 rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 text-white font-black text-sm sm:text-sm lg:text-base transition-all shadow-xl"
                   >
                     <Edit className="w-4 h-4 lg:w-5 lg:h-5" strokeWidth={2.5} />
                     <span>Redigera</span>
@@ -691,7 +691,7 @@ export default function ProfilePage() {
                   whileHover={{ y: -4, scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setShowQRModal(true)}
-                  className="h-12 sm:h-12 lg:h-14 bg-gradient-to-r from-[#FFFFFF]/20 to-[#FFFFFF]/10 hover:from-[#FFFFFF]/30 hover:to-[#FFFFFF]/20 backdrop-blur-xl border-2 border-white/40 hover:border-white/60 rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 text-white font-black text-sm sm:text-sm lg:text-base transition-all shadow-xl"
+                  className="h-12 sm:h-12 lg:h-14 bg-gradient-to-r from-[#FFFFFF]/20 to-[#FFFFFF]/10 hover:from-[#FFFFFF]/30 hover:to-[#FFFFFF]/20 backdrop-blur-xl border border-white/30 hover:border-white/50 rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 text-white font-black text-sm sm:text-sm lg:text-base transition-all shadow-xl"
                 >
                   <QrCode className="w-4 h-4 lg:w-5 lg:h-5" strokeWidth={2.5} />
                   <span>Bjud in</span>
