@@ -466,7 +466,7 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="text-xl sm:text-2xl lg:text-4xl font-black text-white tracking-tight mb-0.5 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] leading-tight"
+                  className="text-xl sm:text-2xl lg:text-4xl font-black text-white tracking-tight mb-1.5 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] leading-tight"
                 >
                   Välkommen tillbaka, {user?.full_name?.split(' ')[0]}!
                 </motion.h1>
@@ -475,7 +475,7 @@ export default function Dashboard() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
-                  className="text-white/85 text-[11px] sm:text-[13px] lg:text-[15px] font-medium leading-snug"
+                  className="text-white/90 text-[11px] sm:text-[13px] lg:text-[15px] font-medium leading-snug"
                 >
                   Dags att dominera planen idag! 🔥
                 </motion.p>
@@ -531,7 +531,7 @@ export default function Dashboard() {
                     <div className="w-9 h-9 sm:w-11 sm:h-11 lg:w-14 lg:h-14 rounded-xl bg-[#9370DB]/30 flex items-center justify-center ring-2 ring-[#9370DB]/40 flex-shrink-0">
                       <Users className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#DDD6FE]" strokeWidth={2.5} />
                     </div>
-                    <span className="text-[10px] sm:text-xs lg:text-sm font-bold text-white text-center">Vänner & lag</span>
+                    <span className="text-[9px] sm:text-xs lg:text-sm font-bold text-white text-center leading-tight">Vänner &<br className="sm:hidden" />lag</span>
                   </div>
                 </motion.div>
               </Link>
@@ -567,43 +567,17 @@ export default function Dashboard() {
                   }}
                   className="relative h-[60px] sm:h-16 lg:h-20 w-full bg-gradient-to-r from-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center gap-2 sm:gap-3 font-black text-sm sm:text-base lg:text-xl text-white overflow-hidden"
                 >
-                  {/* Outer glow pulse */}
-                  <motion.div
-                    className="absolute -inset-1 bg-gradient-to-r from-[#2BA84A] to-[#248232] rounded-2xl blur-xl"
-                    animate={{
-                      opacity: [0.5, 0.8, 0.5]
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  />
-
                   {/* Sweeping shine effect */}
                   <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent"
                     animate={{
                       x: ['-100%', '200%']
                     }}
                     transition={{
-                      duration: 2.5,
+                      duration: 3,
                       repeat: Infinity,
-                      ease: "linear",
-                      repeatDelay: 1
-                    }}
-                  />
-
-                  {/* Pulsating overlay */}
-                  <motion.div
-                    className="absolute inset-0 bg-white/10"
-                    animate={{
-                      opacity: [0.1, 0.3, 0.1]
-                    }}
-                    transition={{
-                      duration: 1.5,
-                      repeat: Infinity,
-                      ease: "easeInOut"
+                      ease: "easeInOut",
+                      repeatDelay: 2
                     }}
                   />
 
