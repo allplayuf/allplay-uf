@@ -29,6 +29,11 @@ import CreateMatchForm from "../components/matches/CreateMatchForm";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import CupsWidget from "../components/dashboard/CupsWidget";
 import MatchCard from "../components/matches/MatchCard";
+import NotificationsSlider from "../components/dashboard/NotificationsSlider";
+import PerformanceOverview from "../components/dashboard/PerformanceOverview";
+import PersonalRecommendations from "../components/dashboard/PersonalRecommendations";
+import NextMatchCard from "../components/dashboard/NextMatchCard";
+import NearbyVenuesPreview from "../components/dashboard/NearbyVenuesPreview";
 
 // Query keys
 const QUERY_KEYS = {
@@ -221,6 +226,36 @@ export default function Dashboard() {
     .sort((a, b) => a.distance - b.distance)
     .slice(0, 3) : [];
 
+  // Calculate nearby venues
+  const nearbyVenues = userLocation ? venues
+    .map(venue => {
+      if (!venue.latitude || !venue.longitude) {
+        return { ...venue, distance: Infinity };
+      }
+      const distance = calculateDistance(
+        userLocation.lat,
+        userLocation.lng,
+        parseFloat(venue.latitude),
+        parseFloat(venue.longitude)
+      );
+      return { ...venue, distance };
+    })
+    .filter(v => v.distance < 10 && v.is_active !== false)
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, 5) : [];
+
+  // Prepare notifications
+  const notifications = [
+    { type: 'venue', title: 'Ny plan har lagts till', subtitle: 'Grimsta IP i din stad' },
+    { type: 'feature', title: 'Nya funktioner i appen', subtitle: 'Kolla in turneringar!' },
+    ...(friendsInUpcomingMatchesCount > 0 ? [{ type: 'social', title: `${friendsInUpcomingMatchesCount} vänner spelar snart`, subtitle: 'Gå med i deras matcher' }] : [])
+  ];
+
+  // Get recommendations
+  const recommendedPlayers = [];
+  const recommendedTeams = [];
+  const recommendedMatches = quickPlayMatches.slice(0, 2);
+
   // Calculate weekly stats
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
@@ -350,6 +385,17 @@ export default function Dashboard() {
       </AnimatePresence>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        {/* Notifications Slider */}
+        {notifications.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <NotificationsSlider notifications={notifications} />
+          </motion.div>
+        )}
 
         {/* Premium Hero Card - Community Style */}
         <motion.div
@@ -821,170 +867,32 @@ export default function Dashboard() {
             transition={{ duration: 0.6, delay: 0.9, ease: "easeOut" }}
             className="lg:col-span-4 space-y-5 sm:space-y-6 sticky top-24 self-start"
           >
-            {/* NEW: Cups Widget */}
+            {/* Next Match Card */}
+            <NextMatchCard 
+              match={myUpcomingMatches[0]} 
+              venue={myUpcomingMatches[0] ? venues.find(v => v.id === myUpcomingMatches[0].venue_id) : null}
+              participants={myUpcomingMatches[0] ? allParticipants.filter(p => p.match_id === myUpcomingMatches[0].id) : []}
+            />
+
+            {/* Cups Widget */}
             <CupsWidget />
 
-            <Card className="bg-gradient-to-br from-[#121715] to-[#0F2917]/30 rounded-[20px] shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#2BA84A]/20 overflow-hidden">
-              <CardContent className="p-0">
-                {/* Header */}
-                <div className="bg-gradient-to-r from-[#2BA84A]/10 to-[#248232]/10 p-5 border-b border-[#2BA84A]/20">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#2BA84A]/20 rounded-xl flex items-center justify-center ring-2 ring-[#2BA84A]/30">
-                      <Target className="w-5 h-5 text-[#2BA84A]" strokeWidth={2.5} />
-                    </div>
-                    <h3 className="text-lg font-bold text-[#F4F7F5]">Denna vecka</h3>
-                  </div>
-                </div>
+            {/* Performance Overview */}
+            <PerformanceOverview 
+              weeklyStats={weeklyStats}
+              recentActivity={recentActivity}
+              user={user}
+            />
 
-                {/* Content */}
-                <div className="p-5 space-y-5">
-                  {/* Matcher */}
-                  <div className="bg-[#18221E] rounded-xl p-4 border border-[#223029]">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-[#2BA84A]/15 rounded-lg flex items-center justify-center">
-                          <Trophy className="w-4 h-4 text-[#2BA84A]" />
-                        </div>
-                        <span className="text-sm font-semibold text-[#F4F7F5]">Matcher</span>
-                      </div>
-                      <span className="text-lg font-black text-[#2BA84A]">{weeklyStats.matchesPlayed}/{weeklyStats.goal}</span>
-                    </div>
-                    <div className="relative h-2.5 bg-[#0F1513] rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${(weeklyStats.matchesPlayed / weeklyStats.goal) * 100}%` }}
-                        transition={{ duration: 1, ease: "easeOut" }}
-                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#2BA84A] to-[#248232] rounded-full"
-                      />
-                    </div>
-                  </div>
+            {/* Nearby Venues Preview */}
+            <NearbyVenuesPreview venues={nearbyVenues} userLocation={userLocation} />
 
-                  {/* MVPs */}
-                  <div className="bg-[#18221E] rounded-xl p-4 border border-[#223029]">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-[#F4743B]/15 rounded-lg flex items-center justify-center">
-                          <Star className="w-4 h-4 text-[#F4743B]" />
-                        </div>
-                        <span className="text-sm font-semibold text-[#F4F7F5]">MVPs</span>
-                      </div>
-                      <span className="text-lg font-black text-[#F4743B]">{weeklyStats.mvps}</span>
-                    </div>
-                    <div className="relative h-2.5 bg-[#0F1513] rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${Math.min((weeklyStats.mvps / 3) * 100, 100)}%` }}
-                        transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
-                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#F4743B] to-[#E5683A] rounded-full"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Streak */}
-                  <div className="bg-gradient-to-br from-[#F59E0B]/10 to-[#D97706]/5 rounded-xl p-4 border border-[#F59E0B]/30">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <motion.div
-                          animate={{
-                            scale: [1, 1.1, 1]
-                          }}
-                          transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                          }}
-                          className="w-8 h-8 bg-[#F59E0B]/20 rounded-lg flex items-center justify-center"
-                        >
-                          <Flame className="w-4 h-4 text-[#F59E0B]" />
-                        </motion.div>
-                        <span className="text-sm font-semibold text-[#F4F7F5]">Streak</span>
-                      </div>
-                      <span className="text-lg font-black text-[#F59E0B]">{user?.current_streak || 0} dagar</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-[#121715] to-[#18221E]/50 rounded-[20px] shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#F4743B]/20 overflow-hidden">
-              <CardContent className="p-0">
-                {/* Header */}
-                <div className="bg-gradient-to-r from-[#F4743B]/10 to-[#E5683A]/10 p-5 border-b border-[#F4743B]/20">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#F4743B]/20 rounded-xl flex items-center justify-center ring-2 ring-[#F4743B]/30">
-                      <Sparkles className="w-5 h-5 text-[#F4743B]" strokeWidth={2.5} />
-                    </div>
-                    <h3 className="text-lg font-bold text-[#F4F7F5]">Senaste aktivitet</h3>
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-5">
-                  {recentActivity.length > 0 ? (
-                    <div className="space-y-3">
-                      {recentActivity.slice(0, 3).map((activity, index) => {
-                        const Icon = activity.icon;
-                        const isFirst = index === 0;
-                        return (
-                          <motion.div
-                            key={index}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            className={`relative flex gap-3 p-4 rounded-xl border transition-all ${
-                              isFirst 
-                                ? 'bg-gradient-to-br from-[#2BA84A]/10 to-[#248232]/5 border-[#2BA84A]/30' 
-                                : 'bg-[#18221E] border-[#223029] hover:border-[#2BA84A]/20'
-                            }`}
-                          >
-                            <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                              activity.type === 'mvp' 
-                                ? 'bg-gradient-to-br from-[#F4743B]/20 to-[#E5683A]/10 ring-2 ring-[#F4743B]/30' 
-                                : 'bg-[#2BA84A]/15 ring-2 ring-[#2BA84A]/20'
-                            }`}>
-                              <Icon className={`w-5 h-5 ${
-                                activity.type === 'mvp' ? 'text-[#F4743B]' : 'text-[#2BA84A]'
-                              }`} strokeWidth={2.5} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-[#F4F7F5] leading-snug">{activity.text}</p>
-                              <p className="text-xs text-[#7B8A83] mt-1 flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                {activity.time}
-                              </p>
-                            </div>
-                            {isFirst && (
-                              <motion.div
-                                animate={{
-                                  scale: [1, 1.2, 1],
-                                  rotate: [0, 10, 0]
-                                }}
-                                transition={{
-                                  duration: 2,
-                                  repeat: Infinity,
-                                  ease: "easeInOut"
-                                }}
-                                className="absolute -top-1 -right-1 w-6 h-6 bg-[#F4743B] rounded-full flex items-center justify-center"
-                              >
-                                <Sparkles className="w-3 h-3 text-white" strokeWidth={3} />
-                              </motion.div>
-                            )}
-                          </motion.div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="text-center py-10">
-                      <div className="w-16 h-16 bg-[#18221E] rounded-2xl flex items-center justify-center mx-auto mb-4 ring-1 ring-[#223029]">
-                        <Sparkles className="w-8 h-8 text-[#7B8A83]" />
-                      </div>
-                      <p className="text-sm font-semibold text-[#B6C2BC] mb-1">Ingen aktivitet än</p>
-                      <p className="text-xs text-[#7B8A83]">Spela din första match för att komma igång!</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Personal Recommendations */}
+            <PersonalRecommendations 
+              players={recommendedPlayers}
+              teams={recommendedTeams}
+              matches={recommendedMatches}
+            />
           </motion.div>
         </div>
 
