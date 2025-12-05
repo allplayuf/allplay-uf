@@ -120,16 +120,16 @@ export default function InboxNotifications({
 
   if (totalNotifications === 0) {
     return (
-      <Card className="bg-gradient-to-br from-[#121715] to-[#0F2917]/20 border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[20px]">
-        <CardContent className="p-12 text-center">
-          <div className="w-20 h-20 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-[#2BA84A]/20">
-            <Inbox className="w-10 h-10 text-[#2BA84A]" />
+      <Card className="bg-gradient-to-br from-[#121715] to-[#0F2917]/20 border border-[#223029] shadow-[0_4px_12px_rgba(0,0,0,0.15)] rounded-[16px]">
+        <CardContent className="p-6 text-center">
+          <div className="w-12 h-12 bg-[#2BA84A]/10 rounded-xl flex items-center justify-center mx-auto mb-3">
+            <Inbox className="w-6 h-6 text-[#2BA84A]" />
           </div>
-          <h3 className="text-2xl font-bold text-[#F4F7F5] mb-3">
+          <h3 className="text-base font-bold text-[#F4F7F5] mb-1">
             Inga nya notiser
           </h3>
-          <p className="text-base text-[#B6C2BC]">
-            Vänförfrågningar och laginbjudningar kommer att visas här.
+          <p className="text-xs text-[#B6C2BC]">
+            Nya notiser visas här
           </p>
         </CardContent>
       </Card>
