@@ -487,7 +487,7 @@ export default function Dashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4 mb-3 sm:mb-4 lg:mb-5"
+              className="grid grid-cols-3 gap-3 sm:gap-3 lg:gap-4 mb-3 sm:mb-4 lg:mb-5"
             >
               <Link to={createPageUrl('Map')}>
                 <motion.div 
@@ -850,93 +850,165 @@ export default function Dashboard() {
             {/* NEW: Cups Widget */}
             <CupsWidget />
 
-            <Card className="bg-gradient-to-br from-[#121715] to-[#18221E] rounded-[20px] shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#223029]">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
-                    <Target className="w-5 h-5 text-[#2BA84A]" strokeWidth={2.5} />
-                  </div>
-                  <h3 className="text-lg font-bold text-[#F4F7F5]">Denna vecka</h3>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <span className="text-sm font-medium text-[#B6C2BC]">Matcher spelade</span>
-                      <span className="text-base font-bold text-[#F4F7F5]">{weeklyStats.matchesPlayed}/{weeklyStats.goal}</span>
+            <Card className="bg-gradient-to-br from-[#121715] to-[#0F2917]/30 rounded-[20px] shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#2BA84A]/20 overflow-hidden">
+              <CardContent className="p-0">
+                {/* Header */}
+                <div className="bg-gradient-to-r from-[#2BA84A]/10 to-[#248232]/10 p-5 border-b border-[#2BA84A]/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#2BA84A]/20 rounded-xl flex items-center justify-center ring-2 ring-[#2BA84A]/30">
+                      <Target className="w-5 h-5 text-[#2BA84A]" strokeWidth={2.5} />
                     </div>
-                    <div className="h-2 bg-[#18221E] rounded-full overflow-hidden border border-[#223029]">
+                    <h3 className="text-lg font-bold text-[#F4F7F5]">Denna vecka</h3>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-5 space-y-5">
+                  {/* Matcher */}
+                  <div className="bg-[#18221E] rounded-xl p-4 border border-[#223029]">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-[#2BA84A]/15 rounded-lg flex items-center justify-center">
+                          <Trophy className="w-4 h-4 text-[#2BA84A]" />
+                        </div>
+                        <span className="text-sm font-semibold text-[#F4F7F5]">Matcher</span>
+                      </div>
+                      <span className="text-lg font-black text-[#2BA84A]">{weeklyStats.matchesPlayed}/{weeklyStats.goal}</span>
+                    </div>
+                    <div className="relative h-2.5 bg-[#0F1513] rounded-full overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${(weeklyStats.matchesPlayed / weeklyStats.goal) * 100}%` }}
                         transition={{ duration: 1, ease: "easeOut" }}
-                        className="h-full bg-gradient-to-r from-[#2BA84A] to-[#248232] rounded-full"
+                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#2BA84A] to-[#248232] rounded-full"
                       />
                     </div>
                   </div>
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <span className="text-sm font-medium text-[#B6C2BC]">MVPs</span>
-                      <span className="text-base font-bold text-[#F4F7F5]">{weeklyStats.mvps}</span>
+
+                  {/* MVPs */}
+                  <div className="bg-[#18221E] rounded-xl p-4 border border-[#223029]">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-[#F4743B]/15 rounded-lg flex items-center justify-center">
+                          <Star className="w-4 h-4 text-[#F4743B]" />
+                        </div>
+                        <span className="text-sm font-semibold text-[#F4F7F5]">MVPs</span>
+                      </div>
+                      <span className="text-lg font-black text-[#F4743B]">{weeklyStats.mvps}</span>
                     </div>
-                    <div className="h-2 bg-[#18221E] rounded-full overflow-hidden border border-[#223029]">
+                    <div className="relative h-2.5 bg-[#0F1513] rounded-full overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${Math.min((weeklyStats.mvps / 3) * 100, 100)}%` }}
                         transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
-                        className="h-full bg-gradient-to-r from-[#F4743B] to-[#E5683A] rounded-full"
+                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#F4743B] to-[#E5683A] rounded-full"
                       />
                     </div>
                   </div>
-                  <div className="pt-2 border-t border-[#223029]">
+
+                  {/* Streak */}
+                  <div className="bg-gradient-to-br from-[#F59E0B]/10 to-[#D97706]/5 rounded-xl p-4 border border-[#F59E0B]/30">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-[#B6C2BC]">Streak</span>
-                      <span className="text-base font-bold text-[#F4F7F5] flex items-center gap-1">
-                        <Flame className="w-4 h-4 text-[#F4743B]" />
-                        {user?.current_streak || 0} dagar
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <motion.div
+                          animate={{
+                            scale: [1, 1.1, 1]
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                          }}
+                          className="w-8 h-8 bg-[#F59E0B]/20 rounded-lg flex items-center justify-center"
+                        >
+                          <Flame className="w-4 h-4 text-[#F59E0B]" />
+                        </motion.div>
+                        <span className="text-sm font-semibold text-[#F4F7F5]">Streak</span>
+                      </div>
+                      <span className="text-lg font-black text-[#F59E0B]">{user?.current_streak || 0} dagar</span>
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-[#121715] to-[#18221E] rounded-[20px] shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#223029]">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-br from-[#F4743B]/20 to-[#F4743B]/10 rounded-xl flex items-center justify-center">
-                    <Award className="w-5 h-5 text-[#F4743B]" strokeWidth={2.5} />
+            <Card className="bg-gradient-to-br from-[#121715] to-[#18221E]/50 rounded-[20px] shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#F4743B]/20 overflow-hidden">
+              <CardContent className="p-0">
+                {/* Header */}
+                <div className="bg-gradient-to-r from-[#F4743B]/10 to-[#E5683A]/10 p-5 border-b border-[#F4743B]/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#F4743B]/20 rounded-xl flex items-center justify-center ring-2 ring-[#F4743B]/30">
+                      <Sparkles className="w-5 h-5 text-[#F4743B]" strokeWidth={2.5} />
+                    </div>
+                    <h3 className="text-lg font-bold text-[#F4F7F5]">Senaste aktivitet</h3>
                   </div>
-                  <h3 className="text-lg font-bold text-[#F4F7F5]">Aktivitet</h3>
                 </div>
-                {recentActivity.length > 0 ? (
-                  <div className="space-y-3">
-                    {recentActivity.slice(0, 2).map((activity, index) => {
-                      const Icon = activity.icon;
-                      return (
-                        <motion.div
-                          key={index}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          className="flex gap-3 p-3 bg-[#18221E] rounded-xl border border-[#223029] hover:border-[#2BA84A]/30 transition-all"
-                        >
-                          <div className="w-10 h-10 bg-[#2BA84A]/15 rounded-lg flex items-center justify-center flex-shrink-0 ring-1 ring-[#2BA84A]/25">
-                            <Icon className="w-5 h-5 text-[#2BA84A]" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-[#F4F7F5]">{activity.text}</p>
-                            <p className="text-xs text-[#B6C2BC] mt-1">{activity.time}</p>
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center py-6">
-                    <p className="text-sm text-[#B6C2BC]">Ingen aktivitet än</p>
-                    <p className="text-xs text-[#B6C2BC] mt-1">Spela din första match!</p>
-                  </div>
-                )}
+
+                {/* Content */}
+                <div className="p-5">
+                  {recentActivity.length > 0 ? (
+                    <div className="space-y-3">
+                      {recentActivity.slice(0, 3).map((activity, index) => {
+                        const Icon = activity.icon;
+                        const isFirst = index === 0;
+                        return (
+                          <motion.div
+                            key={index}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                            className={`relative flex gap-3 p-4 rounded-xl border transition-all ${
+                              isFirst 
+                                ? 'bg-gradient-to-br from-[#2BA84A]/10 to-[#248232]/5 border-[#2BA84A]/30' 
+                                : 'bg-[#18221E] border-[#223029] hover:border-[#2BA84A]/20'
+                            }`}
+                          >
+                            <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                              activity.type === 'mvp' 
+                                ? 'bg-gradient-to-br from-[#F4743B]/20 to-[#E5683A]/10 ring-2 ring-[#F4743B]/30' 
+                                : 'bg-[#2BA84A]/15 ring-2 ring-[#2BA84A]/20'
+                            }`}>
+                              <Icon className={`w-5 h-5 ${
+                                activity.type === 'mvp' ? 'text-[#F4743B]' : 'text-[#2BA84A]'
+                              }`} strokeWidth={2.5} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-[#F4F7F5] leading-snug">{activity.text}</p>
+                              <p className="text-xs text-[#7B8A83] mt-1 flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {activity.time}
+                              </p>
+                            </div>
+                            {isFirst && (
+                              <motion.div
+                                animate={{
+                                  scale: [1, 1.2, 1],
+                                  rotate: [0, 10, 0]
+                                }}
+                                transition={{
+                                  duration: 2,
+                                  repeat: Infinity,
+                                  ease: "easeInOut"
+                                }}
+                                className="absolute -top-1 -right-1 w-6 h-6 bg-[#F4743B] rounded-full flex items-center justify-center"
+                              >
+                                <Sparkles className="w-3 h-3 text-white" strokeWidth={3} />
+                              </motion.div>
+                            )}
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-10">
+                      <div className="w-16 h-16 bg-[#18221E] rounded-2xl flex items-center justify-center mx-auto mb-4 ring-1 ring-[#223029]">
+                        <Sparkles className="w-8 h-8 text-[#7B8A83]" />
+                      </div>
+                      <p className="text-sm font-semibold text-[#B6C2BC] mb-1">Ingen aktivitet än</p>
+                      <p className="text-xs text-[#7B8A83]">Spela din första match för att komma igång!</p>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </motion.div>
