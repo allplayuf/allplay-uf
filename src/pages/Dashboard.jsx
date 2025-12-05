@@ -189,7 +189,7 @@ export default function Dashboard() {
 
   const myUpcomingMatches = upcomingMatches
     .filter(m => userMatchIds.includes(m.id) || m.organizer_id === user?.id)
-    .slice(0, 3);
+    .slice(0, 4);
 
   const quickPlayMatches = upcomingMatches
     .filter(m =>
@@ -624,8 +624,8 @@ export default function Dashboard() {
 
 
         {/* Main Content */}
-        <div className="grid lg:grid-cols-3 gap-5 sm:gap-6">
-          <div className="lg:col-span-2 space-y-5 sm:space-y-6">
+        <div className="grid lg:grid-cols-12 gap-5 sm:gap-6">
+          <div className="lg:col-span-8 space-y-5 sm:space-y-6">
             {/* Upcoming Matches */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -663,7 +663,7 @@ export default function Dashboard() {
                   </Link>
                 </div>
               ) : (
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
                   {myUpcomingMatches.map((match, index) => (
                     <div key={match.id} className="h-full">
                         <MatchCard 
@@ -768,7 +768,7 @@ export default function Dashboard() {
                   </Link>
                 </div>
                 <div className="space-y-3">
-                  {quickPlayMatches.slice(0, 3).map((match, index) => {
+                  {quickPlayMatches.slice(0, 5).map((match, index) => {
                     const venue = venues.find(v => v.id === match.venue_id);
                     const currentPlayersCount = (allParticipants || []).filter(p => p.match_id === match.id).length;
                     return (
@@ -819,7 +819,7 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.9, ease: "easeOut" }}
-            className="space-y-5 sm:space-y-6 sticky top-24 self-start"
+            className="lg:col-span-4 space-y-5 sm:space-y-6 sticky top-24 self-start"
           >
             {/* NEW: Cups Widget */}
             <CupsWidget />
