@@ -127,11 +127,11 @@ export default function AboutAllPlay() {
           
           <div className="grid gap-4 mb-6">
             {[
-              { name: "Matija Cvitic", role: "CEO (verkställande direktör)", initial: "M" },
-              { name: "Iris Waldenborg", role: "COO (operativ chef)", initial: "I" },
-              { name: "Joong-seop Hong", role: "CTO (teknisk chef)", initial: "J" },
-              { name: "Isak Landström", role: "CMO (marknadschef)", initial: "I" },
-              { name: "Simon Halef Schmidt", role: "CFO (ekonomichef)", initial: "S" }
+              { name: "Isak Landström", role: "CMO (marknadschef)", image: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/598d84457_P1090552.jpg" },
+              { name: "Matija Cvitic", role: "CEO (verkställande direktör)", image: null },
+              { name: "Joong-seop Hong", role: "CTO (teknisk chef)", image: null },
+              { name: "Iris Waldenborg", role: "COO (operativ chef)", image: null },
+              { name: "Simon Halef Schmidt", role: "CFO (ekonomichef)", image: null }
             ].map((member, index) => (
               <motion.div
                 key={index}
@@ -140,8 +140,16 @@ export default function AboutAllPlay() {
                 transition={{ delay: 0.7 + index * 0.1 }}
                 className="flex items-center gap-4 p-4 bg-[#121715] rounded-xl"
               >
-                <div className="w-12 h-12 bg-gradient-to-br from-[#F4743B] to-[#E5683A] rounded-xl flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-bold text-lg">{member.initial}</span>
+                <div className="w-12 h-12 bg-gradient-to-br from-[#F4743B] to-[#E5683A] rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0">
+                  {member.image ? (
+                    <img 
+                      src={member.image} 
+                      alt={member.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-white font-bold text-lg">{member.name[0]}</span>
+                  )}
                 </div>
                 <div>
                   <h3 className="font-semibold text-[#F4F7F5]">{member.name}</h3>
@@ -187,24 +195,6 @@ export default function AboutAllPlay() {
           
           <div className="space-y-3">
             <a 
-              href="https://allplayuf.se" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center justify-between p-4 bg-[#121715] rounded-xl hover:bg-[#18221E] transition-colors group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[#2BA84A]/20 rounded-lg flex items-center justify-center">
-                  <Globe className="w-5 h-5 text-[#2BA84A]" />
-                </div>
-                <div>
-                  <p className="font-semibold text-[#F4F7F5]">Webbplats</p>
-                  <p className="text-sm text-[#B6C2BC]">allplayuf.se</p>
-                </div>
-              </div>
-              <ExternalLink className="w-5 h-5 text-[#B6C2BC] group-hover:text-[#2BA84A] transition-colors" />
-            </a>
-
-            <a 
               href="https://www.instagram.com/allplayuf" 
               target="_blank" 
               rel="noopener noreferrer"
@@ -223,7 +213,7 @@ export default function AboutAllPlay() {
             </a>
 
             <a 
-              href="https://www.tiktok.com/@allplayuf" 
+              href="https://www.tiktok.com/@allplay.uf" 
               target="_blank" 
               rel="noopener noreferrer"
               className="flex items-center justify-between p-4 bg-[#121715] rounded-xl hover:bg-[#18221E] transition-colors group"
@@ -234,10 +224,28 @@ export default function AboutAllPlay() {
                 </div>
                 <div>
                   <p className="font-semibold text-[#F4F7F5]">TikTok</p>
-                  <p className="text-sm text-[#B6C2BC]">@allplayuf</p>
+                  <p className="text-sm text-[#B6C2BC]">@allplay.uf</p>
                 </div>
               </div>
               <ExternalLink className="w-5 h-5 text-[#B6C2BC] group-hover:text-[#9370DB] transition-colors" />
+            </a>
+
+            <a 
+              href="https://www.linkedin.com/company/allplay-uf" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center justify-between p-4 bg-[#121715] rounded-xl hover:bg-[#18221E] transition-colors group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-[#2BA84A]/20 rounded-lg flex items-center justify-center">
+                  <Globe className="w-5 h-5 text-[#2BA84A]" />
+                </div>
+                <div>
+                  <p className="font-semibold text-[#F4F7F5]">LinkedIn</p>
+                  <p className="text-sm text-[#B6C2BC]">AllPlay UF</p>
+                </div>
+              </div>
+              <ExternalLink className="w-5 h-5 text-[#B6C2BC] group-hover:text-[#2BA84A] transition-colors" />
             </a>
           </div>
         </motion.div>
