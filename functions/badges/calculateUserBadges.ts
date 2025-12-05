@@ -15,7 +15,10 @@ const BADGE_DEFINITIONS = [
   { id: 'social', name: 'Social', description: 'Ha aktiva vänner', category: 'social', tiers: { bronze: 5, silver: 10, gold: 25, diamond: 50 }, stat: 'friends_count' },
   { id: 'team_builder', name: 'Team Builder', description: 'Skapa och hantera lag', category: 'social', tiers: { bronze: 1, silver: 2, gold: 3, diamond: 5 }, stat: 'teams_created' },
   { id: 'supporter', name: 'Supporter', description: 'Ge feedback', category: 'special', tiers: { bronze: 1, silver: 5, gold: 10, diamond: 20 }, stat: 'feedback_count' },
-  { id: 'cup_participant', name: 'Turneringsspelare', description: 'Delta i turneringar', category: 'matches', tiers: { bronze: 1, silver: 3, gold: 5, diamond: 10 }, stat: 'cups_participated' }
+  { id: 'cup_participant', name: 'Turneringsspelare', description: 'Delta i turneringar', category: 'matches', tiers: { bronze: 1, silver: 3, gold: 5, diamond: 10 }, stat: 'cups_participated' },
+  { id: 'recruiter', name: 'AllPlay Recruiter', description: 'Bjud in vänner (endast via invites)', category: 'special', tiers: { bronze: 1, silver: 1, gold: 1, diamond: 1 }, stat: 'verified_referrals', isExclusive: true },
+  { id: 'community_builder', name: 'Community Builder', description: 'Bygg communityt (endast via invites)', category: 'special', tiers: { bronze: 5, silver: 5, gold: 5, diamond: 5 }, stat: 'verified_referrals', isExclusive: true },
+  { id: 'matchmaker_elite', name: 'Matchmaker Elite', description: 'Mästare på invites (endast via invites)', category: 'special', tiers: { bronze: 10, silver: 10, gold: 10, diamond: 10 }, stat: 'verified_referrals', isExclusive: true }
 ];
 
 Deno.serve(async (req) => {
@@ -146,7 +149,8 @@ Deno.serve(async (req) => {
       friends_count: userFriendships.length,
       teams_created: teamsCreated.length,
       feedback_count: feedbackPosts.length,
-      cups_participated: cupParticipations.length
+      cups_participated: cupParticipations.length,
+      verified_referrals: targetUser.verified_referrals || 0
     };
 
     // Calculate badges
