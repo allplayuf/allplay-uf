@@ -391,6 +391,7 @@ export default function MapPage() {
                 onShowDetails={handleShowDetails}
                 onMatchClick={handleMatchClick}
                 userMatchIds={userMatchIds}
+                allParticipants={allParticipants}
               />
             </div>
           )}
@@ -478,6 +479,7 @@ export default function MapPage() {
                 onClick={() => handleShowDetails(venue)}
                 onMatchClick={handleMatchClick}
                 userMatchIds={userMatchIds}
+                allParticipants={allParticipants}
               />
             ))}
             
