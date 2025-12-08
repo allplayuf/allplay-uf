@@ -481,7 +481,7 @@ export default function Dashboard() {
             />
           ))}
 
-          <div className="relative z-10 px-[22px] pt-[32px] pb-[32px] sm:px-6 sm:pt-10 sm:pb-10 lg:px-10 lg:pt-12 lg:pb-12">
+          <div className="relative z-10 px-[22px] pt-[40px] pb-[40px] sm:px-6 sm:pt-12 sm:pb-12 lg:px-10 lg:pt-16 lg:pb-16">
             <div className="flex items-center gap-3 sm:gap-4 lg:gap-6 mb-[14px] sm:mb-5 lg:mb-7">
               
               {/* Profile Image - Small border */}
