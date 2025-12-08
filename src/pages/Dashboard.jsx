@@ -481,8 +481,8 @@ export default function Dashboard() {
             />
           ))}
 
-          <div className="relative z-10 px-[22px] pt-[60px] pb-[60px] sm:px-6 sm:pt-20 sm:pb-20 lg:px-10 lg:pt-24 lg:pb-24">
-            <div className="flex items-center gap-3 sm:gap-4 lg:gap-6 mb-[14px] sm:mb-5 lg:mb-7">
+          <div className="relative z-10 px-[22px] pt-[70px] pb-[70px] sm:px-8 sm:pt-24 sm:pb-24 lg:px-12 lg:pt-28 lg:pb-28">
+            <div className="flex items-center gap-3 sm:gap-5 lg:gap-8 mb-[24px] sm:mb-8 lg:mb-10">
               
               {/* Profile Image - Small border */}
               <motion.div
@@ -533,7 +533,7 @@ export default function Dashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="grid grid-cols-3 gap-2.5 sm:gap-3 lg:gap-4 mb-[20px] sm:mb-5 lg:mb-6"
+              className="grid grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-[32px] sm:mb-10 lg:mb-12"
             >
               <Link to={createPageUrl('Map')}>
                 <motion.div 
