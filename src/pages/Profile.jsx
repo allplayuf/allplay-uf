@@ -441,12 +441,12 @@ export default function ProfilePage() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Hero Header Card - Community Style */}
+        {/* Hero Header Card - Improved UI */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative overflow-hidden rounded-3xl shadow-[0_30px_90px_rgba(0,0,0,0.5),0_0_28px_6px_rgba(40,180,90,0.18)] border border-[#2BA84A]/30"
+          className="relative overflow-hidden rounded-[32px] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7),0_0_40px_0px_rgba(43,168,74,0.1)] border border-[#2BA84A]/20 bg-[#0A0D0B]"
         >
           {/* Dark gradient base */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#1A1A1A] via-[#0F1513] to-[#0A0D0B]"></div>
@@ -525,7 +525,7 @@ export default function ProfilePage() {
             />
           ))}
           
-          <div className="relative z-10 px-4 pt-5 pb-5 sm:px-8 sm:pt-8 sm:pb-8 lg:px-12 lg:pt-12 lg:pb-12">
+          <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-14">
             <div className="flex items-center gap-3 sm:gap-6 mb-4 sm:mb-6 lg:mb-8">
               
               {/* Profile Image - Small border */}
@@ -619,8 +619,8 @@ export default function ProfilePage() {
               className="grid grid-cols-3 gap-2 sm:gap-3 mb-3 sm:mb-4"
             >
               <motion.div 
-                whileHover={{ y: -2, scale: 1.02 }}
-                className="bg-gradient-to-br from-[#FFFFFF]/15 to-[#FFFFFF]/5 backdrop-blur-xl border border-white/30 rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center"
+                whileHover={{ y: -4, scale: 1.02 }}
+                className="bg-[#1A201D]/60 backdrop-blur-md border border-[#2BA84A]/20 rounded-2xl p-4 sm:p-5 text-center hover:bg-[#1A201D]/80 transition-all duration-300 group"
               >
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center mx-auto mb-2">
                   <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
@@ -632,8 +632,8 @@ export default function ProfilePage() {
               </motion.div>
               
               <motion.div 
-                whileHover={{ y: -2, scale: 1.02 }}
-                className="bg-gradient-to-br from-[#F4743B]/20 to-[#F4743B]/5 backdrop-blur-xl border border-[#F4743B]/40 rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center"
+                whileHover={{ y: -4, scale: 1.02 }}
+                className="bg-[#2A1812]/60 backdrop-blur-md border border-[#F4743B]/20 rounded-2xl p-4 sm:p-5 text-center hover:bg-[#2A1812]/80 transition-all duration-300 group"
               >
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#F4743B]/30 rounded-lg sm:rounded-xl flex items-center justify-center mx-auto mb-2">
                   <Award className="w-4 h-4 sm:w-5 sm:h-5 text-[#FDE3D2]" strokeWidth={2.5} />
@@ -645,8 +645,8 @@ export default function ProfilePage() {
               </motion.div>
               
               <motion.div 
-                whileHover={{ y: -2, scale: 1.02 }}
-                className="bg-gradient-to-br from-[#F59E0B]/20 to-[#F59E0B]/5 backdrop-blur-xl border border-[#F59E0B]/40 rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center"
+                whileHover={{ y: -4, scale: 1.02 }}
+                className="bg-[#2A2208]/60 backdrop-blur-md border border-[#F59E0B]/20 rounded-2xl p-4 sm:p-5 text-center hover:bg-[#2A2208]/80 transition-all duration-300 group"
               >
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#F59E0B]/30 rounded-lg sm:rounded-xl flex items-center justify-center mx-auto mb-2">
                   <motion.div

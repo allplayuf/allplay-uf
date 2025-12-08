@@ -381,12 +381,12 @@ export default function CommunityPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Premium Hero Card - Cup Style */}
+        {/* Premium Hero Card - Improved UI */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative overflow-hidden rounded-3xl shadow-[0_30px_90px_rgba(0,0,0,0.5)] border border-[#2BA84A]/30"
+          className="relative overflow-hidden rounded-[32px] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7),0_0_40px_0px_rgba(43,168,74,0.1)] border border-[#2BA84A]/20 bg-[#0A0D0B]"
         >
           {/* Dark gradient base */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#1A1A1A] via-[#0F1513] to-[#0A0D0B]"></div>
@@ -465,7 +465,7 @@ export default function CommunityPage() {
             />
           ))}
 
-          <div className="relative z-10 p-6 sm:p-8 lg:p-12">
+          <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-14">
             {/* Enhanced Header with Logo - Aligned horizontally */}
             <div className="flex items-center gap-4 sm:gap-6 mb-6 sm:mb-8 lg:mb-10">
               
@@ -545,8 +545,8 @@ export default function CommunityPage() {
                 whileTap={{ scale: 0.98 }}
                 className="relative group"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/30 to-[#248232]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-white/30 sm:border-white/40 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:border-[#2BA84A]/60 transition-all">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/30 to-[#248232]/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative bg-[#1A201D]/60 backdrop-blur-md rounded-2xl p-4 sm:p-5 lg:p-6 border border-[#2BA84A]/20 hover:border-[#2BA84A]/50 shadow-[0_8px_24px_rgba(0,0,0,0.3)] transition-all">
                   <div className="flex flex-col items-center text-center space-y-2">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl bg-[#2BA84A]/20 flex items-center justify-center ring-2 ring-[#2BA84A]/30 flex-shrink-0">
                       <Heart className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#86EFAC]" strokeWidth={2.5} />
@@ -566,8 +566,8 @@ export default function CommunityPage() {
                 whileTap={{ scale: 0.98 }}
                 className="relative group"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-[#9370DB]/30 to-[#7C3AED]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-white/30 sm:border-white/40 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:border-[#9370DB]/60 transition-all">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#9370DB]/30 to-[#7C3AED]/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative bg-[#1F1829]/60 backdrop-blur-md rounded-2xl p-4 sm:p-5 lg:p-6 border border-[#9370DB]/20 hover:border-[#9370DB]/50 shadow-[0_8px_24px_rgba(0,0,0,0.3)] transition-all">
                   <div className="flex flex-col items-center text-center space-y-2">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl bg-[#9370DB]/20 flex items-center justify-center ring-2 ring-[#9370DB]/30 flex-shrink-0">
                       <Users className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#DDD6FE]" strokeWidth={2.5} />
@@ -587,8 +587,8 @@ export default function CommunityPage() {
                 whileTap={{ scale: 0.98 }}
                 className="relative group"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-[#F59E0B]/30 to-[#D97706]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-white/30 sm:border-white/40 shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:border-[#F59E0B]/60 transition-all">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#F59E0B]/30 to-[#D97706]/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative bg-[#2A2208]/60 backdrop-blur-md rounded-2xl p-4 sm:p-5 lg:p-6 border border-[#F59E0B]/20 hover:border-[#F59E0B]/50 shadow-[0_8px_24px_rgba(0,0,0,0.3)] transition-all">
                   <div className="flex flex-col items-center text-center space-y-2">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl bg-[#F59E0B]/20 flex items-center justify-center ring-2 ring-[#F59E0B]/30 flex-shrink-0">
                       <Trophy className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#FCD34D]" strokeWidth={2.5} />
