@@ -101,6 +101,7 @@ export default function MatchDetailPage() {
   const [showReportModal, setShowReportModal] = useState(false); // Added state
   const [friendships, setFriendships] = useState([]);
   const [isActionLoading, setIsActionLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const { confirm, alert, DialogContainer } = useCustomDialog();
 
@@ -119,6 +120,7 @@ export default function MatchDetailPage() {
 
       setMatch(matchData);
       setUser(currentUser);
+      setIsAdmin(currentUser.role === 'admin');
 
       // Optimize: Load only friendships for current user
       const [sentFriendships, receivedFriendships] = await Promise.all([
@@ -143,15 +145,22 @@ export default function MatchDetailPage() {
         setVenue(results[1]);
       }
 
-      // Batch load participant users
-      const userIds = participantData.map(p => p.user_id);
-      const allUsers = await base44.entities.User.list();
-      const userMap = new Map(allUsers.map(u => [u.id, u]));
+      // Batch load participant users - ONLY fetch users for this match
+      const userIds = [...new Set(participantData.map(p => p.user_id))];
+      const participantUsers = [];
       
-      const participantUsers = participantData.map(p => ({
-        ...userMap.get(p.user_id),
-        participantInfo: p
-      })).filter(Boolean);
+      for (const userId of userIds) {
+        try {
+          const userData = await base44.entities.User.get(userId);
+          const participantInfo = participantData.find(p => p.user_id === userId);
+          participantUsers.push({
+            ...userData,
+            participantInfo
+          });
+        } catch (error) {
+          console.error(`Failed to load user ${userId}:`, error);
+        }
+      }
       
       setParticipants(participantUsers);
 
@@ -370,8 +379,48 @@ export default function MatchDetailPage() {
     } catch (e) {
       console.error("Error generating calendar URL", e);
       return '#';
-    }
-  };
+      }
+      };
+
+      const handleDeleteMatch = async () => {
+      if (isActionLoading) return;
+
+      try {
+      const shouldDelete = await confirm(
+        'Ta bort match',
+        'Är du säker på att du vill ta bort denna match? Detta kan inte ångras.',
+        {
+          type: 'warning',
+          confirmText: 'Ja, ta bort',
+          cancelText: 'Avbryt'
+        }
+      );
+
+      if (!shouldDelete) return;
+
+      setIsActionLoading(true);
+
+      await base44.functions.invoke('deleteMatch', { matchId: matchId });
+
+      await alert(
+        'Match borttagen',
+        'Matchen har tagits bort',
+        { type: 'success' }
+      );
+
+      navigate(createPageUrl("Matches"));
+
+      } catch (error) {
+      console.error("Error deleting match:", error);
+      await alert(
+        'Ett fel uppstod',
+        'Kunde inte ta bort matchen. Försök igen.',
+        { type: 'alert' }
+      );
+      } finally {
+      setIsActionLoading(false);
+      }
+      };
 
   if (isLoading) {
     return (
@@ -608,6 +657,16 @@ export default function MatchDetailPage() {
                   >
                     <Trophy className="w-5 h-5" />
                     Avsluta match
+                  </button>
+                )}
+
+                {isAdmin && !match.is_cup_match && (
+                  <button
+                    onClick={handleDeleteMatch}
+                    disabled={isActionLoading}
+                    className={`inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#DC2626] px-6 text-[#FFFFFF] font-semibold hover:bg-[#B91C1C] transition-all ${isActionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {isActionLoading ? 'Tar bort...' : 'Ta bort match (Admin)'}
                   </button>
                 )}
               </div>
