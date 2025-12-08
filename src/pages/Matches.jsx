@@ -320,12 +320,12 @@ export default function MatchesPage() {
     if (!shouldDelete) return;
 
     try {
-      await base44.entities.Match.delete(matchId);
-      
+      await base44.functions.invoke('deleteMatch', { matchId });
+
       queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.participants });
       queryClient.invalidateQueries({ queryKey: ['completedMatches'] });
-      
+
       await alert(
         'Match raderad',
         'Matchen har tagits bort',

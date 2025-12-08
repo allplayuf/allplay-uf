@@ -660,7 +660,7 @@ export default function MatchDetailPage() {
                   </button>
                 )}
 
-                {isAdmin && !match.is_cup_match && (
+                {isAdmin && (
                   <button
                     onClick={handleDeleteMatch}
                     disabled={isActionLoading}
