@@ -141,6 +141,20 @@ export default function EditProfilePage() {
 
     setIsSaving(true);
     try {
+      // Check for profanity in bio
+      if (formData.bio) {
+        const profanityCheck = await base44.functions.invoke('profanityFilter', { 
+          text: formData.bio, 
+          field: 'bio' 
+        });
+        
+        if (profanityCheck && profanityCheck.hasProfanity) {
+          alert('Din bio innehåller olämpligt språk. Vänligen ändra det innan du sparar.');
+          setIsSaving(false);
+          return;
+        }
+      }
+
       // Update profile data including display_name
       await base44.auth.updateMe({
         display_name: formData.full_name.trim(),

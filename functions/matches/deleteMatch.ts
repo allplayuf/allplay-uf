@@ -36,15 +36,24 @@ Deno.serve(async (req) => {
     }
 
     // --- DELETION LOGIC (Using Service Role for everything) ---
-    // We wrap each step in try-catch to ensure one failure doesn't stop the whole process
+    // Using explicit calls to avoid any dynamic property access issues
 
-    const cleanupEntity = async (entityName, filter) => {
+    const deleteRecords = async (entityName, filter) => {
       try {
-        const records = await base44.asServiceRole.entities[entityName].filter(filter);
-        for (const record of records) {
-          await base44.asServiceRole.entities[entityName].delete(record.id);
+        // Direct access to entity to ensure it exists
+        const entity = base44.asServiceRole.entities[entityName];
+        if (!entity) {
+            console.warn(`Entity ${entityName} not found in SDK`);
+            return;
         }
-        console.log(`Deleted ${records.length} ${entityName} records`);
+
+        const records = await entity.filter(filter);
+        if (records && records.length > 0) {
+            console.log(`Deleting ${records.length} records from ${entityName}`);
+            for (const record of records) {
+                await entity.delete(record.id);
+            }
+        }
       } catch (error) {
         console.warn(`Failed to cleanup ${entityName}:`, error.message);
         // Continue execution even if this fails
@@ -52,37 +61,37 @@ Deno.serve(async (req) => {
     };
 
     // 1. Match Participants
-    await cleanupEntity('MatchParticipant', { match_id: matchId });
+    await deleteRecords('MatchParticipant', { match_id: matchId });
 
     // 2. Cup Matches
-    await cleanupEntity('CupMatch', { match_id: matchId });
+    await deleteRecords('CupMatch', { match_id: matchId });
 
     // 3. Match Result Verifications
-    await cleanupEntity('MatchResultVerification', { match_id: matchId });
+    await deleteRecords('MatchResultVerification', { match_id: matchId });
 
     // 4. MVP Votes
-    await cleanupEntity('MVPVote', { match_id: matchId });
+    await deleteRecords('MVPVote', { match_id: matchId });
 
     // 5. Check Ins
-    await cleanupEntity('CheckIn', { match_id: matchId });
+    await deleteRecords('CheckIn', { match_id: matchId });
 
     // 6. Match Invitations
-    await cleanupEntity('MatchInvitation', { match_id: matchId });
+    await deleteRecords('MatchInvitation', { match_id: matchId });
 
     // 7. Match Results
-    await cleanupEntity('MatchResult', { match_id: matchId });
+    await deleteRecords('MatchResult', { match_id: matchId });
 
     // 8. Elo History
-    await cleanupEntity('EloHistory', { match_id: matchId });
+    await deleteRecords('EloHistory', { match_id: matchId });
 
     // 9. Reports
-    await cleanupEntity('Report', { match_id: matchId });
+    await deleteRecords('Report', { match_id: matchId });
 
     // 10. Team Highlights (linked to match)
-    await cleanupEntity('TeamHighlight', { match_id: matchId });
+    await deleteRecords('TeamHighlight', { match_id: matchId });
 
     // 11. Team Challenges (linked to match)
-    await cleanupEntity('TeamChallenge', { match_id: matchId });
+    await deleteRecords('TeamChallenge', { match_id: matchId });
 
     // Finally, delete the match itself
     try {
