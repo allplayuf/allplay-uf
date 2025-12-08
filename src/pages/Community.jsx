@@ -615,7 +615,7 @@ export default function CommunityPage() {
                 whileHover={{ y: -4, scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setActiveTab('find')}
-                className="h-11 sm:h-12 lg:h-14 bg-gradient-to-r from-[#2BA84A]/20 to-[#248232]/10 hover:from-[#2BA84A]/30 hover:to-[#248232]/20 backdrop-blur-xl border-2 border-white/40 hover:border-[#2BA84A]/60 rounded-xl flex items-center justify-center gap-2 text-white font-black text-xs sm:text-sm lg:text-base transition-all shadow-xl"
+                className="h-12 sm:h-12 lg:h-14 w-full bg-gradient-to-r from-[#FFFFFF]/20 to-[#FFFFFF]/10 hover:from-[#FFFFFF]/30 hover:to-[#FFFFFF]/20 backdrop-blur-xl border border-white/30 hover:border-white/50 rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 text-white font-black text-sm sm:text-sm lg:text-base transition-all shadow-xl"
               >
                 <UserPlus className="w-4 h-4 lg:w-5 lg:h-5" strokeWidth={2.5} />
                 <span>Hitta spelare</span>
@@ -624,7 +624,7 @@ export default function CommunityPage() {
                 whileHover={{ y: -4, scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setActiveTab('teams')}
-                className="h-11 sm:h-12 lg:h-14 bg-gradient-to-r from-[#9370DB]/20 to-[#7C3AED]/10 hover:from-[#9370DB]/30 hover:to-[#7C3AED]/20 backdrop-blur-xl border-2 border-white/40 hover:border-[#9370DB]/60 rounded-xl flex items-center justify-center gap-2 text-white font-black text-xs sm:text-sm lg:text-base transition-all shadow-xl"
+                className="h-12 sm:h-12 lg:h-14 w-full bg-gradient-to-r from-[#FFFFFF]/20 to-[#FFFFFF]/10 hover:from-[#FFFFFF]/30 hover:to-[#FFFFFF]/20 backdrop-blur-xl border border-white/30 hover:border-white/50 rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 text-white font-black text-sm sm:text-sm lg:text-base transition-all shadow-xl"
               >
                 <Target className="w-4 h-4 lg:w-5 lg:h-5" strokeWidth={2.5} />
                 <span>Mina Lag</span>

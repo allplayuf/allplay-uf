@@ -397,12 +397,12 @@ export default function Dashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
 
-        {/* Premium Hero Card - Community Style */}
+        {/* Premium Hero Card - Improved UI */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative overflow-hidden rounded-3xl shadow-[0_30px_90px_rgba(0,0,0,0.5),0_0_28px_6px_rgba(40,180,90,0.18)] border border-[#2BA84A]/30"
+          className="relative overflow-hidden rounded-[32px] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7),0_0_40px_0px_rgba(43,168,74,0.1)] border border-[#2BA84A]/20 bg-[#0A0D0B]"
         >
           {/* Dark gradient base */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#1A1A1A] via-[#0F1513] to-[#0A0D0B]"></div>
@@ -481,7 +481,7 @@ export default function Dashboard() {
             />
           ))}
 
-          <div className="relative z-10 px-[22px] pt-[50px] pb-[50px] sm:px-8 sm:pt-16 sm:pb-16 lg:px-12 lg:pt-20 lg:pb-20">
+          <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-14">
             <div className="flex items-center gap-3 sm:gap-5 lg:gap-8 mb-[20px] sm:mb-6 lg:mb-8">
               
               {/* Profile Image - Small border */}
@@ -542,7 +542,7 @@ export default function Dashboard() {
                   className="relative group"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/30 to-[#248232]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="relative bg-gradient-to-br from-[#2BA84A]/25 via-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#2BA84A]/40 sm:border-[#2BA84A]/50 shadow-[0_8px_24px_rgba(43,168,74,0.2)] hover:border-[#2BA84A]/80 hover:shadow-[0_12px_32px_rgba(43,168,74,0.3)] transition-all h-[100px] sm:h-28 lg:h-32 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
+                  <div className="relative bg-[#1A201D]/60 backdrop-blur-md border border-[#2BA84A]/20 rounded-2xl p-4 sm:p-5 lg:p-6 hover:bg-[#1A201D]/80 transition-all h-[110px] sm:h-32 lg:h-36 flex flex-col items-center justify-center gap-2 sm:gap-3 group-hover:border-[#2BA84A]/40 group-hover:shadow-[0_8px_24px_rgba(43,168,74,0.15)]">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 rounded-xl bg-[#2BA84A]/30 flex items-center justify-center ring-2 ring-[#2BA84A]/40 flex-shrink-0">
                       <MapPin className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-[#86EFAC]" strokeWidth={2.5} />
                     </div>
@@ -558,7 +558,7 @@ export default function Dashboard() {
                 className="relative group cursor-pointer"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-[#F4743B]/30 to-[#E5683A]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-[#F4743B]/25 via-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#F4743B]/40 sm:border-[#F4743B]/50 shadow-[0_8px_24px_rgba(244,116,59,0.2)] hover:border-[#F4743B]/80 hover:shadow-[0_12px_32px_rgba(244,116,59,0.3)] transition-all h-[100px] sm:h-28 lg:h-32 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
+                <div className="relative bg-[#2A1812]/60 backdrop-blur-md border border-[#F4743B]/20 rounded-2xl p-4 sm:p-5 lg:p-6 hover:bg-[#2A1812]/80 transition-all h-[110px] sm:h-32 lg:h-36 flex flex-col items-center justify-center gap-2 sm:gap-3 group-hover:border-[#F4743B]/40 group-hover:shadow-[0_8px_24px_rgba(244,116,59,0.15)]">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 rounded-xl bg-[#F4743B]/30 flex items-center justify-center ring-2 ring-[#F4743B]/40 flex-shrink-0">
                     <Plus className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-[#FDE3D2]" strokeWidth={2.5} />
                   </div>
@@ -573,7 +573,7 @@ export default function Dashboard() {
                   className="relative group"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-[#9370DB]/30 to-[#7C3AED]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="relative bg-gradient-to-br from-[#9370DB]/25 via-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 border border-[#9370DB]/40 sm:border-[#9370DB]/50 shadow-[0_8px_24px_rgba(147,112,219,0.2)] hover:border-[#9370DB]/80 hover:shadow-[0_12px_32px_rgba(147,112,219,0.3)] transition-all h-[100px] sm:h-28 lg:h-32 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
+                  <div className="relative bg-[#1F1829]/60 backdrop-blur-md border border-[#9370DB]/20 rounded-2xl p-4 sm:p-5 lg:p-6 hover:bg-[#1F1829]/80 transition-all h-[110px] sm:h-32 lg:h-36 flex flex-col items-center justify-center gap-2 sm:gap-3 group-hover:border-[#9370DB]/40 group-hover:shadow-[0_8px_24px_rgba(147,112,219,0.15)]">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 rounded-xl bg-[#9370DB]/30 flex items-center justify-center ring-2 ring-[#9370DB]/40 flex-shrink-0">
                       <Users className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-[#DDD6FE]" strokeWidth={2.5} />
                     </div>
