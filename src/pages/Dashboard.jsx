@@ -31,6 +31,7 @@ import CupsWidget from "../components/dashboard/CupsWidget";
 import MatchCard from "../components/matches/MatchCard";
 import NotificationsSlider from "../components/dashboard/NotificationsSlider";
 import NextMatchCard from "../components/dashboard/NextMatchCard";
+import AgeNoticeModal from "../components/dashboard/AgeNoticeModal";
 
 // Query keys
 const QUERY_KEYS = {
@@ -47,6 +48,7 @@ export default function Dashboard() {
   const [errorMessage, setErrorMessage] = useState(null);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [showCreateMatchModal, setShowCreateMatchModal] = useState(false);
+  const [showAgeNotice, setShowAgeNotice] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch current user with OPTIMIZED caching (AUTH strategy)
@@ -103,7 +105,18 @@ export default function Dashboard() {
 
   useEffect(() => {
     getUserLocation();
+    
+    // Check if user has seen the age notice
+    const hasSeenAgeNotice = localStorage.getItem('hasSeenAgeNotice');
+    if (!hasSeenAgeNotice) {
+      setShowAgeNotice(true);
+    }
   }, []);
+
+  const handleCloseAgeNotice = () => {
+    localStorage.setItem('hasSeenAgeNotice', 'true');
+    setShowAgeNotice(false);
+  };
 
   const getUserLocation = () => {
     if (navigator.geolocation) {
@@ -372,6 +385,11 @@ export default function Dashboard() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AgeNoticeModal 
+        isOpen={showAgeNotice} 
+        onClose={handleCloseAgeNotice} 
+      />
 
       {/* Create Match Modal */}
       <AnimatePresence>
