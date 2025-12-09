@@ -23,7 +23,7 @@ export default function MapPage() {
   const navigate = useNavigate();
   const [venues, setVenues] = useState([]);
   const [matches, setMatches] = useState([]);
-  const [filteredVenues, setFilteredVenues] = useState([]);
+  // Removed state for filteredVenues, using useMemo instead
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState("map");
@@ -67,7 +67,6 @@ export default function MapPage() {
     if (typeof lat1 !== 'number' || typeof lon1 !== 'number' || 
         typeof lat2 !== 'number' || typeof lon2 !== 'number' ||
         isNaN(lat1) || isNaN(lon1) || isNaN(lat2) || isNaN(lon2)) {
-      console.warn('Invalid coordinates for distance calculation:', { lat1, lon1, lat2, lon2 });
       return Infinity;
     }
 
@@ -81,16 +80,19 @@ export default function MapPage() {
       Math.sin(dLon / 2) * Math.sin(dLon / 2);
     
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c;
-    
-    return distance;
+    return R * c;
   }, []);
 
-  const applyFilters = useCallback(() => {
+  useEffect(() => {
+    loadMapData();
+    getUserLocation();
+    loadUser();
+  }, []);
+
+  const filteredVenues = React.useMemo(() => {
     let filtered = venues.filter(venue => {
       if (!venue.latitude || !venue.longitude ||
           isNaN(parseFloat(venue.latitude)) || isNaN(parseFloat(venue.longitude))) {
-        console.warn('Venue missing valid coordinates:', venue.name);
         return false;
       }
 
@@ -172,18 +174,8 @@ export default function MapPage() {
       return 0;
     });
 
-    setFilteredVenues(filtered);
+    return filtered;
   }, [venues, matches, filters, searchQuery, userLocation, calculateDistance]);
-
-  useEffect(() => {
-    loadMapData();
-    getUserLocation();
-    loadUser();
-  }, []);
-
-  useEffect(() => {
-    applyFilters();
-  }, [applyFilters]);
 
   const loadUser = async () => {
     try {
