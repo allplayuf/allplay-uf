@@ -69,14 +69,14 @@ export default function FriendsList({ friends, user, onRefresh }) {
                 <div className="flex items-center gap-4 mb-6">
                   <div className="w-14 h-14 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center flex-shrink-0">
                     {friend.profile_image_url ? 
-                      <img src={friend.profile_image_url} alt={friend.full_name} className="w-full h-full object-cover rounded-2xl" /> :
+                      <img src={friend.profile_image_url} alt={friend.display_name || friend.full_name} className="w-full h-full object-cover rounded-2xl" /> :
                       <span className="text-[#EAF6EE] font-semibold text-xl">
-                        {friend.full_name?.[0] || 'U'}
+                        {(friend.display_name || friend.full_name)?.[0] || 'U'}
                       </span>
                     }
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-[#F4F7F5] text-[16px] leading-[24px] truncate">{friend.full_name}</h3>
+                    <h3 className="font-semibold text-[#F4F7F5] text-[16px] leading-[24px] truncate">{friend.display_name || friend.full_name}</h3>
                     <div className="flex items-center gap-1 text-[13px] leading-[18px] text-[#B6C2BC]">
                       <MapPin className="w-4 h-4 text-[#9FC9AC]" />
                       {friend.city}

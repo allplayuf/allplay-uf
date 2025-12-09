@@ -147,7 +147,7 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
                           />
                         ) : (
                           <span className="text-[#FFFFFF] font-semibold text-lg">
-                            {player.full_name?.[0] || 'U'}
+                            {(player.display_name || player.full_name)?.[0] || 'U'}
                           </span>
                         )}
                       </div>

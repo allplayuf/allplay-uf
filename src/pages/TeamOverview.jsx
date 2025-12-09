@@ -445,13 +445,13 @@ export default function TeamOverviewPage() {
                             <div className="flex items-center gap-3 mb-4">
                               <div className="w-14 h-14 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0">
                                 {member.profile_image_url ? (
-                                  <img src={member.profile_image_url} alt={member.full_name} className="w-full h-full object-cover rounded-xl" />
+                                  <img src={member.profile_image_url} alt={member.display_name || member.full_name} className="w-full h-full object-cover rounded-xl" />
                                 ) : (
-                                  <span className="text-[#FFFFFF] font-semibold text-lg">{member.full_name?.[0]}</span>
+                                  <span className="text-[#FFFFFF] font-semibold text-lg">{(member.display_name || member.full_name)?.[0]}</span>
                                 )}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-[15px] text-[#F4F7F5] truncate">{member.full_name}</h4>
+                                <h4 className="font-semibold text-[15px] text-[#F4F7F5] truncate">{member.display_name || member.full_name}</h4>
                                 <p className="text-[13px] text-[#B6C2BC] truncate">{member.city}</p>
                               </div>
                               {member.id === team.captain_id && <Crown className="w-5 h-5 text-[#F4743B] flex-shrink-0" />}
