@@ -28,7 +28,6 @@ import InviteFriendsModal from "../components/matches/InviteFriendsModal";
 import MatchReportModal from "../components/matches/MatchReportModal";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
-import { AppLoading } from "../components/ui/app-loading";
 
 // CONSISTENT SKILL LEVEL CONFIG - WCAG AA compliant colors
 const SKILL_LEVEL_CONFIG = {
@@ -357,7 +356,7 @@ export default function MatchDetailPage() {
   const isLoading = matchLoading || participantsLoading;
 
   if (isLoading) {
-    return <AppLoading />;
+    return <PageLoadingSkeleton />;
   }
 
   if (!match) {

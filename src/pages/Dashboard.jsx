@@ -26,7 +26,6 @@ import {
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
-import { AppLoading } from "../components/ui/app-loading";
 import CreateMatchForm from "../components/matches/CreateMatchForm";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import CupsWidget from "../components/dashboard/CupsWidget";
@@ -348,7 +347,7 @@ export default function Dashboard() {
   const isLoading = userLoading || matchesLoading || venuesLoading || participantsLoading;
 
   if (isLoading) {
-    return <AppLoading />;
+    return <PageLoadingSkeleton />;
   }
 
   return (
