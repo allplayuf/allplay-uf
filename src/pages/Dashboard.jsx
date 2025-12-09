@@ -499,23 +499,23 @@ export default function Dashboard() {
               >
                 <div className="relative w-16 h-16 sm:w-24 sm:h-24 lg:w-32 lg:h-32 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-[#2BA84A]/60 shadow-[0_20px_60px_rgba(43,168,74,0.4)] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm flex items-center justify-center">
                   {user?.profile_image_url ? (
-                    <img src={user.profile_image_url} alt="Profile" className="w-full h-full object-cover" />
+                  <img src={user.profile_image_url} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#FFFFFF]">{user?.full_name?.[0] || 'U'}</span>
+                  <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#FFFFFF]">{(user?.display_name || user?.full_name)?.[0] || 'U'}</span>
                   )}
-                </div>
-              </motion.div>
+                  </div>
+                  </motion.div>
 
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <motion.h1
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                  <motion.h1
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
                   className="text-xl sm:text-2xl lg:text-4xl font-black text-white tracking-tight mb-1.5 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] leading-tight"
-                >
-                  Välkommen tillbaka, {user?.full_name?.split(' ')[0]}!
-                </motion.h1>
+                  >
+                  Välkommen tillbaka, {(user?.display_name || user?.full_name)?.split(' ')[0]}!
+                  </motion.h1>
                 
                 <motion.p
                   initial={{ opacity: 0, y: 20 }}

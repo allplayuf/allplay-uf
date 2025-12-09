@@ -195,9 +195,9 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
                           title={participant?.full_name || 'User'}
                         >
                           {participant?.profile_image_url ? (
-                            <img src={participant.profile_image_url} alt={participant.full_name || 'User'} className="w-full h-full object-cover" />
+                            <img src={participant.profile_image_url} alt={participant.display_name || participant.full_name || 'User'} className="w-full h-full object-cover" />
                           ) : (
-                            <span className="text-[9px] font-semibold text-white">{participant?.full_name?.[0] || '?'}</span>
+                            <span className="text-[9px] font-semibold text-white">{(participant?.display_name || participant?.full_name)?.[0] || '?'}</span>
                           )}
                         </div>
                       ))}

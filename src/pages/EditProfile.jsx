@@ -157,6 +157,7 @@ export default function EditProfilePage() {
 
       // Update profile data including display_name
       await base44.auth.updateMe({
+        full_name: formData.full_name.trim(),
         display_name: formData.full_name.trim(),
         bio: formData.bio,
         date_of_birth: formData.date_of_birth,
@@ -180,6 +181,7 @@ export default function EditProfilePage() {
         queryClient.invalidateQueries({ queryKey: ['participants'] }),
         queryClient.invalidateQueries({ queryKey: ['allParticipants'] }),
         queryClient.invalidateQueries({ queryKey: ['matches'] }),
+        queryClient.invalidateQueries({ queryKey: ['matches-infinite'] }),
         queryClient.invalidateQueries({ queryKey: ['friendships'] })
       ]);
       queryClient.refetchQueries({ queryKey: ['user'] });
