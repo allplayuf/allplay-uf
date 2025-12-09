@@ -11,7 +11,6 @@ import { base44 } from "@/api/base44Client";
 import { RouteProgress } from "@/components/ui/route-progress";
 import { RouteGuard } from "@/components/ui/route-guard";
 import { OnboardingModal } from "@/components/ui/onboarding-modal";
-import { AppLoading } from "@/components/ui/app-loading";
 
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Map = lazy(() => import("@/pages/Map"));
@@ -197,7 +196,7 @@ export default function Layout({ children, currentPageName }) {
           >
             <RouteGuard currentRoute={location.pathname}>
               <PageTransition pageKey={location.pathname}>
-                <Suspense fallback={<AppLoading />}>
+                <Suspense fallback={<PageLoadingSkeleton />}>
                   {children}
                 </Suspense>
               </PageTransition>
