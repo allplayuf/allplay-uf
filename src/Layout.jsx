@@ -1,5 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { createPageUrl } from "@/utils";
 import { MapPin, Calendar, Users, Trophy, User, Shield, AlertCircle } from "lucide-react";
 import { Toaster } from "sonner";
@@ -53,38 +54,22 @@ const navigationItems = [
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [adminCheckDone, setAdminCheckDone] = useState(false);
   const mainContentRef = React.useRef(null);
+
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: () => base44.auth.me(),
+    staleTime: 10 * 60 * 1000,
+    retry: false
+  });
+
+  const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
     if (mainContentRef.current) {
       mainContentRef.current.scrollTop = 0;
     }
   }, [location.pathname]);
-
-  useEffect(() => {
-    if (adminCheckDone) return;
-    
-    const cachedUser = queryClient.getQueryData(['user']);
-    
-    if (cachedUser) {
-      setIsAdmin(cachedUser.role === 'admin');
-      setAdminCheckDone(true);
-      return;
-    }
-
-    base44.auth.me()
-      .then(currentUser => {
-        setIsAdmin(currentUser.role === 'admin');
-        queryClient.setQueryData(['user'], currentUser);
-        setAdminCheckDone(true);
-      })
-      .catch(() => {
-        setIsAdmin(false);
-        setAdminCheckDone(true);
-      });
-  }, []);
 
   return (
     <QueryProvider>
@@ -146,7 +131,7 @@ export default function Layout({ children, currentPageName }) {
               })}
             </div>
 
-            {adminCheckDone && isAdmin && (
+            {isAdmin && (
               <div className="pt-4 space-y-1">
                 <p className="text-[11px] leading-[16px] font-semibold text-[#7B8A83] uppercase tracking-wider px-3 py-2">
                   Administration
@@ -172,7 +157,9 @@ export default function Layout({ children, currentPageName }) {
                 <span className="text-[#EAF6EE] font-semibold text-sm">U</span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-[#F4F7F5] text-[13px] leading-[18px] truncate">User</p>
+                <p className="font-semibold text-[#F4F7F5] text-[13px] leading-[18px] truncate">
+                  {user?.display_name || user?.full_name || 'User'}
+                </p>
                 <p className="text-[11px] leading-[16px] text-[#2BA84A] font-medium truncate">Redo att spela!</p>
               </div>
             </div>
