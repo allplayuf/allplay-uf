@@ -65,9 +65,7 @@ export default function NotificationsSlider({ notifications = [] }) {
   const colors = getColor(currentNotif.type);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
+    <div
       className={`relative bg-gradient-to-br from-[#121715] to-[#0F1513] rounded-xl sm:rounded-2xl border border-[#223029] p-3 sm:p-4 overflow-hidden ${colors.glow}`}
     >
       <div className="flex items-center gap-2 sm:gap-3">
@@ -142,6 +140,6 @@ export default function NotificationsSlider({ notifications = [] }) {
           ))}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
