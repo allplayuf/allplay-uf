@@ -174,8 +174,8 @@ export default function EditProfilePage() {
       });
       
       // Force immediate cache invalidation
-      queryClient.invalidateQueries({ queryKey: ['user'] });
-      queryClient.refetchQueries({ queryKey: ['user'] });
+      await queryClient.invalidateQueries();
+      await queryClient.refetchQueries({ queryKey: ['user'] });
       
       alert('Profil uppdaterad!');
       navigate(createPageUrl("Profile"));
