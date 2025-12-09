@@ -541,6 +541,22 @@ export default function ProfilePage() {
               }}
             />
           ))}
+
+          {/* Logout Button */}
+          {!isViewingOtherProfile && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.8 }}
+              whileHover={{ scale: 1.1, rotate: 90 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={handleLogout}
+              className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 w-8 h-8 sm:w-10 sm:h-10 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 hover:text-white transition-all border border-white/10 shadow-lg"
+              title="Logga ut"
+            >
+              <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
+            </motion.button>
+          )}
           
           <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-14">
             <div className="flex items-center gap-3 sm:gap-6 mb-4 sm:mb-6 lg:mb-8">
