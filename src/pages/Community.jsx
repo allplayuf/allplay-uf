@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
+import { AppLoading } from "../components/ui/app-loading";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import { NoPlayersFound, NoTeamsFound } from "../components/ui/empty-state";
 import { CUPS_QUERY_KEY } from "../components/dashboard/CupsWidget";
@@ -351,7 +352,7 @@ export default function CommunityPage() {
   };
 
   if (isLoading) {
-    return <PageLoadingSkeleton />;
+    return <AppLoading />;
   }
 
   return (
@@ -367,8 +368,8 @@ export default function CommunityPage() {
             exit={{ opacity: 0, y: 100, scale: 0.95 }}
             transition={{ duration: 0.3 }}
             className="bg-[#121715] rounded-t-[20px] lg:rounded-[20px] w-full lg:max-w-2xl border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] h-[85vh] lg:h-auto lg:max-h-[85vh] mb-16 lg:mb-0 overflow-hidden"
-          >
-            <Suspense fallback={<PageLoadingSkeleton />}>
+            >
+            <Suspense fallback={<AppLoading />}>
               <CreateTeamForm
                 user={user}
                 onSubmit={handleCreateTeam}
@@ -690,8 +691,8 @@ export default function CommunityPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.25 }}
-              >
-                <Suspense fallback={<PageLoadingSkeleton />}>
+                >
+                <Suspense fallback={<AppLoading />}>
                   <FriendsList
                     friends={friendsAccepted}
                     incomingRequests={incomingRequests}
@@ -709,7 +710,7 @@ export default function CommunityPage() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.25 }}
               >
-                <Suspense fallback={<PageLoadingSkeleton />}>
+                <Suspense fallback={<AppLoading />}>
                   {!allTeams || allTeams.length === 0 ? (
                     <NoTeamsFound onCreateTeam={() => setShowCreateTeamForm(true)} />
                   ) : (
@@ -733,7 +734,7 @@ export default function CommunityPage() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.25 }}
               >
-                <Suspense fallback={<PageLoadingSkeleton />}>
+                <Suspense fallback={<AppLoading />}>
                   <FindPlayers
                     friendships={friendships}
                     currentUser={user}
@@ -774,7 +775,7 @@ export default function CommunityPage() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.25 }}
               >
-                <Suspense fallback={<PageLoadingSkeleton />}>
+                <Suspense fallback={<AppLoading />}>
                   <CupsOverview user={user} />
                 </Suspense>
               </motion.div>

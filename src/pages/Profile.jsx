@@ -29,6 +29,7 @@ import { createPageUrl } from "@/utils";
 import { Link, useLocation } from "react-router-dom";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import { ProfileSkeleton } from "../components/ui/loading-skeleton";
+import { AppLoading } from "../components/ui/app-loading";
 
 // Lazy load components
 const ProfileStats = lazy(() => import("../components/profile/ProfileStats"));
@@ -423,7 +424,7 @@ export default function ProfilePage() {
   const isLoading = userLoading || (targetUserId && targetUserLoading);
 
   if (isLoading) {
-    return <ProfileSkeleton />;
+    return <AppLoading />;
   }
 
   if (!displayUser) {
@@ -802,7 +803,7 @@ export default function ProfilePage() {
                     transition={{ duration: 0.4, ease: "easeOut" }}
                     className="space-y-6"
                   >
-                    <Suspense fallback={<ProfileSkeleton />}>
+                    <Suspense fallback={<AppLoading />}>
                       <InboxNotifications
                         friendRequests={friendRequests}
                         teamInvites={teamInvites}
@@ -896,7 +897,7 @@ export default function ProfilePage() {
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
                   >
-                    <Suspense fallback={<ProfileSkeleton />}>
+                    <Suspense fallback={<AppLoading />}>
                       <ProfileStats user={displayUser} isOwnProfile={true} />
                     </Suspense>
                   </motion.div>
@@ -924,7 +925,7 @@ export default function ProfilePage() {
                         </p>
                       </Card>
                     ) : (
-                      <Suspense fallback={<ProfileSkeleton />}>
+                      <Suspense fallback={<AppLoading />}>
                         <BadgeCollection user={displayUser} />
                       </Suspense>
                     )}
@@ -942,7 +943,7 @@ export default function ProfilePage() {
                     {matchHistory.length > 0 ? (
                       <div>
                         <h3 className="text-lg font-bold text-[#F4F7F5] mb-4">Senaste matcher</h3>
-                        <Suspense fallback={<ProfileSkeleton />}>
+                        <Suspense fallback={<AppLoading />}>
                           <MatchHistory matches={matchHistory} />
                         </Suspense>
                       </div>
