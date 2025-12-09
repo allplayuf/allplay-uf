@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
+import { VARIANTS } from "../components/utils/motionTokens";
 import {
   Trophy,
   MapPin,
@@ -350,7 +351,12 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
+    <motion.div 
+      variants={VARIANTS.container}
+      initial="hidden"
+      animate="visible"
+      className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8"
+    >
       {/* Error Dialog */}
       <AnimatePresence>
         {showErrorDialog && errorMessage && (
@@ -399,9 +405,7 @@ export default function Dashboard() {
 
         {/* Premium Hero Card - Improved UI */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
+          variants={VARIANTS.item}
           className="relative overflow-hidden rounded-[32px] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7),0_0_40px_0px_rgba(43,168,74,0.1)] border border-[#2BA84A]/20 bg-[#0A0D0B]"
         >
           {/* Dark gradient base */}
@@ -530,9 +534,7 @@ export default function Dashboard() {
 
             {/* Action Buttons Grid - Community Style */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
+              variants={VARIANTS.item}
               className="grid grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-[24px] sm:mb-8 lg:mb-10"
             >
               <Link to={createPageUrl('Map')}>
@@ -585,9 +587,7 @@ export default function Dashboard() {
 
             {/* Hitta spontana matcher - Kraftfull animation */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
+              variants={VARIANTS.item}
             >
               <Link to={createPageUrl("Matches")}>
                 <motion.button
@@ -670,9 +670,7 @@ export default function Dashboard() {
         {/* Notifications Slider */}
         {notifications.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
+            variants={VARIANTS.item}
           >
             <NotificationsSlider notifications={notifications} />
           </motion.div>
@@ -683,9 +681,7 @@ export default function Dashboard() {
           <div className="lg:col-span-8 space-y-8">
             {/* Upcoming Matches */}
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5, ease: "easeOut" }}
+              variants={VARIANTS.item}
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -736,9 +732,7 @@ export default function Dashboard() {
 
             {nearbyMatches.length > 0 && (
               <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
+                variants={VARIANTS.item}
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
@@ -809,9 +803,7 @@ export default function Dashboard() {
 
           {/* Right Column */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.9, ease: "easeOut" }}
+            variants={VARIANTS.item}
             className="lg:col-span-4 space-y-8 sticky top-24 self-start"
           >
             {/* Cups Widget */}
@@ -828,9 +820,7 @@ export default function Dashboard() {
 
         {/* About AllPlay Card */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.0, ease: "easeOut" }}
+          variants={VARIANTS.item}
         >
           <Link to={createPageUrl("AboutAllPlay")}>
             <motion.div
@@ -875,6 +865,7 @@ export default function Dashboard() {
 
 
         </div>
-        </div>
-        );
-        }
+      </div>
+    </motion.div>
+  );
+}
