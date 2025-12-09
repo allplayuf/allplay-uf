@@ -13,7 +13,6 @@ import CupDetail from './pages/CupDetail';
 import CreateCup from './pages/CreateCup';
 import AdminCleanup from './pages/AdminCleanup';
 import AboutAllPlay from './pages/AboutAllPlay';
-import Index from './pages/Index';
 import __Layout from './Layout.jsx';
 
 
@@ -33,7 +32,6 @@ export const PAGES = {
     "CreateCup": CreateCup,
     "AdminCleanup": AdminCleanup,
     "AboutAllPlay": AboutAllPlay,
-    "Index": Index,
 }
 
 export const pagesConfig = {
