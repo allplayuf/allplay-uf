@@ -63,28 +63,18 @@ export default function Layout({ children, currentPageName }) {
     }
   }, [location.pathname]);
 
-  useEffect(() => {
-    if (adminCheckDone) return;
-    
-    const cachedUser = queryClient.getQueryData(['user']);
-    
-    if (cachedUser) {
-      setIsAdmin(cachedUser.role === 'admin');
+  // Use useQuery for consistent user state management across the app
+  useQuery({
+    queryKey: ['user'],
+    queryFn: async () => {
+      const currentUser = await base44.auth.me();
+      setIsAdmin(currentUser.role === 'admin');
       setAdminCheckDone(true);
-      return;
-    }
-
-    base44.auth.me()
-      .then(currentUser => {
-        setIsAdmin(currentUser.role === 'admin');
-        queryClient.setQueryData(['user'], currentUser);
-        setAdminCheckDone(true);
-      })
-      .catch(() => {
-        setIsAdmin(false);
-        setAdminCheckDone(true);
-      });
-  }, []);
+      return currentUser;
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes (matches AUTH strategy)
+    retry: false
+  });
 
   return (
     <QueryProvider>

@@ -146,8 +146,8 @@ export default function CommunityPage() {
       const teams = response.data.teams || [];
       return user?.role === 'admin' ? teams : teams.filter(t => t.is_active !== false);
     },
-    ...CACHE_STRATEGIES.DYNAMIC, // Use DYNAMIC to ensure fresh data on mount
-    refetchOnMount: true,
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC, // Changed from DYNAMIC to reduce aggressive fetching on mount
+    refetchOnMount: false, // Don't refetch every time, trust cache
     enabled: !!user,
   });
 

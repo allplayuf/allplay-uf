@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +25,9 @@ import { createPageUrl } from "@/utils";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import MatchEndModal from "../components/matches/MatchEndModal";
 import InviteFriendsModal from "../components/matches/InviteFriendsModal";
-import MatchReportModal from "../components/matches/MatchReportModal"; // Added import
+import MatchReportModal from "../components/matches/MatchReportModal";
+import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
+import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
 
 // CONSISTENT SKILL LEVEL CONFIG - WCAG AA compliant colors
 const SKILL_LEVEL_CONFIG = {
@@ -90,87 +93,77 @@ export default function MatchDetailPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const matchId = new URLSearchParams(location.search).get('id');
+  const queryClient = useQueryClient();
 
-  const [match, setMatch] = useState(null);
-  const [venue, setVenue] = useState(null);
-  const [participants, setParticipants] = useState([]);
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [showEndModal, setShowEndModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [showReportModal, setShowReportModal] = useState(false); // Added state
-  const [friendships, setFriendships] = useState([]);
+  const [showReportModal, setShowReportModal] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
 
   const { confirm, alert, DialogContainer } = useCustomDialog();
 
-  useEffect(() => {
-    if (matchId) {
-      loadMatchData();
-    }
-  }, [matchId]);
+  // 1. Fetch Current User
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: async () => await base44.auth.me(),
+    ...CACHE_STRATEGIES.AUTH
+  });
 
-  const loadMatchData = async () => {
-    try {
-      const [matchData, currentUser] = await Promise.all([
-        base44.entities.Match.get(matchId),
-        base44.auth.me()
+  const isAdmin = user?.role === 'admin';
+
+  // 2. Fetch Match Data
+  const { data: match, isLoading: matchLoading } = useQuery({
+    queryKey: ['match', matchId],
+    queryFn: async () => await base44.entities.Match.get(matchId),
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+    enabled: !!matchId
+  });
+
+  // 3. Fetch Venue Data (dependent on match)
+  const { data: venue } = useQuery({
+    queryKey: ['venue', match?.venue_id],
+    queryFn: async () => await base44.entities.Venue.get(match.venue_id),
+    ...CACHE_STRATEGIES.STATIC,
+    enabled: !!match?.venue_id
+  });
+
+  // 4. Fetch Participants & Users (Parallel Optimized)
+  const { data: participants = [], isLoading: participantsLoading } = useQuery({
+    queryKey: ['matchParticipants', matchId],
+    queryFn: async () => {
+      const parts = await base44.entities.MatchParticipant.filter({ match_id: matchId });
+      
+      // Parallel fetch users
+      const userIds = [...new Set(parts.map(p => p.user_id))];
+      const users = await Promise.all(
+        userIds.map(id => base44.entities.User.get(id).catch(() => null))
+      );
+      
+      // Merge user data with participant data
+      return users
+        .filter(u => u !== null)
+        .map(u => {
+          const participantInfo = parts.find(p => p.user_id === u.id);
+          return { ...u, participantInfo };
+        });
+    },
+    ...CACHE_STRATEGIES.DYNAMIC, // Participants change often
+    enabled: !!matchId
+  });
+
+  // 5. Fetch Friendships (Optimized for current user)
+  const { data: friendships = [] } = useQuery({
+    queryKey: ['friendships', user?.id],
+    queryFn: async () => {
+      const [sent, received] = await Promise.all([
+        base44.entities.Friendship.filter({ requester_id: user.id }),
+        base44.entities.Friendship.filter({ addressee_id: user.id })
       ]);
-
-      setMatch(matchData);
-      setUser(currentUser);
-      setIsAdmin(currentUser.role === 'admin');
-
-      // Optimize: Load only friendships for current user
-      const [sentFriendships, receivedFriendships] = await Promise.all([
-        base44.entities.Friendship.filter({ requester_id: currentUser.id }),
-        base44.entities.Friendship.filter({ addressee_id: currentUser.id })
-      ]);
-      setFriendships([...sentFriendships, ...receivedFriendships]);
-
-      // Load venue and participants in parallel
-      const promises = [
-        base44.entities.MatchParticipant.filter({ match_id: matchId })
-      ];
-      
-      if (matchData.venue_id) {
-        promises.push(base44.entities.Venue.get(matchData.venue_id));
-      }
-
-      const results = await Promise.all(promises);
-      const participantData = results[0];
-      
-      if (results[1]) {
-        setVenue(results[1]);
-      }
-
-      // Batch load participant users - ONLY fetch users for this match
-      const userIds = [...new Set(participantData.map(p => p.user_id))];
-      const participantUsers = [];
-      
-      for (const userId of userIds) {
-        try {
-          const userData = await base44.entities.User.get(userId);
-          const participantInfo = participantData.find(p => p.user_id === userId);
-          participantUsers.push({
-            ...userData,
-            participantInfo
-          });
-        } catch (error) {
-          console.error(`Failed to load user ${userId}:`, error);
-        }
-      }
-      
-      setParticipants(participantUsers);
-
-    } catch (error) {
-      console.error("Error loading match data:", error);
-      await alert("Kunde inte ladda match", "Försök igen.", { type: 'alert' });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      return [...sent, ...received];
+    },
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+    enabled: !!user
+  });
 
   const handleJoinMatch = async () => {
     if (isActionLoading) return;
@@ -179,41 +172,27 @@ export default function MatchDetailPage() {
       const existingParticipation = participants.find(p => p.id === user.id);
 
       if (existingParticipation) {
-        await alert(
-          'Redan anmäld',
-          'Du har redan anmält dig till denna match!',
-          { type: 'info' }
-        );
+        await alert('Redan anmäld', 'Du har redan anmält dig till denna match!', { type: 'info' });
         return;
       }
 
       if (!match.is_spontaneous && participants.length >= match.max_players) {
-        await alert(
-          'Match fullbokad',
-          'Tyvärr är denna match redan fullbokad!',
-          { type: 'warning' }
-        );
+        await alert('Match fullbokad', 'Tyvärr är denna match redan fullbokad!', { type: 'warning' });
         return;
       }
 
       await base44.functions.invoke('joinMatch', { match_id: matchId });
 
-      loadMatchData();
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['matchParticipants', matchId] });
+      queryClient.invalidateQueries({ queryKey: ['participants'] }); // Global list if used
+      queryClient.invalidateQueries({ queryKey: ['matches'] });
 
-      // Success popup
-      await alert(
-        'Anmäld! 🎉',
-        `Du har anmält dig till "${match.title}". Vi ses där!`,
-        { type: 'success' }
-      );
+      await alert('Anmäld! 🎉', `Du har anmält dig till "${match.title}". Vi ses där!`, { type: 'success' });
 
     } catch (error) {
       console.error("Error joining match:", error);
-      await alert(
-        'Ett fel uppstod',
-        'Kunde inte anmäla dig. Försök igen.',
-        { type: 'alert' }
-      );
+      await alert('Ett fel uppstod', 'Kunde inte anmäla dig. Försök igen.', { type: 'alert' });
     } finally {
       setIsActionLoading(false);
     }
@@ -223,17 +202,12 @@ export default function MatchDetailPage() {
     if (isActionLoading) return;
     try {
       const myParticipation = participants.find(p => p.id === user.id);
-
       if (!myParticipation) return;
 
       const shouldLeave = await confirm(
         'Lämna match',
         'Är du säker på att du vill lämna denna match?',
-        {
-          type: 'warning',
-          confirmText: 'Ja, lämna',
-          cancelText: 'Avbryt'
-        }
+        { type: 'warning', confirmText: 'Ja, lämna', cancelText: 'Avbryt' }
       );
 
       if (!shouldLeave) return;
@@ -241,22 +215,15 @@ export default function MatchDetailPage() {
       setIsActionLoading(true);
       await base44.functions.invoke('leaveMatch', { match_id: matchId });
 
-      // Refresh data immediately
-      await loadMatchData();
+      queryClient.invalidateQueries({ queryKey: ['matchParticipants', matchId] });
+      queryClient.invalidateQueries({ queryKey: ['participants'] });
+      queryClient.invalidateQueries({ queryKey: ['matches'] });
 
-      await alert(
-        'Match lämnad',
-        'Du har lämnat matchen',
-        { type: 'info' }
-      );
+      await alert('Match lämnad', 'Du har lämnat matchen', { type: 'info' });
 
     } catch (error) {
       console.error("Error leaving match:", error);
-      await alert(
-        'Ett fel uppstod',
-        'Kunde inte lämna matchen. Försök igen.',
-        { type: 'alert' }
-      );
+      await alert('Ett fel uppstod', 'Kunde inte lämna matchen. Försök igen.', { type: 'alert' });
     } finally {
       setIsActionLoading(false);
     }
@@ -271,7 +238,9 @@ export default function MatchDetailPage() {
       });
 
       setShowEndModal(false);
-      loadMatchData();
+      queryClient.invalidateQueries({ queryKey: ['match', matchId] });
+      queryClient.invalidateQueries({ queryKey: ['matches'] });
+      
       await alert("Match avslutad!", "Resultaten har sparats.", { type: 'success' });
 
     } catch (error) {
@@ -280,12 +249,10 @@ export default function MatchDetailPage() {
     }
   };
 
-  // New function to handle adding friends
   const handleAddFriend = async (participantId) => {
     if (isActionLoading) return;
     setIsActionLoading(true);
     try {
-      // Check if already friends or request exists
       const existing = friendships.find(f =>
         (f.requester_id === user.id && f.addressee_id === participantId) ||
         (f.requester_id === participantId && f.addressee_id === user.id)
@@ -293,17 +260,9 @@ export default function MatchDetailPage() {
 
       if (existing) {
         if (existing.status === 'accepted') {
-          await alert(
-            'Redan vänner',
-            'Ni är redan vänner!',
-            { type: 'info' }
-          );
+          await alert('Redan vänner', 'Ni är redan vänner!', { type: 'info' });
         } else if (existing.status === 'pending') {
-          await alert(
-            'Vänförfrågan skickad',
-            'Du har redan skickat en vänförfrågan!',
-            { type: 'info' }
-          );
+          await alert('Vänförfrågan skickad', 'Du har redan skickat en vänförfrågan!', { type: 'info' });
         }
         return;
       }
@@ -314,58 +273,71 @@ export default function MatchDetailPage() {
         status: 'pending'
       });
 
-      // Success popup with celebration
-      await alert(
-        'Vänförfrågan skickad! 🤝',
-        'Din vänförfrågan har skickats!',
-        { type: 'success' }
-      );
-
-      loadMatchData();
+      queryClient.invalidateQueries({ queryKey: ['friendships', user.id] });
+      
+      await alert('Vänförfrågan skickad! 🤝', 'Din vänförfrågan har skickats!', { type: 'success' });
 
     } catch (error) {
       console.error("Error adding friend:", error);
-      await alert(
-        'Ett fel uppstod',
-        'Kunde inte skicka vänförfrågan. Försök igen.',
-        { type: 'alert' }
-      );
+      await alert('Ett fel uppstod', 'Kunde inte skicka vänförfrågan. Försök igen.', { type: 'alert' });
     } finally {
       setIsActionLoading(false);
     }
   };
 
-  // New function to determine friendship status
   const getFriendStatus = (participantId) => {
-    if (!friendships || participantId === user.id) return null;
+    if (!friendships || participantId === user?.id) return null;
 
     const friendship = friendships.find(f =>
-      (f.requester_id === user.id && f.addressee_id === participantId) ||
-      (f.requester_id === participantId && f.addressee_id === user.id)
+      (f.requester_id === user?.id && f.addressee_id === participantId) ||
+      (f.requester_id === participantId && f.addressee_id === user?.id)
     );
 
     if (!friendship) return 'none';
     if (friendship.status === 'accepted') return 'friends';
     if (friendship.status === 'pending') {
-      return friendship.requester_id === user.id ? 'pending_sent' : 'pending_received';
+      return friendship.requester_id === user?.id ? 'pending_sent' : 'pending_received';
     }
     return 'none';
   };
 
+  const handleDeleteMatch = async () => {
+    if (isActionLoading) return;
+
+    try {
+      const shouldDelete = await confirm(
+        'Ta bort match',
+        'Är du säker på att du vill ta bort denna match? Detta kan inte ångras.',
+        { type: 'warning', confirmText: 'Ja, ta bort', cancelText: 'Avbryt' }
+      );
+
+      if (!shouldDelete) return;
+
+      setIsActionLoading(true);
+      await base44.functions.invoke('deleteMatch', { matchId: matchId });
+
+      queryClient.invalidateQueries({ queryKey: ['matches'] });
+      
+      await alert('Match borttagen', 'Matchen har tagits bort', { type: 'success' });
+      navigate(createPageUrl("Matches"));
+
+    } catch (error) {
+      console.error("Error deleting match:", error);
+      await alert('Ett fel uppstod', 'Kunde inte ta bort matchen. Försök igen.', { type: 'alert' });
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
   const generateGoogleCalendarUrl = () => {
     if (!match) return '';
-    
     try {
-      // Construct start date object
       const [year, month, day] = match.date.split('-');
       const [hour, minute] = match.time.split(':');
       const startDate = new Date(year, month - 1, day, hour, minute);
       const endDate = new Date(startDate.getTime() + (match.duration_minutes || 90) * 60000);
       
-      const formatTime = (date) => {
-        return date.toISOString().replace(/-|:|\.\d+/g, '');
-      };
-
+      const formatTime = (date) => date.toISOString().replace(/-|:|\.\d+/g, '');
       const start = formatTime(startDate);
       const end = formatTime(endDate);
       
@@ -377,60 +349,14 @@ export default function MatchDetailPage() {
       
       return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(match.title)}&dates=${start}/${end}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(location)}`;
     } catch (e) {
-      console.error("Error generating calendar URL", e);
       return '#';
-      }
-      };
+    }
+  };
 
-      const handleDeleteMatch = async () => {
-      if (isActionLoading) return;
-
-      try {
-      const shouldDelete = await confirm(
-        'Ta bort match',
-        'Är du säker på att du vill ta bort denna match? Detta kan inte ångras.',
-        {
-          type: 'warning',
-          confirmText: 'Ja, ta bort',
-          cancelText: 'Avbryt'
-        }
-      );
-
-      if (!shouldDelete) return;
-
-      setIsActionLoading(true);
-
-      await base44.functions.invoke('deleteMatch', { matchId: matchId });
-
-      await alert(
-        'Match borttagen',
-        'Matchen har tagits bort',
-        { type: 'success' }
-      );
-
-      navigate(createPageUrl("Matches"));
-
-      } catch (error) {
-      console.error("Error deleting match:", error);
-      await alert(
-        'Ett fel uppstod',
-        'Kunde inte ta bort matchen. Försök igen.',
-        { type: 'alert' }
-      );
-      } finally {
-      setIsActionLoading(false);
-      }
-      };
+  const isLoading = matchLoading || participantsLoading;
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#0F1513] flex items-center justify-center p-4">
-        <div className="text-center space-y-4">
-          <div className="w-12 h-12 border-4 border-[#2BA84A] border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-[#F4F7F5] text-sm font-medium">Laddar match...</p>
-        </div>
-      </div>
-    );
+    return <PageLoadingSkeleton />;
   }
 
   if (!match) {
@@ -475,14 +401,11 @@ export default function MatchDetailPage() {
           Tillbaka
         </button>
 
-        {/* WARNING BOX REMOVED */}
-
         {/* Match Header - COMPLETION STATE */}
         {isCompleted ? (
           <Card className="overflow-hidden border-0 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[24px] relative">
             <div className="absolute inset-0 bg-gradient-to-br from-[#0F1513] to-[#121715]"></div>
             
-            {/* Hero Background Image/Gradient */}
             <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-[#F4743B]/20 to-[#E5683A]/10"></div>
             
             <CardContent className="p-0 relative z-10">
@@ -511,7 +434,6 @@ export default function MatchDetailPage() {
                   <div className="bg-[#18221E]/50 p-4 rounded-2xl border border-[#223029]">
                     <div className="text-[#B6C2BC] text-xs font-bold uppercase mb-1">MVP</div>
                     <div className="text-[#F4743B] font-bold text-lg truncate">
-                      {/* MVP Logic would require fetching votes, placeholder for now */}
                       {match.result_reported_by === user?.id ? 'Du rapporterade' : 'Se deltagare'}
                     </div>
                   </div>
@@ -536,11 +458,9 @@ export default function MatchDetailPage() {
         ) : (
         <Card className="bg-gradient-to-br from-[#2BA84A] to-[#0F2917] rounded-[20px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029] relative overflow-hidden">
           
-          {/* Animated Background Elements */}
           <div className="absolute top-[-50px] right-[-50px] w-64 h-64 bg-white/5 rounded-full blur-3xl animate-pulse pointer-events-none"></div>
           <div className="absolute bottom-[-50px] left-[-50px] w-48 h-48 bg-[#248232]/30 rounded-full blur-2xl animate-pulse pointer-events-none" style={{ animationDelay: '1s' }}></div>
           
-          {/* Animated Rings */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-white/5 rounded-full pointer-events-none animate-[spin_20s_linear_infinite]"></div>
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] border border-white/10 rounded-full pointer-events-none animate-[spin_15s_linear_infinite_reverse]"></div>
 
@@ -548,12 +468,10 @@ export default function MatchDetailPage() {
             <div className="flex flex-col lg:flex-row gap-6">
               <div className="flex-1">
                 <div className="flex flex-wrap items-center gap-3 mb-4">
-                  {/* Status Badge - WCAG AA compliant */}
                   <Badge className={`h-8 px-4 ${statusConfig.bgColor} ${statusConfig.textColor} ring-1 ${statusConfig.ringColor} font-semibold`}>
                     {statusConfig.label}
                   </Badge>
 
-                  {/* Skill Level Badge - WCAG AA compliant */}
                   {skillConfig && (
                     <Badge className={`h-8 px-4 ${skillConfig.bgColor} ${skillConfig.textColor} ring-1 ${skillConfig.ringColor} font-semibold flex items-center gap-1.5`}>
                       {SkillIcon && <SkillIcon className="w-4 h-4" />}
@@ -597,7 +515,6 @@ export default function MatchDetailPage() {
                 </div>
               </div>
 
-              {/* Action Buttons - IMPROVED SPACING */}
               <div className="flex flex-col gap-3 w-full lg:w-auto lg:min-w-[220px]">
                 <button
                    onClick={() => setShowReportModal(true)}
@@ -675,7 +592,6 @@ export default function MatchDetailPage() {
         </Card>
         )}
 
-        {/* Tabs */}
         <Tabs defaultValue="participants" className="space-y-6">
           <TabsList className="bg-[#121715] p-1 border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] grid grid-cols-2 w-full rounded-[16px]">
             <TabsTrigger
@@ -709,12 +625,11 @@ export default function MatchDetailPage() {
                   const participantSkill = participant.skill_level ? SKILL_LEVEL_CONFIG[participant.skill_level] : null;
                   const ParticipantSkillIcon = participantSkill?.icon;
                   const friendStatus = getFriendStatus(participant.id);
-                  const isCurrentUser = participant.id === user.id;
+                  const isCurrentUser = participant.id === user?.id;
 
                   return (
                     <Card key={participant.id} className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[16px] hover:scale-[1.02] hover:border-[#2BA84A]/30 transition-all">
                       <CardContent className="p-4">
-                        {/* Clickable profile area */}
                         <Link
                           to={`${createPageUrl("Profile")}?userId=${participant.id}`}
                           className="block mb-3 group"
@@ -752,7 +667,6 @@ export default function MatchDetailPage() {
                           </div>
                         </div>
 
-                        {/* Add Friend Button for completed matches */}
                         {isCompleted && !isCurrentUser && (
                           <div className="pt-3 mt-3 border-t border-[#223029]">
                             {friendStatus === 'none' && (
@@ -825,7 +739,6 @@ export default function MatchDetailPage() {
         </Tabs>
       </div>
 
-      {/* Modals */}
       {showEndModal && (
         <MatchEndModal
           match={match}
