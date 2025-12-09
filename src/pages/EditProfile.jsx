@@ -173,14 +173,8 @@ export default function EditProfilePage() {
         blocked: formData.blocked === true || formData.blocked === 'true'
       });
       
-      // Force immediate cache invalidation for all relevant keys
+      // Force immediate cache invalidation
       queryClient.invalidateQueries({ queryKey: ['user'] });
-      queryClient.invalidateQueries({ queryKey: ['friends'] });
-      queryClient.invalidateQueries({ queryKey: ['participants'] });
-      queryClient.invalidateQueries({ queryKey: ['allParticipants'] });
-      queryClient.invalidateQueries({ queryKey: ['matches'] });
-      queryClient.invalidateQueries({ queryKey: ['targetUser'] });
-      
       queryClient.refetchQueries({ queryKey: ['user'] });
       
       alert('Profil uppdaterad!');
