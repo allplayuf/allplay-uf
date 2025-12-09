@@ -722,13 +722,13 @@ export default function MatchDetailPage() {
                           <div className="flex items-center gap-3">
                             <div className="w-12 h-12 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
                               {participant.profile_image_url ? (
-                                <img src={participant.profile_image_url} alt={participant.full_name} className="w-full h-full object-cover rounded-xl" />
+                                <img src={participant.profile_image_url} alt={participant.display_name || participant.full_name} className="w-full h-full object-cover rounded-xl" />
                               ) : (
-                                <span className="text-[#FFFFFF] font-semibold text-lg">{participant.full_name?.[0] || 'U'}</span>
+                                <span className="text-[#FFFFFF] font-semibold text-lg">{(participant.display_name || participant.full_name)?.[0] || 'U'}</span>
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-[#F4F7F5] text-[14px] leading-[20px] truncate group-hover:text-[#2BA84A] transition-colors">{participant.full_name}</h4>
+                              <h4 className="font-semibold text-[#F4F7F5] text-[14px] leading-[20px] truncate group-hover:text-[#2BA84A] transition-colors">{participant.display_name || participant.full_name}</h4>
                               <p className="text-[12px] leading-[16px] text-[#B6C2BC]">{participant.city}</p>
                             </div>
                           </div>
