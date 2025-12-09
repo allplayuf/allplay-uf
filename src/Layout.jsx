@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { MapPin, Calendar, Users, Trophy, User, Shield, AlertCircle } from "lucide-react";
 import { Toaster } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import { QueryProvider, queryClient } from "@/components/providers/QueryProvider";
 import { PageLoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { PageTransition } from "@/components/ui/page-transition";
