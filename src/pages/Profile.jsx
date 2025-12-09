@@ -22,7 +22,8 @@ import {
   Shield,
   UserPlus,
   CheckCircle,
-  Clock
+  Clock,
+  LogOut
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { Link, useLocation } from "react-router-dom";
@@ -362,6 +363,22 @@ export default function ProfilePage() {
     } catch (error) {
       console.error("Error declining join request:", error);
       await alert('Fel vid ansökan', 'Kunde inte neka ansökan. Försök igen.', { type: 'alert' });
+    }
+  };
+
+  const handleLogout = async () => {
+    const shouldLogout = await confirm(
+      'Logga ut',
+      'Är du säker på att du vill logga ut?',
+      { 
+        type: 'warning', 
+        confirmText: 'Logga ut', 
+        cancelText: 'Avbryt'
+      }
+    );
+
+    if (shouldLogout) {
+      await base44.auth.logout();
     }
   };
 
