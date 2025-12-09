@@ -76,17 +76,22 @@ export default function ProfilePage() {
   const urlParams = new URLSearchParams(location.search);
   const targetUserId = urlParams.get('userId');
 
-  // Fetch current user with aggressive caching
+  // Fetch current user with aggressive caching - PRIORITIZE
   const { data: user, isLoading: userLoading, error: userError, refetch: refetchUser } = useQuery({
     queryKey: QUERY_KEYS.user,
     queryFn: async () => {
       const currentUser = await base44.auth.me();
+      // Preload profile image immediately if it exists
+      if (currentUser?.profile_image_url) {
+        const img = new Image();
+        img.src = currentUser.profile_image_url;
+      }
       return currentUser;
     },
     staleTime: 10 * 60 * 1000, // 10 minutes
     cacheTime: 30 * 60 * 1000, // 30 minutes
     refetchOnWindowFocus: false,
-    refetchOnMount: 'always', // Always refetch when component mounts to get latest data
+    refetchOnMount: false, // Changed to false - use cache first
     retry: false,
   });
 
@@ -580,7 +585,8 @@ export default function ProfilePage() {
                       src={displayUser.profile_image_url}
                       alt="Profile"
                       className="w-full h-full object-cover"
-                      loading="lazy"
+                      loading="eager"
+                      fetchpriority="high"
                     />
                   ) : (
                     <span className="text-4xl font-bold text-[#FFFFFF]">
