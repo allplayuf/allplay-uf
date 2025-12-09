@@ -174,7 +174,14 @@ export default function EditProfilePage() {
       });
       
       // Force immediate cache invalidation
-      queryClient.invalidateQueries({ queryKey: ['user'] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['user'] }),
+        queryClient.invalidateQueries({ queryKey: ['publicUsers'] }),
+        queryClient.invalidateQueries({ queryKey: ['participants'] }),
+        queryClient.invalidateQueries({ queryKey: ['allParticipants'] }),
+        queryClient.invalidateQueries({ queryKey: ['matches'] }),
+        queryClient.invalidateQueries({ queryKey: ['friendships'] })
+      ]);
       queryClient.refetchQueries({ queryKey: ['user'] });
       
       alert('Profil uppdaterad!');
