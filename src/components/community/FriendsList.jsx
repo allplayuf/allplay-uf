@@ -22,7 +22,7 @@ const SKILL_LEVEL_CONFIG = {
   elite: { label: 'Elit', icon: Crown, color: 'from-[#F59E0B] to-[#D97706]', textColor: 'text-[#FDE68A]' }
 };
 
-export default function FriendsList({ friends, user, onRefresh }) {
+export default function FriendsList({ friends, incomingRequests, onAcceptRequest, onDeclineRequest }) {
   // Deduplicate friends based on ID
   const uniqueFriends = friends.filter((friend, index, self) => 
     index === self.findIndex((t) => t.id === friend.id)

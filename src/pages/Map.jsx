@@ -391,7 +391,6 @@ export default function MapPage() {
                 onShowDetails={handleShowDetails}
                 onMatchClick={handleMatchClick}
                 userMatchIds={userMatchIds}
-                allParticipants={allParticipants}
               />
             </div>
           )}
