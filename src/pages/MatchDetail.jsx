@@ -23,9 +23,7 @@ import {
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { useCustomDialog } from "../components/ui/custom-dialog";
-import MatchEndModal from "../components/matches/MatchEndModal";
-import InviteFriendsModal from "../components/matches/InviteFriendsModal";
-import MatchReportModal from "../components/matches/MatchReportModal";
+import { LazyMatchEndModal, LazyInviteFriendsModal, LazyMatchReportModal } from "../components/matches/LazyMatchDetails";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
 
@@ -739,35 +737,32 @@ export default function MatchDetailPage() {
         </Tabs>
       </div>
 
-      {showEndModal && (
-        <MatchEndModal
-          match={match}
-          participants={participants}
-          currentUser={user}
-          onClose={() => setShowEndModal(false)}
-          onSubmit={handleMatchEnd}
-        />
-      )}
+      <LazyMatchEndModal
+        show={showEndModal}
+        match={match}
+        participants={participants}
+        currentUser={user}
+        onClose={() => setShowEndModal(false)}
+        onSubmit={handleMatchEnd}
+      />
 
-      {showInviteModal && (
-        <InviteFriendsModal
-          match={match}
-          currentUser={user}
-          onClose={() => setShowInviteModal(false)}
-          onInvitesSent={async () => {
-            setShowInviteModal(false);
-            await alert('Inbjudningar skickade!', 'Dina vänner har blivit inbjudna till matchen.', { type: 'success' });
-          }}
-        />
-      )}
+      <LazyInviteFriendsModal
+        show={showInviteModal}
+        match={match}
+        currentUser={user}
+        onClose={() => setShowInviteModal(false)}
+        onInvitesSent={async () => {
+          setShowInviteModal(false);
+          await alert('Inbjudningar skickade!', 'Dina vänner har blivit inbjudna till matchen.', { type: 'success' });
+        }}
+      />
 
-      {showReportModal && (
-          <MatchReportModal 
-              match={match}
-              currentUser={user}
-              onClose={() => setShowReportModal(false)}
-          />
-      )}
+      <LazyMatchReportModal
+        show={showReportModal}
+        match={match}
+        currentUser={user}
+        onClose={() => setShowReportModal(false)}
+      />
     </div>
   );
 }
