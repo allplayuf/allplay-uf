@@ -203,6 +203,11 @@ export default function Dashboard() {
 
   const myUpcomingMatches = upcomingMatches
     .filter(m => userMatchIds.includes(m.id) || m.organizer_id === user?.id)
+    .sort((a, b) => {
+      const dateTimeA = new Date(`${a.date}T${a.time}`);
+      const dateTimeB = new Date(`${b.date}T${b.time}`);
+      return dateTimeA - dateTimeB;
+    })
     .slice(0, 2);
 
   const quickPlayMatches = upcomingMatches
