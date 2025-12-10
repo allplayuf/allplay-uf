@@ -44,7 +44,7 @@ const getStatusBadge = (status) => {
   return statusConfig[status] || statusConfig.upcoming;
 };
 
-export default function MatchCard({ match, venues, user, participants = [], onJoin, onRefresh, index = 0 }) {
+export default React.memo(function MatchCard({ match, venues, user, participants = [], onJoin, onRefresh, index = 0 }) {
   // ALWAYS call hooks first, before any conditional returns
   const [participantUsers, setParticipantUsers] = useState([]);
 
@@ -280,4 +280,4 @@ export default function MatchCard({ match, venues, user, participants = [], onJo
       </Card>
     </motion.div>
   );
-}
+});

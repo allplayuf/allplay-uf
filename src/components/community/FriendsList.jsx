@@ -117,4 +117,4 @@ export default function FriendsList({ friends, user, onRefresh }) {
       })}
     </div>
   );
-}
+});

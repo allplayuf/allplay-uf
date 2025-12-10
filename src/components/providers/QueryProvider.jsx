@@ -50,43 +50,43 @@ export const createQueryKey = (key, options = {}) => {
 export const CACHE_STRATEGIES = {
   // User authentication - Very stable, long cache
   AUTH: {
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    cacheTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 15 * 60 * 1000, // 15 minutes (increased from 10)
+    cacheTime: 60 * 60 * 1000, // 1 hour (increased from 30 min)
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   },
-  
-  // Static data (venues, badges) - Very stable
+
+  // Static data (venues, badges, cups list) - Very stable
   STATIC: {
-    staleTime: 15 * 60 * 1000, // 15 minutes
-    cacheTime: 60 * 60 * 1000, // 1 hour
+    staleTime: 30 * 60 * 1000, // 30 minutes (increased from 15)
+    cacheTime: 2 * 60 * 60 * 1000, // 2 hours (increased from 1 hour)
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   },
-  
+
   // Semi-dynamic data (matches, teams) - Moderate freshness
   SEMI_DYNAMIC: {
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 3 * 60 * 1000, // 3 minutes (increased from 2)
+    cacheTime: 15 * 60 * 1000, // 15 minutes (increased from 10)
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   },
-  
+
   // Highly dynamic data (chat, notifications) - Fresh data needed
   DYNAMIC: {
-    staleTime: 30 * 1000, // 30 seconds
-    cacheTime: 2 * 60 * 1000, // 2 minutes
-    refetchOnWindowFocus: true, // Refetch when user returns
-    refetchOnMount: 'always',
-  },
-  
-  // Realtime data (match participants, live scores) - Always fresh
-  REALTIME: {
-    staleTime: 10 * 1000, // 10 seconds
-    cacheTime: 60 * 1000, // 1 minute
+    staleTime: 45 * 1000, // 45 seconds (increased from 30)
+    cacheTime: 3 * 60 * 1000, // 3 minutes (increased from 2)
     refetchOnWindowFocus: true,
     refetchOnMount: 'always',
-    refetchInterval: 30 * 1000, // Poll every 30 seconds
+  },
+
+  // Realtime data (match participants, live scores) - Always fresh
+  REALTIME: {
+    staleTime: 15 * 1000, // 15 seconds (increased from 10)
+    cacheTime: 90 * 1000, // 90 seconds (increased from 60)
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
+    refetchInterval: 45 * 1000, // Poll every 45 seconds (increased from 30)
   },
 };
 
