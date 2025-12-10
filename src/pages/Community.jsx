@@ -606,103 +606,126 @@ export default function CommunityPage() {
             </TabsTrigger>
           </TabsList>
 
-          <AnimatePresence mode="wait">
-            <TabsContent key="friends" value="friends">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.25 }}
-              >
-                <Suspense fallback={<PageLoadingSkeleton />}>
-                  <FriendsList
-                    friends={friendsAccepted}
-                    incomingRequests={incomingRequests}
-                    onAcceptRequest={handleAcceptFriend}
-                    onDeclineRequest={handleDeclineFriend}
-                  />
-                </Suspense>
-              </motion.div>
-            </TabsContent>
-
-            <TabsContent key="teams" value="teams">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.25 }}
-              >
-                <Suspense fallback={<PageLoadingSkeleton />}>
-                  {!allTeams || allTeams.length === 0 ? (
-                    <NoTeamsFound onCreateTeam={() => setShowCreateTeamForm(true)} />
-                  ) : (
-                    <TeamsList
-                      teams={allTeams}
-                      myTeams={myTeams}
-                      teamInvites={teamInvites}
-                      user={user}
-                      onCreateTeam={() => setShowCreateTeamForm(true)}
-                      onAcceptInvite={handleAcceptTeamInvite}
+          <TabsContent value="friends">
+            <AnimatePresence mode="wait">
+              {activeTab === 'friends' && (
+                <motion.div
+                  key="friends-content"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                >
+                  <Suspense fallback={<PageLoadingSkeleton />}>
+                    <FriendsList
+                      friends={friendsAccepted}
+                      incomingRequests={incomingRequests}
+                      onAcceptRequest={handleAcceptFriend}
+                      onDeclineRequest={handleDeclineFriend}
                     />
-                  )}
-                </Suspense>
-              </motion.div>
-            </TabsContent>
+                  </Suspense>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </TabsContent>
 
-            <TabsContent key="find" value="find">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.25 }}
-              >
-                <Suspense fallback={<PageLoadingSkeleton />}>
-                  <FindPlayers
-                    friendships={friendships}
-                    currentUser={user}
-                    onAddFriend={handleAddFriend}
-                  />
-                </Suspense>
-              </motion.div>
-            </TabsContent>
+          <TabsContent value="teams">
+            <AnimatePresence mode="wait">
+              {activeTab === 'teams' && (
+                <motion.div
+                  key="teams-content"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                >
+                  <Suspense fallback={<PageLoadingSkeleton />}>
+                    {!allTeams || allTeams.length === 0 ? (
+                      <NoTeamsFound onCreateTeam={() => setShowCreateTeamForm(true)} />
+                    ) : (
+                      <TeamsList
+                        teams={allTeams}
+                        myTeams={myTeams}
+                        teamInvites={teamInvites}
+                        user={user}
+                        onCreateTeam={() => setShowCreateTeamForm(true)}
+                        onAcceptInvite={handleAcceptTeamInvite}
+                      />
+                    )}
+                  </Suspense>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </TabsContent>
 
-            <TabsContent key="feedback" value="feedback">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.25 }}
-              >
-                <Link to={createPageUrl("Feedback")}>
-                  <Card className="bg-[#121715] border border-[#223029] rounded-[20px] p-12 hover:border-[#4169E1]/30 transition-all cursor-pointer">
-                    <div className="text-center">
-                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#4169E1]/20 to-[#3457D5]/10 flex items-center justify-center mx-auto mb-6">
-                        <MessageSquare className="w-10 h-10 text-[#4169E1]" />
+          <TabsContent value="find">
+            <AnimatePresence mode="wait">
+              {activeTab === 'find' && (
+                <motion.div
+                  key="find-content"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                >
+                  <Suspense fallback={<PageLoadingSkeleton />}>
+                    <FindPlayers
+                      friendships={friendships}
+                      currentUser={user}
+                      onAddFriend={handleAddFriend}
+                    />
+                  </Suspense>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </TabsContent>
+
+          <TabsContent value="feedback">
+            <AnimatePresence mode="wait">
+              {activeTab === 'feedback' && (
+                <motion.div
+                  key="feedback-content"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                >
+                  <Link to={createPageUrl("Feedback")}>
+                    <Card className="bg-[#121715] border border-[#223029] rounded-[20px] p-12 hover:border-[#4169E1]/30 transition-all cursor-pointer">
+                      <div className="text-center">
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#4169E1]/20 to-[#3457D5]/10 flex items-center justify-center mx-auto mb-6">
+                          <MessageSquare className="w-10 h-10 text-[#4169E1]" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-[#F4F7F5] mb-2">Feedback & Idéer</h3>
+                        <p className="text-[#B6C2BC] mb-6">Dela dina tankar och hjälp oss förbättra AllPlay</p>
+                        <Button className="bg-[#4169E1] hover:bg-[#3457D5] text-white px-6 py-3 text-base font-semibold rounded-xl">
+                          Dela dina idéer
+                        </Button>
                       </div>
-                      <h3 className="text-2xl font-bold text-[#F4F7F5] mb-2">Feedback & Idéer</h3>
-                      <p className="text-[#B6C2BC] mb-6">Dela dina tankar och hjälp oss förbättra AllPlay</p>
-                      <Button className="bg-[#4169E1] hover:bg-[#3457D5] text-white px-6 py-3 text-base font-semibold rounded-xl">
-                        Dela dina idéer
-                      </Button>
-                    </div>
-                  </Card>
-                </Link>
-              </motion.div>
-            </TabsContent>
+                    </Card>
+                  </Link>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </TabsContent>
 
-            <TabsContent key="cups" value="cups">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.25 }}
-              >
-                <Suspense fallback={<PageLoadingSkeleton />}>
-                  <CupsOverview user={user} />
-                </Suspense>
-              </motion.div>
-            </TabsContent>
-          </AnimatePresence>
+          <TabsContent value="cups">
+            <AnimatePresence mode="wait">
+              {activeTab === 'cups' && (
+                <motion.div
+                  key="cups-content"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                >
+                  <Suspense fallback={<PageLoadingSkeleton />}>
+                    <CupsOverview user={user} />
+                  </Suspense>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </TabsContent>
         </Tabs>
       </div>
 
