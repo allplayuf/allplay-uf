@@ -400,116 +400,39 @@ export default function CommunityPage() {
             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
           />
 
-          {/* Enhanced Glowing Rings */}
-          <motion.div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] lg:w-[700px] lg:h-[700px] rounded-full border-2 border-[#2BA84A]/20"
-            animate={{
-              scale: [1, 1.15, 1],
-              rotate: [0, 90, 0],
-              opacity: [0.2, 0.4, 0.2]
-            }}
-            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] lg:w-[900px] lg:h-[900px] rounded-full border border-[#248232]/10"
-            animate={{
-              scale: [1.1, 1, 1.1],
-              rotate: [0, -90, 0],
-              opacity: [0.15, 0.3, 0.15]
-            }}
-            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 3 }}
-          />
+          {/* Simplified Background Effects */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] lg:w-[700px] lg:h-[700px] rounded-full border border-[#2BA84A]/15" />
 
-          {/* Ambient Orbs */}
-          <motion.div
-            className="absolute top-10 lg:top-20 right-10 lg:right-20 w-32 h-32 lg:w-48 lg:h-48 bg-[#2BA84A]/20 rounded-full blur-3xl"
-            animate={{
-              x: [0, 30, 0],
-              y: [0, -30, 0],
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.5, 0.3]
-            }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div
-            className="absolute bottom-10 lg:bottom-20 left-10 lg:left-20 w-40 h-40 lg:w-56 lg:h-56 bg-[#1A6029]/15 rounded-full blur-3xl"
-            animate={{
-              x: [0, -20, 0],
-              y: [0, 20, 0],
-              scale: [1, 1.15, 1],
-              opacity: [0.2, 0.4, 0.2]
-            }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          />
-
-          {/* Floating Light Particles */}
-          {[...Array(8)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-1 h-1 lg:w-2 lg:h-2 bg-[#2BA84A]/60 rounded-full"
-              style={{
-                left: `${15 + i * 12}%`,
-                top: `${25 + (i % 4) * 20}%`,
-              }}
-              animate={{
-                y: [0, -40, 0],
-                opacity: [0.2, 0.7, 0.2],
-                scale: [1, 1.5, 1]
-              }}
-              transition={{
-                duration: 4 + i * 0.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: i * 0.4,
-              }}
-            />
-          ))}
+          {/* Static Ambient Orbs */}
+          <div className="absolute top-10 lg:top-20 right-10 lg:right-20 w-32 h-32 lg:w-48 lg:h-48 bg-[#2BA84A]/20 rounded-full blur-3xl opacity-40" />
+          <div className="absolute bottom-10 lg:bottom-20 left-10 lg:left-20 w-40 h-40 lg:w-56 lg:h-56 bg-[#1A6029]/15 rounded-full blur-3xl opacity-30" />
 
           <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-14">
             {/* Enhanced Header with Logo - Aligned horizontally */}
             <div className="flex items-center gap-4 sm:gap-6 mb-6 sm:mb-8 lg:mb-10">
               
-              {/* Logo with 3D Effect - Same frame on all sizes */}
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0, rotateY: -30 }}
-                animate={{ 
-                  scale: 1,
-                  opacity: 1,
-                  rotateY: 0
-                }}
-                transition={{ 
-                  duration: 0.8,
-                  ease: "easeOut"
-                }}
-                className="relative group flex-shrink-0"
-              >
-                {/* Epic Glow */}
-                <motion.div 
-                  className="absolute -inset-6 bg-gradient-to-r from-[#2BA84A]/50 via-[#248232]/50 to-[#2BA84A]/50 rounded-full blur-3xl"
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    opacity: [0.5, 0.8, 0.5]
-                  }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                />
-                
-                {/* Logo Frame - Small border on all sizes */}
-                <div className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-40 lg:h-40 rounded-3xl overflow-hidden border-2 border-[#FFFFFF]/30 shadow-[0_20px_60px_rgba(43,168,74,0.4)] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm transform group-hover:rotate-3 transition-transform duration-500 flex items-center justify-center">
+              {/* Simplified Logo */}
+              <div className="relative flex-shrink-0">
+                {/* Static Glow */}
+                <div className="absolute -inset-6 bg-gradient-to-r from-[#2BA84A]/40 via-[#248232]/40 to-[#2BA84A]/40 rounded-full blur-3xl opacity-60" />
+
+                {/* Logo Frame */}
+                <div className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-40 lg:h-40 rounded-3xl overflow-hidden border-2 border-[#FFFFFF]/30 shadow-[0_20px_60px_rgba(43,168,74,0.4)] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm flex items-center justify-center">
                   {user?.profile_image_url ? (
                     <img 
                       src={user.profile_image_url} 
                       alt="Profile" 
-                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                      className="w-full h-full object-cover"
                     />
                   ) : (
                     <img 
                       src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png" 
                       alt="AllPlay" 
-                      className="w-3/4 h-3/4 object-contain transform group-hover:scale-110 transition-transform duration-700"
+                      className="w-3/4 h-3/4 object-contain"
                     />
                   )}
-                </div>
-              </motion.div>
+                  </div>
+                  </div>
 
               {/* Title Section - Aligned with logo */}
               <div className="flex-1 min-w-0">
