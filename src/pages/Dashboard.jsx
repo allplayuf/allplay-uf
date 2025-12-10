@@ -203,7 +203,7 @@ export default function Dashboard() {
 
   const myUpcomingMatches = upcomingMatches
     .filter(m => userMatchIds.includes(m.id) || m.organizer_id === user?.id)
-    .slice(0, 4);
+    .slice(0, 2);
 
   const quickPlayMatches = upcomingMatches
     .filter(m =>
