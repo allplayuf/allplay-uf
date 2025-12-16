@@ -108,12 +108,15 @@ export default function ProfilePage() {
     queryFn: async () => {
       if (!targetUserId || targetUserId === user?.id) return null;
       
-      const allUsers = await base44.entities.User.list();
-      const foundUser = allUsers.find(u => u.id === targetUserId);
+      // Use getPublicUsers function to fetch user with service role
+      const response = await base44.functions.invoke('getPublicUsers', {
+        limit: 1000,
+        offset: 0
+      });
+      
+      const foundUser = response.data?.users?.find(u => u.id === targetUserId);
       
       if (!foundUser) throw new Error('User not found');
-      if (foundUser.blocked === true) throw new Error('User blocked');
-      if (foundUser.publicProfile === false) throw new Error('Private profile');
       
       return foundUser;
     },
@@ -155,8 +158,14 @@ export default function ProfilePage() {
       const friendIds = acceptedFriendships.map(f => 
         f.requester_id === user.id ? f.addressee_id : f.requester_id
       );
-      const allUsers = await base44.entities.User.list();
-      return allUsers.filter(u => friendIds.includes(u.id));
+      
+      // Use getPublicUsers function to fetch friends with service role
+      const response = await base44.functions.invoke('getPublicUsers', {
+        limit: 1000,
+        offset: 0
+      });
+      
+      return (response.data?.users || []).filter(u => friendIds.includes(u.id));
     },
     staleTime: 60 * 1000,
     enabled: !!user && !targetUserId && friendships.length > 0,

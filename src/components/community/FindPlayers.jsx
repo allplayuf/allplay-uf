@@ -137,19 +137,23 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
                 <CardContent className="p-4">
                   <Link to={`${createPageUrl("Profile")}?userId=${player.id}`} className="block mb-3">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0">
-                        {player.profile_image_url ? (
-                          <img 
-                            src={player.profile_image_url} 
-                            alt={player.full_name} 
-                            className="w-full h-full object-cover rounded-xl" 
-                            loading="lazy" 
-                          />
-                        ) : (
-                          <span className="text-[#FFFFFF] font-semibold text-lg">
-                            {(player.display_name || player.full_name)?.[0] || 'U'}
-                          </span>
-                        )}
+                      <div className="w-12 h-12 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0 relative overflow-hidden">
+                       {player.profile_image_url ? (
+                         <>
+                           <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/20 to-[#248232]/20 animate-pulse" />
+                           <img 
+                             src={player.profile_image_url} 
+                             alt={player.full_name} 
+                             className="w-full h-full object-cover rounded-xl opacity-0 transition-opacity duration-300" 
+                             loading="lazy"
+                             onLoad={(e) => e.target.classList.remove('opacity-0')}
+                           />
+                         </>
+                       ) : (
+                         <span className="text-[#FFFFFF] font-semibold text-lg">
+                           {(player.display_name || player.full_name)?.[0] || 'U'}
+                         </span>
+                       )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-semibold text-[#F4F7F5] text-sm truncate">
