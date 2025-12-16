@@ -78,14 +78,12 @@ export default React.memo(function MatchCard({ match, venues, user, participants
 
   const loadParticipantUsers = async () => {
     try {
-      const userPromises = participants.slice(0, 5).map(p => {
-        if (p?.user_id) {
-          return base44.entities.User.get(p.user_id).catch(() => null);
-        }
-        return Promise.resolve(null);
+      // Use backend function to fetch users with service role
+      const response = await base44.functions.invoke('getMatchParticipantsWithUsers', {
+        match_id: match.id
       });
-      const users = await Promise.all(userPromises);
-      setParticipantUsers(users.filter(u => u !== null));
+      const enrichedParticipants = response.data.participants || [];
+      setParticipantUsers(enrichedParticipants.slice(0, 5));
     } catch (error) {
       console.error("Error loading participant users:", error);
       setParticipantUsers([]);
