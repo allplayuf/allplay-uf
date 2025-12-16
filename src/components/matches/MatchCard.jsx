@@ -80,14 +80,16 @@ export default React.memo(function MatchCard({ match, venues, user, participants
     try {
       const userPromises = participants.slice(0, 5).map(p => {
         if (p?.user_id) {
-          return base44.entities.User.get(p.user_id).catch(() => null);
+          return base44.functions.invoke('profile/getPlayerProfile', { user_id: p.user_id })
+            .then(res => res.data.profile)
+            .catch(() => null);
         }
         return Promise.resolve(null);
       });
-      const users = await Promise.all(userPromises);
-      setParticipantUsers(users.filter(u => u !== null));
+      const profiles = await Promise.all(userPromises);
+      setParticipantUsers(profiles.filter(p => p !== null));
     } catch (error) {
-      console.error("Error loading participant users:", error);
+      console.error("Error loading participant profiles:", error);
       setParticipantUsers([]);
     }
   };

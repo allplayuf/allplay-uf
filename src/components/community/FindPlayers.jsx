@@ -34,15 +34,15 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
     debouncedSetQuery(searchQuery);
   }, [searchQuery, debouncedSetQuery]);
 
-  // Fetch users with search
+  // Fetch PlayerProfiles with search
   const { data: searchResults, isLoading } = useQuery({
-    queryKey: ['searchPlayers', debouncedQuery],
+    queryKey: ['searchPlayerProfiles', debouncedQuery],
     queryFn: async () => {
-      const response = await base44.functions.invoke('players/searchPlayers', {
-        search_query: debouncedQuery,
+      const response = await base44.functions.invoke('profile/listPlayerProfiles', {
+        search: debouncedQuery,
         limit: 999
       });
-      return response.data.users || [];
+      return response.data.profiles || [];
     },
     enabled: !!currentUser,
     staleTime: 30 * 1000,
@@ -69,6 +69,8 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
     if (!currentUser) return 'none';
     
     const friendship = safeFriendships.find(f =>
+      (f.requester_id === currentUser?.id && f.addressee_id === userId) ||
+      (f.requester_id === userId && f.addressee_id === currentUser?.id) ||
       (f.requester_id === currentUser?.id && f.addressee_id === userId) ||
       (f.requester_id === userId && f.addressee_id === currentUser?.id)
     );
@@ -122,7 +124,7 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
           {displayedUsers.map((player, index) => {
           if (!player) return null;
           
-          const friendshipStatus = getFriendshipStatus(player.id);
+          const friendshipStatus = getFriendshipStatus(player.user_id);
           const skillConfig = SKILL_LEVEL_CONFIG[player.skill_level || 'intermediate'];
           const SkillIcon = skillConfig?.icon || Target;
 
@@ -135,7 +137,7 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
             >
               <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] hover:shadow-[0_10px_28px_rgba(0,0,0,0.28)] hover:border-[#2BA84A]/30 transition-all rounded-[16px]">
                 <CardContent className="p-4">
-                  <Link to={`${createPageUrl("Profile")}?userId=${player.id}`} className="block mb-3">
+                  <Link to={`${createPageUrl("Profile")}?userId=${player.user_id}`} className="block mb-3">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-12 h-12 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0 relative overflow-hidden">
                        {player.profile_image_url ? (
@@ -196,7 +198,7 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
                   {/* Friend Button */}
                   {friendshipStatus === 'none' && (
                     <motion.button
-                      onClick={() => onAddFriend?.(player.id)}
+                      onClick={() => onAddFriend?.(player.user_id)}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 1.05, transition: { duration: 0.1 } }}
                       className="w-full inline-flex h-10 items-center justify-center gap-2 rounded-[14px] bg-[#2BA84A] text-[#FFFFFF] text-sm font-semibold hover:bg-[#248232] transition-all"
@@ -228,7 +230,7 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
 
                   {friendshipStatus === 'pending_incoming' && (
                     <motion.button
-                      onClick={() => onAddFriend?.(player.id)}
+                      onClick={() => onAddFriend?.(player.user_id)}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 1.05, transition: { duration: 0.1 } }}
                       className="w-full inline-flex h-10 items-center justify-center gap-2 rounded-[14px] bg-[#F4743B] text-[#FFFFFF] text-sm font-semibold hover:bg-[#E5683A] transition-all"

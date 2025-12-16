@@ -102,23 +102,20 @@ export default function ProfilePage() {
     }
   }, [userError, alert]);
 
-  // Fetch target user if viewing someone else's profile
+  // Fetch target user's PlayerProfile if viewing someone else's profile
   const { data: targetUser, isLoading: targetUserLoading } = useQuery({
     queryKey: QUERY_KEYS.targetUser(targetUserId),
     queryFn: async () => {
       if (!targetUserId || targetUserId === user?.id) return null;
-      
-      // Use getPublicUsers function to fetch user with service role
-      const response = await base44.functions.invoke('getPublicUsers', {
-        limit: 1000,
-        offset: 0
+
+      // Use getPlayerProfile function to fetch profile
+      const response = await base44.functions.invoke('profile/getPlayerProfile', {
+        user_id: targetUserId
       });
-      
-      const foundUser = response.data?.users?.find(u => u.id === targetUserId);
-      
-      if (!foundUser) throw new Error('User not found');
-      
-      return foundUser;
+
+      if (!response.data?.profile) throw new Error('Profile not found');
+
+      return response.data.profile;
     },
     enabled: !!targetUserId && !!user && targetUserId !== user?.id,
     staleTime: 2 * 60 * 1000,
@@ -148,7 +145,7 @@ export default function ProfilePage() {
     enabled: !!user && !targetUserId,
   });
 
-  // Fetch friends
+  // Fetch friends' PlayerProfiles
   const { data: friends = [] } = useQuery({
     queryKey: QUERY_KEYS.friends(user?.id),
     queryFn: async () => {
@@ -158,14 +155,16 @@ export default function ProfilePage() {
       const friendIds = acceptedFriendships.map(f => 
         f.requester_id === user.id ? f.addressee_id : f.requester_id
       );
-      
-      // Use getPublicUsers function to fetch friends with service role
-      const response = await base44.functions.invoke('getPublicUsers', {
-        limit: 1000,
-        offset: 0
-      });
-      
-      return (response.data?.users || []).filter(u => friendIds.includes(u.id));
+
+      // Fetch PlayerProfiles for friends
+      const profilePromises = friendIds.map(userId =>
+        base44.functions.invoke('profile/getPlayerProfile', { user_id: userId })
+          .then(res => res.data.profile)
+          .catch(() => null)
+      );
+
+      const profiles = await Promise.all(profilePromises);
+      return profiles.filter(p => p !== null);
     },
     staleTime: 60 * 1000,
     enabled: !!user && !targetUserId && friendships.length > 0,
@@ -866,7 +865,7 @@ export default function ProfilePage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.4, delay: index * 0.1, ease: "easeOut" }}
                               >
-                                <Link to={`${createPageUrl("Profile")}?userId=${friend.id}`} className="block">
+                                <Link to={`${createPageUrl("Profile")}?userId=${friend.user_id}`} className="block">
                                   <Card className="bg-[#121715] border border-[#223029] shadow-[0_4px_12px_rgba(0,0,0,0.15)] rounded-2xl hover:shadow-[0_6px_18px_rgba(0,0,0,0.22)] hover:scale-[1.02] transition-all duration-150 cursor-pointer">
                                     <CardContent className="p-4">
                                       <div className="flex items-center gap-3 mb-3">
