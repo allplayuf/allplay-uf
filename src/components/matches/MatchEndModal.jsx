@@ -418,118 +418,324 @@ export default function MatchEndModal({
           </motion.div>
         }
 
-        {/* Step 2: Result Entry */}
-        {step === 2 && !match.is_spontaneous &&
-        <>
-            <div className="p-6 border-b border-[#223029]">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center">
-                    <Save className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-[#F4F7F5]">Rapportera resultat</h2>
-                    <p className="text-sm text-[#B6C2BC]">Hur blev det?</p>
-                  </div>
-                </div>
-                <button
+        {/* Step 2: Player Ratings */}
+        {step === 2 &&
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          exit={{ opacity: 0, y: -20 }}
+          className="relative"
+        >
+            <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-b from-[#4169E1]/20 to-transparent rounded-t-[32px] pointer-events-none" />
+            
+            <div className="p-8 border-b border-[#223029]/50 relative">
+              <button
                 onClick={onClose}
-                className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-[#223029] text-[#B6C2BC] transition-colors">
+                className="absolute top-6 right-6 w-12 h-12 flex items-center justify-center rounded-2xl bg-[#18221E]/80 backdrop-blur-sm hover:bg-[#223029] text-[#B6C2BC] hover:text-white transition-all">
+                <X className="w-6 h-6" />
+              </button>
 
-                  <X className="w-5 h-5" />
-                </button>
+              <div className="text-center">
+                <motion.div
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", duration: 0.8 }}
+                  className="w-20 h-20 bg-gradient-to-br from-[#4169E1] to-[#3457D5] rounded-[24px] flex items-center justify-center mx-auto mb-4 shadow-[0_12px_40px_rgba(65,105,225,0.4)] ring-4 ring-[#4169E1]/20"
+                >
+                  <Star className="w-10 h-10 text-white drop-shadow-md" />
+                </motion.div>
+                <h2 className="text-3xl font-black text-white mb-2 drop-shadow-lg">Betygsätt spelare</h2>
+                <p className="text-base text-[#CFE8D6]">Hur presterade dina lagkamrater?</p>
               </div>
             </div>
 
-            <CardContent className="p-6 space-y-6">
-              <div>
-                <Label className="text-[#F4F7F5] font-semibold mb-3 block">Slutresultat</Label>
-                <Input
-                placeholder="t.ex. 5-3 eller 2-2"
-                value={finalScore}
-                onChange={(e) => setFinalScore(e.target.value)}
-                className="h-14 bg-[#18221E] border-[#223029] text-[#F4F7F5] text-lg text-center font-semibold rounded-2xl focus:border-[#2BA84A]" />
+            <CardContent className="p-8 space-y-4 max-h-[50vh] overflow-y-auto">
+              {usersList.map((user) => (
+                <motion.div
+                  key={user.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-5 bg-gradient-to-br from-[#18221E] to-[#121715] rounded-[20px] border border-[#223029]"
+                >
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-14 h-14 rounded-[16px] flex items-center justify-center flex-shrink-0 overflow-hidden bg-gradient-to-br from-[#2BA84A] to-[#248232]">
+                      {user.profile_image_url ?
+                        <img src={user.profile_image_url} alt={user.full_name} className="w-full h-full object-cover" /> :
+                        <span className="text-white font-bold text-xl">{user.full_name?.[0] || 'U'}</span>
+                      }
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-lg text-[#F4F7F5]">{user.full_name}</p>
+                      <p className="text-sm text-[#B6C2BC]">{user.city}</p>
+                    </div>
+                  </div>
 
-                <p className="text-xs text-[#B6C2BC] mt-2 text-center">Skriv resultatet som [hemma]-[borta]</p>
+                  <div className="flex items-center justify-between gap-3">
+                    {[1, 2, 3, 4, 5].map((rating) => (
+                      <motion.button
+                        key={rating}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => setPlayerRatings(prev => ({ ...prev, [user.id]: rating }))}
+                        className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
+                          playerRatings[user.id] >= rating
+                            ? 'bg-gradient-to-br from-[#FFD700] to-[#F4743B] shadow-[0_4px_16px_rgba(255,215,0,0.3)]'
+                            : 'bg-[#223029] hover:bg-[#2A3830]'
+                        }`}
+                      >
+                        <Star 
+                          className={`w-6 h-6 ${
+                            playerRatings[user.id] >= rating ? 'text-white fill-white' : 'text-[#7B8A83]'
+                          }`} 
+                        />
+                      </motion.button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-center text-[#7B8A83] mt-3">
+                    {playerRatings[user.id] > 0 
+                      ? `${playerRatings[user.id]} ${playerRatings[user.id] === 1 ? 'stjärna' : 'stjärnor'}`
+                      : 'Inget betyg'}
+                  </p>
+                </motion.div>
+              ))}
+            </CardContent>
+
+            <div className="p-8 pt-6 border-t border-[#223029]/50 space-y-3 bg-gradient-to-b from-transparent to-[#0A0D0B]">
+              <Button
+                onClick={handleRatingsSubmit}
+                disabled={isSubmitting}
+                className="w-full h-16 text-xl bg-gradient-to-r from-[#4169E1] to-[#3457D5] hover:from-[#3457D5] hover:to-[#2E4AC4] text-white font-black rounded-[20px] shadow-[0_8px_24px_rgba(65,105,225,0.4)] disabled:opacity-50 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                {isSubmitting ?
+                <>
+                    <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin mr-3" />
+                    Sparar...
+                  </> :
+                <>
+                    <Star className="w-6 h-6 mr-3" />
+                    Fortsätt
+                  </>
+                }
+              </Button>
+              <button
+                onClick={() => match.is_spontaneous ? setStep(4) : setStep(3)}
+                className="w-full py-3 text-base font-semibold text-[#7B8A83] hover:text-[#F4F7F5] transition-colors"
+              >
+                Hoppa över betygsättning
+              </button>
+            </div>
+          </motion.div>
+        }
+
+        {/* Step 3: Result Entry */}
+        {step === 3 && !match.is_spontaneous &&
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          exit={{ opacity: 0, y: -20 }}
+          className="relative"
+        >
+            <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-b from-[#2BA84A]/20 to-transparent rounded-t-[32px] pointer-events-none" />
+            
+            <div className="p-8 border-b border-[#223029]/50 relative">
+              <button
+                onClick={onClose}
+                className="absolute top-6 right-6 w-12 h-12 flex items-center justify-center rounded-2xl bg-[#18221E]/80 backdrop-blur-sm hover:bg-[#223029] text-[#B6C2BC] hover:text-white transition-all">
+                <X className="w-6 h-6" />
+              </button>
+
+              <div className="text-center">
+                <motion.div
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", duration: 0.8 }}
+                  className="w-20 h-20 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-[24px] flex items-center justify-center mx-auto mb-4 shadow-[0_12px_40px_rgba(43,168,74,0.4)] ring-4 ring-[#2BA84A]/20"
+                >
+                  <Trophy className="w-10 h-10 text-white drop-shadow-md" />
+                </motion.div>
+                <h2 className="text-3xl font-black text-white mb-2 drop-shadow-lg">Rapportera resultat</h2>
+                <p className="text-base text-[#CFE8D6]">Hur blev matchens slutresultat?</p>
+              </div>
+            </div>
+
+            <CardContent className="p-8 space-y-6">
+              <div>
+                <Label className="text-[#F4F7F5] text-lg font-bold mb-4 block">Slutresultat</Label>
+                <Input
+                  placeholder="5-3"
+                  value={finalScore}
+                  onChange={(e) => setFinalScore(e.target.value)}
+                  className="h-20 bg-[#18221E] border-2 border-[#223029] text-[#F4F7F5] text-4xl text-center font-black rounded-[20px] focus:border-[#2BA84A] focus:ring-4 focus:ring-[#2BA84A]/20 transition-all" 
+                />
+                <p className="text-sm text-[#B6C2BC] mt-3 text-center">Format: [Lag A]-[Lag B]</p>
+              </div>
+
+              <div>
+                <Label className="text-[#F4F7F5] text-lg font-bold mb-4 block">Matchbetyg (valfritt)</Label>
+                <div className="flex items-center justify-center gap-3">
+                  {[1, 2, 3, 4, 5].map((rating) => (
+                    <motion.button
+                      key={rating}
+                      whileHover={{ scale: 1.15 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setMatchRating(rating)}
+                      className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all ${
+                        matchRating >= rating
+                          ? 'bg-gradient-to-br from-[#FFD700] to-[#F4743B] shadow-[0_4px_16px_rgba(255,215,0,0.4)]'
+                          : 'bg-[#223029] hover:bg-[#2A3830]'
+                      }`}
+                    >
+                      <Heart 
+                        className={`w-7 h-7 ${
+                          matchRating >= rating ? 'text-white fill-white' : 'text-[#7B8A83]'
+                        }`} 
+                      />
+                    </motion.button>
+                  ))}
+                </div>
+                <p className="text-sm text-center text-[#7B8A83] mt-3">
+                  {matchRating > 0 
+                    ? `${matchRating} ${matchRating === 1 ? 'hjärta' : 'hjärtan'}`
+                    : 'Hur var matchen?'}
+                </p>
               </div>
             </CardContent>
 
-            <div className="p-6 border-t border-[#223029] space-y-2">
+            <div className="p-8 pt-6 border-t border-[#223029]/50 space-y-3 bg-gradient-to-b from-transparent to-[#0A0D0B]">
               <Button
-              onClick={handleResultSubmit}
-              disabled={!finalScore.trim() || isSubmitting}
-              className="w-full h-12 bg-[#2BA84A] hover:bg-[#248232] text-white font-semibold rounded-2xl disabled:opacity-50">
-
+                onClick={handleResultSubmit}
+                disabled={!finalScore.trim() || isSubmitting}
+                className="w-full h-16 text-xl bg-gradient-to-r from-[#2BA84A] to-[#248232] hover:from-[#248232] hover:to-[#1F6D2A] text-white font-black rounded-[20px] shadow-[0_8px_24px_rgba(43,168,74,0.4)] disabled:opacity-50 transition-all hover:scale-[1.02] active:scale-[0.98]">
                 {isSubmitting ?
-              <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                <>
+                    <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin mr-3" />
                     Sparar...
                   </> :
-
-              <>
-                    <Save className="w-5 h-5 mr-2" />
-                    Spara resultat
+                <>
+                    <Save className="w-6 h-6 mr-3" />
+                    Spara och avsluta
                   </>
-              }
+                }
               </Button>
               <button
-              onClick={() => setStep(3)}
-              className="w-full h-10 text-sm text-[#B6C2BC] hover:text-[#F4F7F5] transition-colors">
-
-                Hoppa över
+                onClick={async () => {
+                  await completeMatch();
+                  setShowConfetti(true);
+                  setStep(4);
+                }}
+                className="w-full py-3 text-base font-semibold text-[#7B8A83] hover:text-[#F4F7F5] transition-colors"
+              >
+                Avsluta utan resultat
               </button>
             </div>
-          </>
+          </motion.div>
         }
 
-        {/* Step 3: Complete / Play Again */}
-        {step === 3 &&
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center relative overflow-hidden">
-            {/* Background glow effect */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-64 bg-gradient-to-b from-[#2BA84A]/20 to-transparent blur-3xl pointer-events-none" />
+        {/* Step 4: Complete / Play Again */}
+        {step === 4 &&
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }} 
+          animate={{ opacity: 1, scale: 1 }} 
+          className="text-center relative overflow-hidden"
+        >
+            {/* Multi-layer background effects */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/10 via-transparent to-[#FFD700]/10 pointer-events-none" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-96 bg-gradient-to-b from-[#2BA84A]/20 to-transparent blur-3xl pointer-events-none" />
             
-            <div className="p-8 pb-0 relative z-10">
+            <div className="p-10 pb-0 relative z-10">
               <motion.div 
                 initial={{ scale: 0, rotate: -180 }}
                 animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: "spring", duration: 0.8 }}
-                className="w-24 h-24 bg-gradient-to-br from-[#FFD700] to-[#FFA500] rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-[0_10px_40px_rgba(255,215,0,0.3)] ring-4 ring-[#FFD700]/20"
+                transition={{ type: "spring", duration: 0.8, bounce: 0.5 }}
+                className="relative w-32 h-32 mx-auto mb-6"
               >
-                <Trophy className="w-12 h-12 text-white drop-shadow-md" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[#FFD700] to-[#F4743B] rounded-[32px] flex items-center justify-center shadow-[0_20px_60px_rgba(255,215,0,0.5)] ring-8 ring-[#FFD700]/20">
+                  <Trophy className="w-16 h-16 text-white drop-shadow-lg" />
+                </div>
                 <motion.div 
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                  className="absolute inset-0 rounded-3xl border-2 border-white/30 border-dashed opacity-50" 
+                  animate={{ 
+                    rotate: 360,
+                    scale: [1, 1.1, 1]
+                  }}
+                  transition={{ 
+                    rotate: { duration: 4, repeat: Infinity, ease: "linear" },
+                    scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+                  }}
+                  className="absolute inset-0 rounded-[32px] border-4 border-white/40 border-dashed" 
                 />
+                {/* Sparkles */}
+                {[...Array(6)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ 
+                      opacity: [0, 1, 0],
+                      scale: [0, 1, 0],
+                      x: Math.cos(i * 60 * Math.PI / 180) * 60,
+                      y: Math.sin(i * 60 * Math.PI / 180) * 60
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      delay: i * 0.2,
+                      ease: "easeOut"
+                    }}
+                    className="absolute top-1/2 left-1/2 w-3 h-3 bg-[#FFD700] rounded-full"
+                  />
+                ))}
               </motion.div>
 
-              <h2 className="text-3xl font-black text-white mb-2 drop-shadow-lg">BRA SPELAT!</h2>
-              <p className="text-[#CFE8D6] mb-8 text-lg">Matchen är avslutad och statistiken uppdaterad.</p>
+              <motion.h2 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-4xl font-black text-white mb-3 drop-shadow-2xl"
+              >
+                BRA SPELAT! 🎉
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="text-[#CFE8D6] mb-10 text-xl"
+              >
+                Matchen är avslutad och statistiken uppdaterad
+              </motion.p>
 
-              {match.final_score && (
-                <div className="mb-8 p-4 bg-[#18221E] rounded-2xl border border-[#223029]">
-                  <div className="text-xs font-bold text-[#7B8A83] uppercase tracking-widest mb-1">Resultat</div>
-                  <div className="text-4xl font-black text-white tracking-tight">{match.final_score}</div>
-                </div>
+              {finalScore && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.6 }}
+                  className="mb-8 p-6 bg-gradient-to-br from-[#18221E] to-[#121715] rounded-[24px] border-2 border-[#2BA84A]/30 shadow-[0_8px_24px_rgba(43,168,74,0.2)]"
+                >
+                  <div className="text-sm font-black text-[#2BA84A] uppercase tracking-widest mb-2">Slutresultat</div>
+                  <div className="text-6xl font-black text-white tracking-tight">{finalScore}</div>
+                </motion.div>
               )}
 
-              {selectedMVP &&
-                <div className="p-4 bg-[#F4743B]/10 border border-[#F4743B]/30 rounded-2xl mb-6">
+              {selectedMVP && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.7 }}
+                  className="mb-8 p-5 bg-gradient-to-r from-[#FFD700]/20 to-[#F4743B]/20 border-2 border-[#FFD700]/40 rounded-[24px] backdrop-blur-sm"
+                >
                   <div className="flex items-center justify-center gap-3">
-                    <div className="bg-[#F4743B] p-1.5 rounded-lg">
-                      <Award className="w-5 h-5 text-white" />
+                    <div className="bg-gradient-to-br from-[#FFD700] to-[#F4743B] p-2 rounded-xl shadow-lg">
+                      <Crown className="w-6 h-6 text-white" />
                     </div>
-                    <span className="text-base font-bold text-[#F4743B]">Din MVP-röst är registrerad!</span>
+                    <span className="text-lg font-black text-[#FFD700]">Din MVP-röst är registrerad!</span>
                   </div>
-                </div>
-              }
+                </motion.div>
+              )}
             </div>
 
-            <div className="p-6 space-y-3 bg-[#0F1513] relative z-10 border-t border-[#223029]">
+            <div className="p-8 space-y-4 bg-gradient-to-b from-transparent to-[#0A0D0B] relative z-10 border-t border-[#223029]/50">
               <Button
                 onClick={handlePlayAgain}
-                className="w-full h-14 bg-[#2BA84A] hover:bg-[#248232] text-white font-bold text-lg rounded-2xl shadow-[0_4px_14px_rgba(43,168,74,0.3)] transition-all hover:scale-[1.02] active:scale-[0.98]">
-                <RefreshCw className="w-5 h-5 mr-2" />
+                disabled={isSubmitting}
+                className="w-full h-16 text-xl bg-gradient-to-r from-[#2BA84A] to-[#248232] hover:from-[#248232] hover:to-[#1F6D2A] text-white font-black rounded-[20px] shadow-[0_8px_24px_rgba(43,168,74,0.4)] disabled:opacity-50 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                <RefreshCw className="w-6 h-6 mr-3" />
                 Spela igen
               </Button>
 
@@ -539,7 +745,7 @@ export default function MatchEndModal({
                   onClose();
                 }}
                 variant="ghost" 
-                className="w-full h-12 text-[#7B8A83] hover:text-white hover:bg-[#18221E] rounded-2xl font-medium"
+                className="w-full h-14 text-[#B6C2BC] hover:text-white hover:bg-[#18221E] rounded-[20px] font-bold text-lg"
               >
                 Stäng
               </Button>
