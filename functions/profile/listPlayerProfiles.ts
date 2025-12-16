@@ -8,10 +8,12 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Authenticate user
-    const user = await base44.auth.me();
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    // Optional authentication - user can be null for public access
+    let user = null;
+    try {
+      user = await base44.auth.me();
+    } catch (e) {
+      // User not logged in - continue anyway for public access
     }
 
     // Parse query parameters

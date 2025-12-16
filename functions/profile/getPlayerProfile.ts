@@ -8,10 +8,12 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Authenticate user
-    const user = await base44.auth.me();
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    // Optional authentication - check if user is logged in
+    let currentUser = null;
+    try {
+      currentUser = await base44.auth.me();
+    } catch (e) {
+      // User not logged in - continue anyway for public access
     }
 
     // Parse user_id from query params
@@ -32,7 +34,7 @@ Deno.serve(async (req) => {
     const profile = profiles[0];
 
     // Check if profile is public (unless it's the user's own profile)
-    if (!profile.publicProfile && profile.user_id !== user.id) {
+    if (!profile.publicProfile && (!currentUser || profile.user_id !== currentUser.id)) {
       return Response.json({ error: 'Profile is private' }, { status: 403 });
     }
 
