@@ -80,16 +80,14 @@ export default React.memo(function MatchCard({ match, venues, user, participants
     try {
       const userPromises = participants.slice(0, 5).map(p => {
         if (p?.user_id) {
-          return base44.functions.invoke('profile/getPlayerProfile', { user_id: p.user_id })
-            .then(res => res.data.profile)
-            .catch(() => null);
+          return base44.entities.User.get(p.user_id).catch(() => null);
         }
         return Promise.resolve(null);
       });
-      const profiles = await Promise.all(userPromises);
-      setParticipantUsers(profiles.filter(p => p !== null));
+      const users = await Promise.all(userPromises);
+      setParticipantUsers(users.filter(u => u !== null));
     } catch (error) {
-      console.error("Error loading participant profiles:", error);
+      console.error("Error loading participant users:", error);
       setParticipantUsers([]);
     }
   };
@@ -193,20 +191,11 @@ export default React.memo(function MatchCard({ match, venues, user, participants
                       {participantUsers.slice(0, 5).map((participant, i) => (
                         <div 
                           key={participant?.id || i}
-                          className="w-6 h-6 rounded-full bg-gradient-to-br from-[#2BA84A] to-[#248232] border border-[#121715] flex items-center justify-center overflow-hidden relative"
+                          className="w-6 h-6 rounded-full bg-gradient-to-br from-[#2BA84A] to-[#248232] border border-[#121715] flex items-center justify-center overflow-hidden"
                           title={participant?.full_name || 'User'}
                         >
                           {participant?.profile_image_url ? (
-                            <>
-                              <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/20 to-[#248232]/20 animate-pulse" />
-                              <img 
-                                src={participant.profile_image_url} 
-                                alt={participant.display_name || participant.full_name || 'User'} 
-                                className="w-full h-full object-cover opacity-0 transition-opacity duration-300"
-                                loading="lazy"
-                                onLoad={(e) => e.target.classList.remove('opacity-0')}
-                              />
-                            </>
+                            <img src={participant.profile_image_url} alt={participant.display_name || participant.full_name || 'User'} className="w-full h-full object-cover" />
                           ) : (
                             <span className="text-[9px] font-semibold text-white">{(participant?.display_name || participant?.full_name)?.[0] || '?'}</span>
                           )}

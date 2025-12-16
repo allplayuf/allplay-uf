@@ -34,15 +34,15 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
     debouncedSetQuery(searchQuery);
   }, [searchQuery, debouncedSetQuery]);
 
-  // Fetch PlayerProfiles with search
+  // Fetch users with search
   const { data: searchResults, isLoading } = useQuery({
-    queryKey: ['searchPlayerProfiles', debouncedQuery],
+    queryKey: ['searchPlayers', debouncedQuery],
     queryFn: async () => {
-      const response = await base44.functions.invoke('profile/listPlayerProfiles', {
-        search: debouncedQuery,
+      const response = await base44.functions.invoke('players/searchPlayers', {
+        search_query: debouncedQuery,
         limit: 999
       });
-      return response.data.profiles || [];
+      return response.data.users || [];
     },
     enabled: !!currentUser,
     staleTime: 30 * 1000,
@@ -69,8 +69,6 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
     if (!currentUser) return 'none';
     
     const friendship = safeFriendships.find(f =>
-      (f.requester_id === currentUser?.id && f.addressee_id === userId) ||
-      (f.requester_id === userId && f.addressee_id === currentUser?.id) ||
       (f.requester_id === currentUser?.id && f.addressee_id === userId) ||
       (f.requester_id === userId && f.addressee_id === currentUser?.id)
     );
@@ -124,7 +122,7 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
           {displayedUsers.map((player, index) => {
           if (!player) return null;
           
-          const friendshipStatus = getFriendshipStatus(player.user_id);
+          const friendshipStatus = getFriendshipStatus(player.id);
           const skillConfig = SKILL_LEVEL_CONFIG[player.skill_level || 'intermediate'];
           const SkillIcon = skillConfig?.icon || Target;
 
@@ -137,25 +135,21 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
             >
               <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] hover:shadow-[0_10px_28px_rgba(0,0,0,0.28)] hover:border-[#2BA84A]/30 transition-all rounded-[16px]">
                 <CardContent className="p-4">
-                  <Link to={`${createPageUrl("Profile")}?userId=${player.user_id}`} className="block mb-3">
+                  <Link to={`${createPageUrl("Profile")}?userId=${player.id}`} className="block mb-3">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0 relative overflow-hidden">
-                       {player.profile_image_url ? (
-                         <>
-                           <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/20 to-[#248232]/20 animate-pulse" />
-                           <img 
-                             src={player.profile_image_url} 
-                             alt={player.full_name} 
-                             className="w-full h-full object-cover rounded-xl opacity-0 transition-opacity duration-300" 
-                             loading="lazy"
-                             onLoad={(e) => e.target.classList.remove('opacity-0')}
-                           />
-                         </>
-                       ) : (
-                         <span className="text-[#FFFFFF] font-semibold text-lg">
-                           {(player.display_name || player.full_name)?.[0] || 'U'}
-                         </span>
-                       )}
+                      <div className="w-12 h-12 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0">
+                        {player.profile_image_url ? (
+                          <img 
+                            src={player.profile_image_url} 
+                            alt={player.full_name} 
+                            className="w-full h-full object-cover rounded-xl" 
+                            loading="lazy" 
+                          />
+                        ) : (
+                          <span className="text-[#FFFFFF] font-semibold text-lg">
+                            {(player.display_name || player.full_name)?.[0] || 'U'}
+                          </span>
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-semibold text-[#F4F7F5] text-sm truncate">
@@ -198,7 +192,7 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
                   {/* Friend Button */}
                   {friendshipStatus === 'none' && (
                     <motion.button
-                      onClick={() => onAddFriend?.(player.user_id)}
+                      onClick={() => onAddFriend?.(player.id)}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 1.05, transition: { duration: 0.1 } }}
                       className="w-full inline-flex h-10 items-center justify-center gap-2 rounded-[14px] bg-[#2BA84A] text-[#FFFFFF] text-sm font-semibold hover:bg-[#248232] transition-all"
@@ -230,7 +224,7 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
 
                   {friendshipStatus === 'pending_incoming' && (
                     <motion.button
-                      onClick={() => onAddFriend?.(player.user_id)}
+                      onClick={() => onAddFriend?.(player.id)}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 1.05, transition: { duration: 0.1 } }}
                       className="w-full inline-flex h-10 items-center justify-center gap-2 rounded-[14px] bg-[#F4743B] text-[#FFFFFF] text-sm font-semibold hover:bg-[#E5683A] transition-all"

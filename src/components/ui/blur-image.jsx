@@ -52,9 +52,7 @@ export function OptimizedImage({
     <div className={`relative overflow-hidden ${className}`} style={{ width, height }}>
       {/* Blur placeholder */}
       {isLoading && (
-        <div className="absolute inset-0 bg-gradient-to-br from-[#18221E] to-[#0F1513]">
-          <div className="w-full h-full bg-gradient-to-br from-[#2BA84A]/10 to-[#248232]/10 animate-pulse" />
-        </div>
+        <div className="absolute inset-0 bg-gradient-to-br from-[#18221E] to-[#0F1513] animate-pulse" />
       )}
       
       {/* Actual image */}
@@ -67,9 +65,9 @@ export function OptimizedImage({
         decoding="async"
         onLoad={handleLoad}
         onError={handleError}
-        initial={{ opacity: 0, scale: 1.05 }}
-        animate={{ opacity: isLoading ? 0 : 1, scale: 1 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isLoading ? 0 : 1 }}
+        transition={{ duration: 0.3 }}
         style={{ 
           objectFit,
           width: '100%',

@@ -125,28 +125,24 @@ export default function MatchDetailPage() {
     enabled: !!match?.venue_id
   });
 
-  // 4. Fetch Participants & PlayerProfiles (Parallel Optimized)
+  // 4. Fetch Participants & Users (Parallel Optimized)
   const { data: participants = [], isLoading: participantsLoading } = useQuery({
     queryKey: ['matchParticipants', matchId],
     queryFn: async () => {
       const parts = await base44.entities.MatchParticipant.filter({ match_id: matchId });
-
-      // Parallel fetch PlayerProfiles
+      
+      // Parallel fetch users
       const userIds = [...new Set(parts.map(p => p.user_id))];
-      const profiles = await Promise.all(
-        userIds.map(id => 
-          base44.functions.invoke('profile/getPlayerProfile', { user_id: id })
-            .then(res => res.data.profile)
-            .catch(() => null)
-        )
+      const users = await Promise.all(
+        userIds.map(id => base44.entities.User.get(id).catch(() => null))
       );
-
-      // Merge profile data with participant data
-      return profiles
-        .filter(p => p !== null)
-        .map(p => {
-          const participantInfo = parts.find(part => part.user_id === p.user_id);
-          return { ...p, id: p.user_id, participantInfo };
+      
+      // Merge user data with participant data
+      return users
+        .filter(u => u !== null)
+        .map(u => {
+          const participantInfo = parts.find(p => p.user_id === u.id);
+          return { ...u, participantInfo };
         });
     },
     ...CACHE_STRATEGIES.DYNAMIC, // Participants change often
