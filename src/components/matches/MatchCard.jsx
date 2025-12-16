@@ -191,11 +191,20 @@ export default React.memo(function MatchCard({ match, venues, user, participants
                       {participantUsers.slice(0, 5).map((participant, i) => (
                         <div 
                           key={participant?.id || i}
-                          className="w-6 h-6 rounded-full bg-gradient-to-br from-[#2BA84A] to-[#248232] border border-[#121715] flex items-center justify-center overflow-hidden"
+                          className="w-6 h-6 rounded-full bg-gradient-to-br from-[#2BA84A] to-[#248232] border border-[#121715] flex items-center justify-center overflow-hidden relative"
                           title={participant?.full_name || 'User'}
                         >
                           {participant?.profile_image_url ? (
-                            <img src={participant.profile_image_url} alt={participant.display_name || participant.full_name || 'User'} className="w-full h-full object-cover" />
+                            <>
+                              <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/20 to-[#248232]/20 animate-pulse" />
+                              <img 
+                                src={participant.profile_image_url} 
+                                alt={participant.display_name || participant.full_name || 'User'} 
+                                className="w-full h-full object-cover opacity-0 transition-opacity duration-300"
+                                loading="lazy"
+                                onLoad={(e) => e.target.classList.remove('opacity-0')}
+                              />
+                            </>
                           ) : (
                             <span className="text-[9px] font-semibold text-white">{(participant?.display_name || participant?.full_name)?.[0] || '?'}</span>
                           )}
