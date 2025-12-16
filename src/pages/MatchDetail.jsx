@@ -125,14 +125,25 @@ export default function MatchDetailPage() {
     enabled: !!match?.venue_id
   });
 
-  // 4. Fetch Participants & Users via Backend (Service Role)
+  // 4. Fetch Participants & Users (Parallel Optimized)
   const { data: participants = [], isLoading: participantsLoading } = useQuery({
     queryKey: ['matchParticipants', matchId],
     queryFn: async () => {
-      const response = await base44.functions.invoke('getMatchParticipantsWithUsers', {
-        match_id: matchId
-      });
-      return response.data.participants || [];
+      const parts = await base44.entities.MatchParticipant.filter({ match_id: matchId });
+      
+      // Parallel fetch users
+      const userIds = [...new Set(parts.map(p => p.user_id))];
+      const users = await Promise.all(
+        userIds.map(id => base44.entities.User.get(id).catch(() => null))
+      );
+      
+      // Merge user data with participant data
+      return users
+        .filter(u => u !== null)
+        .map(u => {
+          const participantInfo = parts.find(p => p.user_id === u.id);
+          return { ...u, participantInfo };
+        });
     },
     ...CACHE_STRATEGIES.DYNAMIC, // Participants change often
     enabled: !!matchId

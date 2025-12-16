@@ -30,11 +30,11 @@ Deno.serve(async (req) => {
     // Fetch venue data
     const venueData = await base44.entities.Venue.filter({ id: match.venue_id }).then(v => v[0]);
 
-    // Fetch all user data for participants in parallel using service role
+    // Fetch all user data for participants in parallel
     const userIds = [...new Set(participants.map(p => p.user_id))];
     const users = await Promise.all(
       userIds.map(id => 
-        base44.asServiceRole.entities.User.get(id).catch(() => null)
+        base44.entities.User.filter({ id }).then(u => u[0]).catch(() => null)
       )
     );
 
