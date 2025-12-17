@@ -42,6 +42,7 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
   const [matchTeamB, setMatchTeamB] = useState("");
   const [matchGroup, setMatchGroup] = useState("");
   const [matchVenue, setMatchVenue] = useState("");
+  const [bulkImporting, setBulkImporting] = useState(false);
 
   // --- Settings State ---
   const [settingsForm, setSettingsForm] = useState({
@@ -227,6 +228,74 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
       alert('Match skapad', 'Matchen har lagts till i schemat.', { type: 'success' });
     }
   });
+
+  const handleBulkImportMatches = async () => {
+    const matchesData = [
+      {"team_a_name": "Shadow Unit", "team_b_name": "Fc Kurdistan", "date": "2025-12-20", "time": "09:00", "group_name": "Grupp A", "stage": "group"},
+      {"team_a_name": "No rizz no win", "team_b_name": "Fc Stars", "date": "2025-12-20", "time": "09:15", "group_name": "Grupp A", "stage": "group"},
+      {"team_a_name": "Shadow Unit", "team_b_name": "Fc Stars", "date": "2025-12-20", "time": "09:30", "group_name": "Grupp A", "stage": "group"},
+      {"team_a_name": "Fc Kurdistan", "team_b_name": "No rizz no win", "date": "2025-12-20", "time": "09:45", "group_name": "Grupp A", "stage": "group"},
+      {"team_a_name": "Fc Kurdistan", "team_b_name": "Fc Stars", "date": "2025-12-20", "time": "10:00", "group_name": "Grupp A", "stage": "group"},
+      {"team_a_name": "Shadow Unit", "team_b_name": "No rizz no win", "date": "2025-12-20", "time": "10:15", "group_name": "Grupp A", "stage": "group"},
+      {"team_a_name": "Joga Bonito", "team_b_name": "Favela Allstars", "date": "2025-12-20", "time": "10:30", "group_name": "Grupp B", "stage": "group"},
+      {"team_a_name": "FC Ohmslag", "team_b_name": "Distinkt FC", "date": "2025-12-20", "time": "10:45", "group_name": "Grupp B", "stage": "group"},
+      {"team_a_name": "Joga Bonito", "team_b_name": "FC Ohmslag", "date": "2025-12-20", "time": "11:00", "group_name": "Grupp B", "stage": "group"},
+      {"team_a_name": "Favela Allstars", "team_b_name": "Distinkt FC", "date": "2025-12-20", "time": "11:15", "group_name": "Grupp B", "stage": "group"},
+      {"team_a_name": "Favela Allstars", "team_b_name": "FC Ohmslag", "date": "2025-12-20", "time": "11:30", "group_name": "Grupp B", "stage": "group"},
+      {"team_a_name": "Joga Bonito", "team_b_name": "Distinkt FC", "date": "2025-12-20", "time": "11:45", "group_name": "Grupp B", "stage": "group"},
+      {"team_a_name": "Muthos", "team_b_name": "KG", "date": "2025-12-20", "time": "12:00", "group_name": "Grupp C", "stage": "group"},
+      {"team_a_name": "FC Brexit", "team_b_name": "Vinnarna FC", "date": "2025-12-20", "time": "12:15", "group_name": "Grupp C", "stage": "group"},
+      {"team_a_name": "Muthos", "team_b_name": "Vinnarna FC", "date": "2025-12-20", "time": "12:30", "group_name": "Grupp C", "stage": "group"},
+      {"team_a_name": "KG", "team_b_name": "FC Brexit", "date": "2025-12-20", "time": "12:45", "group_name": "Grupp C", "stage": "group"},
+      {"team_a_name": "KG", "team_b_name": "Vinnarna FC", "date": "2025-12-20", "time": "13:00", "group_name": "Grupp C", "stage": "group"},
+      {"team_a_name": "FC Brexit", "team_b_name": "Muthos", "date": "2025-12-20", "time": "13:15", "group_name": "Grupp C", "stage": "group"},
+      {"team_a_name": "AKATSUKI CITY", "team_b_name": "Fc Assyriska", "date": "2025-12-20", "time": "13:30", "group_name": "Grupp D", "stage": "group"},
+      {"team_a_name": "Leon FC", "team_b_name": "BreezyC", "date": "2025-12-20", "time": "13:45", "group_name": "Grupp D", "stage": "group"},
+      {"team_a_name": "AKATSUKI CITY", "team_b_name": "Leon FC", "date": "2025-12-20", "time": "14:00", "group_name": "Grupp D", "stage": "group"},
+      {"team_a_name": "Fc Assyriska", "team_b_name": "BreezyC", "date": "2025-12-20", "time": "14:15", "group_name": "Grupp D", "stage": "group"},
+      {"team_a_name": "Fc Assyriska", "team_b_name": "Leon FC", "date": "2025-12-20", "time": "14:30", "group_name": "Grupp D", "stage": "group"},
+      {"team_a_name": "BreezyC", "team_b_name": "AKATSUKI CITY", "date": "2025-12-20", "time": "14:45", "group_name": "Grupp D", "stage": "group"},
+      {"team_a_name": "TBD", "team_b_name": "TBD", "date": "2025-12-20", "time": "15:00", "stage": "quarterfinal"},
+      {"team_a_name": "TBD", "team_b_name": "TBD", "date": "2025-12-20", "time": "15:15", "stage": "quarterfinal"},
+      {"team_a_name": "TBD", "team_b_name": "TBD", "date": "2025-12-20", "time": "15:30", "stage": "quarterfinal"},
+      {"team_a_name": "TBD", "team_b_name": "TBD", "date": "2025-12-20", "time": "15:45", "stage": "quarterfinal"},
+      {"team_a_name": "TBD", "team_b_name": "TBD", "date": "2025-12-20", "time": "16:15", "stage": "semifinal"},
+      {"team_a_name": "TBD", "team_b_name": "TBD", "date": "2025-12-20", "time": "16:30", "stage": "semifinal"},
+      {"team_a_name": "TBD", "team_b_name": "TBD", "date": "2025-12-20", "time": "17:00", "stage": "final"}
+    ];
+
+    const confirmed = await confirm(
+      'Importera 31 matcher? 📋',
+      'Detta kommer att skapa alla gruppspels- och slutspelsmatcher för Futsal Fiesta 2025.',
+      { type: 'confirm', confirmText: 'Skapa matcher', cancelText: 'Avbryt' }
+    );
+
+    if (!confirmed) return;
+
+    setBulkImporting(true);
+    try {
+      const response = await base44.functions.invoke('cups/batchCreateMatches', {
+        cup_id: cup.id,
+        matches_data: matchesData
+      });
+
+      if (response.data.success) {
+        queryClient.invalidateQueries(['cupDetails', cup.id]);
+        await alert(
+          'Matcher skapade! ✅',
+          `${response.data.created_count} matcher skapade. ${response.data.error_count > 0 ? `${response.data.error_count} fel.` : ''}`,
+          { type: 'success' }
+        );
+      } else {
+        await alert('Fel', 'Kunde inte skapa alla matcher.', { type: 'alert' });
+      }
+    } catch (error) {
+      console.error('Bulk import error:', error);
+      await alert('Fel', 'Kunde inte importera matcher.', { type: 'alert' });
+    } finally {
+      setBulkImporting(false);
+    }
+  };
 
   const deleteCupMutation = useMutation({
     mutationFn: async () => {
@@ -1026,6 +1095,36 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
 
             {/* MATCHES TAB */}
             <TabsContent value="matches" className="space-y-6">
+              {/* Bulk Import Section */}
+              <Card className="bg-gradient-to-br from-[#9370DB]/10 to-[#7C3AED]/5 border-[#9370DB]/30 p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-[#9370DB]/20 flex items-center justify-center">
+                    <Sparkles className="w-6 h-6 text-[#9370DB]" />
+                  </div>
+                  <div>
+                    <h4 className="text-white font-bold text-lg">Bulk-importera matcher</h4>
+                    <p className="text-xs text-[#B6C2BC]">Importera alla gruppspels- och slutspelsmatcher för Futsal Fiesta 2025</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleBulkImportMatches}
+                  disabled={bulkImporting}
+                  className="w-full h-14 bg-gradient-to-r from-[#9370DB] to-[#7C3AED] hover:from-[#7C3AED] hover:to-[#6D28D9] text-white font-black rounded-xl shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                >
+                  {bulkImporting ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Importerar matcher...
+                    </>
+                  ) : (
+                    <>
+                      <Calendar className="w-5 h-5" />
+                      Importera 31 matcher (Gruppspel + Slutspel)
+                    </>
+                  )}
+                </button>
+              </Card>
+
               <Card className="bg-[#0F1513] border border-[#223029] p-4">
                 <h4 className="text-white font-bold mb-4 flex items-center gap-2"><Swords className="w-4 h-4" /> Skapa manuell match</h4>
                 <div className="grid grid-cols-2 gap-4 mb-4">
