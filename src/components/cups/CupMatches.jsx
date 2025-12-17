@@ -12,11 +12,18 @@ import MatchResultModal from "./MatchResultModal";
 export default function CupMatches({ cup, matches, canManage }) {
   const [filter, setFilter] = useState('all');
 
-  const filteredMatches = matches.filter(match => {
-    if (filter === 'upcoming') return !match.team_a_score && match.team_a_score !== 0;
-    if (filter === 'completed') return match.team_a_score !== null;
-    return true;
-  });
+  const filteredMatches = matches
+    .filter(match => {
+      if (filter === 'upcoming') return !match.team_a_score && match.team_a_score !== 0;
+      if (filter === 'completed') return match.team_a_score !== null;
+      return true;
+    })
+    .sort((a, b) => {
+      // Sort by date first, then by time
+      const dateCompare = (a.date || '').localeCompare(b.date || '');
+      if (dateCompare !== 0) return dateCompare;
+      return (a.time || '').localeCompare(b.time || '');
+    });
 
   const upcomingCount = matches.filter(m => m.team_a_score === null).length;
   const completedCount = matches.filter(m => m.team_a_score !== null).length;

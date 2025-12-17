@@ -508,6 +508,100 @@ export default function CupDetailPage() {
                 </Card>
               )}
 
+              {/* Upcoming Matches Preview - Mobile Enhanced */}
+              {matches.length > 0 && (
+                <Card className="bg-[#121715] border-[#223029] rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
+                  <CardContent className="p-4 lg:p-6">
+                    <div className="flex items-center justify-between mb-5">
+                      <h3 className="text-base lg:text-lg font-black text-[#F4F7F5] flex items-center gap-2">
+                        <Calendar className="w-5 h-5 text-[#F59E0B]" />
+                        Kommande Matcher
+                      </h3>
+                      {matches.filter(m => !m.team_a_score && m.team_a_score !== 0).length > 5 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setActiveTab('matches')}
+                          className="text-[#F59E0B] hover:bg-[#F59E0B]/10 text-xs lg:text-sm font-bold"
+                        >
+                          Alla →
+                        </Button>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-3">
+                      {matches
+                        .filter(m => !m.team_a_score && m.team_a_score !== 0)
+                        .sort((a, b) => {
+                          const dateCompare = (a.date || '').localeCompare(b.date || '');
+                          if (dateCompare !== 0) return dateCompare;
+                          return (a.time || '').localeCompare(b.time || '');
+                        })
+                        .slice(0, 5)
+                        .map((match, index) => (
+                          <motion.div
+                            key={match.id}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                          >
+                            <Link to={match.match_id ? `${createPageUrl("MatchDetail")}?id=${match.match_id}` : '#'}>
+                              <div className="p-4 bg-gradient-to-br from-[#18221E] to-[#121715] rounded-xl border border-[#223029] hover:border-[#F59E0B]/50 hover:shadow-lg active:scale-98 transition-all group">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <Badge className="bg-[#F59E0B]/20 text-[#FCD34D] border-0 text-[10px] lg:text-xs font-bold px-2 py-1">
+                                    {match.stage === 'group' ? 'Grupp' : 
+                                     match.stage === 'quarterfinal' ? 'Kvart' : 
+                                     match.stage === 'semifinal' ? 'Semi' : 
+                                     match.stage === 'final' ? 'FINAL' : match.stage}
+                                  </Badge>
+                                  {match.group_id && (
+                                    <Badge className="bg-[#4169E1]/20 text-[#93C5FD] border-0 text-[10px] font-bold px-2 py-1">
+                                      Gruppspel
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="text-sm lg:text-base font-bold text-[#F4F7F5] mb-2 group-hover:text-[#F59E0B] transition-colors">
+                                  {match.team_a_name} <span className="text-[#7B8A83] font-normal">vs</span> {match.team_b_name}
+                                </div>
+                                {match.date && (
+                                  <div className="flex flex-wrap items-center gap-3 text-[10px] lg:text-xs text-[#B6C2BC]">
+                                    <span className="flex items-center gap-1.5 font-medium">
+                                      <Calendar className="w-3.5 h-3.5" />
+                                      {new Date(match.date).toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' })}
+                                    </span>
+                                    {match.time && (
+                                      <span className="flex items-center gap-1.5 font-medium">
+                                        <Clock className="w-3.5 h-3.5" />
+                                        {match.time}
+                                      </span>
+                                    )}
+                                    {match.venue_name && (
+                                      <span className="flex items-center gap-1.5 font-medium truncate">
+                                        <MapPin className="w-3.5 h-3.5" />
+                                        {match.venue_name}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </Link>
+                          </motion.div>
+                        ))}
+                    </div>
+
+                    {matches.filter(m => !m.team_a_score && m.team_a_score !== 0).length > 5 && (
+                      <Button
+                        variant="outline"
+                        className="w-full mt-4 h-11 border-[#F59E0B]/30 text-[#F59E0B] hover:bg-[#F59E0B]/10 font-bold rounded-xl"
+                        onClick={() => setActiveTab('matches')}
+                      >
+                        Se alla matcher ({matches.length}) →
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Participating Teams/Players - Mobile Enhanced */}
               <Card className="bg-[#121715] border-[#223029] rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
                 <CardContent className="p-4 lg:p-6">
@@ -672,92 +766,6 @@ export default function CupDetailPage() {
                   )}
                 </CardContent>
               </Card>
-
-              {/* Upcoming Matches Preview - Mobile Enhanced */}
-              {matches.length > 0 && (
-                <Card className="bg-[#121715] border-[#223029] rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
-                  <CardContent className="p-4 lg:p-6">
-                    <div className="flex items-center justify-between mb-5">
-                      <h3 className="text-base lg:text-lg font-black text-[#F4F7F5] flex items-center gap-2">
-                        <Calendar className="w-5 h-5 text-[#F59E0B]" />
-                        Kommande Matcher
-                      </h3>
-                      {matches.filter(m => !m.team_a_score && m.team_a_score !== 0).length > 5 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setActiveTab('matches')}
-                          className="text-[#F59E0B] hover:bg-[#F59E0B]/10 text-xs lg:text-sm font-bold"
-                        >
-                          Alla →
-                        </Button>
-                      )}
-                    </div>
-                    
-                    <div className="space-y-3">
-                      {matches.filter(m => !m.team_a_score && m.team_a_score !== 0).slice(0, 5).map((match, index) => (
-                        <motion.div
-                          key={match.id}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.05 }}
-                        >
-                          <Link to={match.match_id ? `${createPageUrl("MatchDetail")}?id=${match.match_id}` : '#'}>
-                            <div className="p-4 bg-gradient-to-br from-[#18221E] to-[#121715] rounded-xl border border-[#223029] hover:border-[#F59E0B]/50 hover:shadow-lg active:scale-98 transition-all group">
-                              <div className="flex items-center gap-2 mb-3">
-                                <Badge className="bg-[#F59E0B]/20 text-[#FCD34D] border-0 text-[10px] lg:text-xs font-bold px-2 py-1">
-                                  {match.stage === 'group' ? 'Grupp' : 
-                                   match.stage === 'quarterfinal' ? 'Kvart' : 
-                                   match.stage === 'semifinal' ? 'Semi' : 
-                                   match.stage === 'final' ? 'FINAL' : match.stage}
-                                </Badge>
-                                {match.group_id && (
-                                  <Badge className="bg-[#4169E1]/20 text-[#93C5FD] border-0 text-[10px] font-bold px-2 py-1">
-                                    Gruppspel
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="text-sm lg:text-base font-bold text-[#F4F7F5] mb-2 group-hover:text-[#F59E0B] transition-colors">
-                                {match.team_a_name} <span className="text-[#7B8A83] font-normal">vs</span> {match.team_b_name}
-                              </div>
-                              {match.date && (
-                                <div className="flex flex-wrap items-center gap-3 text-[10px] lg:text-xs text-[#B6C2BC]">
-                                  <span className="flex items-center gap-1.5 font-medium">
-                                    <Calendar className="w-3.5 h-3.5" />
-                                    {new Date(match.date).toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' })}
-                                  </span>
-                                  {match.time && (
-                                    <span className="flex items-center gap-1.5 font-medium">
-                                      <Clock className="w-3.5 h-3.5" />
-                                      {match.time}
-                                    </span>
-                                  )}
-                                  {match.venue_name && (
-                                    <span className="flex items-center gap-1.5 font-medium truncate">
-                                      <MapPin className="w-3.5 h-3.5" />
-                                      {match.venue_name}
-                                    </span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </Link>
-                        </motion.div>
-                      ))}
-                    </div>
-
-                    {matches.filter(m => !m.team_a_score && m.team_a_score !== 0).length > 5 && (
-                      <Button
-                        variant="outline"
-                        className="w-full mt-4 h-11 border-[#F59E0B]/30 text-[#F59E0B] hover:bg-[#F59E0B]/10 font-bold rounded-xl"
-                        onClick={() => setActiveTab('matches')}
-                      >
-                        Se alla matcher ({matches.length}) →
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
             </motion.div>
           )}
 
