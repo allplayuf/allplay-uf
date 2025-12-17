@@ -136,24 +136,36 @@ function GroupCard({ group, index, matches, cup }) {
             <div className="p-4 border-t border-[#223029]">
               <h4 className="text-sm font-semibold text-[#F4F7F5] mb-3">Matcher i gruppen</h4>
               <div className="space-y-2">
-                {matches.slice(0, 5).map((match) => (
-                  <Link key={match.id} to={match.match_id ? `${createPageUrl("MatchDetail")}?id=${match.match_id}` : '#'}>
-                    <div className="flex items-center justify-between p-3 bg-[#0F1513] rounded-xl border border-[#223029] hover:border-[#F59E0B]/30 transition-all group">
-                      <span className="text-sm text-[#F4F7F5] font-semibold">
-                        {match.team_a_name || 'Lag A'} vs {match.team_b_name || 'Lag B'}
-                      </span>
-                      {match.team_a_score !== null && match.team_a_score !== undefined ? (
-                        <Badge className="bg-[#F59E0B]/20 text-[#FCD34D] border-0 text-sm font-bold">
-                          {match.team_a_score} - {match.team_b_score}
-                        </Badge>
-                      ) : (
-                        <Badge className="bg-[#18221E] text-[#B6C2BC] border-0 text-xs">
-                          Ej spelad
-                        </Badge>
-                      )}
-                    </div>
-                  </Link>
-                ))}
+                {matches
+                  .sort((a, b) => {
+                    const dateCompare = (a.date || '').localeCompare(b.date || '');
+                    if (dateCompare !== 0) return dateCompare;
+                    return (a.time || '').localeCompare(b.time || '');
+                  })
+                  .slice(0, 5)
+                  .map((match) => (
+                    <Link key={match.id} to={match.match_id ? `${createPageUrl("MatchDetail")}?id=${match.match_id}` : '#'}>
+                      <div className="flex items-center justify-between p-3 bg-[#0F1513] rounded-xl border border-[#223029] hover:border-[#F59E0B]/30 transition-all group">
+                        <div className="flex-1">
+                          <span className="text-sm text-[#F4F7F5] font-semibold">
+                            {match.team_a_name || 'Lag A'} vs {match.team_b_name || 'Lag B'}
+                          </span>
+                          <span className="text-xs text-[#7B8A83] ml-2">
+                            {match.time}
+                          </span>
+                        </div>
+                        {match.team_a_score !== null && match.team_a_score !== undefined ? (
+                          <Badge className="bg-[#F59E0B]/20 text-[#FCD34D] border-0 text-sm font-bold">
+                            {match.team_a_score} - {match.team_b_score}
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-[#18221E] text-[#B6C2BC] border-0 text-xs">
+                            Ej spelad
+                          </Badge>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
               </div>
             </div>
           )}

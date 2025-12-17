@@ -32,6 +32,11 @@ Deno.serve(async (req) => {
 
     const createdMatches = [];
     const errors = [];
+    
+    // Check for existing matches to avoid duplicates
+    const existingMatches = await base44.asServiceRole.entities.CupMatch.filter({ 
+      cup_id: cup_id 
+    });
 
     for (const matchData of matches_data) {
       try {
@@ -117,6 +122,22 @@ Deno.serve(async (req) => {
             time,
             group: group_name,
             stage
+          });
+          continue;
+        }
+
+        // Check if this match already exists
+        const isDuplicate = existingMatches.some(m => 
+          m.team_a_id === teamA.id && 
+          m.team_b_id === teamB.id && 
+          m.stage === stage &&
+          m.group_id === group_id
+        );
+
+        if (isDuplicate) {
+          errors.push({
+            match: `${team_a_name} vs ${team_b_name}`,
+            error: 'Match already exists (duplicate)'
           });
           continue;
         }
