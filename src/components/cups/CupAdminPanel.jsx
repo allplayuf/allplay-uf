@@ -229,6 +229,39 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
     }
   });
 
+  const handleRemoveDuplicates = async () => {
+    const confirmed = await confirm(
+      'Ta bort dubbletter? 🗑️',
+      'Detta kommer att ta bort alla duplicerade matcher i cupen.',
+      { type: 'warning', confirmText: 'Ta bort', cancelText: 'Avbryt' }
+    );
+
+    if (!confirmed) return;
+
+    setBulkImporting(true);
+    try {
+      const response = await base44.functions.invoke('cups/removeDuplicateMatches', {
+        cup_id: cup.id
+      });
+
+      if (response.data.success) {
+        queryClient.invalidateQueries(['cupDetails', cup.id]);
+        await alert(
+          'Dubbletter borttagna! ✅',
+          `${response.data.deleted} dubbletter borttagna. ${response.data.kept} matcher kvar.`,
+          { type: 'success' }
+        );
+      } else {
+        await alert('Fel', 'Kunde inte ta bort dubbletter.', { type: 'alert' });
+      }
+    } catch (error) {
+      console.error('Remove duplicates error:', error);
+      await alert('Fel', 'Kunde inte ta bort dubbletter.', { type: 'alert' });
+    } finally {
+      setBulkImporting(false);
+    }
+  };
+
   const handleBulkImportMatches = async () => {
     const matchesData = [
       {"team_a_name": "Shadow Unit", "team_b_name": "Fc Kurdistan", "date": "2025-12-20", "time": "09:00", "group_name": "Grupp A", "stage": "group"},
@@ -1102,27 +1135,37 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
                     <Sparkles className="w-6 h-6 text-[#9370DB]" />
                   </div>
                   <div>
-                    <h4 className="text-white font-bold text-lg">Bulk-importera matcher</h4>
-                    <p className="text-xs text-[#B6C2BC]">Importera alla gruppspels- och slutspelsmatcher för Futsal Fiesta 2025</p>
+                    <h4 className="text-white font-bold text-lg">Matchhantering</h4>
+                    <p className="text-xs text-[#B6C2BC]">Importera matcher eller rensa dubbletter</p>
                   </div>
                 </div>
-                <button
-                  onClick={handleBulkImportMatches}
-                  disabled={bulkImporting}
-                  className="w-full h-14 bg-gradient-to-r from-[#9370DB] to-[#7C3AED] hover:from-[#7C3AED] hover:to-[#6D28D9] text-white font-black rounded-xl shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-                >
-                  {bulkImporting ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Importerar matcher...
-                    </>
-                  ) : (
-                    <>
-                      <Calendar className="w-5 h-5" />
-                      Importera 31 matcher (Gruppspel + Slutspel)
-                    </>
-                  )}
-                </button>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
+                    onClick={handleBulkImportMatches}
+                    disabled={bulkImporting}
+                    className="flex-1 h-14 bg-gradient-to-r from-[#9370DB] to-[#7C3AED] hover:from-[#7C3AED] hover:to-[#6D28D9] text-white font-black rounded-xl shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                  >
+                    {bulkImporting ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Bearbetar...
+                      </>
+                    ) : (
+                      <>
+                        <Calendar className="w-5 h-5" />
+                        Importera 31 matcher
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={handleRemoveDuplicates}
+                    disabled={bulkImporting}
+                    className="flex-1 h-14 bg-gradient-to-r from-[#DC2626] to-[#B91C1C] hover:from-[#B91C1C] hover:to-[#991B1B] text-white font-black rounded-xl shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                    Ta bort dubbletter
+                  </button>
+                </div>
               </Card>
 
               <Card className="bg-[#0F1513] border border-[#223029] p-4">
