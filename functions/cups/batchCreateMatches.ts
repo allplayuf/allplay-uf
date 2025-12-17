@@ -87,21 +87,27 @@ Deno.serve(async (req) => {
 
         // Skip TBD matches (placeholder for playoffs)
         if (team_a_name === 'TBD' || team_b_name === 'TBD') {
-          // Create placeholder match
+          // Create placeholder Match entity first
+          const regularMatch = await base44.asServiceRole.entities.Match.create({
+            title: `${stage === 'quarterfinal' ? 'Kvartsfinal' : stage === 'semifinal' ? 'Semifinal' : 'Final'} - TBD`,
+            venue_id: venue_id,
+            organizer_id: cup.organizer_id,
+            date: date,
+            time: time,
+            format: cup.format,
+            max_players: 10,
+            is_cup_match: true,
+            status: 'upcoming'
+          });
+
+          // Create CupMatch linking to the regular Match
           const cupMatch = await base44.asServiceRole.entities.CupMatch.create({
             cup_id: cup_id,
+            match_id: regularMatch.id,
             team_a_id: null,
             team_b_id: null,
             group_id: group_id,
-            stage: stage,
-            round_number: round_number || 1,
-            date: date,
-            time: time,
-            venue_id: venue_id,
-            team_a_score: null,
-            team_b_score: null,
-            is_completed: false,
-            is_live: false
+            stage: stage
           });
 
           createdMatches.push({
@@ -115,21 +121,30 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // Create match
+        // Create regular Match entity first
+        const regularMatch = await base44.asServiceRole.entities.Match.create({
+          title: `${team_a_name} vs ${team_b_name}`,
+          venue_id: venue_id,
+          organizer_id: cup.organizer_id,
+          date: date,
+          time: time,
+          format: cup.format,
+          max_players: 10,
+          is_cup_match: true,
+          is_team_match: true,
+          team_a_id: teamA.id,
+          team_b_id: teamB.id,
+          status: 'upcoming'
+        });
+
+        // Create CupMatch linking to the regular Match
         const cupMatch = await base44.asServiceRole.entities.CupMatch.create({
           cup_id: cup_id,
+          match_id: regularMatch.id,
           team_a_id: teamA.id,
           team_b_id: teamB.id,
           group_id: group_id,
-          stage: stage,
-          round_number: round_number || 1,
-          date: date,
-          time: time,
-          venue_id: venue_id,
-          team_a_score: null,
-          team_b_score: null,
-          is_completed: false,
-          is_live: false
+          stage: stage
         });
 
         createdMatches.push({
