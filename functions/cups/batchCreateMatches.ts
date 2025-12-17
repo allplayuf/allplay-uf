@@ -51,11 +51,17 @@ Deno.serve(async (req) => {
           status: 'confirmed'
         });
 
-        const teamA = participants.find(p => 
-          p.team?.name?.toLowerCase().trim() === team_a_name?.toLowerCase().trim()
+        // Fetch all teams for the cup
+        const allTeams = await base44.asServiceRole.entities.Team.filter({
+          is_cup_team: true,
+          cup_id: cup_id
+        });
+
+        const teamA = allTeams.find(t => 
+          t.name?.toLowerCase().trim() === team_a_name?.toLowerCase().trim()
         );
-        const teamB = participants.find(p => 
-          p.team?.name?.toLowerCase().trim() === team_b_name?.toLowerCase().trim()
+        const teamB = allTeams.find(t => 
+          t.name?.toLowerCase().trim() === team_b_name?.toLowerCase().trim()
         );
 
         if (!teamA || !teamB) {
@@ -79,11 +85,41 @@ Deno.serve(async (req) => {
         // Get venue
         const venue_id = cup.venue_ids?.[0] || null;
 
+        // Skip TBD matches (placeholder for playoffs)
+        if (team_a_name === 'TBD' || team_b_name === 'TBD') {
+          // Create placeholder match
+          const cupMatch = await base44.asServiceRole.entities.CupMatch.create({
+            cup_id: cup_id,
+            team_a_id: null,
+            team_b_id: null,
+            group_id: group_id,
+            stage: stage,
+            round_number: round_number || 1,
+            date: date,
+            time: time,
+            venue_id: venue_id,
+            team_a_score: null,
+            team_b_score: null,
+            is_completed: false,
+            is_live: false
+          });
+
+          createdMatches.push({
+            id: cupMatch.id,
+            teams: 'TBD vs TBD',
+            date,
+            time,
+            group: group_name,
+            stage
+          });
+          continue;
+        }
+
         // Create match
         const cupMatch = await base44.asServiceRole.entities.CupMatch.create({
           cup_id: cup_id,
-          team_a_id: teamA.team_id,
-          team_b_id: teamB.team_id,
+          team_a_id: teamA.id,
+          team_b_id: teamB.id,
           group_id: group_id,
           stage: stage,
           round_number: round_number || 1,
