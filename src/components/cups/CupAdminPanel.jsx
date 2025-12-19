@@ -44,10 +44,6 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
   const [matchVenue, setMatchVenue] = useState("");
   const [bulkImporting, setBulkImporting] = useState(false);
 
-  // --- Manual Player State ---
-  const [newPlayerName, setNewPlayerName] = useState("");
-  const [selectedTeamForPlayer, setSelectedTeamForPlayer] = useState("");
-
   // --- Settings State ---
   const [settingsForm, setSettingsForm] = useState({
     name: cup.name || "",
@@ -250,7 +246,6 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
 
       if (response.data.success) {
         queryClient.invalidateQueries(['cupDetails', cup.id]);
-        queryClient.invalidateQueries(['cupPlayers', cup.id]);
         await alert(
           'Spelare skapade! 👥',
           response.data.message,
@@ -266,29 +261,6 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
       setBulkImporting(false);
     }
   };
-
-  const createManualPlayerMutation = useMutation({
-    mutationFn: async ({ team_id, player_name }) => {
-      await base44.entities.CupPlayer.create({
-        cup_id: cup.id,
-        team_id: team_id,
-        name: player_name,
-        goals: 0,
-        assists: 0,
-        matches_played: 0
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['cupDetails', cup.id]);
-      queryClient.invalidateQueries(['cupPlayers', cup.id]);
-      setNewPlayerName("");
-      setSelectedTeamForPlayer("");
-      alert('Spelare tillagd! 👤', 'Spelaren har lagts till i laget.', { type: 'success' });
-    },
-    onError: (error) => {
-      alert('Fel', 'Kunde inte lägga till spelare.', { type: 'alert' });
-    }
-  });
 
   const handleRemoveDuplicates = async () => {
     const confirmed = await confirm(
@@ -984,69 +956,6 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
 
             {/* TEAMS TAB */}
             <TabsContent value="teams" className="space-y-6">
-              {/* Seed All Players */}
-              <Card className="bg-gradient-to-br from-[#2BA84A]/10 to-[#248232]/5 border-[#2BA84A]/30 p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-[#2BA84A]/20 flex items-center justify-center">
-                    <Users className="w-6 h-6 text-[#2BA84A]" />
-                  </div>
-                  <div>
-                    <h4 className="text-white font-bold text-lg">Lägg in alla cup-spelare</h4>
-                    <p className="text-xs text-[#B6C2BC]">Skapar alla fördefinierade spelare för Futsal Fiesta 2025</p>
-                  </div>
-                </div>
-                <button
-                  onClick={handleSeedPlayers}
-                  disabled={bulkImporting}
-                  className="w-full h-14 bg-gradient-to-r from-[#2BA84A] to-[#248232] hover:from-[#248232] hover:to-[#1D6B28] text-white font-black rounded-xl shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-                >
-                  {bulkImporting ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Skapar spelare...
-                    </>
-                  ) : (
-                    <>
-                      <Users className="w-5 h-5" />
-                      Lägg in alla spelare automatiskt
-                    </>
-                  )}
-                </button>
-              </Card>
-
-              {/* Manual Player Addition */}
-              <Card className="bg-[#0F1513] border border-[#223029] p-4">
-                <h4 className="text-white font-bold mb-4 flex items-center gap-2"><UserPlus className="w-4 h-4" /> Lägg till spelare manuellt</h4>
-                <div className="grid sm:grid-cols-3 gap-2">
-                  <Input 
-                    placeholder="Spelarens namn" 
-                    value={newPlayerName} 
-                    onChange={(e) => setNewPlayerName(e.target.value)}
-                    className="bg-[#18221E] border-[#223029] text-white"
-                  />
-                  <Select value={selectedTeamForPlayer} onValueChange={setSelectedTeamForPlayer}>
-                    <SelectTrigger className="bg-[#18221E] border-[#223029] text-white">
-                      <SelectValue placeholder="Välj lag" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {confirmedTeams.map(team => (
-                        <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button 
-                    onClick={() => createManualPlayerMutation.mutate({ 
-                      team_id: selectedTeamForPlayer, 
-                      player_name: newPlayerName 
-                    })} 
-                    disabled={!newPlayerName || !selectedTeamForPlayer || createManualPlayerMutation.isPending}
-                    className="bg-[#2BA84A] hover:bg-[#248232] text-white"
-                  >
-                    Lägg till
-                  </Button>
-                </div>
-              </Card>
-
               <Card className="bg-[#0F1513] border border-[#223029] p-4">
                 <h4 className="text-white font-bold mb-4 flex items-center gap-2"><Plus className="w-4 h-4" /> Lägg till manuellt lag</h4>
                 <div className="flex gap-2">
