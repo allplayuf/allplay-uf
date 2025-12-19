@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Shield, Plus, Grid, Swords, Settings, Save, Calendar, Wand2, Trash2, Trophy, Sparkles, TrendingUp, Target, AlertCircle, UserPlus } from "lucide-react";
+import { Shield, Plus, Grid, Swords, Settings, Save, Calendar, Wand2, Trash2, Trophy, Sparkles, TrendingUp, Target, AlertCircle, UserPlus, Users } from "lucide-react";
 import { useCustomDialog } from "../ui/custom-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createPageUrl } from "@/utils";
