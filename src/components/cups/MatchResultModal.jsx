@@ -1,71 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { base44 } from "@/api/base44Client";
-import { Trophy, Plus, Trash2, Target } from 'lucide-react';
+import { Trophy } from 'lucide-react';
 import { useCustomDialog } from "../ui/custom-dialog";
-import { useQuery } from "@tanstack/react-query";
 
 export default function MatchResultModal({ match, onClose, onSuccess }) {
   const [teamAScore, setTeamAScore] = useState(match.team_a_score ?? '');
   const [teamBScore, setTeamBScore] = useState(match.team_b_score ?? '');
   const [extraTime, setExtraTime] = useState(match.extra_time || false);
   const [penalties, setPenalties] = useState(match.penalties || false);
-  const [goals, setGoals] = useState([]);
   
+  // Parse existing penalty score if match has one
   const existingPenaltyScore = match.penalty_score ? match.penalty_score.split('-') : ['', ''];
   const [penaltyScoreA, setPenaltyScoreA] = useState(existingPenaltyScore[0] || '');
   const [penaltyScoreB, setPenaltyScoreB] = useState(existingPenaltyScore[1] || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { alert } = useCustomDialog();
 
-  // Fetch cup players for both teams
-  const { data: cupPlayers = [] } = useQuery({
-    queryKey: ['cupPlayers', match.cup_id, match.team_a_id, match.team_b_id],
-    queryFn: async () => {
-      const [teamAPlayers, teamBPlayers] = await Promise.all([
-        base44.entities.CupPlayer.filter({ cup_id: match.cup_id, team_id: match.team_a_id }),
-        base44.entities.CupPlayer.filter({ cup_id: match.cup_id, team_id: match.team_b_id })
-      ]);
-      return [...teamAPlayers, ...teamBPlayers];
-    },
-    enabled: !!match.cup_id && !!match.team_a_id && !!match.team_b_id,
-  });
-
-  const teamAPlayers = cupPlayers.filter(p => p.team_id === match.team_a_id);
-  const teamBPlayers = cupPlayers.filter(p => p.team_id === match.team_b_id);
-
   const isDraw = teamAScore !== '' && teamBScore !== '' && parseInt(teamAScore) === parseInt(teamBScore);
-  const totalGoals = (parseInt(teamAScore) || 0) + (parseInt(teamBScore) || 0);
-
-  // Initialize goals array when scores change
-  useEffect(() => {
-    if (teamAScore !== '' && teamBScore !== '') {
-      const total = parseInt(teamAScore) + parseInt(teamBScore);
-      const currentGoalsCount = goals.length;
-      
-      if (total > currentGoalsCount) {
-        // Add missing goals
-        const newGoals = [...goals];
-        for (let i = currentGoalsCount; i < total; i++) {
-          newGoals.push({ team_id: '', player_id: '', minute: '' });
-        }
-        setGoals(newGoals);
-      } else if (total < currentGoalsCount) {
-        // Remove extra goals
-        setGoals(goals.slice(0, total));
-      }
-    } else {
-      setGoals([]);
-    }
-  }, [teamAScore, teamBScore]);
-
-  const handleGoalChange = (index, field, value) => {
-    const newGoals = [...goals];
-    newGoals[index] = { ...newGoals[index], [field]: value };
-    setGoals(newGoals);
-  };
 
   const handleSubmit = async () => {
     if (teamAScore === '' || teamBScore === '') {
@@ -77,14 +30,6 @@ export default function MatchResultModal({ match, onClose, onSuccess }) {
         await alert('Straffresultat saknas', 'Ange resultatet för straffar.', { type: 'warning' });
         return;
     }
-
-    // Validate goals
-    for (let i = 0; i < goals.length; i++) {
-      if (!goals[i].team_id || !goals[i].player_id || !goals[i].minute) {
-        await alert('Ofullständig måldata', `Fyll i alla fält för mål ${i + 1}.`, { type: 'warning' });
-        return;
-      }
-    }
     
     setIsSubmitting(true);
     try {
@@ -94,8 +39,7 @@ export default function MatchResultModal({ match, onClose, onSuccess }) {
             team_b_score: parseInt(teamBScore),
             extra_time: extraTime,
             penalties: penalties,
-            penalty_score: penalties ? `${penaltyScoreA}-${penaltyScoreB}` : null,
-            goals: goals
+            penalty_score: penalties ? `${penaltyScoreA}-${penaltyScoreB}` : null
         });
         
         if (onSuccess) await onSuccess();
@@ -137,75 +81,7 @@ export default function MatchResultModal({ match, onClose, onSuccess }) {
           </div>
       </div>
 
-      {/* Goals Details */}
-      {goals.length > 0 && (
-        <div className="mb-4 lg:mb-6 space-y-3">
-          <div className="flex items-center gap-2 text-[#F59E0B]">
-            <Target className="w-4 h-4" />
-            <h3 className="text-sm font-bold">Måldetaljer ({goals.length} mål)</h3>
-          </div>
-          
-          {goals.map((goal, index) => (
-            <div key={index} className="bg-[#18221E] p-3 rounded-lg border border-[#223029] space-y-2">
-              <div className="text-xs font-bold text-[#B6C2BC] mb-2">Mål {index + 1}</div>
-              
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-xs text-[#7B8A83] mb-1 block">Lag</label>
-                  <Select 
-                    value={goal.team_id} 
-                    onValueChange={(value) => handleGoalChange(index, 'team_id', value)}
-                  >
-                    <SelectTrigger className="bg-[#0F1513] border-[#223029] text-white h-9">
-                      <SelectValue placeholder="Välj lag" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={match.team_a_id}>{match.team_a_name}</SelectItem>
-                      <SelectItem value={match.team_b_id}>{match.team_b_name}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <label className="text-xs text-[#7B8A83] mb-1 block">Minut</label>
-                  <Input 
-                    type="number"
-                    min="1"
-                    max="120"
-                    value={goal.minute}
-                    onChange={(e) => handleGoalChange(index, 'minute', e.target.value)}
-                    placeholder="Ex: 23"
-                    className="bg-[#0F1513] border-[#223029] text-white h-9"
-                  />
-                </div>
-              </div>
-
-              {goal.team_id && (
-                <div>
-                  <label className="text-xs text-[#7B8A83] mb-1 block">Målskytt</label>
-                  <Select 
-                    value={goal.player_id} 
-                    onValueChange={(value) => handleGoalChange(index, 'player_id', value)}
-                  >
-                    <SelectTrigger className="bg-[#0F1513] border-[#223029] text-white h-9">
-                      <SelectValue placeholder="Välj spelare" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(goal.team_id === match.team_a_id ? teamAPlayers : teamBPlayers).map(player => (
-                        <SelectItem key={player.id} value={player.id}>
-                          {player.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Extra Options */}
+      {/* Extra Options - Mobile Optimized */}
       <div className="space-y-2 lg:space-y-3 mb-4 lg:mb-6">
           <div className="flex items-center justify-between bg-[#18221E] p-2.5 lg:p-3 rounded-lg border border-[#223029]">
               <span className="text-xs lg:text-sm font-medium text-white">Förlängning</span>

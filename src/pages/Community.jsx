@@ -144,12 +144,7 @@ export default function CommunityPage() {
     queryFn: async () => {
       const response = await base44.functions.invoke('getPublicTeams');
       const teams = response.data.teams || [];
-      // Filter out cup teams and inactive teams
-      const filtered = teams.filter(t => {
-        if (user?.role === 'admin') return true; // Admins see all
-        return t.is_active !== false && !t.is_cup_team;
-      });
-      return filtered;
+      return user?.role === 'admin' ? teams : teams.filter(t => t.is_active !== false);
     },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC, // Changed from DYNAMIC to reduce aggressive fetching on mount
     refetchOnMount: false, // Don't refetch every time, trust cache
