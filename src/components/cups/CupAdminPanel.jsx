@@ -229,6 +229,39 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
     }
   });
 
+  const handleSeedPlayers = async () => {
+    const confirmed = await confirm(
+      'Skapa cup-spelare? 👥',
+      'Detta kommer att skapa alla fördefinierade spelare för Futsal Fiesta 2025.',
+      { type: 'confirm', confirmText: 'Skapa', cancelText: 'Avbryt' }
+    );
+
+    if (!confirmed) return;
+
+    setBulkImporting(true);
+    try {
+      const response = await base44.functions.invoke('cups/seedCupPlayers', {
+        cup_id: cup.id
+      });
+
+      if (response.data.success) {
+        queryClient.invalidateQueries(['cupDetails', cup.id]);
+        await alert(
+          'Spelare skapade! 👥',
+          response.data.message,
+          { type: 'success' }
+        );
+      } else {
+        await alert('Fel', 'Kunde inte skapa spelare.', { type: 'alert' });
+      }
+    } catch (error) {
+      console.error('Seed players error:', error);
+      await alert('Fel', 'Kunde inte skapa spelare.', { type: 'alert' });
+    } finally {
+      setBulkImporting(false);
+    }
+  };
+
   const handleRemoveDuplicates = async () => {
     const confirmed = await confirm(
       'Ta bort dubbletter? 🗑️',
@@ -1139,31 +1172,38 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
                     <p className="text-xs text-[#B6C2BC]">Importera matcher eller rensa dubbletter</p>
                   </div>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <button
                     onClick={handleBulkImportMatches}
                     disabled={bulkImporting}
-                    className="flex-1 h-14 bg-gradient-to-r from-[#9370DB] to-[#7C3AED] hover:from-[#7C3AED] hover:to-[#6D28D9] text-white font-black rounded-xl shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                    className="h-14 bg-gradient-to-r from-[#9370DB] to-[#7C3AED] hover:from-[#7C3AED] hover:to-[#6D28D9] text-white font-black rounded-xl shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                   >
                     {bulkImporting ? (
                       <>
                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Bearbetar...
                       </>
                     ) : (
                       <>
                         <Calendar className="w-5 h-5" />
-                        Importera 31 matcher
+                        Importera matcher
                       </>
                     )}
                   </button>
                   <button
                     onClick={handleRemoveDuplicates}
                     disabled={bulkImporting}
-                    className="flex-1 h-14 bg-gradient-to-r from-[#DC2626] to-[#B91C1C] hover:from-[#B91C1C] hover:to-[#991B1B] text-white font-black rounded-xl shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                    className="h-14 bg-gradient-to-r from-[#DC2626] to-[#B91C1C] hover:from-[#B91C1C] hover:to-[#991B1B] text-white font-black rounded-xl shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                   >
                     <Trash2 className="w-5 h-5" />
                     Ta bort dubbletter
+                  </button>
+                  <button
+                    onClick={handleSeedPlayers}
+                    disabled={bulkImporting}
+                    className="h-14 bg-gradient-to-r from-[#2BA84A] to-[#248232] hover:from-[#248232] hover:to-[#1D6B28] text-white font-black rounded-xl shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Users className="w-5 h-5" />
+                    Skapa spelare
                   </button>
                 </div>
               </Card>

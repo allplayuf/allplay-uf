@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Trophy, Calendar, MapPin, Users, Target, Shield } from "lucide-react";
 
-export default function CupHeroCard({ cup, statusConfig, confirmedCount, canManage, onAdminClick }) {
+export default function CupHeroCard({ cup, statusConfig, confirmedCount, canManage, onAdminClick, onPlayersClick }) {
   const heroLogo = cup.detail_logo_url || cup.logo_url;
   
   return (

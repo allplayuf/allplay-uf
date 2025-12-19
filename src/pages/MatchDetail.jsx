@@ -117,6 +117,9 @@ export default function MatchDetailPage() {
     enabled: !!matchId
   });
 
+  // Check if this is a cup match
+  const isCupMatch = match?.is_cup_match || false;
+
   // 3. Fetch Venue Data (dependent on match)
   const { data: venue } = useQuery({
     queryKey: ['venue', match?.venue_id],
@@ -377,7 +380,7 @@ export default function MatchDetailPage() {
 
   const isOrganizer = match.organizer_id === user?.id;
   const isParticipant = participants.some(p => p.id === user?.id);
-  const canJoin = !isParticipant && match.status === 'upcoming' && (match.is_spontaneous || participants.length < match.max_players);
+  const canJoin = !isCupMatch && !isParticipant && match.status === 'upcoming' && (match.is_spontaneous || participants.length < match.max_players);
   const isCompleted = match.status === 'completed';
 
   const statusConfig = STATUS_CONFIG[match.status] || STATUS_CONFIG.upcoming;
@@ -514,12 +517,20 @@ export default function MatchDetailPage() {
               </div>
 
               <div className="flex flex-col gap-3 w-full lg:w-auto lg:min-w-[220px]">
-                <button
-                   onClick={() => setShowReportModal(true)}
-                   className="text-xs text-[#F4743B] hover:underline text-right mb-2"
-                >
-                  Rapportera problem
-                </button>
+                {!isCupMatch && (
+                  <button
+                     onClick={() => setShowReportModal(true)}
+                     className="text-xs text-[#F4743B] hover:underline text-right mb-2"
+                  >
+                    Rapportera problem
+                  </button>
+                )}
+                {isCupMatch && match.status === 'upcoming' && (
+                  <div className="p-4 bg-[#F59E0B]/10 border border-[#F59E0B]/30 rounded-xl text-center">
+                    <p className="text-sm font-bold text-[#FCD34D] mb-1">Cupmatch</p>
+                    <p className="text-xs text-[#B6C2BC]">Endast admin-styrd</p>
+                  </div>
+                )}
                 {canJoin && (
                   <>
                     <button

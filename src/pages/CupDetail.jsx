@@ -30,6 +30,7 @@ const CupMatches = lazy(() => import("../components/cups/CupMatches"));
 const CupAdminPanel = lazy(() => import("../components/cups/CupAdminPanel"));
 const CupHeroCard = lazy(() => import("../components/cups/CupHeroCard"));
 const TournamentMvpModal = lazy(() => import("../components/cups/TournamentMvpModal"));
+const CupPlayersModal = lazy(() => import("../components/cups/CupPlayersModal"));
 
 const STATUS_CONFIG = {
   upcoming: { label: 'Kommande', color: 'bg-[#F59E0B]/20 text-[#FCD34D]', dotColor: 'bg-[#F59E0B]' },
@@ -83,6 +84,7 @@ export default function CupDetailPage() {
   // Expandable state for team cards
   const [expandedTeamId, setExpandedTeamId] = useState(null);
   const [showMvpModal, setShowMvpModal] = useState(false);
+  const [showPlayersModal, setShowPlayersModal] = useState(false);
 
   const approveSignupMutation = useMutation({
     mutationFn: async (participantId) => {
@@ -267,6 +269,7 @@ export default function CupDetailPage() {
             confirmedCount={confirmedParticipants.length}
             canManage={canManage}
             onAdminClick={() => setActiveTab('admin')}
+            onPlayersClick={() => setShowPlayersModal(true)}
           />
         </Suspense>
 
@@ -913,6 +916,16 @@ export default function CupDetailPage() {
             />
           </Suspense>
         </div>
+      )}
+
+      {/* Cup Players Modal */}
+      {showPlayersModal && canManage && (
+        <Suspense fallback={<PageLoadingSkeleton />}>
+          <CupPlayersModal
+            cup={cup}
+            onClose={() => setShowPlayersModal(false)}
+          />
+        </Suspense>
       )}
     </div>
   );
