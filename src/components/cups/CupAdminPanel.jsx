@@ -1128,6 +1128,42 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
 
             {/* MATCHES TAB */}
             <TabsContent value="matches" className="space-y-6">
+              {/* Seed Cup Players */}
+              <Card className="bg-gradient-to-br from-[#2BA84A]/10 to-[#248232]/5 border-[#2BA84A]/30 p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-[#2BA84A]/20 flex items-center justify-center">
+                    <Users className="w-6 h-6 text-[#2BA84A]" />
+                  </div>
+                  <div>
+                    <h4 className="text-white font-bold text-lg">Lägg till Cup-spelare</h4>
+                    <p className="text-xs text-[#B6C2BC]">Lägg automatiskt till fördefinierade spelare till alla lag</p>
+                  </div>
+                </div>
+                <button
+                  onClick={async () => {
+                    try {
+                      const response = await base44.functions.invoke('cups/seedCupPlayers', {
+                        cup_id: cup.id
+                      });
+                      if (response.data.success) {
+                        queryClient.invalidateQueries(['cupDetails', cup.id]);
+                        await alert(
+                          'Cup-spelare tillagda! ✅',
+                          `${response.data.total_created} spelare skapade.`,
+                          { type: 'success' }
+                        );
+                      }
+                    } catch (error) {
+                      await alert('Fel', 'Kunde inte lägga till spelare.', { type: 'alert' });
+                    }
+                  }}
+                  className="w-full h-14 bg-gradient-to-r from-[#2BA84A] to-[#248232] hover:from-[#248232] hover:to-[#1D6B28] text-white font-black rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+                >
+                  <Users className="w-5 h-5" />
+                  Lägg till fördefinierade spelare
+                </button>
+              </Card>
+
               {/* Bulk Import Section */}
               <Card className="bg-gradient-to-br from-[#9370DB]/10 to-[#7C3AED]/5 border-[#9370DB]/30 p-6">
                 <div className="flex items-center gap-3 mb-4">
