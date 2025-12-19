@@ -13,15 +13,26 @@ export default function CupHeroCard({ cup, statusConfig, confirmedCount, canMana
       className="relative overflow-hidden rounded-3xl shadow-[0_30px_90px_rgba(0,0,0,0.5)] mb-8 border border-[#F59E0B]/30"
     >
       {canManage && (
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={onAdminClick}
-          className="absolute top-4 lg:top-6 right-4 lg:right-6 z-50 bg-black/40 hover:bg-black/60 backdrop-blur-xl border border-white/20 text-white p-2.5 lg:p-3 rounded-xl shadow-2xl transition-all group"
-          title="Adminpanel"
-        >
-          <Shield className="w-5 h-5 group-hover:text-[#F59E0B] transition-colors" />
-        </motion.button>
+        <div className="absolute top-4 lg:top-6 right-4 lg:right-6 z-50 flex gap-2">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onPlayersClick}
+            className="bg-black/40 hover:bg-black/60 backdrop-blur-xl border border-white/20 text-white p-2.5 lg:p-3 rounded-xl shadow-2xl transition-all group"
+            title="Cup-spelare"
+          >
+            <Users className="w-5 h-5 group-hover:text-[#2BA84A] transition-colors" />
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onAdminClick}
+            className="bg-black/40 hover:bg-black/60 backdrop-blur-xl border border-white/20 text-white p-2.5 lg:p-3 rounded-xl shadow-2xl transition-all group"
+            title="Adminpanel"
+          >
+            <Shield className="w-5 h-5 group-hover:text-[#F59E0B] transition-colors" />
+          </motion.button>
+        </div>
       )}
 
       {/* Dark gradient base */}
