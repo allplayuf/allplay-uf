@@ -661,7 +661,7 @@ export default function MatchDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                <CupMatchGoals matchId={matchId} />
+                <CupMatchGoals matchId={matchId} cupMatch={cupMatch} isAdmin={isAdmin} />
               </CardContent>
             </Card>
 

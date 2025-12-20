@@ -86,5 +86,40 @@ export default function CupMatchGoals({ matchId }) {
         </motion.div>
       ))}
     </div>
+
+    {isAdmin && matchHasResult && (
+      <>
+        <div className="mt-4 flex justify-center">
+          <Button
+            onClick={() => setShowAddGoals(true)}
+            variant="outline"
+            className="border-[#223029] text-[#2BA84A] hover:bg-[#2BA84A]/10 gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Lägg till fler mål
+          </Button>
+        </div>
+
+        {showAddGoals && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="w-full max-w-2xl"
+            >
+              <AddGoalsModal
+                match={cupMatch}
+                onClose={() => setShowAddGoals(false)}
+                onSuccess={() => {
+                  queryClient.invalidateQueries({ queryKey: ['cupMatchGoals', matchId] });
+                  setShowAddGoals(false);
+                }}
+              />
+            </motion.div>
+          </div>
+        )}
+      </>
+    )}
+  </div>
   );
 }
