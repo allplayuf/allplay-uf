@@ -7,7 +7,7 @@ import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import { useCustomDialog } from "../ui/custom-dialog";
 import { useQueryClient } from "@tanstack/react-query";
-import MatchResultModal from "./MatchResultModal";
+import CupMatchResultModal from "./CupMatchResultModal";
 
 export default function CupMatches({ cup, matches, canManage }) {
   const [filter, setFilter] = useState('all');
@@ -264,8 +264,8 @@ function MatchCard({ match, index, canManage }) {
 
       {showReportModal && (
           <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/90 backdrop-blur-md p-0 sm:p-4">
-              <div className="w-full sm:max-w-md" onClick={e => e.stopPropagation()}>
-                   <MatchResultModal 
+              <div className="w-full sm:max-w-lg" onClick={e => e.stopPropagation()}>
+                   <CupMatchResultModal 
                       match={match} 
                       onClose={() => setShowReportModal(false)} 
                       onSuccess={handleResultSaved}
@@ -276,8 +276,8 @@ function MatchCard({ match, index, canManage }) {
 
       {showEditModal && (
           <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/90 backdrop-blur-md p-0 sm:p-4">
-              <div className="w-full sm:max-w-md" onClick={e => e.stopPropagation()}>
-                   <MatchResultModal 
+              <div className="w-full sm:max-w-lg" onClick={e => e.stopPropagation()}>
+                   <CupMatchResultModal 
                       match={match} 
                       onClose={() => setShowEditModal(false)} 
                       onSuccess={handleResultSaved}
