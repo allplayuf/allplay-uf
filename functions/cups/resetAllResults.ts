@@ -19,10 +19,12 @@ Deno.serve(async (req) => {
     const allGoals = await base44.asServiceRole.entities.CupGoal.filter({ cup_id });
     await Promise.all(allGoals.map(g => base44.asServiceRole.entities.CupGoal.delete(g.id)));
 
-    // 2. Reset all cup matches
+    // 2. Reset all cup matches (with rate limiting)
     const cupMatches = await base44.asServiceRole.entities.CupMatch.filter({ cup_id });
-    await Promise.all(cupMatches.map(m => 
-      base44.asServiceRole.entities.CupMatch.update(m.id, {
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    
+    for (let i = 0; i < cupMatches.length; i++) {
+      await base44.asServiceRole.entities.CupMatch.update(cupMatches[i].id, {
         team_a_score: null,
         team_b_score: null,
         extra_time: false,
@@ -32,8 +34,13 @@ Deno.serve(async (req) => {
         walkover: false,
         winner_id: null,
         is_live: false
-      })
-    ));
+      });
+      
+      // Small delay every 5 matches to avoid rate limits
+      if ((i + 1) % 5 === 0) {
+        await delay(100);
+      }
+    }
 
     // 3. Reset all group standings
     const groups = await base44.asServiceRole.entities.CupGroup.filter({ cup_id });
@@ -61,10 +68,10 @@ Deno.serve(async (req) => {
       })
     ));
 
-    // 6. Update regular matches to upcoming status
-    for (const cupMatch of cupMatches) {
-      if (cupMatch.match_id) {
-        await base44.asServiceRole.entities.Match.update(cupMatch.match_id, {
+    // 6. Update regular matches to upcoming status (with rate limiting)
+    for (let i = 0; i < cupMatches.length; i++) {
+      if (cupMatches[i].match_id) {
+        await base44.asServiceRole.entities.Match.update(cupMatches[i].match_id, {
           status: 'upcoming',
           team_a_score: null,
           team_b_score: null,
@@ -72,6 +79,11 @@ Deno.serve(async (req) => {
           completed_at: null,
           result_reported_by: null
         });
+        
+        // Small delay every 5 matches to avoid rate limits
+        if ((i + 1) % 5 === 0) {
+          await delay(100);
+        }
       }
     }
 
