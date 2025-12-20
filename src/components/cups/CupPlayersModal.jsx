@@ -103,21 +103,21 @@ export default function CupPlayersModal({ cup, onClose }) {
         </div>
 
         {/* Filters */}
-        <div className="p-6 border-b border-[#223029] space-y-4">
+        <div className="p-4 lg:p-6 border-b border-[#223029] space-y-3">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#7B8A83]" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-[#7B8A83]" />
               <Input
                 placeholder="Sök spelare..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-[#0F1513] border-[#223029] text-[#F4F7F5]"
+                className="pl-9 lg:pl-10 bg-[#0F1513] border-[#223029] text-[#F4F7F5] h-10 lg:h-11 text-sm"
               />
             </div>
             <select
               value={filterTeam}
               onChange={(e) => setFilterTeam(e.target.value)}
-              className="h-11 px-4 bg-[#0F1513] border border-[#223029] rounded-xl text-[#F4F7F5] font-medium"
+              className="h-10 lg:h-11 px-3 lg:px-4 bg-[#0F1513] border border-[#223029] rounded-xl text-[#F4F7F5] font-medium text-sm"
             >
               <option value="all">Alla lag ({players.length})</option>
               {teams.map(team => (
@@ -141,7 +141,7 @@ export default function CupPlayersModal({ cup, onClose }) {
         </div>
 
         {/* Players List */}
-        <div className="p-6 overflow-y-auto max-h-[60vh]">
+        <div className="p-4 lg:p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 280px)' }}>
           {isLoading ? (
             <div className="text-center py-12">
               <div className="w-12 h-12 border-4 border-[#F59E0B] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
@@ -153,7 +153,7 @@ export default function CupPlayersModal({ cup, onClose }) {
               <p className="text-[#B6C2BC]">Inga spelare hittades</p>
             </div>
           ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
               <AnimatePresence>
                 {filteredPlayers.map((player, index) => (
                   <motion.div
