@@ -122,7 +122,10 @@ export default function CupMatchGoals({ matchId, cupMatch, isAdmin }) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <Trophy className="w-4 h-4 text-[#F59E0B] flex-shrink-0" />
-                <span className="font-bold text-[#F4F7F5] text-[15px] truncate">{goal.player_name}</span>
+                <span className="font-bold text-[#F4F7F5] text-[15px] truncate">
+                  {goal.player_name || 'Okänd spelare'}
+                  {goal.player_number && ` #${goal.player_number}`}
+                </span>
               </div>
               <div className="text-[13px] text-[#B6C2BC] truncate">{goal.team_name}</div>
             </div>

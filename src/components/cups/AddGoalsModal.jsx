@@ -28,8 +28,8 @@ export default function AddGoalsModal({ match, onClose, onSuccess }) {
     // Validate each goal
     for (let i = 0; i < goals.length; i++) {
       const goal = goals[i];
-      if (!goal.minute || !goal.team_name || !goal.player_name) {
-        await alert('Ofullständig målinformation', `Mål ${i + 1} saknar information (minut, lag eller spelare).`, { type: 'warning' });
+      if (!goal.minute || !goal.team_name) {
+        await alert('Ofullständig målinformation', `Mål ${i + 1} saknar information (minut eller lag).`, { type: 'warning' });
         return;
       }
     }
@@ -138,7 +138,7 @@ export default function AddGoalsModal({ match, onClose, onSuccess }) {
                   </div>
 
                   <div>
-                    <label className="text-[10px] text-[#7B8A83] mb-1 block">Spelarnamn</label>
+                    <label className="text-[10px] text-[#7B8A83] mb-1 block">Spelarnamn (valfritt)</label>
                     <Input
                       type="text"
                       value={goal.player_name}
