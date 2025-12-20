@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { useCustomDialog } from "../ui/custom-dialog";
 import { useQueryClient } from "@tanstack/react-query";
 import CupMatchResultModal from "./CupMatchResultModal";
+import EditMatchTimeModal from "./EditMatchTimeModal";
 import { base44 } from "@/api/base44Client";
 
 export default function CupMatches({ cup, matches, canManage }) {
@@ -108,6 +109,7 @@ export default function CupMatches({ cup, matches, canManage }) {
 function MatchCard({ match, index, canManage }) {
   const [showReportModal, setShowReportModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showEditTimeModal, setShowEditTimeModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
   const { alert, confirm } = useCustomDialog();
@@ -118,6 +120,12 @@ function MatchCard({ match, index, canManage }) {
       setShowReportModal(false);
       setShowEditModal(false);
       await alert('Resultat sparat! ✅', 'Matchen har uppdaterats.', { type: 'success' });
+  };
+
+  const handleTimeSaved = async () => {
+      await queryClient.invalidateQueries(['cupDetails']);
+      setShowEditTimeModal(false);
+      await alert('Tid uppdaterad! ⏰', 'Matchtiden har ändrats.', { type: 'success' });
   };
 
   const handleDeleteMatch = async (e) => {
@@ -258,43 +266,56 @@ function MatchCard({ match, index, canManage }) {
 
           {/* Admin Actions - Mobile Enhanced */}
           {canManage && (
-            <div className="mt-4 flex flex-col sm:flex-row gap-2">
-              {!hasResult ? (
-                <button 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowReportModal(true);
-                  }}
-                  className="flex-1 h-12 bg-gradient-to-r from-[#2BA84A] to-[#248232] hover:from-[#248232] hover:to-[#1D6B28] active:scale-98 text-white font-black rounded-xl shadow-xl hover:shadow-2xl transition-all flex items-center justify-center gap-2 text-sm lg:text-base"
-                >
-                  <Trophy className="w-4 h-4" />
-                  Rapportera Resultat
-                </button>
-              ) : (
-                <button 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setShowEditModal(true);
-                  }}
-                  className="flex-1 h-12 bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] active:scale-98 text-white font-black rounded-xl shadow-xl hover:shadow-2xl transition-all flex items-center justify-center gap-2 text-sm lg:text-base"
-                >
-                  <Settings className="w-4 h-4" />
-                  Ändra Resultat
-                </button>
-              )}
-              <button 
-                onClick={handleDeleteMatch}
-                disabled={isDeleting}
-                className="sm:w-12 h-12 bg-[#EF4444]/10 hover:bg-[#EF4444]/20 border border-[#EF4444]/30 hover:border-[#EF4444]/50 active:scale-98 text-[#EF4444] font-black rounded-xl transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
-              >
-                {isDeleting ? (
-                  <div className="w-4 h-4 border-2 border-[#EF4444] border-t-transparent rounded-full animate-spin" />
+            <div className="mt-4 space-y-2">
+              <div className="flex flex-col sm:flex-row gap-2">
+                {!hasResult ? (
+                  <button 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowReportModal(true);
+                    }}
+                    className="flex-1 h-12 bg-gradient-to-r from-[#2BA84A] to-[#248232] hover:from-[#248232] hover:to-[#1D6B28] active:scale-98 text-white font-black rounded-xl shadow-xl hover:shadow-2xl transition-all flex items-center justify-center gap-2 text-sm lg:text-base"
+                  >
+                    <Trophy className="w-4 h-4" />
+                    Rapportera Resultat
+                  </button>
                 ) : (
-                  <Trash2 className="w-4 h-4" />
+                  <button 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowEditModal(true);
+                    }}
+                    className="flex-1 h-12 bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] active:scale-98 text-white font-black rounded-xl shadow-xl hover:shadow-2xl transition-all flex items-center justify-center gap-2 text-sm lg:text-base"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Ändra Resultat
+                  </button>
                 )}
-                <span className="sm:hidden">Radera</span>
+                <button 
+                  onClick={handleDeleteMatch}
+                  disabled={isDeleting}
+                  className="sm:w-12 h-12 bg-[#EF4444]/10 hover:bg-[#EF4444]/20 border border-[#EF4444]/30 hover:border-[#EF4444]/50 active:scale-98 text-[#EF4444] font-black rounded-xl transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+                >
+                  {isDeleting ? (
+                    <div className="w-4 h-4 border-2 border-[#EF4444] border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
+                  <span className="sm:hidden">Radera</span>
+                </button>
+              </div>
+              <button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowEditTimeModal(true);
+                }}
+                className="w-full h-10 bg-[#4169E1]/10 hover:bg-[#4169E1]/20 border border-[#4169E1]/30 hover:border-[#4169E1]/50 active:scale-98 text-[#4169E1] font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-sm"
+              >
+                <Clock className="w-4 h-4" />
+                Ändra tid
               </button>
             </div>
           )}
@@ -320,6 +341,18 @@ function MatchCard({ match, index, canManage }) {
                       match={match} 
                       onClose={() => setShowEditModal(false)} 
                       onSuccess={handleResultSaved}
+                   /> 
+              </div>
+          </div>
+      )}
+
+      {showEditTimeModal && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+              <div className="w-full max-w-md" onClick={e => e.stopPropagation()}>
+                   <EditMatchTimeModal 
+                      match={match} 
+                      onClose={() => setShowEditTimeModal(false)} 
+                      onSuccess={handleTimeSaved}
                    /> 
               </div>
           </div>
