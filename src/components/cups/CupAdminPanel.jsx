@@ -711,7 +711,7 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
                 <p className="text-sm">Hantera turneringens alla delar från denna panel.</p>
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Card 
                   className={`p-4 border-2 transition-all cursor-pointer ${
                     cup.status === 'registration_closed'
