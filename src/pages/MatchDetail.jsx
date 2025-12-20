@@ -26,6 +26,7 @@ import { useCustomDialog } from "../components/ui/custom-dialog";
 import { LazyMatchEndModal, LazyInviteFriendsModal, LazyMatchReportModal } from "../components/matches/LazyMatchDetails";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
+import CupMatchGoals from "../components/cups/CupMatchGoals";
 
 // CONSISTENT SKILL LEVEL CONFIG - WCAG AA compliant colors
 const SKILL_LEVEL_CONFIG = {
