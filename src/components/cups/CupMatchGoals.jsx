@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Trophy, Target, Plus } from 'lucide-react';
+import { Trophy, Target, Plus, Pencil } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import AddGoalsModal from './AddGoalsModal';
+import EditGoalModal from './EditGoalModal';
 
 export default function CupMatchGoals({ matchId, cupMatch, isAdmin }) {
   const [showAddGoals, setShowAddGoals] = useState(false);
+  const [editingGoal, setEditingGoal] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: goals = [], isLoading } = useQuery({
@@ -130,7 +132,15 @@ export default function CupMatchGoals({ matchId, cupMatch, isAdmin }) {
               <div className="text-[13px] text-[#B6C2BC] truncate">{goal.team_name}</div>
             </div>
 
-            <div className="flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {isAdmin && (
+                <button
+                  onClick={() => setEditingGoal(goal)}
+                  className="w-8 h-8 bg-[#18221E] hover:bg-[#223029] rounded-lg flex items-center justify-center transition-all"
+                >
+                  <Pencil className="w-3.5 h-3.5 text-[#B6C2BC]" />
+                </button>
+              )}
               <div className="w-10 h-10 bg-[#2BA84A]/20 rounded-full flex items-center justify-center ring-2 ring-[#2BA84A]/30">
                 <span className="text-xl">⚽</span>
               </div>
@@ -171,6 +181,25 @@ export default function CupMatchGoals({ matchId, cupMatch, isAdmin }) {
             </div>
           )}
         </>
+      )}
+
+      {editingGoal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-md"
+          >
+            <EditGoalModal
+              goal={editingGoal}
+              onClose={() => setEditingGoal(null)}
+              onSuccess={() => {
+                queryClient.invalidateQueries({ queryKey: ['cupMatchGoals', matchId] });
+                setEditingGoal(null);
+              }}
+            />
+          </motion.div>
+        </div>
       )}
     </div>
   );
