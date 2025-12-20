@@ -162,55 +162,65 @@ export default function AddGoalsModal({ match, onClose, onSuccess }) {
                     </div>
                   </div>
 
-                  {/* Team */}
+                  {/* Team - Larger buttons */}
                   <div>
-                    <label className="text-[10px] text-[#7B8A83] mb-1 block">Lag</label>
-                    <Select
-                      value={goal.team_id}
-                      onValueChange={(value) => {
-                        updateGoal(index, 'team_id', value);
-                        updateGoal(index, 'player_id', '');
-                      }}
-                    >
-                      <SelectTrigger className="bg-[#18221E] border-[#223029] text-white h-9 text-xs">
-                        <SelectValue placeholder="Välj lag" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-[300px] bg-[#0F1513] border-[#223029]">
-                        <SelectItem value={match.team_a_id} className="text-sm font-medium py-3 cursor-pointer hover:bg-[#2BA84A]/20 focus:bg-[#2BA84A]/20">
-                          {match.team_a_name}
-                        </SelectItem>
-                        <SelectItem value={match.team_b_id} className="text-sm font-medium py-3 cursor-pointer hover:bg-[#F59E0B]/20 focus:bg-[#F59E0B]/20">
-                          {match.team_b_name}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <label className="text-xs text-[#B6C2BC] mb-2 block font-semibold">Lag som gjorde mål</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateGoal(index, 'team_id', match.team_a_id);
+                          updateGoal(index, 'player_id', '');
+                        }}
+                        className={`h-14 rounded-xl font-bold text-sm transition-all ${
+                          goal.team_id === match.team_a_id
+                            ? 'bg-[#2BA84A] text-white ring-2 ring-[#2BA84A]/50 shadow-lg'
+                            : 'bg-[#18221E] text-[#B6C2BC] hover:bg-[#223029] border border-[#223029]'
+                        }`}
+                      >
+                        {match.team_a_name}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateGoal(index, 'team_id', match.team_b_id);
+                          updateGoal(index, 'player_id', '');
+                        }}
+                        className={`h-14 rounded-xl font-bold text-sm transition-all ${
+                          goal.team_id === match.team_b_id
+                            ? 'bg-[#F59E0B] text-white ring-2 ring-[#F59E0B]/50 shadow-lg'
+                            : 'bg-[#18221E] text-[#B6C2BC] hover:bg-[#223029] border border-[#223029]'
+                        }`}
+                      >
+                        {match.team_b_name}
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Player */}
+                  {/* Player - Larger list items */}
                   {goal.team_id && (
                     <div>
-                      <label className="text-[10px] text-[#7B8A83] mb-1 block">Spelare</label>
-                      <Select
-                        value={goal.player_id}
-                        onValueChange={(value) => updateGoal(index, 'player_id', value)}
-                      >
-                        <SelectTrigger className="bg-[#18221E] border-[#223029] text-white h-9 text-xs">
-                          <SelectValue placeholder="Välj spelare" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-[300px] overflow-y-auto bg-[#0F1513] border-[#223029]">
-                          {(goal.team_id === match.team_a_id ? teamAPlayers : teamBPlayers)
-                            .sort((a, b) => a.name.localeCompare(b.name))
-                            .map(player => (
-                            <SelectItem 
-                              key={player.id} 
-                              value={player.id}
-                              className="text-sm font-medium py-3 cursor-pointer hover:bg-[#2BA84A]/20 focus:bg-[#2BA84A]/20"
+                      <label className="text-xs text-[#B6C2BC] mb-2 block font-semibold">
+                        Välj målskytt ({goal.team_id === match.team_a_id ? teamAPlayers.length : teamBPlayers.length} spelare)
+                      </label>
+                      <div className="max-h-[200px] overflow-y-auto space-y-1 bg-[#0F1513] p-2 rounded-lg border border-[#223029]">
+                        {(goal.team_id === match.team_a_id ? teamAPlayers : teamBPlayers)
+                          .sort((a, b) => a.name.localeCompare(b.name))
+                          .map(player => (
+                            <button
+                              key={player.id}
+                              type="button"
+                              onClick={() => updateGoal(index, 'player_id', player.id)}
+                              className={`w-full h-12 px-4 rounded-lg font-semibold text-left transition-all ${
+                                goal.player_id === player.id
+                                  ? 'bg-[#2BA84A] text-white shadow-lg'
+                                  : 'bg-[#18221E] text-[#F4F7F5] hover:bg-[#223029]'
+                              }`}
                             >
                               {player.name}
-                            </SelectItem>
+                            </button>
                           ))}
-                        </SelectContent>
-                      </Select>
+                      </div>
                     </div>
                   )}
                 </div>
