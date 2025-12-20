@@ -208,9 +208,13 @@ export default function CupMatchResultModal({ match, onClose, onSuccess }) {
                       <SelectTrigger className="bg-[#18221E] border-[#223029] text-white h-9 text-xs">
                         <SelectValue placeholder="Välj lag" />
                       </SelectTrigger>
-                      <SelectContent className="max-h-[200px]">
-                        <SelectItem value={match.team_a_id}>{match.team_a_name}</SelectItem>
-                        <SelectItem value={match.team_b_id}>{match.team_b_name}</SelectItem>
+                      <SelectContent className="max-h-[300px] bg-[#0F1513] border-[#223029]">
+                        <SelectItem value={match.team_a_id} className="text-sm font-medium py-3 cursor-pointer hover:bg-[#2BA84A]/20 focus:bg-[#2BA84A]/20">
+                          {match.team_a_name}
+                        </SelectItem>
+                        <SelectItem value={match.team_b_id} className="text-sm font-medium py-3 cursor-pointer hover:bg-[#F59E0B]/20 focus:bg-[#F59E0B]/20">
+                          {match.team_b_name}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -227,9 +231,15 @@ export default function CupMatchResultModal({ match, onClose, onSuccess }) {
                       <SelectTrigger className="bg-[#18221E] border-[#223029] text-white h-9 text-xs">
                         <SelectValue placeholder="Välj spelare" />
                       </SelectTrigger>
-                      <SelectContent className="max-h-[200px] overflow-y-auto">
-                        {(goal.team_id === match.team_a_id ? teamAPlayers : teamBPlayers).map(player => (
-                          <SelectItem key={player.id} value={player.id}>
+                      <SelectContent className="max-h-[300px] overflow-y-auto bg-[#0F1513] border-[#223029]">
+                        {(goal.team_id === match.team_a_id ? teamAPlayers : teamBPlayers)
+                          .sort((a, b) => a.name.localeCompare(b.name))
+                          .map(player => (
+                          <SelectItem 
+                            key={player.id} 
+                            value={player.id}
+                            className="text-sm font-medium py-3 cursor-pointer hover:bg-[#2BA84A]/20 focus:bg-[#2BA84A]/20"
+                          >
                             {player.name}
                           </SelectItem>
                         ))}
