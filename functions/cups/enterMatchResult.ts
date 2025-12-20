@@ -70,8 +70,58 @@ Deno.serve(async (req) => {
       }
     }
 
+    // If match was already reported, revert previous stats
+    if (cupMatch.team_a_score !== null && cupMatch.stage === 'group' && cupMatch.group_id) {
+      const group = await base44.asServiceRole.entities.CupGroup.get(cupMatch.group_id);
+      const standings = group.standings || [];
+
+      const teamAStanding = standings.find(s => s.team_id === cupMatch.team_a_id);
+      const teamBStanding = standings.find(s => s.team_id === cupMatch.team_b_id);
+
+      if (teamAStanding && teamBStanding) {
+        // Revert old match stats
+        teamAStanding.matches_played--;
+        teamBStanding.matches_played--;
+        
+        teamAStanding.goals_for -= cupMatch.team_a_score;
+        teamAStanding.goals_against -= cupMatch.team_b_score;
+        teamBStanding.goals_for -= cupMatch.team_b_score;
+        teamBStanding.goals_against -= cupMatch.team_a_score;
+
+        // Revert old points
+        if (cupMatch.team_a_score > cupMatch.team_b_score) {
+          teamAStanding.wins--;
+          teamAStanding.points -= 3;
+          teamBStanding.losses--;
+        } else if (cupMatch.team_b_score > cupMatch.team_a_score) {
+          teamBStanding.wins--;
+          teamBStanding.points -= 3;
+          teamAStanding.losses--;
+        } else {
+          teamAStanding.draws--;
+          teamBStanding.draws--;
+          teamAStanding.points--;
+          teamBStanding.points--;
+        }
+
+        teamAStanding.goal_difference = teamAStanding.goals_for - teamAStanding.goals_against;
+        teamBStanding.goal_difference = teamBStanding.goals_for - teamBStanding.goals_against;
+
+        await base44.asServiceRole.entities.CupGroup.update(cupMatch.group_id, { standings });
+      }
+    }
+
     // Delete existing goals for this match (for re-reporting)
     const existingGoals = await base44.asServiceRole.entities.CupGoal.filter({ cup_match_id: resultData.cup_match_id });
+    
+    // Revert player goal stats
+    for (const goal of existingGoals) {
+      const player = await base44.asServiceRole.entities.CupPlayer.get(goal.player_id);
+      await base44.asServiceRole.entities.CupPlayer.update(goal.player_id, {
+        goals: Math.max(0, (player.goals || 0) - 1)
+      });
+    }
+    
     await Promise.all(existingGoals.map(g => base44.asServiceRole.entities.CupGoal.delete(g.id)));
 
     // Create new goals and update player stats
@@ -96,12 +146,24 @@ Deno.serve(async (req) => {
       stats.goals++;
     }
 
-    // Update player statistics
+    // Update player statistics (both CupPlayer and User)
     for (const [playerId, stats] of playerStatsUpdates.entries()) {
       const player = await base44.asServiceRole.entities.CupPlayer.get(playerId);
       await base44.asServiceRole.entities.CupPlayer.update(playerId, {
         goals: (player.goals || 0) + stats.goals
       });
+
+      // Sync to User entity if player has user_id
+      if (player.user_id) {
+        try {
+          const userProfile = await base44.asServiceRole.entities.User.get(player.user_id);
+          await base44.asServiceRole.entities.User.update(player.user_id, {
+            goals_scored: (userProfile.goals_scored || 0) + stats.goals
+          });
+        } catch (err) {
+          console.error(`Failed to sync stats for user ${player.user_id}:`, err);
+        }
+      }
     }
 
     // Update cup match with service role

@@ -811,6 +811,31 @@ export default function CupAdminPanel({ cup, participants, groups, matches }) {
                     <p className="text-xs text-[#7B8A83]">Skapa nästa match med vinnarna från aktuell omgång.</p>
                 </Card>
 
+                 <Card className="bg-[#18221E] border-[#223029] p-4 hover:border-[#F59E0B]/30 transition-all cursor-pointer" onClick={async () => {
+                    const confirmed = await confirm(
+                      'Återställ alla resultat? ⚠️',
+                      'Detta kommer att radera alla rapporterade resultat, mål och statistik. Matcher kommer att återställas till "upcoming". Denna åtgärd går inte att ångra.',
+                      { type: 'warning', confirmText: 'Återställ allt', cancelText: 'Avbryt' }
+                    );
+                    if (confirmed) {
+                      try {
+                        const response = await base44.functions.invoke('cups/resetAllResults', { cup_id: cup.id });
+                        if (response.data.success) {
+                          queryClient.invalidateQueries(['cupDetails', cup.id]);
+                          await alert('Resultat återställda! ✅', response.data.message, { type: 'success' });
+                        }
+                      } catch (error) {
+                        await alert('Fel', 'Kunde inte återställa resultat.', { type: 'alert' });
+                      }
+                    }
+                  }}>
+                    <div className="flex items-center gap-3 mb-2">
+                        <AlertCircle className="w-5 h-5 text-[#F59E0B]" />
+                        <h4 className="font-bold text-white">Återställ resultat</h4>
+                    </div>
+                    <p className="text-xs text-[#7B8A83]">Nollställ alla matcher och statistik.</p>
+                </Card>
+
                  <Card className="bg-[#18221E] border-[#223029] p-4 hover:border-[#EF4444]/30 transition-all cursor-pointer" onClick={handleDeleteCup}>
                     <div className="flex items-center gap-3 mb-2">
                         <Trash2 className="w-5 h-5 text-[#EF4444]" />
