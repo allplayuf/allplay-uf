@@ -20,15 +20,8 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Validate goals array if provided
+    // Goals are now optional
     const goals = resultData.goals || [];
-    const totalScore = resultData.team_a_score + resultData.team_b_score;
-    if (goals.length !== totalScore) {
-      return Response.json({
-        error: 'Goals count mismatch',
-        details: `Expected ${totalScore} goals, got ${goals.length}`
-      }, { status: 400 });
-    }
 
     // Get cup match
     const cupMatch = await base44.asServiceRole.entities.CupMatch.get(resultData.cup_match_id);
@@ -111,57 +104,56 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Delete existing goals for this match (for re-reporting)
-    const existingGoals = await base44.asServiceRole.entities.CupGoal.filter({ cup_match_id: resultData.cup_match_id });
-    
-    // Revert player goal stats
-    for (const goal of existingGoals) {
-      const player = await base44.asServiceRole.entities.CupPlayer.get(goal.player_id);
-      await base44.asServiceRole.entities.CupPlayer.update(goal.player_id, {
-        goals: Math.max(0, (player.goals || 0) - 1)
-      });
-    }
-    
-    await Promise.all(existingGoals.map(g => base44.asServiceRole.entities.CupGoal.delete(g.id)));
-
-    // Create new goals and update player stats
-    const playerStatsUpdates = new Map(); // Track stats updates per player
-
-    for (const goal of goals) {
-      // Create goal record
-      await base44.asServiceRole.entities.CupGoal.create({
-        cup_id: cupMatch.cup_id,
-        cup_match_id: resultData.cup_match_id,
-        team_id: goal.team_id,
-        player_id: goal.player_id,
-        minute: goal.minute,
-        is_own_goal: goal.is_own_goal || false
-      });
-
-      // Track player stats
-      if (!playerStatsUpdates.has(goal.player_id)) {
-        playerStatsUpdates.set(goal.player_id, { goals: 0 });
+    // Delete existing goals if any (for re-reporting)
+    if (goals.length > 0) {
+      const existingGoals = await base44.asServiceRole.entities.CupGoal.filter({ cup_match_id: resultData.cup_match_id });
+      
+      // Revert player goal stats
+      for (const goal of existingGoals) {
+        const player = await base44.asServiceRole.entities.CupPlayer.get(goal.player_id);
+        await base44.asServiceRole.entities.CupPlayer.update(goal.player_id, {
+          goals: Math.max(0, (player.goals || 0) - 1)
+        });
       }
-      const stats = playerStatsUpdates.get(goal.player_id);
-      stats.goals++;
-    }
+      
+      await Promise.all(existingGoals.map(g => base44.asServiceRole.entities.CupGoal.delete(g.id)));
 
-    // Update player statistics (both CupPlayer and User)
-    for (const [playerId, stats] of playerStatsUpdates.entries()) {
-      const player = await base44.asServiceRole.entities.CupPlayer.get(playerId);
-      await base44.asServiceRole.entities.CupPlayer.update(playerId, {
-        goals: (player.goals || 0) + stats.goals
-      });
+      // Create new goals and update player stats
+      const playerStatsUpdates = new Map();
 
-      // Sync to User entity if player has user_id
-      if (player.user_id) {
-        try {
-          const userProfile = await base44.asServiceRole.entities.User.get(player.user_id);
-          await base44.asServiceRole.entities.User.update(player.user_id, {
-            goals_scored: (userProfile.goals_scored || 0) + stats.goals
-          });
-        } catch (err) {
-          console.error(`Failed to sync stats for user ${player.user_id}:`, err);
+      for (const goal of goals) {
+        await base44.asServiceRole.entities.CupGoal.create({
+          cup_id: cupMatch.cup_id,
+          cup_match_id: resultData.cup_match_id,
+          team_id: goal.team_id,
+          player_id: goal.player_id,
+          minute: goal.minute,
+          is_own_goal: goal.is_own_goal || false
+        });
+
+        if (!playerStatsUpdates.has(goal.player_id)) {
+          playerStatsUpdates.set(goal.player_id, { goals: 0 });
+        }
+        const stats = playerStatsUpdates.get(goal.player_id);
+        stats.goals++;
+      }
+
+      // Update player statistics
+      for (const [playerId, stats] of playerStatsUpdates.entries()) {
+        const player = await base44.asServiceRole.entities.CupPlayer.get(playerId);
+        await base44.asServiceRole.entities.CupPlayer.update(playerId, {
+          goals: (player.goals || 0) + stats.goals
+        });
+
+        if (player.user_id) {
+          try {
+            const userProfile = await base44.asServiceRole.entities.User.get(player.user_id);
+            await base44.asServiceRole.entities.User.update(player.user_id, {
+              goals_scored: (userProfile.goals_scored || 0) + stats.goals
+            });
+          } catch (err) {
+            console.error(`Failed to sync stats for user ${player.user_id}:`, err);
+          }
         }
       }
     }
