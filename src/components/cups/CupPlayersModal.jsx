@@ -42,8 +42,13 @@ export default function CupPlayersModal({ cup, onClose }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['cupPlayers', cup.id]);
+      queryClient.invalidateQueries(['cupDetails']);
       setEditingPlayer(null);
       alert('Spelare uppdaterad! ✅', 'Ändringar har sparats.', { type: 'success' });
+    },
+    onError: (error) => {
+      console.error('Update error:', error);
+      alert('Fel vid uppdatering', 'Kunde inte spara ändringarna. Försök igen.', { type: 'alert' });
     }
   });
 
@@ -56,10 +61,19 @@ export default function CupPlayersModal({ cup, onClose }) {
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!editForm.name?.trim()) {
+      await alert('Ogiltigt namn', 'Spelarens namn får inte vara tomt.', { type: 'warning' });
+      return;
+    }
+
     updatePlayerMutation.mutate({
       playerId: editingPlayer,
-      data: editForm
+      data: {
+        name: editForm.name.trim(),
+        goals: parseInt(editForm.goals) || 0,
+        assists: parseInt(editForm.assists) || 0
+      }
     });
   };
 
