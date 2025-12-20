@@ -404,7 +404,7 @@ export default function MatchDetailPage() {
         </button>
 
         {/* Match Header - COMPLETION STATE */}
-        {isCompleted ? (
+        {isCompleted && !isCupMatch ? (
           <Card className="overflow-hidden border-0 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[24px] relative">
             <div className="absolute inset-0 bg-gradient-to-br from-[#0F1513] to-[#121715]"></div>
             
@@ -453,6 +453,36 @@ export default function MatchDetailPage() {
                     <Crown className="w-5 h-5" />
                     Rösta på MVP / Betygsätt
                   </button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ) : isCompleted && isCupMatch ? (
+          <Card className="overflow-hidden border-0 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[24px] relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0F1513] to-[#121715]"></div>
+            
+            <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-[#F59E0B]/20 to-[#D97706]/10"></div>
+            
+            <CardContent className="p-0 relative z-10">
+              <div className="text-center pt-10 pb-8 px-6">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] shadow-xl mb-4 rotate-3 ring-4 ring-[#121715]">
+                  <Trophy className="w-10 h-10 text-white" />
+                </div>
+                <h1 className="text-3xl font-black text-white mb-1 uppercase tracking-tight">{match.title}</h1>
+                <div className="flex items-center justify-center gap-2 text-[#B6C2BC] text-sm font-medium mb-6">
+                  <Calendar className="w-4 h-4" />
+                  <span>{match.date}</span>
+                  <span>•</span>
+                  <span className="text-[#F59E0B]">Cupmatch Avslutad</span>
+                </div>
+
+                {match.final_score && (
+                  <div className="mb-8">
+                    <div className="inline-block px-8 py-4 bg-[#18221E] rounded-2xl border border-[#223029] shadow-inner">
+                      <div className="text-xs text-[#7B8A83] font-bold uppercase tracking-widest mb-1">Slutresultat</div>
+                      <div className="text-5xl font-black text-white tracking-tight">{match.final_score}</div>
+                    </div>
+                  </div>
                 )}
               </div>
             </CardContent>

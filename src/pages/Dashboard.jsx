@@ -811,15 +811,15 @@ export default function Dashboard() {
             variants={VARIANTS.item}
             className="lg:col-span-4 space-y-8 sticky top-24 self-start"
           >
-            {/* Cups Widget */}
-            <CupsWidget />
-
             {/* Next Match Card */}
             <NextMatchCard 
               match={myUpcomingMatches[0]} 
               venue={myUpcomingMatches[0] ? venues.find(v => v.id === myUpcomingMatches[0].venue_id) : null}
               participants={myUpcomingMatches[0] ? allParticipants.filter(p => p.match_id === myUpcomingMatches[0].id) : []}
             />
+
+            {/* Cups Widget */}
+            <CupsWidget />
           </motion.div>
         </div>
 
