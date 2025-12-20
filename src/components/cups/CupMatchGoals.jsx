@@ -102,14 +102,12 @@ export default function CupMatchGoals({ matchId, cupMatch, isAdmin }) {
             transition={{ duration: 0.3, delay: index * 0.05 }}
             className="flex items-center gap-4 p-4 bg-[#0F1513] rounded-xl border border-[#223029] hover:border-[#F59E0B]/30 transition-all"
           >
-            {/* Minute Badge */}
             <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-[#F59E0B] to-[#D97706] rounded-xl flex items-center justify-center shadow-lg">
               <div className="text-center">
                 <div className="text-white font-black text-lg leading-none">{goal.minute}'</div>
               </div>
             </div>
 
-            {/* Goal Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <Trophy className="w-4 h-4 text-[#F59E0B] flex-shrink-0" />
@@ -118,7 +116,6 @@ export default function CupMatchGoals({ matchId, cupMatch, isAdmin }) {
               <div className="text-[13px] text-[#B6C2BC] truncate">{goal.team_name}</div>
             </div>
 
-            {/* Goal Icon */}
             <div className="flex-shrink-0">
               <div className="w-10 h-10 bg-[#2BA84A]/20 rounded-full flex items-center justify-center ring-2 ring-[#2BA84A]/30">
                 <span className="text-xl">⚽</span>
