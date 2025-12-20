@@ -121,6 +121,17 @@ export default function MatchDetailPage() {
   // Check if this is a cup match
   const isCupMatch = match?.is_cup_match || false;
 
+  // Fetch CupMatch to get cup_id for navigation
+  const { data: cupMatch } = useQuery({
+    queryKey: ['cupMatch', matchId],
+    queryFn: async () => {
+      const cupMatches = await base44.entities.CupMatch.filter({ match_id: matchId });
+      return cupMatches[0] || null;
+    },
+    ...CACHE_STRATEGIES.STATIC,
+    enabled: !!matchId && isCupMatch
+  });
+
   // 3. Fetch Venue Data (dependent on match)
   const { data: venue } = useQuery({
     queryKey: ['venue', match?.venue_id],
@@ -396,7 +407,13 @@ export default function MatchDetailPage() {
 
         {/* Back Button */}
         <button
-          onClick={() => navigate(createPageUrl("Matches"))}
+          onClick={() => {
+            if (isCupMatch && cupMatch?.cup_id) {
+              navigate(`${createPageUrl("CupDetail")}?id=${cupMatch.cup_id}`);
+            } else {
+              navigate(createPageUrl("Matches"));
+            }
+          }}
           className="inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border border-[#223029] px-4 text-[#F4F7F5] hover:bg-[#18221E] transition-all font-semibold"
         >
           <ArrowLeft className="w-4 h-4" />
