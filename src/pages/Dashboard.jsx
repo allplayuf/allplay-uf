@@ -681,6 +681,13 @@ export default function Dashboard() {
           </motion.div>
         )}
 
+        {/* Cups Widget */}
+        <motion.div
+          variants={VARIANTS.item}
+        >
+          <CupsWidget />
+        </motion.div>
+
         {/* Main Content */}
         <div className="grid lg:grid-cols-12 gap-8">
           <div className="lg:col-span-8 space-y-8">
@@ -817,9 +824,6 @@ export default function Dashboard() {
               venue={myUpcomingMatches[0] ? venues.find(v => v.id === myUpcomingMatches[0].venue_id) : null}
               participants={myUpcomingMatches[0] ? allParticipants.filter(p => p.match_id === myUpcomingMatches[0].id) : []}
             />
-
-            {/* Cups Widget */}
-            <CupsWidget />
           </motion.div>
         </div>
 
