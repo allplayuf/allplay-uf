@@ -84,48 +84,48 @@ Deno.serve(async (req) => {
       groupedTeams[team.group_name].push(team);
     });
 
-    // Create fair matchups: 1st place teams face 2nd place teams from different groups
-    const seededTeams = [];
-    const groupNames = Object.keys(groupedTeams);
-    
-    // Better seeding algorithm
-    for (let position = 0; position < teamsAdvancingPerGroup; position++) {
-      for (const groupName of groupNames) {
-        if (groupedTeams[groupName][position]) {
-          seededTeams.push(groupedTeams[groupName][position]);
-        }
-      }
-    }
-
     const brackets = [];
     const matches = [];
     
-    // Create initial stage matches with smart seeding
-    for (let i = 0; i < Math.floor(seededTeams.length / 2); i++) {
-      const teamA = seededTeams[i];
-      const teamB = seededTeams[seededTeams.length - 1 - i]; // Mirror seeding for competitive balance
+    // Custom seeding for Futsal Fiesta 2025
+    // A1 vs C2 (15:00), C1 vs A2 (15:15), B1 vs D2 (15:30), B2 vs D1 (15:45)
+    const matchSchedule = [
+      { teamA: { group: 'Grupp A', position: 0 }, teamB: { group: 'Grupp C', position: 1 }, time: '15:00' },
+      { teamA: { group: 'Grupp C', position: 0 }, teamB: { group: 'Grupp A', position: 1 }, time: '15:15' },
+      { teamA: { group: 'Grupp B', position: 0 }, teamB: { group: 'Grupp D', position: 1 }, time: '15:30' },
+      { teamA: { group: 'Grupp D', position: 0 }, teamB: { group: 'Grupp B', position: 1 }, time: '15:45' }
+    ];
+
+    const stageLabels = {
+      round_of_16: 'Åttondelsfinal',
+      quarterfinal: 'Kvartsfinal', 
+      semifinal: 'Semifinal',
+      final: 'Final'
+    };
+
+    for (const schedule of matchSchedule) {
+      const teamAData = groupedTeams[schedule.teamA.group]?.[schedule.teamA.position];
+      const teamBData = groupedTeams[schedule.teamB.group]?.[schedule.teamB.position];
+
+      if (!teamAData || !teamBData) {
+        console.warn(`Skipping match: Missing team for ${schedule.teamA.group} pos ${schedule.teamA.position + 1} vs ${schedule.teamB.group} pos ${schedule.teamB.position + 1}`);
+        continue;
+      }
 
       // Create Match entity
-      const stageLabels = {
-        round_of_16: 'Åttondelsfinal',
-        quarterfinal: 'Kvartsfinal', 
-        semifinal: 'Semifinal',
-        final: 'Final'
-      };
-
       const match = await base44.asServiceRole.entities.Match.create({
         title: `${cup.name} - ${stageLabels[initialStage] || initialStage}`,
         venue_id: cup.venue_ids?.[0] || null,
         organizer_id: cup.organizer_id,
         date: cup.start_date,
-        time: '18:00',
+        time: schedule.time,
         duration_minutes: 90,
         format: cup.format,
         is_team_match: true,
         is_cup_match: true,
         status: 'upcoming',
-        team_a_id: teamA.team_id,
-        team_b_id: teamB.team_id
+        team_a_id: teamAData.team_id,
+        team_b_id: teamBData.team_id
       });
 
       // Create CupMatch
@@ -133,23 +133,23 @@ Deno.serve(async (req) => {
         cup_id: cup.id,
         match_id: match.id,
         stage: initialStage,
-        team_a_id: teamA.team_id,
-        team_b_id: teamB.team_id
+        team_a_id: teamAData.team_id,
+        team_b_id: teamBData.team_id
       });
 
-      // Create Bracket with team names for better display
-      const teamAData = await base44.asServiceRole.entities.Team.get(teamA.team_id);
-      const teamBData = await base44.asServiceRole.entities.Team.get(teamB.team_id);
+      // Create Bracket with team names
+      const teamAEntity = await base44.asServiceRole.entities.Team.get(teamAData.team_id);
+      const teamBEntity = await base44.asServiceRole.entities.Team.get(teamBData.team_id);
 
       const bracket = await base44.asServiceRole.entities.CupBracket.create({
         cup_id: cup.id,
         cup_match_id: cupMatch.id,
         stage: initialStage,
         position: brackets.length + 1,
-        team_a_id: teamA.team_id,
-        team_b_id: teamB.team_id,
-        team_a_name: teamAData.name,
-        team_b_name: teamBData.name
+        team_a_id: teamAData.team_id,
+        team_b_id: teamBData.team_id,
+        team_a_name: teamAEntity.name,
+        team_b_name: teamBEntity.name
       });
 
       brackets.push(bracket);
@@ -176,10 +176,10 @@ Deno.serve(async (req) => {
     return Response.json({ 
       success: true,
       message: 'Successfully advanced to playoffs',
-      teams_advanced: seededTeams.length,
+      teams_advanced: advancingTeams.length,
       brackets_created: brackets.length,
       stage: initialStage,
-      seeding_info: `Matchningar skapade med smart seedning för maximal konkurrens`
+      seeding_info: `Slutspel skapade enligt schema: A1-C2 (15:00), C1-A2 (15:15), B1-D2 (15:30), D1-B2 (15:45)`
     });
 
   } catch (error) {
