@@ -21,12 +21,23 @@ export default function CupMatchGoals({ matchId, cupMatch, isAdmin }) {
       // Fetch player data for each goal
       const goalsWithPlayers = await Promise.all(
         cupGoals.map(async (goal) => {
-          const player = await base44.entities.CupPlayer.get(goal.player_id).catch(() => null);
-          const team = await base44.entities.Team.get(goal.team_id).catch(() => null);
+          let playerName = goal.player_name || 'Okänd spelare';
+          let teamName = goal.team_name || 'Okänt lag';
+
+          if (goal.player_id && !goal.player_name) {
+            const player = await base44.entities.CupPlayer.get(goal.player_id).catch(() => null);
+            if (player) playerName = player.name;
+          }
+
+          if (goal.team_id && !goal.team_name) {
+            const team = await base44.entities.Team.get(goal.team_id).catch(() => null);
+            if (team) teamName = team.name;
+          }
+
           return {
             ...goal,
-            player_name: player?.name || 'Okänd spelare',
-            team_name: team?.name || 'Okänt lag'
+            player_name: playerName,
+            team_name: teamName
           };
         })
       );
