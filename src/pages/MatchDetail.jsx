@@ -601,25 +601,76 @@ export default function MatchDetailPage() {
         </Card>
         )}
 
-        <Tabs defaultValue="participants" className="space-y-6">
-          <TabsList className="bg-[#121715] p-1 border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] grid grid-cols-2 w-full rounded-[16px]">
-            <TabsTrigger
-              value="participants"
-              className="flex items-center justify-center gap-2 data-[state=active]:bg-[#2BA84A]/16 data-[state=active]:text-[#EAF6EE] data-[state=active]:ring-1 data-[state=active]:ring-[#2BA84A]/30 text-[#B6C2BC] font-semibold rounded-[14px] transition-all"
-            >
-              <Users className="w-4 h-4" />
-              Deltagare ({participants.length})
-            </TabsTrigger>
-            <TabsTrigger
-              value="details"
-              className="flex items-center justify-center gap-2 data-[state=active]:bg-[#2BA84A]/16 data-[state=active]:text-[#EAF6EE] data-[state=active]:ring-1 data-[state=active]:ring-[#2BA84A]/30 text-[#B6C2BC] font-semibold rounded-[14px] transition-all"
-            >
-              <Flag className="w-4 h-4" />
-              Detaljer
-            </TabsTrigger>
-          </TabsList>
+        {/* Conditional Tabs based on match type */}
+        {isCupMatch ? (
+          <div className="space-y-6">
+            {/* Cup Match Goals Timeline */}
+            <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[20px]">
+              <CardHeader className="border-b border-[#223029]">
+                <CardTitle className="text-[#F4F7F5] text-[18px] leading-[24px] flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-[#F59E0B]" />
+                  Målöversikt
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <CupMatchGoals matchId={matchId} />
+              </CardContent>
+            </Card>
 
-          <TabsContent value="participants">
+            {/* Match Details */}
+            <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[20px]">
+              <CardHeader className="border-b border-[#223029]">
+                <CardTitle className="text-[#F4F7F5] text-[18px] leading-[24px]">Matchdetaljer</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 space-y-4">
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-[13px] leading-[18px] text-[#B6C2BC] mb-2">Format</div>
+                    <div className="text-[16px] leading-[24px] font-semibold text-[#F4F7F5]">{match.format}</div>
+                  </div>
+                  <div>
+                    <div className="text-[13px] leading-[18px] text-[#B6C2BC] mb-2">Typ</div>
+                    <div className="text-[16px] leading-[24px] font-semibold text-[#F4F7F5]">Cupmatch</div>
+                  </div>
+                  <div>
+                    <div className="text-[13px] leading-[18px] text-[#B6C2BC] mb-2">Status</div>
+                    <div className="text-[16px] leading-[24px] font-semibold text-[#F4F7F5]">{statusConfig.label}</div>
+                  </div>
+                  <div>
+                    <div className="text-[13px] leading-[18px] text-[#B6C2BC] mb-2">Plats</div>
+                    <div className="text-[16px] leading-[24px] font-semibold text-[#F4F7F5]">{venue?.address || 'Okänd adress'}</div>
+                  </div>
+                </div>
+
+                {match.notes && (
+                  <div>
+                    <div className="text-[13px] leading-[18px] text-[#B6C2BC] mb-2">Anteckningar</div>
+                    <p className="text-[14px] leading-[20px] text-[#F4F7F5]">{match.notes}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          <Tabs defaultValue="participants" className="space-y-6">
+            <TabsList className="bg-[#121715] p-1 border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] grid grid-cols-2 w-full rounded-[16px]">
+              <TabsTrigger
+                value="participants"
+                className="flex items-center justify-center gap-2 data-[state=active]:bg-[#2BA84A]/16 data-[state=active]:text-[#EAF6EE] data-[state=active]:ring-1 data-[state=active]:ring-[#2BA84A]/30 text-[#B6C2BC] font-semibold rounded-[14px] transition-all"
+              >
+                <Users className="w-4 h-4" />
+                Deltagare ({participants.length})
+              </TabsTrigger>
+              <TabsTrigger
+                value="details"
+                className="flex items-center justify-center gap-2 data-[state=active]:bg-[#2BA84A]/16 data-[state=active]:text-[#EAF6EE] data-[state=active]:ring-1 data-[state=active]:ring-[#2BA84A]/30 text-[#B6C2BC] font-semibold rounded-[14px] transition-all"
+              >
+                <Flag className="w-4 h-4" />
+                Detaljer
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="participants">
             {participants.length === 0 ? (
               <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[20px] p-12 text-center">
                 <div className="w-16 h-16 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -745,8 +796,9 @@ export default function MatchDetailPage() {
               </CardContent>
             </Card>
           </TabsContent>
-        </Tabs>
-      </div>
+          </Tabs>
+          )}
+          </div>
 
       <LazyMatchEndModal
         show={showEndModal}

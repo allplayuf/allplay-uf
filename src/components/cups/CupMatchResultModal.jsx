@@ -175,7 +175,7 @@ export default function CupMatchResultModal({ match, onClose, onSuccess }) {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-2">
                   {/* Minute */}
                   <div>
                     <label className="text-[10px] text-[#7B8A83] mb-1 block">Minut</label>
@@ -193,8 +193,10 @@ export default function CupMatchResultModal({ match, onClose, onSuccess }) {
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-1 gap-2">
+
                   {/* Team */}
-                  <div>
+                  <div className="col-span-3">
                     <label className="text-[10px] text-[#7B8A83] mb-1 block">Lag</label>
                     <Select
                       value={goal.team_id}
@@ -204,27 +206,28 @@ export default function CupMatchResultModal({ match, onClose, onSuccess }) {
                       }}
                     >
                       <SelectTrigger className="bg-[#18221E] border-[#223029] text-white h-9 text-xs">
-                        <SelectValue placeholder="Välj" />
+                        <SelectValue placeholder="Välj lag" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="max-h-[200px]">
                         <SelectItem value={match.team_a_id}>{match.team_a_name}</SelectItem>
                         <SelectItem value={match.team_b_id}>{match.team_b_name}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
 
-                  {/* Player */}
-                  <div>
+                {/* Player - Full width below */}
+                {goal.team_id && (
+                  <div className="mt-2">
                     <label className="text-[10px] text-[#7B8A83] mb-1 block">Spelare</label>
                     <Select
                       value={goal.player_id}
                       onValueChange={(value) => updateGoal(index, 'player_id', value)}
-                      disabled={!goal.team_id}
                     >
                       <SelectTrigger className="bg-[#18221E] border-[#223029] text-white h-9 text-xs">
-                        <SelectValue placeholder="Välj" />
+                        <SelectValue placeholder="Välj spelare" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="max-h-[200px] overflow-y-auto">
                         {(goal.team_id === match.team_a_id ? teamAPlayers : teamBPlayers).map(player => (
                           <SelectItem key={player.id} value={player.id}>
                             {player.name}
@@ -233,6 +236,7 @@ export default function CupMatchResultModal({ match, onClose, onSuccess }) {
                       </SelectContent>
                     </Select>
                   </div>
+                )}
                 </div>
               </div>
             ))}
