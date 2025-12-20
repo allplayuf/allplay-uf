@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { useCustomDialog } from "../ui/custom-dialog";
 import { useQueryClient } from "@tanstack/react-query";
 import CupMatchResultModal from "./CupMatchResultModal";
+import { base44 } from "@/api/base44Client";
 
 export default function CupMatches({ cup, matches, canManage }) {
   const [filter, setFilter] = useState('all');
@@ -107,8 +108,9 @@ export default function CupMatches({ cup, matches, canManage }) {
 function MatchCard({ match, index, canManage }) {
   const [showReportModal, setShowReportModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
-  const { alert } = useCustomDialog();
+  const { alert, confirm } = useCustomDialog();
 
   const handleResultSaved = async () => {
       // Invalidate specific cup details to trigger refresh
@@ -116,6 +118,31 @@ function MatchCard({ match, index, canManage }) {
       setShowReportModal(false);
       setShowEditModal(false);
       await alert('Resultat sparat! ✅', 'Matchen har uppdaterats.', { type: 'success' });
+  };
+
+  const handleDeleteMatch = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const shouldDelete = await confirm(
+      'Radera match? 🗑️',
+      'Detta tar bort matchen och alla mål. Gruppstatistik återställs. Går inte att ångra.',
+      { type: 'warning', confirmText: 'Radera', cancelText: 'Avbryt' }
+    );
+    
+    if (!shouldDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await base44.functions.invoke('cups/deleteCupMatch', { cup_match_id: match.id });
+      await queryClient.invalidateQueries(['cupDetails']);
+      await alert('Match raderad! 🗑️', 'Matchen har tagits bort.', { type: 'success' });
+    } catch (error) {
+      console.error('Delete error:', error);
+      await alert('Fel', 'Kunde inte radera match.', { type: 'alert' });
+    } finally {
+      setIsDeleting(false);
+    }
   };
   const hasResult = match.team_a_score !== null;
   const isLive = match.is_live;
@@ -257,6 +284,18 @@ function MatchCard({ match, index, canManage }) {
                   Ändra Resultat
                 </button>
               )}
+              <button 
+                onClick={handleDeleteMatch}
+                disabled={isDeleting}
+                className="sm:w-12 h-12 bg-[#EF4444]/10 hover:bg-[#EF4444]/20 border border-[#EF4444]/30 hover:border-[#EF4444]/50 active:scale-98 text-[#EF4444] font-black rounded-xl transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <div className="w-4 h-4 border-2 border-[#EF4444] border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+                <span className="sm:hidden">Radera</span>
+              </button>
             </div>
           )}
         </CardContent>
