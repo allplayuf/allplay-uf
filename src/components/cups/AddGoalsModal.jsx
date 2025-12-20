@@ -1,32 +1,17 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { base44 } from "@/api/base44Client";
 import { Trophy, Plus, Trash2, Clock } from 'lucide-react';
 import { useCustomDialog } from "../ui/custom-dialog";
-import { useQuery } from "@tanstack/react-query";
 
 export default function AddGoalsModal({ match, onClose, onSuccess }) {
   const [goals, setGoals] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { alert } = useCustomDialog();
 
-  // Fetch cup players for both teams
-  const { data: cupPlayers = [] } = useQuery({
-    queryKey: ['cupPlayers', match.cup_id, match.team_a_id, match.team_b_id],
-    queryFn: async () => {
-      const players = await base44.entities.CupPlayer.filter({ cup_id: match.cup_id });
-      return players.filter(p => p.team_id === match.team_a_id || p.team_id === match.team_b_id);
-    },
-    enabled: !!match.cup_id
-  });
-
-  const teamAPlayers = cupPlayers.filter(p => p.team_id === match.team_a_id);
-  const teamBPlayers = cupPlayers.filter(p => p.team_id === match.team_b_id);
-
   const addGoal = () => {
-    setGoals([...goals, { minute: '', team_id: '', player_id: '' }]);
+    setGoals([...goals, { minute: '', team_name: '', player_name: '', player_number: '' }]);
   };
 
   const removeGoal = (index) => {
@@ -43,7 +28,7 @@ export default function AddGoalsModal({ match, onClose, onSuccess }) {
     // Validate each goal
     for (let i = 0; i < goals.length; i++) {
       const goal = goals[i];
-      if (!goal.minute || !goal.team_id || !goal.player_id) {
+      if (!goal.minute || !goal.team_name || !goal.player_name) {
         await alert('Ofullständig målinformation', `Mål ${i + 1} saknar information (minut, lag eller spelare).`, { type: 'warning' });
         return;
       }
@@ -56,35 +41,15 @@ export default function AddGoalsModal({ match, onClose, onSuccess }) {
 
     setIsSubmitting(true);
     try {
-      // Create goals directly
-      for (const goal of goals) {
-        await base44.entities.CupGoal.create({
-          cup_id: match.cup_id,
-          cup_match_id: match.id,
-          team_id: goal.team_id,
-          player_id: goal.player_id,
-          minute: parseInt(goal.minute),
-          is_own_goal: false
-        });
-
-        // Update player stats
-        const player = await base44.entities.CupPlayer.get(goal.player_id);
-        await base44.entities.CupPlayer.update(goal.player_id, {
-          goals: (player.goals || 0) + 1
-        });
-
-        // Sync to user if available
-        if (player.user_id) {
-          try {
-            const userProfile = await base44.entities.User.get(player.user_id);
-            await base44.entities.User.update(player.user_id, {
-              goals_scored: (userProfile.goals_scored || 0) + 1
-            });
-          } catch (err) {
-            console.error('Failed to sync user stats:', err);
-          }
-        }
-      }
+      await base44.functions.invoke('cups/addManualGoals', {
+        cup_match_id: match.id,
+        goals: goals.map(g => ({
+          minute: parseInt(g.minute),
+          team_name: g.team_name,
+          player_name: g.player_name,
+          player_number: g.player_number || ''
+        }))
+      });
 
       if (onSuccess) await onSuccess();
       onClose();
@@ -145,14 +110,13 @@ export default function AddGoalsModal({ match, onClose, onSuccess }) {
                 </div>
 
                 <div className="space-y-2">
-                  {/* Minute */}
                   <div>
                     <label className="text-[10px] text-[#7B8A83] mb-1 block">Minut</label>
                     <div className="relative">
                       <Input
                         type="number"
                         min="1"
-                        max="90"
+                        max="120"
                         value={goal.minute}
                         onChange={(e) => updateGoal(index, 'minute', e.target.value)}
                         className="bg-[#18221E] border-[#223029] text-white h-9 text-sm pr-6"
@@ -162,57 +126,38 @@ export default function AddGoalsModal({ match, onClose, onSuccess }) {
                     </div>
                   </div>
 
-                  {/* Team */}
                   <div>
-                    <label className="text-[10px] text-[#7B8A83] mb-1 block">Lag</label>
-                    <Select
-                      value={goal.team_id}
-                      onValueChange={(value) => {
-                        updateGoal(index, 'team_id', value);
-                        updateGoal(index, 'player_id', '');
-                      }}
-                    >
-                      <SelectTrigger className="bg-[#18221E] border-[#223029] text-white h-9 text-xs">
-                        <SelectValue placeholder="Välj lag" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-[300px] bg-[#0F1513] border-[#223029]">
-                        <SelectItem value={match.team_a_id} className="text-sm font-medium py-3 cursor-pointer hover:bg-[#2BA84A]/20 focus:bg-[#2BA84A]/20">
-                          {match.team_a_name}
-                        </SelectItem>
-                        <SelectItem value={match.team_b_id} className="text-sm font-medium py-3 cursor-pointer hover:bg-[#F59E0B]/20 focus:bg-[#F59E0B]/20">
-                          {match.team_b_name}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <label className="text-[10px] text-[#7B8A83] mb-1 block">Lagnamn</label>
+                    <Input
+                      type="text"
+                      value={goal.team_name}
+                      onChange={(e) => updateGoal(index, 'team_name', e.target.value)}
+                      className="bg-[#18221E] border-[#223029] text-white h-9 text-sm"
+                      placeholder="Ex: Sverige"
+                    />
                   </div>
 
-                  {/* Player */}
-                  {goal.team_id && (
-                    <div>
-                      <label className="text-[10px] text-[#7B8A83] mb-1 block">Spelare</label>
-                      <Select
-                        value={goal.player_id}
-                        onValueChange={(value) => updateGoal(index, 'player_id', value)}
-                      >
-                        <SelectTrigger className="bg-[#18221E] border-[#223029] text-white h-9 text-xs">
-                          <SelectValue placeholder="Välj spelare" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-[300px] overflow-y-auto bg-[#0F1513] border-[#223029]">
-                          {(goal.team_id === match.team_a_id ? teamAPlayers : teamBPlayers)
-                            .sort((a, b) => a.name.localeCompare(b.name))
-                            .map(player => (
-                            <SelectItem 
-                              key={player.id} 
-                              value={player.id}
-                              className="text-sm font-medium py-3 cursor-pointer hover:bg-[#2BA84A]/20 focus:bg-[#2BA84A]/20"
-                            >
-                              {player.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
+                  <div>
+                    <label className="text-[10px] text-[#7B8A83] mb-1 block">Spelarnamn</label>
+                    <Input
+                      type="text"
+                      value={goal.player_name}
+                      onChange={(e) => updateGoal(index, 'player_name', e.target.value)}
+                      className="bg-[#18221E] border-[#223029] text-white h-9 text-sm"
+                      placeholder="Ex: Johan Andersson"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] text-[#7B8A83] mb-1 block">Tröjnummer (valfritt)</label>
+                    <Input
+                      type="text"
+                      value={goal.player_number}
+                      onChange={(e) => updateGoal(index, 'player_number', e.target.value)}
+                      className="bg-[#18221E] border-[#223029] text-white h-9 text-sm"
+                      placeholder="Ex: 10"
+                    />
+                  </div>
                 </div>
               </div>
             ))
