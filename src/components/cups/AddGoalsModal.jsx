@@ -172,10 +172,8 @@ export default function AddGoalsModal({ match, onClose, onSuccess }) {
                         updateGoal(index, 'player_id', '');
                       }}
                     >
-                      <SelectTrigger className="bg-[#18221E] border-[#223029] text-white h-9 text-sm">
-                        <SelectValue placeholder="Välj lag">
-                          {goal.team_id === match.team_a_id ? match.team_a_name : goal.team_id === match.team_b_id ? match.team_b_name : 'Välj lag'}
-                        </SelectValue>
+                      <SelectTrigger className="bg-[#18221E] border-[#223029] text-white h-9 text-xs">
+                        <SelectValue placeholder="Välj lag" />
                       </SelectTrigger>
                       <SelectContent className="max-h-[300px] bg-[#0F1513] border-[#223029]">
                         <SelectItem value={match.team_a_id} className="text-sm font-medium py-3 cursor-pointer hover:bg-[#2BA84A]/20 focus:bg-[#2BA84A]/20">
