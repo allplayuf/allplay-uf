@@ -409,7 +409,7 @@ export default function MatchDetailPage() {
         <button
           onClick={() => {
             if (isCupMatch && cupMatch?.cup_id) {
-              navigate(`${createPageUrl("CupDetail")}?id=${cupMatch.cup_id}`);
+              navigate(`${createPageUrl("CupDetail")}?cup_id=${cupMatch.cup_id}`);
             } else {
               navigate(createPageUrl("Matches"));
             }
