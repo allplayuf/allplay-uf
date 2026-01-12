@@ -20,12 +20,17 @@ export default function ModerationQueue({ reports, onAction }) {
     const reasons = {
       inappropriate_behavior: 'Olämpligt beteende',
       harassment: 'Trakasserier',
+      threats: 'Hot',
+      sexual_content: 'Sexuellt innehåll',
+      hate_speech: 'Hatretorik',
       cheating: 'Fusk/manipulation',
       no_show: 'Kom inte till match',
       spam: 'Spam eller reklam',
+      underage: 'Misstänkt minderårig',
+      impersonation: 'Utger sig för annan',
       other: 'Annat'
     };
-    return reasons[reason] || reason;
+    return reasons[reason] || reasons[reason?.toLowerCase()] || reason;
   };
 
   const getStatusColor = (status) => {
