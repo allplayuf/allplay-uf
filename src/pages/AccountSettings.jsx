@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,8 +31,6 @@ export default function AccountSettingsPage() {
   const queryClient = useQueryClient();
   const { confirm, alert, DialogContainer } = useCustomDialog();
   
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteConfirmEmail, setDeleteConfirmEmail] = useState('');
@@ -44,25 +42,24 @@ export default function AccountSettingsPage() {
     hide_exact_location: false
   });
 
-  useEffect(() => {
-    loadUser();
-  }, []);
+  // Use optimized cache strategy for user data
+  const { data: user, isLoading } = useQuery({
+    queryKey: ['user'],
+    queryFn: async () => await base44.auth.me(),
+    staleTime: 10 * 60 * 1000,
+    cacheTime: 30 * 60 * 1000,
+    retry: false,
+  });
 
-  const loadUser = async () => {
-    try {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
+  useEffect(() => {
+    if (user) {
       setSettings({
-        marketing_opt_in: currentUser.marketing_opt_in || false,
-        publicProfile: currentUser.publicProfile !== false,
-        hide_exact_location: currentUser.hide_exact_location || currentUser.is_minor || false
+        marketing_opt_in: user.marketing_opt_in || false,
+        publicProfile: user.publicProfile !== false,
+        hide_exact_location: user.hide_exact_location || user.is_minor || false
       });
-    } catch (error) {
-      console.error("Error loading user:", error);
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [user]);
 
   const handleSettingChange = async (key, value) => {
     // Minors cannot disable location hiding
@@ -91,11 +88,11 @@ export default function AccountSettingsPage() {
   const handleExportData = async () => {
     setIsExporting(true);
     try {
-      const response = await base44.functions.invoke('exportUserData', {});
+      const { data: response } = await base44.functions.invoke('exportUserData', {});
       
-      if (response.data?.success) {
+      if (response?.success) {
         // Create downloadable JSON file
-        const blob = new Blob([JSON.stringify(response.data.data, null, 2)], { 
+        const blob = new Blob([JSON.stringify(response.data, null, 2)], { 
           type: 'application/json' 
         });
         const url = window.URL.createObjectURL(blob);
@@ -141,14 +138,14 @@ export default function AccountSettingsPage() {
 
     setIsDeleting(true);
     try {
-      const response = await base44.functions.invoke('deleteAccount', {
+      const { data: response } = await base44.functions.invoke('deleteAccount', {
         confirmEmail: deleteConfirmEmail
       });
 
-      if (response.data?.success) {
+      if (response?.success) {
         await alert(
           'Konto markerat för radering',
-          `Ditt konto kommer att raderas ${new Date(response.data.deletion_scheduled).toLocaleDateString('sv-SE')}. Du kommer nu att loggas ut.`,
+          `Ditt konto kommer att raderas ${new Date(response.deletion_scheduled).toLocaleDateString('sv-SE')}. Du kommer nu att loggas ut.`,
           { type: 'success' }
         );
         

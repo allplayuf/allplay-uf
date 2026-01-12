@@ -17,12 +17,12 @@ export default function BlockUserButton({
   const handleToggleBlock = async () => {
     setLoading(true);
     try {
-      const response = await base44.functions.invoke('blockUser', {
+      const { data: response } = await base44.functions.invoke('blockUser', {
         targetUserId,
         action: blocked ? 'unblock' : 'block'
       });
 
-      if (response.data?.success) {
+      if (response?.success) {
         setBlocked(!blocked);
         onBlockChange?.(!blocked);
       }

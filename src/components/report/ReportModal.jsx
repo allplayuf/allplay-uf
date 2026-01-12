@@ -36,7 +36,7 @@ export default function ReportModal({
 
     setIsSubmitting(true);
     try {
-      const response = await base44.functions.invoke('submitReport', {
+      const { data: response } = await base44.functions.invoke('submitReport', {
         reported_user_id: reportedUserId,
         reported_item_type: reportedItemType,
         reported_item_id: reportedItemId,
@@ -44,7 +44,7 @@ export default function ReportModal({
         description
       });
 
-      if (response.data?.success) {
+      if (response?.success) {
         setIsSuccess(true);
         setTimeout(() => {
           onClose();
