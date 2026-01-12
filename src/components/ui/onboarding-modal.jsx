@@ -326,7 +326,41 @@ export function OnboardingModal() {
                   </p>
 
                   {/* Interactive Elements */}
-                  {slide.isPermissionScreen ? (
+                  {slide.isAgeVerificationScreen ? (
+                    <div className="w-full space-y-4">
+                      <div className="bg-[#121715]/50 rounded-2xl p-4 border border-white/5">
+                        <label className="block text-sm font-medium text-[#D1D5DB] mb-2 text-left">
+                          Födelsedatum
+                        </label>
+                        <input
+                          type="date"
+                          value={dateOfBirth}
+                          onChange={(e) => {
+                            setDateOfBirth(e.target.value);
+                            setAgeError('');
+                          }}
+                          max={new Date().toISOString().split('T')[0]}
+                          className="w-full bg-[#18221E] border border-[#223029] text-[#F4F7F5] rounded-xl h-12 px-4 focus:border-[#2BA84A] focus:outline-none"
+                        />
+                        {ageError && (
+                          <p className="mt-2 text-sm text-red-400 flex items-center gap-1">
+                            <span>⚠️</span> {ageError}
+                          </p>
+                        )}
+                      </div>
+                      
+                      <div className="bg-[#121715]/50 rounded-2xl p-4 border border-white/5 text-left">
+                        <p className="text-xs text-[#9CA3AF]">
+                          🔒 Vi sparar ditt födelsedatum för att:
+                        </p>
+                        <ul className="mt-2 space-y-1 text-xs text-[#D1D5DB]">
+                          <li>• Säkerställa att du är minst 13 år</li>
+                          <li>• Aktivera extra skydd för minderåriga (13-17 år)</li>
+                          <li>• Följa svensk och europeisk lag</li>
+                        </ul>
+                      </div>
+                    </div>
+                  ) : slide.isPermissionScreen ? (
                     <div className="w-full space-y-3">
                       <button
                         onClick={requestLocation}
