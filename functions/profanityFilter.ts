@@ -1,75 +1,89 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-// Swedish and English profanity list
-const PROFANITY_LIST = [
-  // Swedish
-  'fan', 'helvete', 'jävla', 'jävel', 'skit', 'idiot', 'fitta', 'kuk', 'hora', 'bög',
-  'cp', 'mongo', 'tard', 'cancer', 'aids', 'negr', 'blatte', 'svenne', 'zigenare',
-  // English
-  'fuck', 'shit', 'bitch', 'ass', 'asshole', 'bastard', 'damn', 'hell', 'crap',
-  'dick', 'pussy', 'cock', 'whore', 'slut', 'retard', 'nazi', 'nigger', 'fag',
-  // Variations and leetspeak
-  'f*ck', 'sh*t', 'b!tch', 'a$$', 'fck', 'shyt', 'fuk', 'fuq', 'phuck',
-  '4ss', 'd1ck', 'p*ssy', 'wh0re', 'n1gger', 'f4g'
+// Swedish profanity list (basic)
+const PROFANITY_WORDS = [
+  'fitta', 'kuk', 'hora', 'bög', 'flata', 'neger', 'jävel', 'fan', 
+  'helvete', 'skit', 'knull', 'fuck', 'shit', 'bitch', 'asshole',
+  'dick', 'cock', 'pussy', 'whore', 'slut', 'nigger', 'faggot'
 ];
 
-// Check if text contains profanity
-function containsProfanity(text) {
-  if (!text) return false;
-  
-  const normalized = text.toLowerCase()
-    .replace(/[^\w\såäö]/g, '') // Remove special chars but keep Swedish letters
-    .replace(/\s+/g, ' ') // Normalize spaces
-    .trim();
-
-  // Check for exact matches and partial matches
-  return PROFANITY_LIST.some(word => {
-    const regex = new RegExp(`\\b${word}\\b|${word}`, 'i');
-    return regex.test(normalized);
-  });
-}
+// Patterns for personal info that shouldn't be in bios/names
+const PERSONAL_INFO_PATTERNS = [
+  /\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b/, // Phone numbers
+  /\b\d{6}[-.\s]?\d{4}\b/, // Swedish personnummer
+  /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/, // Email
+  /\b(?:gatan?|vägen?|allén?|stigen?)\s*\d+\b/i, // Swedish addresses
+];
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    
-    // Verify user is authenticated
     const user = await base44.auth.me();
+
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get the text to check from request body
     const { text, field } = await req.json();
 
     if (!text) {
-      return Response.json({ 
-        isClean: true,
-        message: 'No text provided'
+      return Response.json({ hasProfanity: false, hasPersonalInfo: false });
+    }
+
+    const lowerText = text.toLowerCase();
+    
+    // Check for profanity
+    let hasProfanity = false;
+    let flaggedWords = [];
+    
+    for (const word of PROFANITY_WORDS) {
+      if (lowerText.includes(word)) {
+        hasProfanity = true;
+        flaggedWords.push(word);
+      }
+    }
+
+    // Check for personal info
+    let hasPersonalInfo = false;
+    let personalInfoTypes = [];
+    
+    for (const pattern of PERSONAL_INFO_PATTERNS) {
+      if (pattern.test(text)) {
+        hasPersonalInfo = true;
+        if (pattern.source.includes('\\d{3}')) personalInfoTypes.push('phone');
+        if (pattern.source.includes('@')) personalInfoTypes.push('email');
+        if (pattern.source.includes('gatan')) personalInfoTypes.push('address');
+        if (pattern.source.includes('\\d{6}')) personalInfoTypes.push('personnummer');
+      }
+    }
+
+    // Log flagged content for moderation review
+    if (hasProfanity || hasPersonalInfo) {
+      console.log('CONTENT_FLAG:', {
+        user_id: user.id,
+        field: field,
+        hasProfanity,
+        hasPersonalInfo,
+        flaggedWords: flaggedWords.length > 0 ? flaggedWords : undefined,
+        personalInfoTypes: personalInfoTypes.length > 0 ? personalInfoTypes : undefined,
+        timestamp: new Date().toISOString()
       });
     }
 
-    const hasProfanity = containsProfanity(text);
-
-    if (hasProfanity) {
-      console.log(`Profanity detected in ${field || 'text'} by user ${user.email}: "${text}"`);
-    }
-
     return Response.json({
-      isClean: !hasProfanity,
+      hasProfanity,
+      hasPersonalInfo,
+      flaggedWords: hasProfanity ? flaggedWords : [],
+      personalInfoTypes: hasPersonalInfo ? personalInfoTypes : [],
       message: hasProfanity 
-        ? 'Texten innehåller olämpligt språk. Använd vänligt språk.' 
-        : 'Text is clean',
-      hasProfanity
+        ? 'Texten innehåller olämpligt språk' 
+        : hasPersonalInfo 
+          ? 'Texten innehåller personlig information som inte bör delas'
+          : null
     });
 
   } catch (error) {
     console.error('Error in profanityFilter:', error);
-    // On error, allow the text (fail open for better UX)
-    return Response.json({ 
-      isClean: true,
-      message: 'Validation error, allowing text',
-      error: error.message 
-    }, { status: 500 });
+    return Response.json({ error: error.message }, { status: 500 });
   }
 });
