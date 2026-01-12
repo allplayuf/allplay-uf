@@ -437,10 +437,21 @@ export function OnboardingModal() {
             <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#040F0F] via-[#040F0F] to-transparent z-20">
               <Button
                 onClick={handleNext}
-                className="w-full h-12 rounded-full bg-[#F4743B] hover:bg-[#E5683A] text-white font-semibold text-lg shadow-lg hover:shadow-[#F4743B]/20 transition-all"
+                disabled={isVerifyingAge || (slide.isAgeVerificationScreen && !dateOfBirth)}
+                className="w-full h-12 rounded-full bg-[#F4743B] hover:bg-[#E5683A] text-white font-semibold text-lg shadow-lg hover:shadow-[#F4743B]/20 transition-all disabled:opacity-50"
               >
-                {currentSlide === SLIDES.length - 1 ? "Kom igång" : "Nästa"}
-                {currentSlide !== SLIDES.length - 1 && <ChevronRight className="w-5 h-5 ml-1" />}
+                {isVerifyingAge ? (
+                  "Verifierar..."
+                ) : currentSlide === SLIDES.length - 1 ? (
+                  "Kom igång"
+                ) : slide.isAgeVerificationScreen ? (
+                  "Verifiera och fortsätt"
+                ) : (
+                  <>
+                    Nästa
+                    <ChevronRight className="w-5 h-5 ml-1" />
+                  </>
+                )}
               </Button>
             </div>
 
