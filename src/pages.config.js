@@ -1,37 +1,43 @@
-import Dashboard from './pages/Dashboard';
-import Map from './pages/Map';
+import AboutAllPlay from './pages/AboutAllPlay';
 import Admin from './pages/Admin';
-import Matches from './pages/Matches';
-import Profile from './pages/Profile';
+import AdminCleanup from './pages/AdminCleanup';
 import Community from './pages/Community';
-import MatchDetail from './pages/MatchDetail';
-import TeamOverview from './pages/TeamOverview';
+import CreateCup from './pages/CreateCup';
+import CupDetail from './pages/CupDetail';
+import Cups from './pages/Cups';
+import Dashboard from './pages/Dashboard';
 import EditProfile from './pages/EditProfile';
 import Feedback from './pages/Feedback';
-import Cups from './pages/Cups';
-import CupDetail from './pages/CupDetail';
-import CreateCup from './pages/CreateCup';
-import AdminCleanup from './pages/AdminCleanup';
-import AboutAllPlay from './pages/AboutAllPlay';
+import Home from './pages/Home';
+import Map from './pages/Map';
+import MatchDetail from './pages/MatchDetail';
+import Matches from './pages/Matches';
+import Profile from './pages/Profile';
+import TeamOverview from './pages/TeamOverview';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Dashboard": Dashboard,
-    "Map": Map,
+    "AboutAllPlay": AboutAllPlay,
     "Admin": Admin,
-    "Matches": Matches,
-    "Profile": Profile,
+    "AdminCleanup": AdminCleanup,
     "Community": Community,
-    "MatchDetail": MatchDetail,
-    "TeamOverview": TeamOverview,
+    "CreateCup": CreateCup,
+    "CupDetail": CupDetail,
+    "Cups": Cups,
+    "Dashboard": Dashboard,
     "EditProfile": EditProfile,
     "Feedback": Feedback,
-    "Cups": Cups,
-    "CupDetail": CupDetail,
-    "CreateCup": CreateCup,
-    "AdminCleanup": AdminCleanup,
-    "AboutAllPlay": AboutAllPlay,
+    "Home": Home,
+    "Map": Map,
+    "MatchDetail": MatchDetail,
+    "Matches": Matches,
+    "Profile": Profile,
+    "TeamOverview": TeamOverview,
+    "PrivacyPolicy": PrivacyPolicy,
+    "TermsOfService": TermsOfService,
 }
 
 export const pagesConfig = {

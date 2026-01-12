@@ -11,6 +11,8 @@ import { base44 } from "@/api/base44Client";
 import { RouteProgress } from "@/components/ui/route-progress";
 import { RouteGuard } from "@/components/ui/route-guard";
 import { OnboardingModal } from "@/components/ui/onboarding-modal";
+import ErrorBoundary from "@/components/ui/error-boundary";
+import OfflineDetector from "@/components/ui/offline-detector";
 
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Map = lazy(() => import("@/pages/Map"));
@@ -79,8 +81,10 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <QueryProvider>
-      <RouteProgress />
-      <OnboardingModal />
+      <ErrorBoundary>
+        <RouteProgress />
+        <OnboardingModal />
+        <OfflineDetector />
       
       <div className="min-h-screen flex w-full bg-[#131816]">
         <Toaster 
@@ -226,6 +230,7 @@ export default function Layout({ children, currentPageName }) {
           </nav>
         </main>
       </div>
+      </ErrorBoundary>
     </QueryProvider>
   );
 }
