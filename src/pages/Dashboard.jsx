@@ -65,7 +65,12 @@ export default function Dashboard() {
   const { data: allMatches = [], isLoading: matchesLoading } = useQuery({
     queryKey: QUERY_KEYS.matches,
     queryFn: async () => {
-      return await base44.entities.Match.list('-date', 200);
+      try {
+        return await base44.entities.Match.list('-date', 200);
+      } catch (error) {
+        console.error('Error fetching matches:', error);
+        return [];
+      }
     },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
     enabled: !!user,
@@ -75,7 +80,12 @@ export default function Dashboard() {
   const { data: venues = [], isLoading: venuesLoading } = useQuery({
     queryKey: QUERY_KEYS.venues,
     queryFn: async () => {
-      return await base44.entities.Venue.list();
+      try {
+        return await base44.entities.Venue.list();
+      } catch (error) {
+        console.error('Error fetching venues:', error);
+        return [];
+      }
     },
     ...CACHE_STRATEGIES.STATIC,
     enabled: !!user,
@@ -85,7 +95,12 @@ export default function Dashboard() {
   const { data: allParticipants = [], isLoading: participantsLoading } = useQuery({
     queryKey: QUERY_KEYS.participants,
     queryFn: async () => {
-      return await base44.entities.MatchParticipant.list();
+      try {
+        return await base44.entities.MatchParticipant.list();
+      } catch (error) {
+        console.error('Error fetching participants:', error);
+        return [];
+      }
     },
     ...CACHE_STRATEGIES.REALTIME,
     enabled: !!user,
@@ -95,8 +110,13 @@ export default function Dashboard() {
   const { data: adminNotifications = [] } = useQuery({
     queryKey: ['adminNotifications'],
     queryFn: async () => {
-      const notifs = await base44.entities.AdminNotification.filter({ is_active: true });
-      return notifs.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+      try {
+        const notifs = await base44.entities.AdminNotification.filter({ is_active: true });
+        return notifs.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+        return [];
+      }
     },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
     enabled: !!user,
@@ -194,11 +214,11 @@ export default function Dashboard() {
 
   // Process data when available
   const today = new Date().toISOString().split('T')[0];
-  const upcomingMatches = allMatches.filter(m =>
-    m.status === 'upcoming' && m.date >= today
+  const upcomingMatches = (allMatches || []).filter(m =>
+    m && m.status === 'upcoming' && m.date >= today
   );
 
-  const userParticipations = allParticipants.filter(p => p.user_id === user?.id);
+  const userParticipations = (allParticipants || []).filter(p => p?.user_id === user?.id);
   const userMatchIds = userParticipations.map(p => p.match_id);
 
   const myUpcomingMatches = upcomingMatches
@@ -244,8 +264,8 @@ export default function Dashboard() {
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
 
-  const weeklyMatches = allMatches.filter(m => {
-    if (m.status !== 'completed') return false;
+  const weeklyMatches = (allMatches || []).filter(m => {
+    if (!m || m.status !== 'completed') return false;
     if (!m.completed_at) return false;
     const completedDate = new Date(m.completed_at);
     return completedDate > weekAgo && userMatchIds.includes(m.id);
@@ -293,9 +313,9 @@ export default function Dashboard() {
   ];
 
   // Calculate recent activity
-  const recentMatchesForActivity = allMatches
-    .filter(m => m.status === 'completed' && userMatchIds.includes(m.id))
-    .sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at))
+  const recentMatchesForActivity = (allMatches || [])
+    .filter(m => m && m.status === 'completed' && userMatchIds.includes(m.id))
+    .sort((a, b) => new Date(b.completed_at || 0) - new Date(a.completed_at || 0))
     .slice(0, 2);
 
   const recentActivity = [];
