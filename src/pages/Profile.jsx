@@ -1068,6 +1068,18 @@ export default function ProfilePage() {
           />
         </Suspense>
       )}
+
+      {/* Report Modal */}
+      {isViewingOtherProfile && targetUser && (
+        <ReportModal
+          isOpen={showReportModal}
+          onClose={() => setShowReportModal(false)}
+          reportedUserId={targetUser.id}
+          reportedItemType="user"
+          reportedItemId={targetUser.id}
+          itemTitle={targetUser.display_name || targetUser.full_name}
+        />
+      )}
     </div>
   );
 }
