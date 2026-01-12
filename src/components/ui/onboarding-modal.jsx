@@ -87,6 +87,10 @@ export function OnboardingModal() {
     notifications: false
   });
   const [isProcessingReferral, setIsProcessingReferral] = useState(false);
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [ageVerified, setAgeVerified] = useState(false);
+  const [ageError, setAgeError] = useState('');
+  const [isVerifyingAge, setIsVerifyingAge] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
