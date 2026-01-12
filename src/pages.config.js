@@ -15,6 +15,7 @@ import Matches from './pages/Matches';
 import Profile from './pages/Profile';
 import TeamOverview from './pages/TeamOverview';
 import TermsOfService from './pages/TermsOfService';
+import AccountSettings from './pages/AccountSettings';
 import __Layout from './Layout.jsx';
 
 
@@ -36,6 +37,7 @@ export const PAGES = {
     "Profile": Profile,
     "TeamOverview": TeamOverview,
     "TermsOfService": TermsOfService,
+    "AccountSettings": AccountSettings,
 }
 
 export const pagesConfig = {

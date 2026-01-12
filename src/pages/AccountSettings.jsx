@@ -1,0 +1,410 @@
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { base44 } from "@/api/base44Client";
+import { useQueryClient } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  ArrowLeft,
+  Download,
+  Trash2,
+  Bell,
+  Shield,
+  Eye,
+  EyeOff,
+  AlertTriangle,
+  Check,
+  Loader2,
+  FileJson,
+  Lock,
+  Mail
+} from "lucide-react";
+import { useCustomDialog } from "../components/ui/custom-dialog";
+
+export default function AccountSettingsPage() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { confirm, alert, DialogContainer } = useCustomDialog();
+  
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteConfirmEmail, setDeleteConfirmEmail] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  
+  const [settings, setSettings] = useState({
+    marketing_opt_in: false,
+    publicProfile: true,
+    hide_exact_location: false
+  });
+
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      setSettings({
+        marketing_opt_in: currentUser.marketing_opt_in || false,
+        publicProfile: currentUser.publicProfile !== false,
+        hide_exact_location: currentUser.hide_exact_location || currentUser.is_minor || false
+      });
+    } catch (error) {
+      console.error("Error loading user:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSettingChange = async (key, value) => {
+    // Minors cannot disable location hiding
+    if (key === 'hide_exact_location' && user?.is_minor && !value) {
+      await alert(
+        'Skydd för minderåriga', 
+        'Som minderårig användare kan du inte visa din exakta position för andra användare.',
+        { type: 'info' }
+      );
+      return;
+    }
+
+    setSettings(prev => ({ ...prev, [key]: value }));
+    
+    try {
+      await base44.auth.updateMe({ [key]: value });
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    } catch (error) {
+      console.error("Error updating setting:", error);
+      // Revert on error
+      setSettings(prev => ({ ...prev, [key]: !value }));
+      await alert('Fel', 'Kunde inte uppdatera inställning. Försök igen.', { type: 'alert' });
+    }
+  };
+
+  const handleExportData = async () => {
+    setIsExporting(true);
+    try {
+      const response = await base44.functions.invoke('exportUserData', {});
+      
+      if (response.data?.success) {
+        // Create downloadable JSON file
+        const blob = new Blob([JSON.stringify(response.data.data, null, 2)], { 
+          type: 'application/json' 
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `allplay-data-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+
+        await alert(
+          'Data exporterad!', 
+          'Din data har laddats ner som en JSON-fil.',
+          { type: 'success' }
+        );
+      }
+    } catch (error) {
+      console.error("Error exporting data:", error);
+      await alert('Exportfel', 'Kunde inte exportera data. Försök igen.', { type: 'alert' });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmEmail !== user?.email) {
+      await alert('Fel e-post', 'E-postadressen matchar inte ditt konto.', { type: 'alert' });
+      return;
+    }
+
+    const shouldDelete = await confirm(
+      '⚠️ Radera konto permanent',
+      'Detta går INTE att ångra. Ditt konto kommer att raderas efter 30 dagar. Under den tiden kan du återaktivera kontot genom att logga in igen.',
+      {
+        type: 'warning',
+        confirmText: 'Ja, radera mitt konto',
+        cancelText: 'Avbryt'
+      }
+    );
+
+    if (!shouldDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await base44.functions.invoke('deleteAccount', {
+        confirmEmail: deleteConfirmEmail
+      });
+
+      if (response.data?.success) {
+        await alert(
+          'Konto markerat för radering',
+          `Ditt konto kommer att raderas ${new Date(response.data.deletion_scheduled).toLocaleDateString('sv-SE')}. Du kommer nu att loggas ut.`,
+          { type: 'success' }
+        );
+        
+        // Logout user
+        await base44.auth.logout();
+      }
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      await alert('Fel', 'Kunde inte radera konto. Försök igen.', { type: 'alert' });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#0F1513] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-12 h-12 text-[#2BA84A] animate-spin mx-auto" />
+          <p className="text-[#F4F7F5]">Laddar inställningar...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
+      <DialogContainer />
+      
+      <div className="max-w-2xl mx-auto">
+        {/* Header */}
+        <div className="sticky top-0 z-40 bg-[#0F1513]/95 backdrop-blur-md border-b border-[#223029] p-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate(createPageUrl("Profile"))}
+              className="flex items-center gap-2 text-[#B6C2BC] hover:text-[#F4F7F5] transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-xl font-semibold text-[#F4F7F5]">Kontoinställningar</h1>
+          </div>
+        </div>
+
+        <div className="p-4 space-y-6">
+          
+          {/* Privacy Settings */}
+          <Card className="bg-[#121715] border border-[#223029] rounded-2xl">
+            <CardContent className="p-6 space-y-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-[#2BA84A]/10 rounded-xl flex items-center justify-center ring-1 ring-[#2BA84A]/20">
+                  <Shield className="w-5 h-5 text-[#2BA84A]" />
+                </div>
+                <h2 className="text-lg font-semibold text-[#F4F7F5]">Integritet</h2>
+              </div>
+
+              {/* Public Profile */}
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <Label className="text-[#F4F7F5] font-semibold">Offentlig profil</Label>
+                  <p className="text-sm text-[#7B8A83]">
+                    Låt andra spelare se din profil och statistik
+                  </p>
+                </div>
+                <Switch
+                  checked={settings.publicProfile}
+                  onCheckedChange={(checked) => handleSettingChange('publicProfile', checked)}
+                />
+              </div>
+
+              {/* Hide Exact Location */}
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <Label className="text-[#F4F7F5] font-semibold">Dölj exakt position</Label>
+                  <p className="text-sm text-[#7B8A83]">
+                    Visa endast ungefärlig position (obligatoriskt för minderåriga)
+                  </p>
+                  {user?.is_minor && (
+                    <p className="text-xs text-[#F4743B] mt-1 flex items-center gap-1">
+                      <Lock className="w-3 h-3" />
+                      Aktivt för din säkerhet
+                    </p>
+                  )}
+                </div>
+                <Switch
+                  checked={settings.hide_exact_location}
+                  onCheckedChange={(checked) => handleSettingChange('hide_exact_location', checked)}
+                  disabled={user?.is_minor}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Communication Settings */}
+          <Card className="bg-[#121715] border border-[#223029] rounded-2xl">
+            <CardContent className="p-6 space-y-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-[#F4743B]/10 rounded-xl flex items-center justify-center ring-1 ring-[#F4743B]/20">
+                  <Bell className="w-5 h-5 text-[#F4743B]" />
+                </div>
+                <h2 className="text-lg font-semibold text-[#F4F7F5]">Kommunikation</h2>
+              </div>
+
+              {/* Marketing Opt-in */}
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <Label className="text-[#F4F7F5] font-semibold">Produktnyheter & erbjudanden</Label>
+                  <p className="text-sm text-[#7B8A83]">
+                    Få tips, nyheter och erbjudanden via e-post
+                  </p>
+                </div>
+                <Switch
+                  checked={settings.marketing_opt_in}
+                  onCheckedChange={(checked) => handleSettingChange('marketing_opt_in', checked)}
+                />
+              </div>
+
+              <div className="pt-2 border-t border-[#223029]">
+                <p className="text-xs text-[#7B8A83]">
+                  Servicerelaterade notiser (matchpåminnelser, laghändelser) skickas alltid.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Data Export */}
+          <Card className="bg-[#121715] border border-[#223029] rounded-2xl">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-[#9370DB]/10 rounded-xl flex items-center justify-center ring-1 ring-[#9370DB]/20">
+                  <Download className="w-5 h-5 text-[#9370DB]" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-[#F4F7F5]">Ladda ner min data</h2>
+                  <p className="text-sm text-[#7B8A83]">Exportera all din data som JSON</p>
+                </div>
+              </div>
+
+              <p className="text-sm text-[#B6C2BC] mb-4">
+                Inkluderar: profil, matchhistorik, lagmedlemskap, vänner, badges, ELO-historik och rapporter du skickat.
+              </p>
+
+              <Button
+                onClick={handleExportData}
+                disabled={isExporting}
+                className="w-full bg-[#9370DB] hover:bg-[#8B008B] text-white rounded-xl h-11 gap-2"
+              >
+                {isExporting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Exporterar...
+                  </>
+                ) : (
+                  <>
+                    <FileJson className="w-4 h-4" />
+                    Ladda ner data
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Delete Account */}
+          <Card className="bg-[#121715] border border-red-500/30 rounded-2xl">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-red-500/10 rounded-xl flex items-center justify-center ring-1 ring-red-500/20">
+                  <Trash2 className="w-5 h-5 text-red-500" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-[#F4F7F5]">Ta bort konto</h2>
+                  <p className="text-sm text-[#7B8A83]">Permanent radera ditt konto och all data</p>
+                </div>
+              </div>
+
+              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-4">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-red-200">
+                    <p className="font-semibold mb-1">Varning!</p>
+                    <ul className="list-disc list-inside space-y-1 text-red-300">
+                      <li>Ditt konto raderas permanent efter 30 dagars väntetid</li>
+                      <li>All data förutom anonymiserad matchhistorik raderas</li>
+                      <li>Du förlorar alla badges, ELO och statistik</li>
+                      <li>Du tas bort från alla lag</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <AnimatePresence>
+                {!showDeleteConfirm ? (
+                  <Button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    variant="outline"
+                    className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 rounded-xl h-11"
+                  >
+                    Ta bort mitt konto
+                  </Button>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-4"
+                  >
+                    <div>
+                      <Label className="text-[#F4F7F5] font-semibold mb-2 block">
+                        Bekräfta med din e-postadress
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-[#7B8A83]" />
+                        <span className="text-sm text-[#7B8A83]">{user?.email}</span>
+                      </div>
+                      <Input
+                        type="email"
+                        placeholder="Skriv din e-postadress"
+                        value={deleteConfirmEmail}
+                        onChange={(e) => setDeleteConfirmEmail(e.target.value)}
+                        className="mt-2 bg-[#18221E] border-red-500/30 text-[#F4F7F5] placeholder:text-[#7B8A83] focus:border-red-500 rounded-xl h-11"
+                      />
+                    </div>
+                    
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={() => {
+                          setShowDeleteConfirm(false);
+                          setDeleteConfirmEmail('');
+                        }}
+                        variant="outline"
+                        className="flex-1 border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] rounded-xl h-11"
+                      >
+                        Avbryt
+                      </Button>
+                      <Button
+                        onClick={handleDeleteAccount}
+                        disabled={isDeleting || deleteConfirmEmail !== user?.email}
+                        className="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-xl h-11 disabled:opacity-50"
+                      >
+                        {isDeleting ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                            Raderar...
+                          </>
+                        ) : (
+                          'Radera permanent'
+                        )}
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </CardContent>
+          </Card>
+
+        </div>
+      </div>
+    </div>
+  );
+}
