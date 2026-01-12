@@ -554,20 +554,77 @@ export default function ProfilePage() {
             />
           ))}
 
-          {/* Logout Button */}
-          {!isViewingOtherProfile && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.8 }}
-              whileHover={{ scale: 1.1, rotate: 90 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={handleLogout}
-              className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 w-8 h-8 sm:w-10 sm:h-10 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 hover:text-white transition-all border border-white/10 shadow-lg"
-              title="Logga ut"
-            >
-              <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
-            </motion.button>
+          {/* Top Right Actions */}
+          {!isViewingOtherProfile ? (
+            <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 flex items-center gap-2">
+              <Link to={createPageUrl("AccountSettings")}>
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.7 }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 hover:text-white transition-all border border-white/10 shadow-lg"
+                  title="Kontoinställningar"
+                >
+                  <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
+                </motion.button>
+              </Link>
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.8 }}
+                whileHover={{ scale: 1.1, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={handleLogout}
+                className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 hover:text-white transition-all border border-white/10 shadow-lg"
+                title="Logga ut"
+              >
+                <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
+              </motion.button>
+            </div>
+          ) : (
+            <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30">
+              <div className="relative">
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  onClick={() => setShowMoreMenu(!showMoreMenu)}
+                  className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 hover:text-white transition-all border border-white/10 shadow-lg"
+                >
+                  <MoreVertical className="w-4 h-4 sm:w-5 sm:h-5" />
+                </motion.button>
+                
+                <AnimatePresence>
+                  {showMoreMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9, y: -10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                      className="absolute top-full right-0 mt-2 w-48 bg-[#121715] border border-[#223029] rounded-xl shadow-xl overflow-hidden z-50"
+                    >
+                      <button
+                        onClick={() => {
+                          setShowMoreMenu(false);
+                          setShowReportModal(true);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#F4F7F5] hover:bg-[#18221E] transition-colors"
+                      >
+                        <Flag className="w-4 h-4 text-red-400" />
+                        Rapportera
+                      </button>
+                      <div className="px-4 py-2">
+                        <BlockUserButton 
+                          targetUserId={targetUser?.id}
+                          variant="ghost"
+                          className="w-full justify-start px-0"
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
           )}
           
           <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-14">
