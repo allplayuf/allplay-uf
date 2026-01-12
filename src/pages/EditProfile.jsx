@@ -347,15 +347,22 @@ export default function EditProfilePage() {
                 </p>
               </div>
 
-              {/* Date of Birth */}
+              {/* Date of Birth - Read only if verified */}
               <div>
                 <Label className="text-[#F4F7F5] font-semibold mb-2 block text-sm">Födelsedatum</Label>
                 <Input
                   type="date"
                   value={formData.date_of_birth || ''}
                   onChange={(e) => setFormData((prev) => ({ ...prev, date_of_birth: e.target.value }))}
-                  className="bg-[#18221E] border border-[#223029] text-[#F4F7F5] focus:border-[#2BA84A] rounded-xl h-11 text-sm"
+                  disabled={user?.age_verified}
+                  className="bg-[#18221E] border border-[#223029] text-[#F4F7F5] focus:border-[#2BA84A] rounded-xl h-11 text-sm disabled:opacity-50"
                 />
+                {user?.age_verified && (
+                  <p className="text-xs text-[#7B8A83] mt-1 flex items-center gap-1">
+                    <Check className="w-3 h-3 text-[#2BA84A]" />
+                    Verifierat vid registrering
+                  </p>
+                )}
               </div>
 
               {/* Gender */}
