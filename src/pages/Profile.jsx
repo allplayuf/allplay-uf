@@ -23,12 +23,17 @@ import {
   UserPlus,
   CheckCircle,
   Clock,
-  LogOut
+  LogOut,
+  Flag,
+  Ban,
+  MoreVertical
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { Link, useLocation } from "react-router-dom";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import { ProfileSkeleton } from "../components/ui/loading-skeleton";
+import ReportModal from "../components/report/ReportModal";
+import BlockUserButton from "../components/user/BlockUserButton";
 
 // Lazy load components
 const ProfileStats = lazy(() => import("../components/profile/ProfileStats"));
