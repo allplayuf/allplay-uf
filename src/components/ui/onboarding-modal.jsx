@@ -22,6 +22,14 @@ const ONBOARDING_STORAGE_KEY = 'allplay_onboarding_completed_v1';
 
 const SLIDES = [
   {
+    id: "screen_0_age",
+    title: "Innan vi börjar",
+    description: "AllPlay kräver att du anger ditt födelsedatum för att säkerställa en trygg upplevelse för alla.",
+    isAgeVerificationScreen: true,
+    icon: Shield,
+    color: "#2BA84A"
+  },
+  {
     id: "screen_1",
     title: "Hitta matcher nära dig",
     description: "AllPlay visar fotbollsplaner och matcher nära dig, så du slipper chattgrupper och krånglig planering.",
