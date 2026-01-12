@@ -70,13 +70,33 @@ export default function AdminPage() {
 
   const handleReportAction = async (reportId, action, notes) => {
     try {
+      const report = reports.find(r => r.id === reportId);
+      
+      // Determine status based on action
+      let status = 'resolved';
+      if (action === 'dismiss' || action === 'dismissed') {
+        status = 'dismissed';
+      }
+      
+      // Apply user action if needed
+      if (report?.reported_user_id && ['warning', 'timeout_7_days', 'timeout_30_days', 'permanent_ban'].includes(action)) {
+        const userAction = action === 'permanent_ban' ? 'ban' : 
+                          action.startsWith('timeout') ? 'suspend' : null;
+        
+        if (userAction) {
+          await handleUserAction(report.reported_user_id, userAction);
+        }
+      }
+      
       await Report.update(reportId, {
-        status: action === 'resolve' ? 'resolved' : 'dismissed',
+        status: status,
         moderator_notes: notes,
         resolved_date: new Date().toISOString(),
-        action_taken: action
+        action_taken: action,
+        resolved_by: currentUser?.id
       });
       
+      await alert('Rapport uppdaterad', `Åtgärd: ${action}`, { type: 'success' });
       loadAdminData();
     } catch (error) {
       console.error("Error updating report:", error);
