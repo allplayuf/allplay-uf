@@ -73,6 +73,8 @@ export default function ProfilePage() {
   const [showQRModal, setShowQRModal] = useState(false);
   const [activeTab, setActiveTab] = useState('inbox');
   const [showSettingsSheet, setShowSettingsSheet] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   const { confirm, alert, DialogContainer } = useCustomDialog();
   const queryClient = useQueryClient();
