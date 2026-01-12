@@ -160,7 +160,15 @@ export function OnboardingModal() {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    const slide = SLIDES[currentSlide];
+    
+    // If on age verification screen, verify age before proceeding
+    if (slide.isAgeVerificationScreen && !ageVerified) {
+      const verified = await verifyAge();
+      if (!verified) return;
+    }
+    
     if (currentSlide < SLIDES.length - 1) {
       setCurrentSlide(prev => prev + 1);
     } else {
