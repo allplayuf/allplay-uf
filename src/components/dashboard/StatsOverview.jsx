@@ -4,9 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Trophy, Target, Users, Star, TrendingUp, Award } from "lucide-react";
 
-export default function StatsOverview({ user, recentMatches }) {
+export default function StatsOverview({ user, recentMatches = [] }) {
   const winRate = user?.matches_played > 0 
-    ? Math.round((recentMatches.filter(m => m.status === 'completed').length / user.matches_played) * 100)
+    ? Math.round((recentMatches.filter(m => m?.status === 'completed').length / user.matches_played) * 100)
     : 0;
 
   const getSkillLevelText = (elo) => {
@@ -27,7 +27,8 @@ export default function StatsOverview({ user, recentMatches }) {
     ];
 
     const currentRange = ranges.find(r => elo >= r.min && elo < r.max) || ranges[ranges.length - 1];
-    return ((elo - currentRange.min) / (currentRange.max - currentRange.min)) * 100;
+    const progress = ((elo - currentRange.min) / (currentRange.max - currentRange.min)) * 100;
+    return Math.max(0, Math.min(100, progress));
   };
 
   return (

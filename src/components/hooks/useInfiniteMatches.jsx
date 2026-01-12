@@ -8,17 +8,18 @@ export function useInfiniteMatches(filters = {}) {
   return useInfiniteQuery({
     queryKey: ['matches-infinite', filters],
     queryFn: async ({ pageParam = 0 }) => {
-      // Fetch matches with pagination
-      const allMatches = await base44.entities.Match.list('-date', 200);
-      
-      // Apply filters
-      let filteredMatches = allMatches;
-      const today = new Date().toISOString().split('T')[0];
-      
-      // Filter by status and date, EXCLUDE cup matches
-      filteredMatches = filteredMatches.filter(m => 
-        m.status === 'upcoming' && m.date >= today && !m.is_cup_match
-      );
+      try {
+        // Fetch matches with pagination
+        const allMatches = await base44.entities.Match.list('-date', 200);
+        
+        // Apply filters
+        let filteredMatches = allMatches || [];
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Filter by status and date, EXCLUDE cup matches
+        filteredMatches = filteredMatches.filter(m => 
+          m && m.status === 'upcoming' && m.date >= today && !m.is_cup_match
+        );
       
       // Apply city filter if provided
       if (filters.city) {
@@ -54,9 +55,20 @@ export function useInfiniteMatches(filters = {}) {
         hasMore: end < filteredMatches.length,
         total: filteredMatches.length
       };
+      } catch (error) {
+        console.error('Error fetching matches:', error);
+        return {
+          matches: [],
+          nextPage: undefined,
+          hasMore: false,
+          total: 0
+        };
+      }
     },
-    getNextPageParam: (lastPage) => lastPage.nextPage,
-    ...CACHE_STRATEGIES.SEMI_DYNAMIC, // Matches are semi-dynamic
+    getNextPageParam: (lastPage) => lastPage?.nextPage,
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
     keepPreviousData: true,
+    retry: 2,
+    retryDelay: 1000,
   });
 }
