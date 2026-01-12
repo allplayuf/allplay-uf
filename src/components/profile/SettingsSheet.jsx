@@ -2,10 +2,10 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { User } from "@/entities/User";
+import { base44 } from "@/api/base44Client";
 import { Edit, QrCode, X } from "lucide-react";
 
-export default function SettingsSheet({ onClose, onShowQR }) {
+export default function SettingsSheet({ onClose, onShowQR, user }) {
   return (
     <div 
       className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
@@ -58,8 +58,36 @@ export default function SettingsSheet({ onClose, onShowQR }) {
 
             <button 
               onClick={async () => {
+                if (confirm('Är du säker på att du vill radera ditt konto? All din data kommer att tas bort permanent. Denna åtgärd kan inte ångras.')) {
+                  try {
+                    await base44.entities.User.delete(user.id);
+                    await base44.auth.logout();
+                    window.location.reload();
+                  } catch (error) {
+                    console.error('Error deleting account:', error);
+                    alert('Kunde inte radera kontot. Kontakta support@allplay.se för hjälp.');
+                  }
+                }
+              }}
+              className="w-full h-14 px-4 flex items-center justify-between text-[#DC2626] bg-[#18221E] rounded-xl border border-[#223029] hover:border-[#DC2626] transition-all duration-150"
+            >
+              <span className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-[#DC2626]/10 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </div>
+                <span className="font-semibold text-sm">Ta bort konto</span>
+              </span>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            <button 
+              onClick={async () => {
                 if (confirm('Vill du logga ut?')) {
-                  await User.logout();
+                  await base44.auth.logout();
                   window.location.reload();
                 }
               }}
