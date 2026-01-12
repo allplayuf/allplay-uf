@@ -134,6 +134,37 @@ export default function ModerationQueue({ reports, onAction }) {
                         className="bg-[#18221E] border-[#223029] text-[#F4F7F5] rounded-xl"
                       />
                     </div>
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-[#F4F7F5] mb-2">
+                        Åtgärd
+                      </label>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <button
+                          onClick={() => onAction(report.id, 'warning', notes)}
+                          className="p-2 text-xs bg-[#F59E0B]/10 text-[#F59E0B] rounded-lg border border-[#F59E0B]/20 hover:bg-[#F59E0B]/20 transition-all"
+                        >
+                          ⚠️ Varning
+                        </button>
+                        <button
+                          onClick={() => onAction(report.id, 'content_removed', notes)}
+                          className="p-2 text-xs bg-[#9370DB]/10 text-[#9370DB] rounded-lg border border-[#9370DB]/20 hover:bg-[#9370DB]/20 transition-all"
+                        >
+                          🗑️ Ta bort
+                        </button>
+                        <button
+                          onClick={() => onAction(report.id, 'timeout_7_days', notes)}
+                          className="p-2 text-xs bg-[#F4743B]/10 text-[#F4743B] rounded-lg border border-[#F4743B]/20 hover:bg-[#F4743B]/20 transition-all"
+                        >
+                          ⏸️ 7 dagar
+                        </button>
+                        <button
+                          onClick={() => onAction(report.id, 'permanent_ban', notes)}
+                          className="p-2 text-xs bg-red-500/10 text-red-400 rounded-lg border border-red-500/20 hover:bg-red-500/20 transition-all"
+                        >
+                          🚫 Permanent
+                        </button>
+                      </div>
+                    </div>
                     <div className="flex gap-3">
                       <Button
                         onClick={() => handleAction(report.id, 'resolve')}
