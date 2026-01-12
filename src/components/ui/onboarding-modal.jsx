@@ -186,6 +186,40 @@ export function OnboardingModal() {
     }
   };
 
+  const verifyAge = async () => {
+    if (!dateOfBirth) {
+      setAgeError('Vänligen ange ditt födelsedatum');
+      return false;
+    }
+
+    setIsVerifyingAge(true);
+    setAgeError('');
+    
+    try {
+      const response = await base44.functions.invoke('verifyAge', {
+        date_of_birth: dateOfBirth
+      });
+
+      if (response.data?.allowed === false) {
+        setAgeError(response.data.message || 'Du måste vara minst 13 år för att använda AllPlay.');
+        setIsVerifyingAge(false);
+        return false;
+      }
+
+      if (response.data?.success) {
+        setAgeVerified(true);
+        setIsVerifyingAge(false);
+        return true;
+      }
+    } catch (error) {
+      console.error('Age verification error:', error);
+      setAgeError('Kunde inte verifiera ålder. Försök igen.');
+    }
+    
+    setIsVerifyingAge(false);
+    return false;
+  };
+
   if (!isOpen) return null;
 
   const slide = SLIDES[currentSlide];
