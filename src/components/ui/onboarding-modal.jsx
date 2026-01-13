@@ -11,15 +11,17 @@ import {
   Map as MapIcon,
   Trophy,
   UserPlus,
-  Navigation
+  Navigation,
+  LogIn
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
+import { LoginModal } from "@/components/supabase";
 
-const ONBOARDING_STORAGE_KEY = 'allplay_onboarding_completed_v2';
+const ONBOARDING_STORAGE_KEY = 'allplay_onboarding_completed_v3';
 
 const SLIDES = [
   {
@@ -107,24 +109,18 @@ export function OnboardingModal() {
   const [ageError, setAgeError] = useState('');
   const [isVerifyingAge, setIsVerifyingAge] = useState(false);
   const [continueAsGuest, setContinueAsGuest] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const checkOnboarding = async () => {
-      try {
-        const isAuth = await base44.auth.isAuthenticated();
-        if (!isAuth) return;
-
-        const user = await base44.auth.me();
-        const hasCompletedOnboarding = user?.onboarding_completed || localStorage.getItem(ONBOARDING_STORAGE_KEY);
-        
-        if (!hasCompletedOnboarding) {
-          // Small delay for better UX on load
-          const timer = setTimeout(() => setIsOpen(true), 500);
-          return () => clearTimeout(timer);
-        }
-      } catch (err) {
-        console.error('Error checking onboarding:', err);
+    const checkOnboarding = () => {
+      // Check localStorage ONLY - onboarding is shown once per device
+      const hasCompletedOnboarding = localStorage.getItem(ONBOARDING_STORAGE_KEY);
+      
+      if (!hasCompletedOnboarding) {
+        // Small delay for better UX on load
+        const timer = setTimeout(() => setIsOpen(true), 500);
+        return () => clearTimeout(timer);
       }
     };
 
@@ -167,9 +163,10 @@ export function OnboardingModal() {
   }, [isProcessingReferral]);
 
   const handleComplete = async () => {
+    // Always mark as completed in localStorage (works for guests too)
     localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
     
-    // Mark onboarding as completed in user profile
+    // If authenticated, also save to user profile
     try {
       const isAuth = await base44.auth.isAuthenticated();
       if (isAuth) {
@@ -190,7 +187,7 @@ export function OnboardingModal() {
         }
       }
     } catch (error) {
-      console.error('Error marking onboarding complete:', error);
+      // Ignore errors - localStorage is already set
     }
     
     setIsOpen(false);
@@ -528,7 +525,7 @@ export function OnboardingModal() {
             </div>
 
             {/* Bottom Navigation Area - Fixed */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#040F0F] via-[#040F0F] to-transparent z-20">
+            <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#040F0F] via-[#040F0F] to-transparent z-20 space-y-3">
               <Button
                 onClick={handleNext}
                 disabled={isVerifyingAge}
@@ -537,7 +534,7 @@ export function OnboardingModal() {
                 {isVerifyingAge ? (
                   "Verifierar..."
                 ) : currentSlide === SLIDES.length - 1 ? (
-                  "Kom igång"
+                  "Kom igång som gäst"
                 ) : slide.isAgeVerificationScreen ? (
                   (birthDay && birthMonth && birthYear) ? "Verifiera och fortsätt" : "Hoppa över"
                 ) : (
@@ -547,11 +544,33 @@ export function OnboardingModal() {
                   </>
                 )}
               </Button>
+              
+              {/* Login/Register option on last slide */}
+              {currentSlide === SLIDES.length - 1 && (
+                <Button
+                  onClick={() => setShowLoginModal(true)}
+                  variant="outline"
+                  className="w-full h-12 rounded-full border-[#2BA84A] text-[#2BA84A] hover:bg-[#2BA84A]/10 font-semibold text-lg"
+                >
+                  <LogIn className="w-5 h-5 mr-2" />
+                  Logga in / Skapa konto
+                </Button>
+              )}
             </div>
 
           </motion.div>
         </motion.div>
       )}
+      
+      {/* Login Modal */}
+      <LoginModal 
+        isOpen={showLoginModal} 
+        onClose={() => setShowLoginModal(false)}
+        onSuccess={() => {
+          setShowLoginModal(false);
+          handleComplete();
+        }}
+      />
     </AnimatePresence>
   );
 }

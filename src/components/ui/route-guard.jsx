@@ -8,29 +8,24 @@ import { PageLoadingSkeleton } from "./loading-skeleton";
 
 /**
  * RouteGuard: Protects routes based on authentication and permissions
+ * 
+ * RULES:
+ * 1. NEVER show a login screen by default
+ * 2. Guests can browse freely - only admin routes are blocked
+ * 3. Being logged out is NOT an error state
+ * 4. Only redirect to login when explicitly required (admin routes)
  */
 export function RouteGuard({ children, currentRoute }) {
   const navigate = useNavigate();
-  const [shouldRender, setShouldRender] = useState(false);
+  const [shouldRender, setShouldRender] = useState(true); // Default to true - always render
 
   const { data: user, isLoading } = useQuery({
     queryKey: ['user'],
     queryFn: async () => {
       const isAuth = await base44.auth.isAuthenticated();
       if (!isAuth) {
-        // Check for guest session in localStorage
-        let guestId = localStorage.getItem('guest_session_id');
-        if (!guestId) {
-          // Create new guest session
-          try {
-            const { data } = await base44.functions.invoke('createSession', {});
-            guestId = data.guestId;
-            localStorage.setItem('guest_session_id', guestId);
-          } catch (error) {
-            console.error('Failed to create guest session:', error);
-          }
-        }
-        return { is_guest: true, guest_id: guestId };
+        // Return guest user - no need to create session, just mark as guest
+        return { is_guest: true };
       }
       return await base44.auth.me();
     },
@@ -41,38 +36,26 @@ export function RouteGuard({ children, currentRoute }) {
   useEffect(() => {
     if (isLoading) return;
 
-    // Define protected routes
-    const protectedRoutes = [
-      createPageUrl('Profile'),
-      createPageUrl('EditProfile'),
-      createPageUrl('AccountSettings'),
-      createPageUrl('Community')
-    ];
-
+    // ONLY admin routes are blocked for non-admins
     const adminRoutes = [
       createPageUrl('Admin'),
       createPageUrl('AdminCleanup')
     ];
 
-    const isProtected = protectedRoutes.some(route => currentRoute.includes(route));
     const isAdminRoute = adminRoutes.some(route => currentRoute.includes(route));
 
-    // Block guests from protected routes
-    if (isGuest(user) && isProtected) {
-      base44.auth.redirectToLogin(currentRoute);
-      return;
-    }
-
-    // Block non-admins from admin routes
+    // Block non-admins from admin routes - redirect to Dashboard
     if (isAdminRoute && !canAccessAdminPanel(user)) {
       navigate(createPageUrl('Dashboard'));
       return;
     }
 
+    // All other routes are accessible to everyone (guests included)
     setShouldRender(true);
   }, [user, isLoading, currentRoute, navigate]);
 
-  if (isLoading || !shouldRender) {
+  // Show loading only briefly, then render content
+  if (isLoading) {
     return <PageLoadingSkeleton />;
   }
 

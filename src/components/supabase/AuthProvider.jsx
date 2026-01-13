@@ -35,7 +35,8 @@ export function SupabaseAuthProvider({ children }) {
         setUser(sessionStore.user);
         setRoles(sessionStore.roles);
       } catch (e) {
-        console.error('Auth init error:', e);
+        // Auth init failed - default to guest mode (NOT an error state)
+        console.log('Auth init - defaulting to guest mode');
         setAuthState(AUTH_STATES.GUEST);
       } finally {
         setIsInitialized(true);
