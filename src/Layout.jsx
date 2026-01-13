@@ -15,17 +15,18 @@ import ErrorBoundary from "@/components/ui/error-boundary";
 import OfflineDetector from "@/components/ui/offline-detector";
 import { canAccessAdminPanel, isGuest } from "./components/utils/permissions";
 import { GuestBanner } from "@/components/ui/guest-banner";
+import { SupabaseAuthProvider, useSupabaseAuth, initSupabase } from "@/components/supabase";
 
-// Guest banner wrapper that uses query data
+// Guest banner wrapper that uses Supabase auth state
 function GuestBannerWrapper() {
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    staleTime: 10 * 60 * 1000,
-  });
+  const { isGuest: isGuestUser, isLoading } = useSupabaseAuth();
   
-  if (!isGuest(user)) return null;
+  if (isLoading || !isGuestUser) return null;
   return <GuestBanner />;
 }
+
+// Initialize Supabase on app load
+initSupabase().catch(console.error);
 
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Map = lazy(() => import("@/pages/Map"));
@@ -99,6 +100,7 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <QueryProvider>
+      <SupabaseAuthProvider>
       <ErrorBoundary>
         <RouteProgress />
         <OnboardingModal />
@@ -250,8 +252,9 @@ export default function Layout({ children, currentPageName }) {
             </div>
           </nav>
         </main>
-      </div>
-      </ErrorBoundary>
-    </QueryProvider>
-  );
-}
+        </div>
+        </ErrorBoundary>
+        </SupabaseAuthProvider>
+        </QueryProvider>
+        );
+        }
