@@ -53,12 +53,27 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
 
     try {
       if (mode === 'register') {
+        // Get anon key first
+        const { base44 } = await import('@/api/base44Client');
+        let anonKey = '';
+        try {
+          const configResponse = await base44.functions.invoke('getSupabaseConfig');
+          anonKey = configResponse?.data?.anonKey || '';
+        } catch (e) {
+          console.error('Failed to get config:', e);
+        }
+
+        if (!anonKey) {
+          setLocalError('Kunde inte ansluta till servern. Försök igen.');
+          return;
+        }
+
         // Call Supabase signup endpoint
         const response = await fetch('https://vqfjjokqmykqawjlgevj.supabase.co/auth/v1/signup', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'apikey': (await import('@/api/base44Client')).base44.functions.invoke('getSupabaseConfig').then(r => r.data?.anonKey) || ''
+            'apikey': anonKey
           },
           body: JSON.stringify({
             email,
@@ -70,7 +85,17 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
         const data = await response.json();
 
         if (!response.ok) {
-          setLocalError(data.error_description || data.msg || 'Registreringen misslyckades');
+          // Handle specific error messages
+          const errorMsg = data.error_description || data.msg || data.error || 'Registreringen misslyckades';
+          if (errorMsg.includes('already registered')) {
+            setLocalError('E-postadressen är redan registrerad. Försök logga in istället.');
+          } else if (errorMsg.includes('valid email')) {
+            setLocalError('Ange en giltig e-postadress.');
+          } else if (errorMsg.includes('password')) {
+            setLocalError('Lösenordet måste vara minst 6 tecken.');
+          } else {
+            setLocalError(errorMsg);
+          }
           return;
         }
 
@@ -83,11 +108,27 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
           return;
         }
 
-        // Auto-login if no email confirmation required
+        // If we got a session, user is registered and logged in
+        if (data.session && data.access_token) {
+          // Store session and notify
+          const { sessionStore, AUTH_STATES } = await import('./client');
+          sessionStore.setTokens(data.access_token, data.refresh_token);
+          sessionStore.setUser(data.user);
+          sessionStore.setAuthState(AUTH_STATES.AUTHENTICATED);
+          
+          onSuccess?.();
+          onClose();
+          return;
+        }
+
+        // Auto-login if no email confirmation required but no session returned
         const loginResult = await login(email, password);
         if (loginResult.success) {
           onSuccess?.();
           onClose();
+        } else {
+          setSuccessMessage('Konto skapat! Logga in med dina uppgifter.');
+          setMode('login');
         }
       } else {
         const result = await login(email, password);
