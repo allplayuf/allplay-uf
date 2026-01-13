@@ -51,11 +51,22 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
 
   // Fetch current user with OPTIMIZED caching (AUTH strategy)
+  // Returns guest user object if not authenticated - NEVER blocks the UI
   const { data: user, isLoading: userLoading, error: userError } = useQuery({
     queryKey: QUERY_KEYS.user,
     queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      return currentUser;
+      try {
+        const isAuth = await base44.auth.isAuthenticated();
+        if (!isAuth) {
+          // Return a guest user object - app continues to work
+          return { is_guest: true, display_name: 'Gäst', full_name: 'Gäst' };
+        }
+        const currentUser = await base44.auth.me();
+        return currentUser;
+      } catch (error) {
+        // On any error, default to guest mode
+        return { is_guest: true, display_name: 'Gäst', full_name: 'Gäst' };
+      }
     },
     ...CACHE_STRATEGIES.AUTH,
     retry: false,
@@ -73,7 +84,7 @@ export default function Dashboard() {
       }
     },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
-    enabled: !!user,
+    enabled: true, // Always fetch - guests can browse matches
   });
 
   // Fetch venues with OPTIMIZED caching (STATIC strategy)
@@ -88,7 +99,7 @@ export default function Dashboard() {
       }
     },
     ...CACHE_STRATEGIES.STATIC,
-    enabled: !!user,
+    enabled: true, // Always fetch - guests can browse venues
   });
 
   // Fetch all participants with OPTIMIZED caching (REALTIME strategy)
@@ -103,7 +114,7 @@ export default function Dashboard() {
       }
     },
     ...CACHE_STRATEGIES.REALTIME,
-    enabled: !!user,
+    enabled: true, // Always fetch - guests can see participant counts
   });
 
   // Fetch admin notifications
@@ -119,7 +130,7 @@ export default function Dashboard() {
       }
     },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
-    enabled: !!user,
+    enabled: true, // Always fetch notifications
   });
 
   useEffect(() => {
