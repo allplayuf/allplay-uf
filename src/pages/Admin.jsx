@@ -8,6 +8,7 @@ import { Shield, Users, Flag, MapPin, BarChart, AlertTriangle, RefreshCw, Trophy
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useCustomDialog } from "../components/ui/custom-dialog";
+import { canAccessAdminPanel, getAvailableAdminTabs, isCupAdmin } from "@/utils/permissions";
 
 import ModerationQueue from "../components/admin/ModerationQueue";
 import UserManagement from "../components/admin/UserManagement";
@@ -16,6 +17,7 @@ import Analytics from "../components/admin/Analytics";
 import MatchManagement from "../components/admin/MatchManagement";
 import TeamManagement from "../components/admin/TeamManagement";
 import NotificationManagement from "../components/admin/NotificationManagement";
+import CupAdminTabs from "../components/admin/CupAdminTabs";
 
 export default function AdminPage() {
   const [reports, setReports] = useState([]);
@@ -38,9 +40,17 @@ export default function AdminPage() {
     try {
       const user = await User.me();
       
-      if (user.role !== 'admin') {
+      if (!canAccessAdminPanel(user)) {
         await alert('Behörighet saknas', 'Du har inte behörighet att se denna sida.', { type: 'alert' });
         window.location.href = createPageUrl('Dashboard');
+        return;
+      }
+      
+      setCurrentUser(user);
+
+      // If CUP_ADMIN, show cup-only interface
+      if (isCupAdmin(user) && user.role !== 'admin') {
+        setIsLoading(false);
         return;
       }
 
@@ -57,7 +67,6 @@ export default function AdminPage() {
       setVenues(venuesData);
       setMatches(matchesData);
       setTeams(teamsData);
-      setCurrentUser(user);
 
     } catch (error) {
       console.error("Error loading admin data:", error);
@@ -286,9 +295,14 @@ export default function AdminPage() {
     );
   }
 
+  // Show CUP_ADMIN interface if user is only CUP_ADMIN
+  if (currentUser && isCupAdmin(currentUser) && currentUser.role !== 'admin') {
+    return <CupAdminTabs user={currentUser} />;
+  }
+
   const pendingReports = reports.filter(r => r.status === 'pending').length;
   const activeUsers = users.filter(u => u.status === 'active').length;
-  // const suspendedUsers = users.filter(u => u.status === 'suspended').length; // This variable was declared but not used.
+  const availableTabs = getAvailableAdminTabs(currentUser);
 
   return (
     <div className="min-h-screen bg-[#0F1513] p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
@@ -409,90 +423,118 @@ export default function AdminPage() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="reports" className="space-y-6">
+        <Tabs defaultValue={availableTabs[0] || "reports"} className="space-y-6">
           <TabsList className="bg-[#121715] shadow-[0_6px_18px_rgba(0,0,0,0.22)] p-1 border border-[#223029] rounded-[16px] flex-wrap h-auto">
-            <TabsTrigger value="reports" className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-[#FFFFFF] text-[#FFFFFF]/70">
-              <Flag className="w-4 h-4" />
-              Rapporter ({pendingReports})
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-[#FFFFFF] text-[#FFFFFF]/70">
-              <Users className="w-4 h-4" />
-              Användare
-            </TabsTrigger>
-            <TabsTrigger value="matches" className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-[#FFFFFF] text-[#FFFFFF]/70">
-              <Trophy className="w-4 h-4" />
-              Matcher
-            </TabsTrigger>
-            <TabsTrigger value="teams" className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-[#FFFFFF] text-[#FFFFFF]/70">
-              <Shield className="w-4 h-4" />
-              Lag
-            </TabsTrigger>
-            <TabsTrigger value="venues" className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-[#FFFFFF] text-[#FFFFFF]/70">
-              <MapPin className="w-4 h-4" />
-              Planer
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-[#FFFFFF] text-[#FFFFFF]/70">
-              <BarChart className="w-4 h-4" />
-              Statistik
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-[#FFFFFF] text-[#FFFFFF]/70">
-              <Bell className="w-4 h-4" />
-              Notiser
-            </TabsTrigger>
+            {availableTabs.includes('reports') && (
+              <TabsTrigger value="reports" className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-[#FFFFFF] text-[#FFFFFF]/70">
+                <Flag className="w-4 h-4" />
+                Rapporter ({pendingReports})
+              </TabsTrigger>
+            )}
+            {availableTabs.includes('users') && (
+              <TabsTrigger value="users" className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-[#FFFFFF] text-[#FFFFFF]/70">
+                <Users className="w-4 h-4" />
+                Användare
+              </TabsTrigger>
+            )}
+            {availableTabs.includes('matches') && (
+              <TabsTrigger value="matches" className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-[#FFFFFF] text-[#FFFFFF]/70">
+                <Trophy className="w-4 h-4" />
+                Matcher
+              </TabsTrigger>
+            )}
+            {availableTabs.includes('teams') && (
+              <TabsTrigger value="teams" className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-[#FFFFFF] text-[#FFFFFF]/70">
+                <Shield className="w-4 h-4" />
+                Lag
+              </TabsTrigger>
+            )}
+            {availableTabs.includes('venues') && (
+              <TabsTrigger value="venues" className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-[#FFFFFF] text-[#FFFFFF]/70">
+                <MapPin className="w-4 h-4" />
+                Planer
+              </TabsTrigger>
+            )}
+            {availableTabs.includes('analytics') && (
+              <TabsTrigger value="analytics" className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-[#FFFFFF] text-[#FFFFFF]/70">
+                <BarChart className="w-4 h-4" />
+                Statistik
+              </TabsTrigger>
+            )}
+            {availableTabs.includes('notifications') && (
+              <TabsTrigger value="notifications" className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-[#FFFFFF] text-[#FFFFFF]/70">
+                <Bell className="w-4 h-4" />
+                Notiser
+              </TabsTrigger>
+            )}
           </TabsList>
 
-          <TabsContent value="reports">
-            <ModerationQueue 
-              reports={reports}
-              onAction={handleReportAction}
-            />
-          </TabsContent>
+          {availableTabs.includes('reports') && (
+            <TabsContent value="reports">
+              <ModerationQueue 
+                reports={reports}
+                onAction={handleReportAction}
+              />
+            </TabsContent>
+          )}
 
-          <TabsContent value="users">
-            <UserManagement 
-              users={users}
-              onAction={handleUserAction}
-            />
-          </TabsContent>
+          {availableTabs.includes('users') && (
+            <TabsContent value="users">
+              <UserManagement 
+                users={users}
+                onAction={handleUserAction}
+              />
+            </TabsContent>
+          )}
 
-          <TabsContent value="matches">
-            <MatchManagement 
-              matches={matches}
-              venues={venues}
-              onDelete={handleDeleteMatch}
-              onRefresh={loadAdminData}
-            />
-          </TabsContent>
+          {availableTabs.includes('matches') && (
+            <TabsContent value="matches">
+              <MatchManagement 
+                matches={matches}
+                venues={venues}
+                onDelete={handleDeleteMatch}
+                onRefresh={loadAdminData}
+              />
+            </TabsContent>
+          )}
 
-          <TabsContent value="teams">
-            <TeamManagement 
-              teams={teams}
-              onDelete={handleDeleteTeam}
-              onRefresh={loadAdminData}
-            />
-          </TabsContent>
+          {availableTabs.includes('teams') && (
+            <TabsContent value="teams">
+              <TeamManagement 
+                teams={teams}
+                onDelete={handleDeleteTeam}
+                onRefresh={loadAdminData}
+              />
+            </TabsContent>
+          )}
 
-          <TabsContent value="venues">
-            <VenueManagement 
-              venues={venues}
-              onRefresh={loadAdminData}
-            />
-          </TabsContent>
+          {availableTabs.includes('venues') && (
+            <TabsContent value="venues">
+              <VenueManagement 
+                venues={venues}
+                onRefresh={loadAdminData}
+              />
+            </TabsContent>
+          )}
 
-          <TabsContent value="analytics">
-            <Analytics 
-              users={users}
-              matches={matches}
-              venues={venues}
-              reports={reports}
-              onDeleteMatch={handleDeleteMatch}
-              onDeleteTeam={handleDeleteTeam}
-            />
-          </TabsContent>
+          {availableTabs.includes('analytics') && (
+            <TabsContent value="analytics">
+              <Analytics 
+                users={users}
+                matches={matches}
+                venues={venues}
+                reports={reports}
+                onDeleteMatch={handleDeleteMatch}
+                onDeleteTeam={handleDeleteTeam}
+              />
+            </TabsContent>
+          )}
 
-          <TabsContent value="notifications">
-            <NotificationManagement />
-          </TabsContent>
+          {availableTabs.includes('notifications') && (
+            <TabsContent value="notifications">
+              <NotificationManagement />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>

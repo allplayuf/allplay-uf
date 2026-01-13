@@ -22,6 +22,18 @@ const ONBOARDING_STORAGE_KEY = 'allplay_onboarding_completed_v2';
 
 const SLIDES = [
   {
+    id: "screen_0_welcome",
+    title: "Välkommen till AllPlay!",
+    description: "Din plattform för att hitta matcher, bygga lag och spela fotboll med likasinnade.",
+    bullets: [
+      "Hitta matcher nära dig på sekunder",
+      "Skapa lag och spela turneringar",
+      "Bygg din profil och samla MVP-röster"
+    ],
+    icon: Trophy,
+    color: "#2BA84A"
+  },
+  {
     id: "screen_0_age",
     title: "Hur gammal är du?",
     description: "Detta är valfritt, men om du anger din ålder måste du vara minst 13 år. Om du är under 18 år aktiveras extra skydd automatiskt.",
@@ -285,12 +297,14 @@ export function OnboardingModal() {
                   />
                 ))}
               </div>
-              <button 
-                onClick={handleComplete}
-                className="text-[#9CA3AF] hover:text-white text-sm font-medium px-2 py-1 rounded-lg hover:bg-white/5 transition-colors"
-              >
-                Hoppa över
-              </button>
+              {currentSlide > 0 && (
+                <button 
+                  onClick={handleComplete}
+                  className="text-[#9CA3AF] hover:text-white text-sm font-medium px-2 py-1 rounded-lg hover:bg-white/5 transition-colors"
+                >
+                  Hoppa över
+                </button>
+              )}
             </div>
 
             {/* Content Scroll Area */}

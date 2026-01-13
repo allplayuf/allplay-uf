@@ -13,6 +13,7 @@ import { RouteGuard } from "@/components/ui/route-guard";
 import { OnboardingModal } from "@/components/ui/onboarding-modal";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import OfflineDetector from "@/components/ui/offline-detector";
+import { canAccessAdminPanel } from "@/utils/permissions";
 
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Map = lazy(() => import("@/pages/Map"));
@@ -70,8 +71,13 @@ export default function Layout({ children, currentPageName }) {
   useQuery({
     queryKey: ['user'],
     queryFn: async () => {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) {
+        setAdminCheckDone(true);
+        return { is_guest: true };
+      }
       const currentUser = await base44.auth.me();
-      setIsAdmin(currentUser.role === 'admin');
+      setIsAdmin(canAccessAdminPanel(currentUser));
       setAdminCheckDone(true);
       return currentUser;
     },
