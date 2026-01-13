@@ -195,16 +195,28 @@ class SupabaseClient {
     
     sessionStore.load();
     
-    // Get anon key
-    this._anonKey = await getAnonKey();
+    // Get anon key (non-blocking - guest mode still works without it)
+    try {
+      this._anonKey = await getAnonKey();
+    } catch (e) {
+      console.log('Failed to get anon key, continuing in guest mode');
+    }
     
     // Validate existing session if we have a token
     if (sessionStore.accessToken) {
-      const isValid = await this.validateSession();
-      if (!isValid) {
+      try {
+        const isValid = await this.validateSession();
+        if (!isValid) {
+          // Invalid session - switch to guest mode (NOT an error)
+          sessionStore.clear();
+        }
+      } catch (e) {
+        // Validation failed - default to guest mode
+        console.log('Session validation failed, continuing as guest');
         sessionStore.clear();
       }
     } else {
+      // No token - default to guest mode (this is normal, NOT an error)
       sessionStore.setAuthState(AUTH_STATES.GUEST);
     }
     
