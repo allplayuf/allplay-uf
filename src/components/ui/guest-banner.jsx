@@ -1,14 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { X, UserPlus, LogIn } from "lucide-react";
 import { Button } from "./button";
 import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
+import { LoginModal } from "@/components/supabase";
 
 export function GuestBanner() {
-  const [isDismissed, setIsDismissed] = React.useState(() => {
+  const [isDismissed, setIsDismissed] = useState(() => {
     return localStorage.getItem('guest_banner_dismissed') === 'true';
   });
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const handleDismiss = () => {
     localStorage.setItem('guest_banner_dismissed', 'true');
@@ -16,12 +18,13 @@ export function GuestBanner() {
   };
 
   const handleSignup = () => {
-    base44.auth.redirectToLogin(createPageUrl('Dashboard'));
+    setShowLoginModal(true);
   };
 
   if (isDismissed) return null;
 
   return (
+    <>
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -55,5 +58,7 @@ export function GuestBanner() {
         </div>
       </div>
     </motion.div>
+    <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
+    </>
   );
 }
