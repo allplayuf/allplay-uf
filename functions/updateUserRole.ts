@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
 
     const updates = {};
 
-    // Update built-in role if provided
+    // Update built-in role if provided (only for User entity's role field)
     if (role && ['admin', 'user'].includes(role)) {
       updates.role = role;
     }
@@ -35,7 +35,9 @@ Deno.serve(async (req) => {
     // Update custom roles if provided
     if (customRoles !== undefined) {
       const validRoles = ['CUP_ADMIN', 'MODERATOR', 'VENUE_MANAGER'];
-      const filteredRoles = customRoles.filter(r => validRoles.includes(r));
+      const filteredRoles = Array.isArray(customRoles) 
+        ? customRoles.filter(r => validRoles.includes(r))
+        : [];
       updates.custom_roles = filteredRoles;
     }
 
@@ -43,7 +45,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Ingen giltig uppdatering angiven' }, { status: 400 });
     }
 
-    await base44.asServiceRole.entities.User.update(targetUserId, updates);
+    // Update User entity via service role
+    const updatedUser = await base44.asServiceRole.entities.User.update(targetUserId, updates);
+    
+    // Also update auth metadata if role changed
+    if (updates.role) {
+      try {
+        // Update the base44 auth system role
+        await base44.asServiceRole.auth.updateUser(targetUserId, { role: updates.role });
+      } catch (authError) {
+        console.error('Could not update auth role, but entity updated:', authError);
+      }
+    }
 
     console.log('AUDIT LOG:', {
       action: 'UPDATE_USER_ROLE',
