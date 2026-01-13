@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
+import { useGuestBlock } from "@/components/ui/guest-blocker";
 
 const SKILL_LEVEL_CONFIG = {
   beginner: { label: 'Nybörjare', icon: Target },
@@ -47,6 +48,7 @@ const getStatusBadge = (status) => {
 export default React.memo(function MatchCard({ match, venues, user, participants = [], onJoin, onRefresh, index = 0 }) {
   // ALWAYS call hooks first, before any conditional returns
   const [participantUsers, setParticipantUsers] = useState([]);
+  const { checkAuth, GuestBlockModal, isGuest } = useGuestBlock();
 
   useEffect(() => {
     if (participants && participants.length > 0) {
@@ -96,16 +98,22 @@ export default React.memo(function MatchCard({ match, venues, user, participants
     e.preventDefault();
     e.stopPropagation();
     
-    if (onJoin) {
-      await onJoin(match.id);
-    }
-    
-    if (onRefresh) {
-      await onRefresh();
+    // Block guests from joining
+    if (!checkAuth('join_match', async () => {
+      if (onJoin) {
+        await onJoin(match.id);
+      }
+      if (onRefresh) {
+        await onRefresh();
+      }
+    })) {
+      return;
     }
   };
 
   return (
+    <>
+    <GuestBlockModal />
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -279,5 +287,6 @@ export default React.memo(function MatchCard({ match, venues, user, participants
         </CardContent>
       </Card>
     </motion.div>
+    </>
   );
 });
