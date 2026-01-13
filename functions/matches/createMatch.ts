@@ -3,9 +3,10 @@
  * Creates a match with proper input sanitization and authorization
  */
 
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import { requireAuth } from '../utils/authorization.js';
 import { sanitizeMatchData } from '../utils/sanitizer.js';
+import { can, ACTIONS, CONTEXTS, isGuest } from '../utils/permissions.js';
 
 Deno.serve(async (req) => {
   try {
@@ -13,6 +14,16 @@ Deno.serve(async (req) => {
     
     // Require authentication
     const { base44, user } = await requireAuth(req);
+    
+    // Block guests from creating matches
+    if (isGuest(user)) {
+      return Response.json({ error: 'Du måste vara inloggad för att skapa matcher' }, { status: 401 });
+    }
+    
+    // Check permission
+    if (!can(user, ACTIONS.CREATE, CONTEXTS.MATCH)) {
+      return Response.json({ error: 'Du har inte behörighet att skapa matcher' }, { status: 403 });
+    }
     
     // Validate required fields
     if (!data.title || !data.venue_id || !data.date || !data.time || !data.format) {
