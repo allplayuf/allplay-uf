@@ -18,13 +18,13 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 
-const ONBOARDING_STORAGE_KEY = 'allplay_onboarding_completed_v1';
+const ONBOARDING_STORAGE_KEY = 'allplay_onboarding_completed_v2';
 
 const SLIDES = [
   {
     id: "screen_0_age",
-    title: "Innan vi börjar",
-    description: "AllPlay kräver att du anger ditt födelsedatum för att säkerställa en trygg upplevelse för alla.",
+    title: "Hur gammal är du?",
+    description: "Detta är valfritt, men om du anger din ålder måste du vara minst 13 år. Om du är under 18 år aktiveras extra skydd automatiskt.",
     isAgeVerificationScreen: true,
     icon: Shield,
     color: "#2BA84A"
@@ -94,12 +94,25 @@ export function OnboardingModal() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const hasCompleted = localStorage.getItem(ONBOARDING_STORAGE_KEY);
-    if (!hasCompleted) {
-      // Small delay for better UX on load
-      const timer = setTimeout(() => setIsOpen(true), 500);
-      return () => clearTimeout(timer);
-    }
+    const checkOnboarding = async () => {
+      try {
+        const isAuth = await base44.auth.isAuthenticated();
+        if (!isAuth) return;
+
+        const user = await base44.auth.me();
+        const hasCompletedOnboarding = user?.onboarding_completed || localStorage.getItem(ONBOARDING_STORAGE_KEY);
+        
+        if (!hasCompletedOnboarding) {
+          // Small delay for better UX on load
+          const timer = setTimeout(() => setIsOpen(true), 500);
+          return () => clearTimeout(timer);
+        }
+      } catch (err) {
+        console.error('Error checking onboarding:', err);
+      }
+    };
+
+    checkOnboarding();
   }, []);
 
   // Check for referral code on mount
@@ -139,25 +152,32 @@ export function OnboardingModal() {
 
   const handleComplete = async () => {
     localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
-    setIsOpen(false);
     
-    // Check if user is authenticated and process pending referral
-    const isAuth = await base44.auth.isAuthenticated();
-    if (isAuth) {
-      const pendingReferral = sessionStorage.getItem('pending_referral_code');
-      if (pendingReferral) {
-        try {
-          const user = await base44.auth.me();
-          await base44.functions.invoke('auth/handleReferralSignup', {
-            userId: user.id,
-            referralCode: pendingReferral
-          });
-          sessionStorage.removeItem('pending_referral_code');
-        } catch (error) {
-          console.error('Error processing pending referral:', error);
+    // Mark onboarding as completed in user profile
+    try {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (isAuth) {
+        await base44.auth.updateMe({ onboarding_completed: true });
+        
+        const pendingReferral = sessionStorage.getItem('pending_referral_code');
+        if (pendingReferral) {
+          try {
+            const user = await base44.auth.me();
+            await base44.functions.invoke('auth/handleReferralSignup', {
+              userId: user.id,
+              referralCode: pendingReferral
+            });
+            sessionStorage.removeItem('pending_referral_code');
+          } catch (error) {
+            console.error('Error processing pending referral:', error);
+          }
         }
       }
+    } catch (error) {
+      console.error('Error marking onboarding complete:', error);
     }
+    
+    setIsOpen(false);
   };
 
   const handleNext = async () => {
@@ -195,9 +215,10 @@ export function OnboardingModal() {
   };
 
   const verifyAge = async () => {
+    // If no date provided, skip age verification (optional)
     if (!dateOfBirth) {
-      setAgeError('Vänligen ange ditt födelsedatum');
-      return false;
+      setAgeVerified(true);
+      return true;
     }
 
     setIsVerifyingAge(true);
@@ -328,35 +349,53 @@ export function OnboardingModal() {
                   {/* Interactive Elements */}
                   {slide.isAgeVerificationScreen ? (
                     <div className="w-full space-y-4">
-                      <div className="bg-[#121715]/50 rounded-2xl p-4 border border-white/5">
-                        <label className="block text-sm font-medium text-[#D1D5DB] mb-2 text-left">
-                          Födelsedatum
+                      <div className="bg-[#121715]/50 rounded-2xl p-5 border border-white/5">
+                        <label className="block text-sm font-semibold text-[#F4F7F5] mb-3 text-left">
+                          Födelsedatum (valfritt)
                         </label>
-                        <input
-                          type="date"
-                          value={dateOfBirth}
-                          onChange={(e) => {
-                            setDateOfBirth(e.target.value);
-                            setAgeError('');
-                          }}
-                          max={new Date().toISOString().split('T')[0]}
-                          className="w-full bg-[#18221E] border border-[#223029] text-[#F4F7F5] rounded-xl h-12 px-4 focus:border-[#2BA84A] focus:outline-none"
-                        />
+                        <div className="relative">
+                          <input
+                            type="date"
+                            value={dateOfBirth}
+                            onChange={(e) => {
+                              setDateOfBirth(e.target.value);
+                              setAgeError('');
+                            }}
+                            max={new Date().toISOString().split('T')[0]}
+                            className="w-full bg-[#18221E] border border-[#223029] text-[#F4F7F5] rounded-xl h-14 px-4 focus:border-[#2BA84A] focus:outline-none text-base transition-all"
+                            placeholder="ÅÅÅÅ-MM-DD"
+                          />
+                        </div>
                         {ageError && (
-                          <p className="mt-2 text-sm text-red-400 flex items-center gap-1">
-                            <span>⚠️</span> {ageError}
-                          </p>
+                          <motion.p 
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mt-3 text-sm text-red-400 flex items-center gap-2 bg-red-500/10 p-3 rounded-lg border border-red-500/30"
+                          >
+                            <span className="text-lg">⚠️</span> 
+                            <span>{ageError}</span>
+                          </motion.p>
                         )}
                       </div>
                       
-                      <div className="bg-[#121715]/50 rounded-2xl p-4 border border-white/5 text-left">
-                        <p className="text-xs text-[#9CA3AF]">
-                          🔒 Vi sparar ditt födelsedatum för att:
+                      <div className="bg-[#2BA84A]/5 border border-[#2BA84A]/20 rounded-2xl p-4 text-left">
+                        <p className="text-xs font-semibold text-[#2BA84A] mb-2 flex items-center gap-2">
+                          <Shield size={14} />
+                          Om du anger din ålder:
                         </p>
-                        <ul className="mt-2 space-y-1 text-xs text-[#D1D5DB]">
-                          <li>• Säkerställa att du är minst 13 år</li>
-                          <li>• Aktivera extra skydd för minderåriga (13-17 år)</li>
-                          <li>• Följa svensk och europeisk lag</li>
+                        <ul className="space-y-1.5 text-xs text-[#CFE8D6]">
+                          <li className="flex items-start gap-2">
+                            <span className="text-[#2BA84A] mt-0.5">•</span>
+                            <span>Minst 13 år krävs för att använda AllPlay</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="text-[#2BA84A] mt-0.5">•</span>
+                            <span>13-17 år: Automatiskt extra skydd (dold plats m.m.)</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="text-[#2BA84A] mt-0.5">•</span>
+                            <span>Du kan lämna tomt och fylla i senare</span>
+                          </li>
                         </ul>
                       </div>
                     </div>
@@ -437,7 +476,7 @@ export function OnboardingModal() {
             <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#040F0F] via-[#040F0F] to-transparent z-20">
               <Button
                 onClick={handleNext}
-                disabled={isVerifyingAge || (slide.isAgeVerificationScreen && !dateOfBirth)}
+                disabled={isVerifyingAge}
                 className="w-full h-12 rounded-full bg-[#F4743B] hover:bg-[#E5683A] text-white font-semibold text-lg shadow-lg hover:shadow-[#F4743B]/20 transition-all disabled:opacity-50"
               >
                 {isVerifyingAge ? (
@@ -445,7 +484,7 @@ export function OnboardingModal() {
                 ) : currentSlide === SLIDES.length - 1 ? (
                   "Kom igång"
                 ) : slide.isAgeVerificationScreen ? (
-                  "Verifiera och fortsätt"
+                  dateOfBirth ? "Verifiera och fortsätt" : "Hoppa över"
                 ) : (
                   <>
                     Nästa
