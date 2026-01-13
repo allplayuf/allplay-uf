@@ -16,6 +16,17 @@ import OfflineDetector from "@/components/ui/offline-detector";
 import { canAccessAdminPanel, isGuest } from "./components/utils/permissions";
 import { GuestBanner } from "@/components/ui/guest-banner";
 
+// Guest banner wrapper that uses query data
+function GuestBannerWrapper() {
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    staleTime: 10 * 60 * 1000,
+  });
+  
+  if (!isGuest(user)) return null;
+  return <GuestBanner />;
+}
+
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Map = lazy(() => import("@/pages/Map"));
 const Matches = lazy(() => import("@/pages/Matches"));
@@ -94,7 +105,7 @@ export default function Layout({ children, currentPageName }) {
         <OfflineDetector />
 
         {/* Guest Banner - shown when browsing as guest */}
-        {queryClient.getQueryData(['user'])?.is_guest && <GuestBanner />}
+        <GuestBannerWrapper />
 
         <div className="min-h-screen flex w-full bg-[#131816]">
         <Toaster 
