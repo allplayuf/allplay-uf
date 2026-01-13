@@ -300,10 +300,43 @@ class SupabaseClient {
     sessionStore.setUser(user);
     sessionStore.setAuthState(AUTH_STATES.AUTHENTICATED);
 
+    // CRITICAL: Sync Supabase user to Base44 User entity
+    // This ensures every authenticated user has a corresponding app user record
+    await this.syncUserToBase44(user);
+
     // Fetch roles from /me endpoint
     await this.fetchUserRoles();
 
     return { data: { user: sessionStore.user, roles: sessionStore.roles } };
+  }
+
+  // Sync Supabase Auth user to Base44 User entity
+  // Idempotent - safe to call multiple times
+  async syncUserToBase44(supabaseUser) {
+    if (!supabaseUser?.id || !supabaseUser?.email) {
+      console.log('[syncUserToBase44] Missing user data, skipping sync');
+      return;
+    }
+
+    try {
+      const { base44 } = await import('@/api/base44Client');
+      
+      const result = await base44.functions.invoke('auth/syncUser', {
+        supabase_user_id: supabaseUser.id,
+        email: supabaseUser.email,
+        full_name: supabaseUser.user_metadata?.full_name || supabaseUser.email.split('@')[0],
+        provider: supabaseUser.app_metadata?.provider || 'email'
+      });
+
+      if (result?.data?.ok) {
+        console.log('[syncUserToBase44] User synced successfully:', result.data.created ? 'created' : 'existing');
+      } else {
+        console.warn('[syncUserToBase44] Sync returned non-ok:', result?.data);
+      }
+    } catch (error) {
+      // Log but don't block - user is authenticated in Supabase
+      console.error('[syncUserToBase44] Error syncing user (non-blocking):', error);
+    }
   }
 
   // Logout
@@ -329,6 +362,11 @@ class SupabaseClient {
     sessionStore.setUser(result.data.user);
     sessionStore.setRoles(result.data.roles || []);
     sessionStore.setAuthState(AUTH_STATES.AUTHENTICATED);
+    
+    // Sync user to Base44 on session validation too (handles returning users)
+    if (result.data.user) {
+      await this.syncUserToBase44(result.data.user);
+    }
     
     return true;
   }

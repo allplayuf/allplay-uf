@@ -111,10 +111,13 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
         // If we got a session, user is registered and logged in
         if (data.session && data.access_token) {
           // Store session and notify
-          const { sessionStore, AUTH_STATES } = await import('./client');
+          const { sessionStore, AUTH_STATES, supabaseClient } = await import('./client');
           sessionStore.setTokens(data.access_token, data.refresh_token);
           sessionStore.setUser(data.user);
           sessionStore.setAuthState(AUTH_STATES.AUTHENTICATED);
+          
+          // CRITICAL: Sync new user to Base44 User entity
+          await supabaseClient.syncUserToBase44(data.user);
           
           onSuccess?.();
           onClose();
