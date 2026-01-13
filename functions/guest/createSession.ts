@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import { ulid } from 'npm:ulid@2.3.0';
 
 Deno.serve(async (req) => {

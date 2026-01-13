@@ -18,7 +18,19 @@ export function RouteGuard({ children, currentRoute }) {
     queryFn: async () => {
       const isAuth = await base44.auth.isAuthenticated();
       if (!isAuth) {
-        return { is_guest: true };
+        // Check for guest session in localStorage
+        let guestId = localStorage.getItem('guest_session_id');
+        if (!guestId) {
+          // Create new guest session
+          try {
+            const { data } = await base44.functions.invoke('createSession', {});
+            guestId = data.guestId;
+            localStorage.setItem('guest_session_id', guestId);
+          } catch (error) {
+            console.error('Failed to create guest session:', error);
+          }
+        }
+        return { is_guest: true, guest_id: guestId };
       }
       return await base44.auth.me();
     },

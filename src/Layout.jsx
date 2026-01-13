@@ -13,7 +13,8 @@ import { RouteGuard } from "@/components/ui/route-guard";
 import { OnboardingModal } from "@/components/ui/onboarding-modal";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import OfflineDetector from "@/components/ui/offline-detector";
-import { canAccessAdminPanel } from "./components/utils/permissions";
+import { canAccessAdminPanel, isGuest } from "./components/utils/permissions";
+import { GuestBanner } from "@/components/ui/guest-banner";
 
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Map = lazy(() => import("@/pages/Map"));
@@ -91,8 +92,11 @@ export default function Layout({ children, currentPageName }) {
         <RouteProgress />
         <OnboardingModal />
         <OfflineDetector />
-      
-      <div className="min-h-screen flex w-full bg-[#131816]">
+
+        {/* Guest Banner - shown when browsing as guest */}
+        {queryClient.getQueryData(['user'])?.is_guest && <GuestBanner />}
+
+        <div className="min-h-screen flex w-full bg-[#131816]">
         <Toaster 
           position="bottom-center"
           theme="dark"
