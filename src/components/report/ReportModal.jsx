@@ -24,7 +24,8 @@ export default function ReportModal({
   reportedUserId,
   reportedItemType = 'user',
   reportedItemId,
-  itemTitle
+  itemTitle,
+  matchId = null
 }) {
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
@@ -40,6 +41,7 @@ export default function ReportModal({
         reported_user_id: reportedUserId,
         reported_item_type: reportedItemType,
         reported_item_id: reportedItemId,
+        match_id: matchId,
         category,
         description
       });
