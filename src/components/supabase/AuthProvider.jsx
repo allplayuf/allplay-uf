@@ -55,7 +55,7 @@ export function SupabaseAuthProvider({ children }) {
     return unsubscribe;
   }, []);
 
-  // Login function
+  // Login function - automatically syncs user to Base44
   const login = useCallback(async (email, password) => {
     setError(null);
     const result = await supabaseClient.login(email, password);
@@ -65,6 +65,8 @@ export function SupabaseAuthProvider({ children }) {
       return { success: false, error: result.error };
     }
 
+    // User is now authenticated AND synced to Base44
+    // They have immediate full access
     return { success: true, data: result.data };
   }, []);
 
