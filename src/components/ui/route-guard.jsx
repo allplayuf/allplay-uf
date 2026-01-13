@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
-import { isGuest, canAccessAdminPanel } from "@/components/utils/permissions";
+import { isGuest, canAccessAdminPanel } from "../utils/permissions";
 import { PageLoadingSkeleton } from "./loading-skeleton";
 
 /**
