@@ -5,6 +5,7 @@ import { Friendship } from "@/entities/Friendship";
 import { TeamMember, Team } from "@/entities/Team";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Trophy,
@@ -84,9 +85,15 @@ export default function ProfilePage() {
   const targetUserId = urlParams.get('userId');
 
   // Fetch current user with aggressive caching - PRIORITIZE
+  // Handle guest users - they should see a login prompt on Profile page
   const { data: user, isLoading: userLoading, error: userError, refetch: refetchUser } = useQuery({
     queryKey: QUERY_KEYS.user,
     queryFn: async () => {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) {
+        // Return guest marker - Profile page will show login prompt
+        return { is_guest: true };
+      }
       const currentUser = await base44.auth.me();
       // Preload profile image immediately if it exists
       if (currentUser?.profile_image_url) {
@@ -436,6 +443,28 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return <ProfileSkeleton />;
+  }
+
+  // Guest users see a prompt to login
+  if (user?.is_guest && !targetUserId) {
+    return (
+      <div className="min-h-screen bg-[#0F1513] flex items-center justify-center p-4">
+        <Card className="bg-[#121715] border border-[#223029] rounded-[20px] p-8 max-w-md w-full text-center">
+          <div className="w-20 h-20 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-[#2BA84A]/20">
+            <Users className="w-10 h-10 text-[#2BA84A]" />
+          </div>
+          <h2 className="text-2xl font-bold text-[#F4F7F5] mb-3">Logga in för att se din profil</h2>
+          <p className="text-[#B6C2BC] mb-6">Skapa ett konto eller logga in för att se din profil, hantera vänner och mycket mer.</p>
+          <Button 
+            onClick={() => base44.auth.redirectToLogin(window.location.pathname)}
+            className="w-full bg-[#2BA84A] hover:bg-[#248232] text-white h-12 rounded-xl font-semibold"
+          >
+            <LogIn className="w-5 h-5 mr-2" />
+            Logga in / Skapa konto
+          </Button>
+        </Card>
+      </div>
+    );
   }
 
   if (!displayUser) {
