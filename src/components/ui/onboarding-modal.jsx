@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
+import { Input } from "@/components/ui/input";
 
 const ONBOARDING_STORAGE_KEY = 'allplay_onboarding_completed_v2';
 
@@ -99,10 +100,13 @@ export function OnboardingModal() {
     notifications: false
   });
   const [isProcessingReferral, setIsProcessingReferral] = useState(false);
-  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [birthDay, setBirthDay] = useState('');
+  const [birthMonth, setBirthMonth] = useState('');
+  const [birthYear, setBirthYear] = useState('');
   const [ageVerified, setAgeVerified] = useState(false);
   const [ageError, setAgeError] = useState('');
   const [isVerifyingAge, setIsVerifyingAge] = useState(false);
+  const [continueAsGuest, setContinueAsGuest] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -228,7 +232,7 @@ export function OnboardingModal() {
 
   const verifyAge = async () => {
     // If no date provided, skip age verification (optional)
-    if (!dateOfBirth) {
+    if (!birthDay || !birthMonth || !birthYear) {
       setAgeVerified(true);
       return true;
     }
@@ -237,6 +241,9 @@ export function OnboardingModal() {
     setAgeError('');
     
     try {
+      // Format date as YYYY-MM-DD
+      const dateOfBirth = `${birthYear}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`;
+      
       const response = await base44.functions.invoke('verifyAge', {
         date_of_birth: dateOfBirth
       });
@@ -367,18 +374,52 @@ export function OnboardingModal() {
                         <label className="block text-sm font-semibold text-[#F4F7F5] mb-3 text-left">
                           Födelsedatum (valfritt)
                         </label>
-                        <div className="relative">
-                          <input
-                            type="date"
-                            value={dateOfBirth}
-                            onChange={(e) => {
-                              setDateOfBirth(e.target.value);
-                              setAgeError('');
-                            }}
-                            max={new Date().toISOString().split('T')[0]}
-                            className="w-full bg-[#18221E] border border-[#223029] text-[#F4F7F5] rounded-xl h-14 px-4 focus:border-[#2BA84A] focus:outline-none text-base transition-all"
-                            placeholder="ÅÅÅÅ-MM-DD"
-                          />
+                        <div className="grid grid-cols-3 gap-3">
+                          <div>
+                            <label className="block text-xs text-[#B6C2BC] mb-1">Dag</label>
+                            <Input
+                              type="number"
+                              min="1"
+                              max="31"
+                              placeholder="DD"
+                              value={birthDay}
+                              onChange={(e) => {
+                                setBirthDay(e.target.value);
+                                setAgeError('');
+                              }}
+                              className="bg-[#18221E] border-[#223029] text-[#F4F7F5] text-center h-14 text-lg font-semibold"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-[#B6C2BC] mb-1">Månad</label>
+                            <Input
+                              type="number"
+                              min="1"
+                              max="12"
+                              placeholder="MM"
+                              value={birthMonth}
+                              onChange={(e) => {
+                                setBirthMonth(e.target.value);
+                                setAgeError('');
+                              }}
+                              className="bg-[#18221E] border-[#223029] text-[#F4F7F5] text-center h-14 text-lg font-semibold"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-[#B6C2BC] mb-1">År</label>
+                            <Input
+                              type="number"
+                              min="1950"
+                              max={new Date().getFullYear()}
+                              placeholder="ÅÅÅÅ"
+                              value={birthYear}
+                              onChange={(e) => {
+                                setBirthYear(e.target.value);
+                                setAgeError('');
+                              }}
+                              className="bg-[#18221E] border-[#223029] text-[#F4F7F5] text-center h-14 text-lg font-semibold"
+                            />
+                          </div>
                         </div>
                         {ageError && (
                           <motion.p 
@@ -498,7 +539,7 @@ export function OnboardingModal() {
                 ) : currentSlide === SLIDES.length - 1 ? (
                   "Kom igång"
                 ) : slide.isAgeVerificationScreen ? (
-                  dateOfBirth ? "Verifiera och fortsätt" : "Hoppa över"
+                  (birthDay && birthMonth && birthYear) ? "Verifiera och fortsätt" : "Hoppa över"
                 ) : (
                   <>
                     Nästa
