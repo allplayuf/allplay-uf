@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, LogIn, UserPlus } from "lucide-react";
 import { Button } from "./button";
@@ -6,6 +6,7 @@ import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
 import { isGuest } from "../utils/permissions";
 import { useQuery } from "@tanstack/react-query";
+import { useSupabaseAuth, LoginModal } from "@/components/supabase";
 
 /**
  * GuestBlocker - Wraps protected actions and shows login prompt for guests
@@ -22,56 +23,68 @@ export function GuestBlocker({
   onBlock = null,
   className = ""
 }) {
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    staleTime: 10 * 60 * 1000,
-  });
+  // Use Supabase auth state
+  const { isGuest: isGuestUser, isLoading } = useSupabaseAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const handleProtectedAction = () => {
     if (onBlock) {
       onBlock();
     } else {
-      base44.auth.redirectToLogin(window.location.pathname);
+      setShowLoginModal(true);
     }
   };
 
+  // If loading, render children but disabled
+  if (isLoading) {
+    return children;
+  }
+
   // If authenticated, render children normally
-  if (!isGuest(user)) {
+  if (!isGuestUser) {
     return children;
   }
 
   // If guest and showInline, show inline prompt
   if (showInline) {
     return (
-      <div className={`bg-[#121715] border border-[#223029] rounded-xl p-4 ${className}`}>
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 bg-[#F4743B]/20 rounded-xl flex items-center justify-center">
-            <Lock className="w-5 h-5 text-[#F4743B]" />
+      <>
+        <div className={`bg-[#121715] border border-[#223029] rounded-xl p-4 ${className}`}>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-[#F4743B]/20 rounded-xl flex items-center justify-center">
+              <Lock className="w-5 h-5 text-[#F4743B]" />
+            </div>
+            <div>
+              <p className="font-medium text-[#F4F7F5] text-sm">Logga in krävs</p>
+              <p className="text-xs text-[#7B8A83]">Du måste vara inloggad för denna funktion</p>
+            </div>
           </div>
-          <div>
-            <p className="font-medium text-[#F4F7F5] text-sm">Logga in krävs</p>
-            <p className="text-xs text-[#7B8A83]">Du måste vara inloggad för denna funktion</p>
-          </div>
+          <Button
+            onClick={handleProtectedAction}
+            className="w-full bg-[#2BA84A] hover:bg-[#248232] text-white h-10 rounded-xl gap-2"
+          >
+            <LogIn className="w-4 h-4" />
+            Logga in
+          </Button>
         </div>
-        <Button
-          onClick={handleProtectedAction}
-          className="w-full bg-[#2BA84A] hover:bg-[#248232] text-white h-10 rounded-xl gap-2"
-        >
-          <LogIn className="w-4 h-4" />
-          Logga in
-        </Button>
-      </div>
+        <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
+      </>
     );
   }
 
   // Default: Clone children and intercept onClick
-  return React.cloneElement(children, {
-    onClick: (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      handleProtectedAction();
-    }
-  });
+  return (
+    <>
+      {React.cloneElement(children, {
+        onClick: (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleProtectedAction();
+        }
+      })}
+      <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
+    </>
+  );
 }
 
 /**
@@ -82,12 +95,10 @@ export function GuestOverlay({
   message = "Logga in för att använda denna funktion",
   className = ""
 }) {
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    staleTime: 10 * 60 * 1000,
-  });
+  const { isGuest: isGuestUser, isLoading } = useSupabaseAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
-  if (!isGuest(user)) {
+  if (isLoading || !isGuestUser) {
     return children;
   }
 
@@ -104,13 +115,14 @@ export function GuestOverlay({
         </div>
         <p className="text-[#F4F7F5] font-medium text-center mb-4 px-4">{message}</p>
         <Button
-          onClick={() => base44.auth.redirectToLogin(window.location.pathname)}
+          onClick={() => setShowLoginModal(true)}
           className="bg-[#2BA84A] hover:bg-[#248232] text-white h-10 px-6 rounded-xl gap-2"
         >
           <LogIn className="w-4 h-4" />
           Logga in
         </Button>
       </motion.div>
+      <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </div>
   );
 }
@@ -184,19 +196,19 @@ export function GuestModal({ isOpen, onClose, feature = "denna funktion" }) {
 
 /**
  * useGuestBlock - Hook for handling guest-blocked actions
+ * Now uses Supabase auth state
  */
 export function useGuestBlock() {
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    staleTime: 10 * 60 * 1000,
-  });
+  const { isGuest: isGuestUser, isLoading } = useSupabaseAuth();
   
-  const [showModal, setShowModal] = React.useState(false);
-  const [blockedFeature, setBlockedFeature] = React.useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [blockedFeature, setBlockedFeature] = useState(null);
+  const [pendingCallback, setPendingCallback] = useState(null);
 
   const checkAuth = (feature, callback) => {
-    if (isGuest(user)) {
+    if (isGuestUser) {
       setBlockedFeature(feature);
+      setPendingCallback(() => callback);
       setShowModal(true);
       return false;
     }
@@ -204,16 +216,28 @@ export function useGuestBlock() {
     return true;
   };
 
+  const handleLoginSuccess = () => {
+    setShowModal(false);
+    if (pendingCallback) {
+      pendingCallback();
+      setPendingCallback(null);
+    }
+  };
+
   const GuestBlockModal = () => (
-    <GuestModal 
+    <LoginModal 
       isOpen={showModal} 
-      onClose={() => setShowModal(false)} 
-      feature={blockedFeature}
+      onClose={() => {
+        setShowModal(false);
+        setPendingCallback(null);
+      }}
+      onSuccess={handleLoginSuccess}
     />
   );
 
   return {
-    isGuest: isGuest(user),
+    isGuest: isGuestUser,
+    isLoading,
     checkAuth,
     GuestBlockModal,
     showModal,
