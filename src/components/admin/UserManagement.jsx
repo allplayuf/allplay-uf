@@ -16,13 +16,17 @@ import {
   TrendingUp,
   MapPin,
   Trophy,
-  Filter
+  Filter,
+  Edit
 } from "lucide-react";
+import UserRoleEditor from "./UserRoleEditor";
 
 export default function UserManagement({ users, onAction }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [cityFilter, setCityFilter] = useState('all');
+  const [editingUser, setEditingUser] = useState(null);
+  const [showRoleEditor, setShowRoleEditor] = useState(false);
 
   const cities = [...new Set(users.map(u => u.city).filter(Boolean))].sort();
 
@@ -187,6 +191,16 @@ export default function UserManagement({ users, onAction }) {
                               Admin
                             </Badge>
                           )}
+                          {user.custom_roles?.includes('CUP_ADMIN') && (
+                            <Badge className="bg-[#F59E0B]/20 text-[#FDE68A] ring-1 ring-[#F59E0B]/30 text-xs">
+                              Cup Admin
+                            </Badge>
+                          )}
+                          {user.custom_roles?.includes('MODERATOR') && (
+                            <Badge className="bg-[#9370DB]/20 text-[#DDD6FE] ring-1 ring-[#9370DB]/30 text-xs">
+                              Moderator
+                            </Badge>
+                          )}
                           <Badge className={getStatusColor(user.status)}>
                             {getStatusText(user.status)}
                           </Badge>
@@ -212,42 +226,57 @@ export default function UserManagement({ users, onAction }) {
                     </div>
 
                     {/* Actions */}
-                    {user.role !== 'admin' && (
-                      <div className="flex gap-2 flex-wrap">
-                        {user.status === 'active' && (
-                          <>
+                    <div className="flex gap-2 flex-wrap">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setEditingUser(user);
+                          setShowRoleEditor(true);
+                        }}
+                        className="h-8 text-xs border-[#2BA84A]/30 text-[#2BA84A] hover:bg-[#2BA84A]/10"
+                      >
+                        <Edit className="w-3 h-3 mr-1" />
+                        Redigera roller
+                      </Button>
+                      
+                      {user.role !== 'admin' && (
+                        <>
+                          {user.status === 'active' && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => onAction(user.id, 'suspend')}
+                                className="h-8 text-xs border-[#223029] text-[#F4F7F5] hover:bg-[#223029]"
+                              >
+                                <UserX className="w-3 h-3 mr-1" />
+                                Stäng av
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => onAction(user.id, 'ban')}
+                                className="h-8 text-xs border-red-500/30 text-red-400 hover:bg-red-500/10"
+                              >
+                                <Ban className="w-3 h-3 mr-1" />
+                                Bannlys
+                              </Button>
+                            </>
+                          )}
+                          {(user.status === 'suspended' || user.status === 'banned') && (
                             <Button
                               size="sm"
-                              variant="outline"
-                              onClick={() => onAction(user.id, 'suspend')}
-                              className="h-8 text-xs border-[#223029] text-[#F4F7F5] hover:bg-[#223029]"
+                              onClick={() => onAction(user.id, 'activate')}
+                              className="h-8 text-xs bg-[#2BA84A] hover:bg-[#248232] text-white"
                             >
-                              <UserX className="w-3 h-3 mr-1" />
-                              Stäng av
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Aktivera
                             </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => onAction(user.id, 'ban')}
-                              className="h-8 text-xs border-red-500/30 text-red-400 hover:bg-red-500/10"
-                            >
-                              <Ban className="w-3 h-3 mr-1" />
-                              Bannlys
-                            </Button>
-                          </>
-                        )}
-                        {(user.status === 'suspended' || user.status === 'banned') && (
-                          <Button
-                            size="sm"
-                            onClick={() => onAction(user.id, 'activate')}
-                            className="h-8 text-xs bg-[#2BA84A] hover:bg-[#248232] text-white"
-                          >
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            Aktivera
-                          </Button>
-                        )}
-                      </div>
-                    )}
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -262,6 +291,21 @@ export default function UserManagement({ users, onAction }) {
           )}
         </CardContent>
       </Card>
+
+      {/* Role Editor Modal */}
+      {editingUser && (
+        <UserRoleEditor
+          user={editingUser}
+          isOpen={showRoleEditor}
+          onClose={() => {
+            setShowRoleEditor(false);
+            setEditingUser(null);
+          }}
+          onSuccess={() => {
+            window.location.reload(); // Reload to refresh user data
+          }}
+        />
+      )}
     </div>
   );
 }
