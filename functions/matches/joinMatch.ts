@@ -1,4 +1,5 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { can, ACTIONS, CONTEXTS, isGuest, requireAuth } from '../utils/permissions.js';
 
 Deno.serve(async (req) => {
   try {
@@ -6,8 +7,14 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     const { match_id, status = 'confirmed' } = await req.json();
 
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    // Block guests from joining matches
+    if (!user || isGuest(user)) {
+      return Response.json({ error: 'Du måste vara inloggad för att gå med i matcher' }, { status: 401 });
+    }
+
+    // Check permission
+    if (!can(user, ACTIONS.JOIN, CONTEXTS.MATCH)) {
+      return Response.json({ error: 'Du har inte behörighet att gå med i matcher' }, { status: 403 });
     }
 
     // Check if match is full
