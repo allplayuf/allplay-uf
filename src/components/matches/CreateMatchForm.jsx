@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Kept as they might be used elsewhere in the project, though not in the main layout of this component anymore
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Calendar, MapPin, Users, Trophy, Target, X, Info, Zap, Timer, AlertCircle } from "lucide-react"; // Added AlertCircle
+import { Calendar, MapPin, Users, Trophy, Target, X, Info, Zap, Timer, AlertCircle } from "lucide-react";
 import { motion } from 'framer-motion';
 import { DateTimePicker } from "@/components/ui/date-time-picker";
+import { GuestOverlay } from "@/components/ui/guest-blocker";
 
 export default function CreateMatchForm({ venues, user, onSubmit, onCancel, preselectedVenueId }) {
   const [formData, setFormData] = useState({
@@ -104,6 +105,7 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
   const today = new Date().toISOString().split('T')[0];
 
   return (
+    <GuestOverlay message="Du måste vara inloggad för att skapa matcher">
     <div className="flex flex-col h-full bg-[#121715] rounded-t-[20px] lg:rounded-[20px] overflow-hidden">
       {/* Header */}
       <div className="flex-shrink-0 flex items-center justify-between p-4 lg:p-6 border-b border-[#223029] bg-gradient-to-br from-[#2BA84A]/10 to-[#0F2917]/10">
@@ -373,5 +375,6 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
         </div>
       </div>
     </div>
+    </GuestOverlay>
   );
 }
