@@ -13,7 +13,7 @@ import { RouteGuard } from "@/components/ui/route-guard";
 import { OnboardingModal } from "@/components/ui/onboarding-modal";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import OfflineDetector from "@/components/ui/offline-detector";
-import { canAccessAdminPanel } from "@/utils/permissions";
+import { canAccessAdminPanel } from "@/components/utils/permissions";
 
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Map = lazy(() => import("@/pages/Map"));

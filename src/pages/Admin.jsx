@@ -8,7 +8,7 @@ import { Shield, Users, Flag, MapPin, BarChart, AlertTriangle, RefreshCw, Trophy
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useCustomDialog } from "../components/ui/custom-dialog";
-import { canAccessAdminPanel, getAvailableAdminTabs, isCupAdmin } from "@/utils/permissions";
+import { canAccessAdminPanel, getAvailableAdminTabs, isCupAdmin } from "@/components/utils/permissions";
 
 import ModerationQueue from "../components/admin/ModerationQueue";
 import UserManagement from "../components/admin/UserManagement";
