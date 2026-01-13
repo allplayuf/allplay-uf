@@ -1,4 +1,5 @@
 import AboutAllPlay from './pages/AboutAllPlay';
+import AccountSettings from './pages/AccountSettings';
 import Admin from './pages/Admin';
 import AdminCleanup from './pages/AdminCleanup';
 import Community from './pages/Community';
@@ -15,12 +16,12 @@ import Matches from './pages/Matches';
 import Profile from './pages/Profile';
 import TeamOverview from './pages/TeamOverview';
 import TermsOfService from './pages/TermsOfService';
-import AccountSettings from './pages/AccountSettings';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AboutAllPlay": AboutAllPlay,
+    "AccountSettings": AccountSettings,
     "Admin": Admin,
     "AdminCleanup": AdminCleanup,
     "Community": Community,
@@ -37,7 +38,6 @@ export const PAGES = {
     "Profile": Profile,
     "TeamOverview": TeamOverview,
     "TermsOfService": TermsOfService,
-    "AccountSettings": AccountSettings,
 }
 
 export const pagesConfig = {

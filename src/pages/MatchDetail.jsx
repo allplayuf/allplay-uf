@@ -19,7 +19,8 @@ import {
   Target,
   TrendingUp,
   Shield,
-  Crown
+  Crown,
+  CheckCircle
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { useCustomDialog } from "../components/ui/custom-dialog";
@@ -27,6 +28,8 @@ import { LazyMatchEndModal, LazyInviteFriendsModal, LazyMatchReportModal } from 
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
 import CupMatchGoals from "../components/cups/CupMatchGoals";
+import CheckInButton from "../components/matches/CheckInButton";
+import MatchPlayersModal from "../components/matches/MatchPlayersModal";
 
 // CONSISTENT SKILL LEVEL CONFIG - WCAG AA compliant colors
 const SKILL_LEVEL_CONFIG = {
@@ -97,6 +100,7 @@ export default function MatchDetailPage() {
   const [showEndModal, setShowEndModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [showPlayersModal, setShowPlayersModal] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
 
   const { confirm, alert, DialogContainer } = useCustomDialog();
@@ -462,15 +466,24 @@ export default function MatchDetailPage() {
                   </div>
                 </div>
 
-                {isParticipant && (
+                <div className="flex gap-3">
+                  {isParticipant && (
+                    <button
+                      onClick={() => setShowEndModal(true)}
+                      className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#2BA84A] px-8 text-white font-bold hover:bg-[#248232] transition-all shadow-lg hover:scale-105"
+                    >
+                      <Crown className="w-5 h-5" />
+                      Rösta på MVP
+                    </button>
+                  )}
                   <button
-                    onClick={() => setShowEndModal(true)}
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#2BA84A] px-8 text-white font-bold hover:bg-[#248232] transition-all shadow-lg hover:scale-105"
+                    onClick={() => setShowPlayersModal(true)}
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#F4743B] px-8 text-white font-bold hover:bg-[#E5683A] transition-all shadow-lg hover:scale-105"
                   >
-                    <Crown className="w-5 h-5" />
-                    Rösta på MVP / Betygsätt
+                    <Users className="w-5 h-5" />
+                    Matchens spelare
                   </button>
-                )}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -594,6 +607,14 @@ export default function MatchDetailPage() {
 
                 {isParticipant && match.status === 'upcoming' && (
                   <>
+                    <CheckInButton
+                      match={match}
+                      isParticipant={isParticipant}
+                      onCheckInSuccess={() => {
+                        queryClient.invalidateQueries({ queryKey: ['matchParticipants', matchId] });
+                      }}
+                    />
+
                     <div className="flex gap-3 w-full">
                       <button
                         onClick={() => setShowInviteModal(true)}
@@ -728,6 +749,12 @@ export default function MatchDetailPage() {
                 <p className="text-[14px] leading-[20px] text-[#B6C2BC]">Bli den första att anmäla dig!</p>
               </Card>
             ) : (
+              <>
+                <div className="mb-4 flex items-center justify-between">
+                  <p className="text-sm text-[#B6C2BC]">
+                    {participants.filter(p => p.participantInfo?.checked_in).length} av {participants.length} spelare checkade in
+                  </p>
+                </div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {participants.map((participant) => {
                   const participantSkill = participant.skill_level ? SKILL_LEVEL_CONFIG[participant.skill_level] : null;
@@ -743,15 +770,27 @@ export default function MatchDetailPage() {
                           className="block mb-3 group"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                              {participant.profile_image_url ? (
-                                <img src={participant.profile_image_url} alt={participant.display_name || participant.full_name} className="w-full h-full object-cover rounded-xl" />
-                              ) : (
-                                <span className="text-[#FFFFFF] font-semibold text-lg">{(participant.display_name || participant.full_name)?.[0] || 'U'}</span>
+                            <div className="relative">
+                              <div className="w-12 h-12 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                                {participant.profile_image_url ? (
+                                  <img src={participant.profile_image_url} alt={participant.display_name || participant.full_name} className="w-full h-full object-cover rounded-xl" />
+                                ) : (
+                                  <span className="text-[#FFFFFF] font-semibold text-lg">{(participant.display_name || participant.full_name)?.[0] || 'U'}</span>
+                                )}
+                              </div>
+                              {participant.participantInfo?.checked_in && (
+                                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#2BA84A] rounded-full flex items-center justify-center ring-2 ring-[#121715]">
+                                  <CheckCircle className="w-3 h-3 text-white" />
+                                </div>
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-[#F4F7F5] text-[14px] leading-[20px] truncate group-hover:text-[#2BA84A] transition-colors">{participant.display_name || participant.full_name}</h4>
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-semibold text-[#F4F7F5] text-[14px] leading-[20px] truncate group-hover:text-[#2BA84A] transition-colors">{participant.display_name || participant.full_name}</h4>
+                                {participant.participantInfo?.checked_in && (
+                                  <span className="text-[10px] font-bold text-[#2BA84A] bg-[#2BA84A]/10 px-2 py-0.5 rounded-full">PÅ PLATS</span>
+                                )}
+                              </div>
                               <p className="text-[12px] leading-[16px] text-[#B6C2BC]">{participant.city}</p>
                             </div>
                           </div>
@@ -805,6 +844,7 @@ export default function MatchDetailPage() {
                   );
                 })}
               </div>
+              </>
             )}
           </TabsContent>
 
@@ -873,6 +913,14 @@ export default function MatchDetailPage() {
         match={match}
         currentUser={user}
         onClose={() => setShowReportModal(false)}
+      />
+
+      <MatchPlayersModal
+        isOpen={showPlayersModal}
+        onClose={() => setShowPlayersModal(false)}
+        participants={participants}
+        matchId={matchId}
+        matchTitle={match?.title}
       />
     </div>
   );
