@@ -1,3 +1,4 @@
+
 /**
  * Supabase Integration Module
  * Export all Supabase-related components and utilities
@@ -42,3 +43,17 @@ export {
 
 // Login modal
 export { default as LoginModal } from './LoginModal';
+
+// Match service - Supabase RPC operations
+export {
+  getPublicMatches,
+  getMatchDetails as getMatchDetailsRpc,
+  getMyParticipation,
+  createMatch as createMatchRpc,
+  joinMatch as joinMatchRpc,
+  leaveMatch as leaveMatchRpc,
+  checkInMatch,
+  canCheckIn,
+  isGuest,
+  isAuthenticated
+} from './matchService';
