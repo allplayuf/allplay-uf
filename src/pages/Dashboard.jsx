@@ -32,6 +32,7 @@ import CupsWidget from "../components/dashboard/CupsWidget";
 import MatchCard from "../components/matches/MatchCard";
 import NotificationsSlider from "../components/dashboard/NotificationsSlider";
 import NextMatchCard from "../components/dashboard/NextMatchCard";
+import { createMatch as supabaseCreateMatch, isGuest } from "../components/supabase/matchService";
 
 // Query keys
 const QUERY_KEYS = {
@@ -201,16 +202,14 @@ export default function Dashboard() {
 
   const handleMatchCreated = async (matchData) => {
     try {
-      if (!user?.id) {
-        throw new Error("User not logged in.");
+      // Check if guest
+      if (isGuest()) {
+        displayError('Du måste vara inloggad för att skapa en match.');
+        return;
       }
-      const newMatch = await base44.entities.Match.create(matchData);
-      
-      await base44.entities.MatchParticipant.create({
-        match_id: newMatch.id,
-        user_id: user.id,
-        status: 'confirmed'
-      });
+
+      // Use Supabase RPC - automatically adds creator as participant
+      await supabaseCreateMatch(matchData);
 
       setShowCreateMatchModal(false);
       
@@ -219,7 +218,7 @@ export default function Dashboard() {
       
     } catch (error) {
       console.error("Error creating match:", error);
-      displayError('Kunde inte skapa match. Försök igen.');
+      displayError(error.message || 'Kunde inte skapa match. Försök igen.');
     }
   };
 

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { MapPin, Loader2, Check, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { base44 } from "@/api/base44Client";
 import { motion, AnimatePresence } from "framer-motion";
+import { checkInMatch as supabaseCheckIn, isGuest } from "@/components/supabase/matchService";
 
 export default function CheckInButton({ match, isParticipant, onCheckInSuccess }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -31,6 +31,12 @@ export default function CheckInButton({ match, isParticipant, onCheckInSuccess }
   };
 
   const handleCheckIn = async () => {
+    // Check if guest
+    if (isGuest()) {
+      setError('Du måste vara inloggad för att checka in');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -51,19 +57,11 @@ export default function CheckInButton({ match, isParticipant, onCheckInSuccess }
       const userLat = position.coords.latitude;
       const userLng = position.coords.longitude;
 
-      // Call check-in function
-      const { data: response } = await base44.functions.invoke('checkInToMatch', {
-        matchId: match.id,
-        userLat,
-        userLng
-      });
+      // Call Supabase RPC check-in (500m verification)
+      await supabaseCheckIn(match.id, userLat, userLng);
 
-      if (response?.success) {
-        setIsCheckedIn(true);
-        onCheckInSuccess?.();
-      } else if (response?.error) {
-        throw new Error(response.error);
-      }
+      setIsCheckedIn(true);
+      onCheckInSuccess?.();
 
     } catch (err) {
       console.error('Check-in error:', err);
