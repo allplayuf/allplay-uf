@@ -45,7 +45,7 @@ const getStatusBadge = (status) => {
   return statusConfig[status] || statusConfig.upcoming;
 };
 
-export default React.memo(function MatchCard({ match, venues, user, participants = [], onJoin, onRefresh, index = 0 }) {
+export default React.memo(function MatchCard({ match, venues = [], user, participants = [], onJoin, onRefresh, index = 0 }) {
   // ALWAYS call hooks first, before any conditional returns
   const [participantUsers, setParticipantUsers] = useState([]);
   const { checkAuth, GuestBlockModal, isGuest } = useGuestBlock();
@@ -59,12 +59,22 @@ export default React.memo(function MatchCard({ match, venues, user, participants
   }, [participants]);
 
   // NOW we can do null checks after hooks
-  if (!match || !user) {
+  if (!match) {
     return null;
   }
 
-  const venue = venues?.find(v => v?.id === match.venue_id);
-  const isOrganizer = match.organizer_id === user?.id;
+  // Support both Base44 venues lookup AND inline venue data from Supabase view
+  const venueFromList = venues?.find(v => v?.id === match.venue_id || v?.id === match.venue_external_id);
+  const venue = venueFromList || {
+    // Use inline venue data from public_matches view if available
+    name: match._venue_name || match.venue_name || 'Okänd plan',
+    city: match._venue_city || match.venue_city,
+    address: match._venue_address || match.venue_address,
+    latitude: match._venue_lat || match.venue_lat,
+    longitude: match._venue_lng || match.venue_lng,
+  };
+  
+  const isOrganizer = user && match.organizer_id === user?.id;
   const hasJoined = participants.some(p => p.user_id === user?.id);
   
   // Calculate actual participant count
