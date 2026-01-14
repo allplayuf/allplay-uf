@@ -210,9 +210,12 @@ export default function MatchesPage() {
 
   const handleMatchCreated = async (matchData) => {
     try {
-      // Use Supabase RPC instead of direct entity writes
+      // Find selected venue from venues list for upsert
+      const selectedVenue = venues.find(v => v.id === matchData.venue_id);
+      
+      // Use Supabase RPC - pass venue for upsert
       // RPC automatically adds creator as participant
-      await supabaseCreateMatch(matchData);
+      await supabaseCreateMatch(matchData, selectedVenue);
 
       setShowCreateForm(false);
       setPreselectedVenueId(null);

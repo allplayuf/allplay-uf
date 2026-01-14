@@ -208,8 +208,11 @@ export default function Dashboard() {
         return;
       }
 
-      // Use Supabase RPC - automatically adds creator as participant
-      await supabaseCreateMatch(matchData);
+      // Find selected venue from venues list for upsert
+      const selectedVenue = venues.find(v => v.id === matchData.venue_id);
+
+      // Use Supabase RPC - pass venue for upsert
+      await supabaseCreateMatch(matchData, selectedVenue);
 
       setShowCreateMatchModal(false);
       
