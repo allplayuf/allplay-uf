@@ -55,5 +55,6 @@ export {
   checkInMatch,
   canCheckIn,
   isGuest,
-  isAuthenticated
+  isAuthenticated,
+  upsertVenue
 } from './matchService';
