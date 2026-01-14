@@ -30,6 +30,7 @@ import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
 import CupMatchGoals from "../components/cups/CupMatchGoals";
 import CheckInButton from "../components/matches/CheckInButton";
 import MatchPlayersModal from "../components/matches/MatchPlayersModal";
+import { joinMatch as supabaseJoinMatch, leaveMatch as supabaseLeaveMatch, isGuest } from "../components/supabase/matchService";
 
 // CONSISTENT SKILL LEVEL CONFIG - WCAG AA compliant colors
 const SKILL_LEVEL_CONFIG = {
@@ -183,6 +184,12 @@ export default function MatchDetailPage() {
   });
 
   const handleJoinMatch = async () => {
+    // Check if guest
+    if (isGuest()) {
+      await alert('Logga in krävs', 'Du måste vara inloggad för att gå med i en match.', { type: 'info' });
+      return;
+    }
+
     if (isActionLoading) return;
     setIsActionLoading(true);
     try {
@@ -198,18 +205,19 @@ export default function MatchDetailPage() {
         return;
       }
 
-      await base44.functions.invoke('joinMatch', { match_id: matchId });
+      // Use Supabase RPC instead of Base44 function
+      await supabaseJoinMatch(matchId);
 
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['matchParticipants', matchId] });
-      queryClient.invalidateQueries({ queryKey: ['participants'] }); // Global list if used
+      queryClient.invalidateQueries({ queryKey: ['participants'] });
       queryClient.invalidateQueries({ queryKey: ['matches'] });
 
       await alert('Anmäld! 🎉', `Du har anmält dig till "${match.title}". Vi ses där!`, { type: 'success' });
 
     } catch (error) {
       console.error("Error joining match:", error);
-      await alert('Ett fel uppstod', 'Kunde inte anmäla dig. Försök igen.', { type: 'alert' });
+      await alert('Ett fel uppstod', error.message || 'Kunde inte anmäla dig. Försök igen.', { type: 'alert' });
     } finally {
       setIsActionLoading(false);
     }
@@ -230,7 +238,9 @@ export default function MatchDetailPage() {
       if (!shouldLeave) return;
 
       setIsActionLoading(true);
-      await base44.functions.invoke('leaveMatch', { match_id: matchId });
+      
+      // Use Supabase RPC instead of Base44 function
+      await supabaseLeaveMatch(matchId);
 
       queryClient.invalidateQueries({ queryKey: ['matchParticipants', matchId] });
       queryClient.invalidateQueries({ queryKey: ['participants'] });
@@ -240,7 +250,7 @@ export default function MatchDetailPage() {
 
     } catch (error) {
       console.error("Error leaving match:", error);
-      await alert('Ett fel uppstod', 'Kunde inte lämna matchen. Försök igen.', { type: 'alert' });
+      await alert('Ett fel uppstod', error.message || 'Kunde inte lämna matchen. Försök igen.', { type: 'alert' });
     } finally {
       setIsActionLoading(false);
     }

@@ -10,6 +10,7 @@ import { Calendar, MapPin, Users, Trophy, Target, X, Info, Zap, Timer, AlertCirc
 import { motion } from 'framer-motion';
 import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { GuestOverlay } from "@/components/ui/guest-blocker";
+import { isGuest } from "@/components/supabase/matchService";
 
 export default function CreateMatchForm({ venues, user, onSubmit, onCancel, preselectedVenueId }) {
   const [formData, setFormData] = useState({
@@ -42,8 +43,15 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
 
   const selectedVenue = venues.find(v => v.id === formData.venue_id);
 
-  const handleSubmit = async (e) => { // Made async to handle potential async onSubmit and setIsSubmitting
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check if guest
+    if (isGuest()) {
+      alert("Du måste vara inloggad för att skapa en match!");
+      return;
+    }
+
     if (!formData.title || !formData.venue_id || !formData.date || !formData.time) {
       alert("Fyll i alla obligatoriska fält!");
       return;
@@ -54,22 +62,21 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
       return;
     }
 
-    setIsSubmitting(true); // Set submitting state to true
+    setIsSubmitting(true);
 
     const submitData = {
       ...formData,
       max_players: formData.is_spontaneous ? null : formData.max_players,
-      is_team_match: false, // Ensure this is explicitly set if the UI doesn't allow changing it
-      is_ranked: false // Ensure this is explicitly set if the UI doesn't allow changing it
+      is_team_match: false,
+      is_ranked: false
     };
 
     try {
-      await onSubmit(submitData); // Await onSubmit if it's an async operation
+      await onSubmit(submitData);
     } catch (error) {
       console.error("Error submitting match:", error);
-      // Optionally, handle error display to the user
     } finally {
-      setIsSubmitting(false); // Reset submitting state
+      setIsSubmitting(false);
     }
   };
 

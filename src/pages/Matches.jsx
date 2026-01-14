@@ -14,6 +14,8 @@ import { useCustomDialog } from "../components/ui/custom-dialog";
 import { useInfiniteMatches } from "../components/hooks/useInfiniteMatches";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import { NoMatchesFound } from "../components/ui/empty-state";
+import { createMatch as supabaseCreateMatch, joinMatch as supabaseJoinMatch, isGuest } from "../components/supabase/matchService";
+import { sessionStore } from "../components/supabase/client";
 
 // Query keys
 const QUERY_KEYS = {
@@ -154,14 +156,11 @@ export default function MatchesPage() {
   // The filteredMatches memo logic is now expected to be handled within InfiniteMatchList
   // as it now receives the raw matchesData and sorting parameters directly.
 
-  // Join match mutation
+  // Join match mutation - NOW USES SUPABASE RPC
   const joinMatchMutation = useMutation({
-    mutationFn: async ({ matchId, userId }) => {
-      await base44.entities.MatchParticipant.create({
-        match_id: matchId,
-        user_id: userId,
-        status: 'confirmed'
-      });
+    mutationFn: async ({ matchId }) => {
+      // Use Supabase RPC instead of direct entity write
+      await supabaseJoinMatch(matchId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
@@ -211,13 +210,9 @@ export default function MatchesPage() {
 
   const handleMatchCreated = async (matchData) => {
     try {
-      const newMatch = await base44.entities.Match.create(matchData);
-      
-      await base44.entities.MatchParticipant.create({
-        match_id: newMatch.id,
-        user_id: user.id,
-        status: 'confirmed'
-      });
+      // Use Supabase RPC instead of direct entity writes
+      // RPC automatically adds creator as participant
+      await supabaseCreateMatch(matchData);
 
       setShowCreateForm(false);
       setPreselectedVenueId(null);
@@ -229,13 +224,23 @@ export default function MatchesPage() {
       console.error("Error creating match:", error);
       await alert(
         'Kunde inte skapa match',
-        'Det gick inte att skapa matchen. Försök igen om en stund.',
+        error.message || 'Det gick inte att skapa matchen. Försök igen om en stund.',
         { type: 'alert' }
       );
     }
   };
 
   const handleJoinMatch = async (matchId) => {
+    // Check if guest - show login prompt
+    if (isGuest()) {
+      await alert(
+        'Logga in krävs',
+        'Du måste vara inloggad för att gå med i en match.',
+        { type: 'info' }
+      );
+      return;
+    }
+
     try {
       const match = allMatches.find(m => m.id === matchId);
       
@@ -277,10 +282,8 @@ export default function MatchesPage() {
         return;
       }
 
-      await joinMatchMutation.mutateAsync({
-        matchId,
-        userId: user.id
-      });
+      // Use Supabase RPC - no userId needed, server uses auth token
+      await joinMatchMutation.mutateAsync({ matchId });
 
       // Success popup with celebration
       await alert(
@@ -293,7 +296,7 @@ export default function MatchesPage() {
       console.error("Error joining match:", error);
       await alert(
         'Ett fel uppstod',
-        'Kunde inte anmäla dig till matchen. Kontrollera din internetanslutning och försök igen.',
+        error.message || 'Kunde inte anmäla dig till matchen. Kontrollera din internetanslutning och försök igen.',
         { type: 'alert' }
       );
     }
