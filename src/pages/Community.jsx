@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, MessageSquare, UserPlus, Trophy, Plus, Search, Target, TrendingUp, Flame, Heart, Sparkles, ArrowUpRight } from "lucide-react";
+import { Users, UserPlus, Trophy, Plus, Search, Target, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -49,12 +49,6 @@ const TAB_COLORS = {
     active: 'bg-[#2BA84A]/16 text-[#2BA84A] ring-1 ring-[#2BA84A]/30',
     inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]',
     icon: 'text-[#2BA84A]',
-    iconInactive: ''
-  },
-  feedback: {
-    active: 'bg-[#4169E1]/16 text-[#B0C4DE] ring-1 ring-[#4169E1]/30',
-    inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]',
-    icon: 'text-[#B0C4DE]',
     iconInactive: ''
   },
   cups: {
@@ -232,7 +226,8 @@ export default function CommunityPage() {
     f && f.status === 'pending' && f.addressee_id === user?.id
   );
 
-  const isLoading = userLoading || usersLoading || teamsLoading || friendshipsLoading;
+  // Only block on user loading - other data loads in background
+  const isLoading = userLoading;
 
   const handleAddFriend = async (targetId) => {
     if (isSubmitting) return;
@@ -586,7 +581,7 @@ export default function CommunityPage() {
 
         {/* Tabs - Dynamic colors based on active tab */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-5 gap-2 bg-transparent border-0 p-0">
+          <TabsList className="grid grid-cols-4 gap-2 bg-transparent border-0 p-0">
             <TabsTrigger 
               value="friends" 
               className={`gap-2 h-12 rounded-xl transition-all duration-200 font-semibold ${
@@ -613,15 +608,6 @@ export default function CommunityPage() {
             >
               <Search className={`w-4 h-4 ${activeTab === 'find' ? TAB_COLORS.find.icon : ''}`} />
               <span className="hidden sm:inline">Hitta</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="feedback" 
-              className={`gap-2 h-12 rounded-xl transition-all duration-200 font-semibold ${
-                activeTab === 'feedback' ? TAB_COLORS.feedback.active : TAB_COLORS.feedback.inactive
-              }`}
-            >
-              <MessageSquare className={`w-4 h-4 ${activeTab === 'feedback' ? TAB_COLORS.feedback.icon : ''}`} />
-              <span className="hidden sm:inline">Feedback</span>
             </TabsTrigger>
             <TabsTrigger 
               value="cups" 
@@ -703,35 +689,6 @@ export default function CommunityPage() {
                       onAddFriend={handleAddFriend}
                     />
                   </Suspense>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </TabsContent>
-
-          <TabsContent value="feedback">
-            <AnimatePresence mode="wait">
-              {activeTab === 'feedback' && (
-                <motion.div
-                  key="feedback-content"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
-                >
-                  <Link to={createPageUrl("Feedback")}>
-                    <Card className="bg-[#121715] border border-[#223029] rounded-[20px] p-12 hover:border-[#4169E1]/30 transition-all cursor-pointer">
-                      <div className="text-center">
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#4169E1]/20 to-[#3457D5]/10 flex items-center justify-center mx-auto mb-6">
-                          <MessageSquare className="w-10 h-10 text-[#4169E1]" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-[#F4F7F5] mb-2">Feedback & Idéer</h3>
-                        <p className="text-[#B6C2BC] mb-6">Dela dina tankar och hjälp oss förbättra AllPlay</p>
-                        <Button className="bg-[#4169E1] hover:bg-[#3457D5] text-white px-6 py-3 text-base font-semibold rounded-xl">
-                          Dela dina idéer
-                        </Button>
-                      </div>
-                    </Card>
-                  </Link>
                 </motion.div>
               )}
             </AnimatePresence>
