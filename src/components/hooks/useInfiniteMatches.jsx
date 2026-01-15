@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { CACHE_STRATEGIES } from '../providers/QueryProvider';
-import { getPublicMatches } from '../supabase/matchService';
+import { getPublicMatches } from '../supabase/services';
 
 const MATCHES_PER_PAGE = 20;
 
