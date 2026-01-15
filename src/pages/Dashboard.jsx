@@ -32,7 +32,8 @@ import CupsWidget from "../components/dashboard/CupsWidget";
 import MatchCard from "../components/matches/MatchCard";
 import NotificationsSlider from "../components/dashboard/NotificationsSlider";
 import NextMatchCard from "../components/dashboard/NextMatchCard";
-import { createMatch as supabaseCreateMatch, isGuest } from "../components/supabase/matchService";
+import { createMatch as supabaseCreateMatch, upsertVenue } from "../components/supabase/services";
+import { isGuest } from "../components/supabase";
 
 // Query keys
 const QUERY_KEYS = {
@@ -211,8 +212,17 @@ export default function Dashboard() {
       // Find selected venue from venues list for upsert
       const selectedVenue = venues.find(v => v.id === matchData.venue_id);
 
-      // Use Supabase RPC - pass venue for upsert
-      await supabaseCreateMatch(matchData, selectedVenue);
+      // Upsert venue first to ensure it exists in Supabase
+      if (selectedVenue) {
+        try {
+          await upsertVenue(selectedVenue);
+        } catch (e) {
+          console.warn('[Dashboard] Venue upsert failed (may already exist):', e.message);
+        }
+      }
+
+      // Create match via Edge Function
+      await supabaseCreateMatch(matchData);
 
       setShowCreateMatchModal(false);
       
