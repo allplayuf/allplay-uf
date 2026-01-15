@@ -14,8 +14,8 @@ import { useCustomDialog } from "../components/ui/custom-dialog";
 import { useInfiniteMatches } from "../components/hooks/useInfiniteMatches";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import { NoMatchesFound } from "../components/ui/empty-state";
-import { createMatch as supabaseCreateMatch, joinMatch as supabaseJoinMatch, isGuest } from "../components/supabase/matchService";
-import { sessionStore } from "../components/supabase/client";
+import { createMatch as supabaseCreateMatch, joinMatch as supabaseJoinMatch, upsertVenue } from "../components/supabase/services";
+import { sessionStore, isGuest } from "../components/supabase";
 
 // Query keys
 const QUERY_KEYS = {
@@ -213,9 +213,17 @@ export default function MatchesPage() {
       // Find selected venue from venues list for upsert
       const selectedVenue = venues.find(v => v.id === matchData.venue_id);
       
-      // Use Supabase RPC - pass venue for upsert
-      // RPC automatically adds creator as participant
-      await supabaseCreateMatch(matchData, selectedVenue);
+      // Upsert venue first to ensure it exists in Supabase
+      if (selectedVenue) {
+        try {
+          await upsertVenue(selectedVenue);
+        } catch (e) {
+          console.warn('[Matches] Venue upsert failed (may already exist):', e.message);
+        }
+      }
+      
+      // Create match via Edge Function
+      await supabaseCreateMatch(matchData);
 
       setShowCreateForm(false);
       setPreselectedVenueId(null);
