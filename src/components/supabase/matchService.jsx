@@ -1,47 +1,25 @@
 /**
- * Supabase Match Service
+ * Supabase Match Service (LEGACY)
  * 
- * All match operations go through Supabase RPC functions.
- * Direct table writes are blocked by RLS.
+ * DEPRECATED: Use services/matchesService.js instead.
+ * This file is kept for backwards compatibility.
  */
 
+import { getSupabaseConfig, SUPABASE_URL } from './config';
 import { sessionStore } from './client';
-
-const SUPABASE_URL = 'https://vqfjjokqmykqawjlgevj.supabase.co';
-
-// Cache for anon key
-let cachedAnonKey = null;
-
-/**
- * Get Supabase anon key (cached)
- */
-async function getAnonKey() {
-  if (cachedAnonKey) return cachedAnonKey;
-  
-  try {
-    const { base44 } = await import('@/api/base44Client');
-    const response = await base44.functions.invoke('getSupabaseConfig');
-    if (response?.data?.anonKey) {
-      cachedAnonKey = response.data.anonKey;
-      return cachedAnonKey;
-    }
-  } catch (e) {
-    console.error('Failed to get anon key:', e);
-  }
-  return null;
-}
 
 /**
  * Helper to call Supabase RPC functions
  */
 async function callRpc(functionName, params = {}) {
+  const config = await getSupabaseConfig();
+  
   const headers = {
     'Content-Type': 'application/json',
   };
 
-  const anonKey = await getAnonKey();
-  if (anonKey) {
-    headers['apikey'] = anonKey;
+  if (config.anonKey) {
+    headers['apikey'] = config.anonKey;
   }
 
   // Add auth token if authenticated
@@ -70,13 +48,14 @@ async function callRpc(functionName, params = {}) {
  * CRITICAL: Uses public_matches view, NOT matches table directly
  */
 export async function getPublicMatches(filters = {}) {
+  const config = await getSupabaseConfig();
+  
   const headers = {
     'Content-Type': 'application/json',
   };
 
-  const anonKey = await getAnonKey();
-  if (anonKey) {
-    headers['apikey'] = anonKey;
+  if (config.anonKey) {
+    headers['apikey'] = config.anonKey;
   }
 
   // Build query params - read from public_matches VIEW
