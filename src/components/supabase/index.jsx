@@ -1,16 +1,27 @@
-
 /**
  * Supabase Integration Module
- * Export all Supabase-related components and utilities
+ * 
+ * Central export point for all Supabase-related functionality.
+ * Architecture:
+ * - config.js: URL constants and cached anon key fetching
+ * - callEdgeFunction.js: Shared Edge Function caller with auth handling
+ * - client.js: Session management and auth state
+ * - services/*.js: Domain-specific service functions
  */
 
-// Config
+// =============================================================================
+// CONFIGURATION
+// =============================================================================
 export { getSupabaseConfig, SUPABASE_URL, SUPABASE_FUNCTIONS_URL } from './config';
 
-// Edge function caller
+// =============================================================================
+// EDGE FUNCTION CALLER (use this for new Edge Function calls)
+// =============================================================================
 export { callEdgeFunction, callPublicEdgeFunction } from './callEdgeFunction';
 
-// Client and session management
+// =============================================================================
+// CLIENT & SESSION MANAGEMENT
+// =============================================================================
 export { 
   supabaseClient,
   sessionStore,
@@ -20,14 +31,18 @@ export {
   logout
 } from './client';
 
-// Auth provider and hook
+// =============================================================================
+// AUTH PROVIDER & HOOKS (React integration)
+// =============================================================================
 export { 
   SupabaseAuthProvider, 
   useSupabaseAuth,
   withAuth 
 } from './AuthProvider';
 
-// Guest guard components
+// =============================================================================
+// GUEST GUARD COMPONENTS (UI protection)
+// =============================================================================
 export {
   useGuestGuard,
   AuthRequiredButton,
@@ -39,10 +54,14 @@ export {
   ModeratorOnly
 } from './GuestGuard';
 
-// Login modal
+// =============================================================================
+// LOGIN MODAL
+// =============================================================================
 export { default as LoginModal } from './LoginModal';
 
-// Services - NEW centralized services layer
+// =============================================================================
+// SERVICES - Domain-specific operations
+// =============================================================================
 export {
   // Matches
   createMatch,
@@ -62,7 +81,9 @@ export {
   handleReport
 } from './services';
 
-// Legacy exports for backwards compatibility
+// =============================================================================
+// LEGACY EXPORTS (for backwards compatibility - prefer services/* imports)
+// =============================================================================
 export {
   getPublicMatches as getPublicMatchesLegacy,
   getMatchDetails as getMatchDetailsRpc,
@@ -72,6 +93,13 @@ export {
   checkInMatch as checkInMatchRpc
 } from './matchService';
 
-// Re-export isGuest/isAuthenticated from client for convenience
-export const isGuest = () => !sessionStore?.isAuthenticated;
-export const isAuthenticated = () => sessionStore?.isAuthenticated;
+// =============================================================================
+// CONVENIENCE HELPERS
+// =============================================================================
+import { sessionStore as _sessionStore } from './client';
+
+/** Check if current user is a guest (not authenticated) */
+export const isGuest = () => !_sessionStore?.isAuthenticated;
+
+/** Check if current user is authenticated */
+export const isAuthenticated = () => _sessionStore?.isAuthenticated;
