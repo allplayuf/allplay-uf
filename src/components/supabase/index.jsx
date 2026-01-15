@@ -4,6 +4,12 @@
  * Export all Supabase-related components and utilities
  */
 
+// Config
+export { getSupabaseConfig, SUPABASE_URL, SUPABASE_FUNCTIONS_URL } from './config';
+
+// Edge function caller
+export { callEdgeFunction, callPublicEdgeFunction } from './callEdgeFunction';
+
 // Client and session management
 export { 
   supabaseClient,
@@ -11,15 +17,7 @@ export {
   AUTH_STATES,
   initSupabase,
   login,
-  logout,
-  createMatch,
-  joinMatch,
-  leaveMatch,
-  reportUser,
-  listPublicMatches,
-  getMatchDetails,
-  listCups,
-  getCupDetails
+  logout
 } from './client';
 
 // Auth provider and hook
@@ -44,17 +42,36 @@ export {
 // Login modal
 export { default as LoginModal } from './LoginModal';
 
-// Match service - Supabase RPC operations
+// Services - NEW centralized services layer
 export {
+  // Matches
+  createMatch,
+  joinMatch,
+  leaveMatch,
+  checkInMatch,
   getPublicMatches,
-  getMatchDetails as getMatchDetailsRpc,
+  getMatchDetails,
   getMyParticipation,
+  getMatchParticipants,
+  // Venues
+  upsertVenue,
+  getVenues,
+  // Reports
+  reportUser,
+  getReports,
+  handleReport
+} from './services';
+
+// Legacy exports for backwards compatibility
+export {
+  getPublicMatches as getPublicMatchesLegacy,
+  getMatchDetails as getMatchDetailsRpc,
   createMatch as createMatchRpc,
   joinMatch as joinMatchRpc,
   leaveMatch as leaveMatchRpc,
-  checkInMatch,
-  canCheckIn,
-  isGuest,
-  isAuthenticated,
-  upsertVenue
+  checkInMatch as checkInMatchRpc
 } from './matchService';
+
+// Re-export isGuest/isAuthenticated from client for convenience
+export const isGuest = () => !sessionStore?.isAuthenticated;
+export const isAuthenticated = () => sessionStore?.isAuthenticated;
