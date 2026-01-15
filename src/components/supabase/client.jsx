@@ -6,22 +6,7 @@
  * All writes go through Edge Functions
  */
 
-const SUPABASE_URL = 'https://vqfjjokqmykqawjlgevj.supabase.co';
-
-// Get anon key from environment/secrets
-const getAnonKey = async () => {
-  // In production, this would come from Base44 secrets
-  // For now, we'll use a placeholder that gets replaced
-  try {
-    const { base44 } = await import('@/api/base44Client');
-    // Try to get from a backend function that has access to secrets
-    const response = await base44.functions.invoke('getSupabaseConfig');
-    return response?.data?.anonKey || null;
-  } catch (e) {
-    console.error('Failed to get Supabase config:', e);
-    return null;
-  }
-};
+import { getSupabaseConfig, SUPABASE_URL } from './config';
 
 // Session storage keys
 const STORAGE_KEYS = {
@@ -186,7 +171,7 @@ export const sessionStore = new SessionStore();
  */
 class SupabaseClient {
   constructor() {
-    this._anonKey = null;
+    this._config = null;
     this._initialized = false;
   }
 
@@ -195,11 +180,11 @@ class SupabaseClient {
     
     sessionStore.load();
     
-    // Get anon key (non-blocking - guest mode still works without it)
+    // Get config (non-blocking - guest mode still works without it)
     try {
-      this._anonKey = await getAnonKey();
+      this._config = await getSupabaseConfig();
     } catch (e) {
-      console.log('Failed to get anon key, continuing in guest mode');
+      console.log('Failed to get Supabase config, continuing in guest mode');
     }
     
     // Validate existing session if we have a token
@@ -224,13 +209,18 @@ class SupabaseClient {
   }
 
   // Get headers for API calls
-  _getHeaders(includeAuth = true) {
+  async _getHeaders(includeAuth = true) {
     const headers = {
       'Content-Type': 'application/json',
     };
     
-    if (this._anonKey) {
-      headers['apikey'] = this._anonKey;
+    // Ensure config is loaded
+    if (!this._config) {
+      this._config = await getSupabaseConfig();
+    }
+    
+    if (this._config?.anonKey) {
+      headers['apikey'] = this._config.anonKey;
     }
     
     if (includeAuth && sessionStore.accessToken) {
@@ -245,10 +235,11 @@ class SupabaseClient {
     const url = endpoint.startsWith('http') ? endpoint : `${SUPABASE_URL}${endpoint}`;
     
     try {
+      const headers = await this._getHeaders(options.includeAuth !== false);
       const response = await fetch(url, {
         ...options,
         headers: {
-          ...this._getHeaders(options.includeAuth !== false),
+          ...headers,
           ...options.headers
         }
       });
