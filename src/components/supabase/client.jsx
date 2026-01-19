@@ -152,16 +152,34 @@ class SessionStore {
     this._notifyListeners();
   }
 
-  // Clear all session data
+  // Clear all session data (logout)
   clear() {
+    console.log('[SessionStore] Clearing session...');
     this._accessToken = null;
     this._refreshToken = null;
+    this._tokenExpiry = null;
     this._user = null;
     this._roles = [];
     this._authState = AUTH_STATES.GUEST;
+    
+    // Clear new keys
     Object.values(STORAGE_KEYS).forEach(key => {
-      localStorage.removeItem(key);
+      try {
+        localStorage.removeItem(key);
+      } catch (e) {
+        // Ignore localStorage errors
+      }
     });
+    
+    // Also clear any old keys that might exist
+    Object.values(OLD_STORAGE_KEYS).forEach(key => {
+      try {
+        localStorage.removeItem(key);
+      } catch (e) {
+        // Ignore localStorage errors
+      }
+    });
+    
     this._notifyListeners();
   }
 
