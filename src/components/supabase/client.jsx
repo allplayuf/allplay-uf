@@ -434,12 +434,14 @@ class SupabaseClient {
       return result;
     }
 
-    const { access_token, refresh_token, user } = result.data;
+    const { access_token, refresh_token, expires_in, user } = result.data;
     
-    // Store tokens
-    sessionStore.setTokens(access_token, refresh_token);
+    // Store tokens with expiry
+    sessionStore.setTokens(access_token, refresh_token, expires_in || 3600);
     sessionStore.setUser(user);
     sessionStore.setAuthState(AUTH_STATES.AUTHENTICATED);
+    
+    console.log('[SupabaseClient] Login successful, session persisted');
 
     // CRITICAL: Sync Supabase user to Base44 User entity
     // This ensures every authenticated user has a corresponding app user record
