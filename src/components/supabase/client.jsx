@@ -166,10 +166,18 @@ class SessionStore {
   }
 
   // Setters
-  setTokens(accessToken, refreshToken) {
+  setTokens(accessToken, refreshToken, expiresIn = 3600) {
     this._accessToken = accessToken;
     this._refreshToken = refreshToken;
+    // Calculate expiry time (default 1 hour)
+    this._tokenExpiry = Date.now() + (expiresIn * 1000);
     this.save();
+  }
+  
+  // Check if token is expired or about to expire (within 5 min)
+  isTokenExpired() {
+    if (!this._tokenExpiry) return true;
+    return Date.now() > (this._tokenExpiry - 5 * 60 * 1000);
   }
 
   setUser(user) {
