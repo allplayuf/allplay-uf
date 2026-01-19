@@ -4,12 +4,27 @@
  * SECURITY: Only uses SUPABASE_URL + SUPABASE_ANON_KEY
  * NEVER uses service role key
  * All writes go through Edge Functions
+ * 
+ * SESSION PERSISTENCE:
+ * - Tokens stored in localStorage
+ * - Auto-refresh on page reload
+ * - Validates session on init
  */
 
 import { getSupabaseConfig, SUPABASE_URL } from './config';
 
-// Session storage keys
+// Session storage keys - prefixed to avoid collisions
 const STORAGE_KEYS = {
+  ACCESS_TOKEN: 'allplay_supabase_access_token',
+  REFRESH_TOKEN: 'allplay_supabase_refresh_token',
+  USER: 'allplay_supabase_user',
+  ROLES: 'allplay_supabase_roles',
+  AUTH_STATE: 'allplay_supabase_auth_state',
+  TOKEN_EXPIRY: 'allplay_supabase_token_expiry'
+};
+
+// Also check for old keys and migrate if found
+const OLD_STORAGE_KEYS = {
   ACCESS_TOKEN: 'supabase_access_token',
   REFRESH_TOKEN: 'supabase_refresh_token',
   USER: 'supabase_user',
