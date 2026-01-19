@@ -41,29 +41,80 @@ export const AUTH_STATES = {
 
 /**
  * Session Store - manages tokens and user data
+ * Persists to localStorage for session survival across page reloads
  */
 class SessionStore {
   constructor() {
     this._accessToken = null;
     this._refreshToken = null;
+    this._tokenExpiry = null;
     this._user = null;
     this._roles = [];
     this._authState = AUTH_STATES.LOADING;
     this._listeners = new Set();
+    this._loaded = false;
+  }
+
+  // Migrate old storage keys to new prefixed keys
+  _migrateOldKeys() {
+    try {
+      // Check if we have old keys but no new keys
+      const oldToken = localStorage.getItem(OLD_STORAGE_KEYS.ACCESS_TOKEN);
+      const newToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+      
+      if (oldToken && !newToken) {
+        console.log('[SessionStore] Migrating old session keys...');
+        
+        // Copy old values to new keys
+        Object.entries(OLD_STORAGE_KEYS).forEach(([key, oldKey]) => {
+          const value = localStorage.getItem(oldKey);
+          if (value) {
+            localStorage.setItem(STORAGE_KEYS[key], value);
+            localStorage.removeItem(oldKey); // Clean up old key
+          }
+        });
+        
+        console.log('[SessionStore] Migration complete');
+      }
+    } catch (e) {
+      console.error('[SessionStore] Migration failed:', e);
+    }
   }
 
   // Load from localStorage on init
   load() {
+    if (this._loaded) return; // Prevent double-loading
+    
     try {
+      // First, migrate any old keys
+      this._migrateOldKeys();
+      
       this._accessToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
       this._refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+      this._tokenExpiry = localStorage.getItem(STORAGE_KEYS.TOKEN_EXPIRY);
+      
       const userStr = localStorage.getItem(STORAGE_KEYS.USER);
       this._user = userStr ? JSON.parse(userStr) : null;
+      
       const rolesStr = localStorage.getItem(STORAGE_KEYS.ROLES);
       this._roles = rolesStr ? JSON.parse(rolesStr) : [];
-      this._authState = localStorage.getItem(STORAGE_KEYS.AUTH_STATE) || AUTH_STATES.GUEST;
+      
+      const savedAuthState = localStorage.getItem(STORAGE_KEYS.AUTH_STATE);
+      
+      // If we have a token, assume authenticated until validated
+      if (this._accessToken) {
+        this._authState = savedAuthState === AUTH_STATES.AUTHENTICATED 
+          ? AUTH_STATES.AUTHENTICATED 
+          : AUTH_STATES.LOADING;
+        console.log('[SessionStore] Loaded existing session, token present');
+      } else {
+        this._authState = AUTH_STATES.GUEST;
+        console.log('[SessionStore] No session found, guest mode');
+      }
+      
+      this._loaded = true;
     } catch (e) {
-      console.error('Failed to load session:', e);
+      console.error('[SessionStore] Failed to load session:', e);
       this.clear();
     }
   }
