@@ -259,34 +259,103 @@ class SupabaseClient {
   async init() {
     if (this._initialized) return;
     
+    console.log('[SupabaseClient] Initializing...');
+    
+    // Load persisted session from localStorage
     sessionStore.load();
     
     // Get config (non-blocking - guest mode still works without it)
     try {
       this._config = await getSupabaseConfig();
     } catch (e) {
-      console.log('Failed to get Supabase config, continuing in guest mode');
+      console.log('[SupabaseClient] Failed to get config, continuing in guest mode');
     }
     
-    // Validate existing session if we have a token
+    // Restore session if we have tokens
     if (sessionStore.accessToken) {
-      try {
-        const isValid = await this.validateSession();
-        if (!isValid) {
-          // Invalid session - switch to guest mode (NOT an error)
+      console.log('[SupabaseClient] Found existing token, validating...');
+      
+      // Check if token needs refresh
+      if (sessionStore.isTokenExpired() && sessionStore.refreshToken) {
+        console.log('[SupabaseClient] Token expired, attempting refresh...');
+        const refreshed = await this.refreshSession();
+        if (!refreshed) {
+          console.log('[SupabaseClient] Refresh failed, clearing session');
           sessionStore.clear();
         }
-      } catch (e) {
-        // Validation failed - default to guest mode
-        console.log('Session validation failed, continuing as guest');
-        sessionStore.clear();
+      } else {
+        // Token not expired, validate it
+        try {
+          const isValid = await this.validateSession();
+          if (!isValid) {
+            // Try refresh before giving up
+            if (sessionStore.refreshToken) {
+              const refreshed = await this.refreshSession();
+              if (!refreshed) {
+                sessionStore.clear();
+              }
+            } else {
+              sessionStore.clear();
+            }
+          } else {
+            console.log('[SupabaseClient] Session validated successfully');
+          }
+        } catch (e) {
+          console.log('[SupabaseClient] Session validation failed:', e.message);
+          // Try refresh before giving up
+          if (sessionStore.refreshToken) {
+            const refreshed = await this.refreshSession();
+            if (!refreshed) {
+              sessionStore.clear();
+            }
+          } else {
+            sessionStore.clear();
+          }
+        }
       }
     } else {
       // No token - default to guest mode (this is normal, NOT an error)
+      console.log('[SupabaseClient] No token found, guest mode');
       sessionStore.setAuthState(AUTH_STATES.GUEST);
     }
     
     this._initialized = true;
+    console.log('[SupabaseClient] Initialized, authState:', sessionStore.authState);
+  }
+
+  // Refresh the access token using refresh token
+  async refreshSession() {
+    if (!sessionStore.refreshToken) {
+      return false;
+    }
+    
+    try {
+      const result = await this._fetch('/auth/v1/token?grant_type=refresh_token', {
+        method: 'POST',
+        includeAuth: false,
+        body: JSON.stringify({ refresh_token: sessionStore.refreshToken })
+      });
+
+      if (result.error || !result.data?.access_token) {
+        console.log('[SupabaseClient] Token refresh failed:', result.error?.message);
+        return false;
+      }
+
+      const { access_token, refresh_token, expires_in, user } = result.data;
+      
+      // Update tokens
+      sessionStore.setTokens(access_token, refresh_token, expires_in || 3600);
+      if (user) {
+        sessionStore.setUser(user);
+      }
+      sessionStore.setAuthState(AUTH_STATES.AUTHENTICATED);
+      
+      console.log('[SupabaseClient] Token refreshed successfully');
+      return true;
+    } catch (e) {
+      console.error('[SupabaseClient] Token refresh error:', e);
+      return false;
+    }
   }
 
   // Get headers for API calls
