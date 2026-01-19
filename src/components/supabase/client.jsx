@@ -119,7 +119,7 @@ class SessionStore {
     }
   }
 
-  // Save to localStorage
+  // Save to localStorage - ALWAYS persist for session survival
   save() {
     try {
       if (this._accessToken) {
@@ -132,6 +132,11 @@ class SessionStore {
       } else {
         localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
       }
+      if (this._tokenExpiry) {
+        localStorage.setItem(STORAGE_KEYS.TOKEN_EXPIRY, this._tokenExpiry);
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.TOKEN_EXPIRY);
+      }
       if (this._user) {
         localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(this._user));
       } else {
@@ -139,8 +144,10 @@ class SessionStore {
       }
       localStorage.setItem(STORAGE_KEYS.ROLES, JSON.stringify(this._roles));
       localStorage.setItem(STORAGE_KEYS.AUTH_STATE, this._authState);
+      
+      console.log('[SessionStore] Session saved, authState:', this._authState);
     } catch (e) {
-      console.error('Failed to save session:', e);
+      console.error('[SessionStore] Failed to save session:', e);
     }
     this._notifyListeners();
   }
