@@ -1,3 +1,4 @@
+
 /**
  * Supabase Services Index
  * 
@@ -13,7 +14,11 @@ export {
   getPublicMatches,
   getMatchDetails,
   getMyParticipation,
-  getMatchParticipants
+  getMatchParticipants,
+  // Level utilities
+  VALID_LEVELS,
+  LEVEL_MAP,
+  normalizeLevel
 } from './matchesService';
 
 // Venues
