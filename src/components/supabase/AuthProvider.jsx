@@ -26,33 +26,54 @@ export function SupabaseAuthProvider({ children }) {
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState(null);
 
-  // Initialize on mount
+  // Initialize on mount - restores session from localStorage
   useEffect(() => {
+    let isMounted = true;
+    
     const init = async () => {
+      console.log('[SupabaseAuthProvider] Initializing auth...');
+      
       try {
+        // This will load session from localStorage and validate/refresh if needed
         await supabaseClient.init();
+        
+        if (!isMounted) return;
+        
+        // Sync state from sessionStore
         setAuthState(sessionStore.authState);
         setUser(sessionStore.user);
         setRoles(sessionStore.roles);
+        
+        console.log('[SupabaseAuthProvider] Auth initialized, state:', sessionStore.authState);
       } catch (e) {
         // Auth init failed - default to guest mode (NOT an error state)
-        console.log('Auth init - defaulting to guest mode');
-        setAuthState(AUTH_STATES.GUEST);
+        console.log('[SupabaseAuthProvider] Init failed, defaulting to guest mode');
+        if (isMounted) {
+          setAuthState(AUTH_STATES.GUEST);
+        }
       } finally {
-        setIsInitialized(true);
+        if (isMounted) {
+          setIsInitialized(true);
+        }
       }
     };
 
     init();
 
-    // Subscribe to session changes
+    // Subscribe to session changes (handles login/logout events)
     const unsubscribe = sessionStore.subscribe((state) => {
+      if (!isMounted) return;
+      
+      console.log('[SupabaseAuthProvider] Session changed:', state.authState);
       setAuthState(state.authState);
       setUser(state.user);
       setRoles(state.roles);
     });
 
-    return unsubscribe;
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, []);
 
   // Login function - automatically syncs user to Base44
