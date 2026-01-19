@@ -22,7 +22,7 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
     max_players: 16,
     is_spontaneous: false,
     is_team_match: false,
-    skill_bracket: 'mixed',
+    skill_bracket: 'intermediate', // Default to valid DB value
     is_ranked: false,
     is_open: true,
     is_private: false,
@@ -57,8 +57,10 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
       return;
     }
 
-    if (!formData.skill_bracket) {
-      alert("Välj en matchnivå!");
+    // Validate skill_bracket is a valid DB value
+    const validLevels = ['beginner', 'intermediate', 'advanced', 'pro'];
+    if (!formData.skill_bracket || !validLevels.includes(formData.skill_bracket)) {
+      alert("Välj en giltig matchnivå!");
       return;
     }
 
@@ -311,22 +313,22 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
             <div className="flex items-start gap-2 p-2 sm:p-3 bg-[#2BA84A]/10 rounded-lg border border-[#2BA84A]/30 mb-3">
               <Info className="w-4 h-4 text-[#2BA84A] mt-0.5 flex-shrink-0" />
               <p className="text-[11px] sm:text-xs lg:text-sm text-[#CFE8D6]">
-                Nivån styr vem som ser matchen som mest relevant. "Blandad nivå" välkomnar alla spelare.
+                Välj en nivå som passar matchen. Detta hjälper spelare hitta rätt matcher.
               </p>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
-              {Object.entries(skillBracketLabels).map(([value, label]) => (
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              {skillBracketOptions.map((option) => (
                 <Button
-                  key={value}
+                  key={option.value}
                   type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, skill_bracket: value }))}
+                  onClick={() => setFormData(prev => ({ ...prev, skill_bracket: option.value }))}
                   className={`h-12 sm:h-14 font-bold text-[11px] sm:text-xs lg:text-sm transition-all rounded-[12px] ${
-                    formData.skill_bracket === value
+                    formData.skill_bracket === option.value
                       ? 'bg-gradient-to-r from-[#F4743B] to-[#E5683A] text-[#FFFFFF] border border-[#F4743B] shadow-lg shadow-[#F4743B]/30'
                       : 'bg-[#121715] text-[#B6C2BC] border border-[#223029] hover:border-[#F4743B] hover:text-[#F4F7F5]'
                   }`}
                 >
-                  {label}
+                  {option.label}
                 </Button>
               ))}
             </div>
