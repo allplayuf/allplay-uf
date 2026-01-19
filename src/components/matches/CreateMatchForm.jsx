@@ -94,13 +94,13 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
     }));
   };
 
-  const skillBracketLabels = {
-    beginner: 'Nybörjare',
-    intermediate: 'Medel',
-    advanced: 'Avancerad',
-    elite: 'Elite',
-    mixed: 'Blandad nivå'
-  };
+  // Valid levels matching Supabase constraint: beginner, intermediate, advanced, pro
+  const skillBracketOptions = [
+    { value: 'beginner', label: 'Nybörjare' },
+    { value: 'intermediate', label: 'Medel' },
+    { value: 'advanced', label: 'Avancerad' },
+    { value: 'pro', label: 'Proffs' },
+  ];
 
   const handleVenueSelect = (venue) => {
     setFormData(prev => ({ ...prev, venue_id: venue.id }));

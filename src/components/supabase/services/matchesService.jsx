@@ -8,13 +8,58 @@ import { callEdgeFunction, callPublicEdgeFunction } from '../callEdgeFunction';
 import { getSupabaseConfig, SUPABASE_URL } from '../config';
 import { sessionStore } from '../client';
 
+// Valid level values for Supabase 'matches_level_check' constraint
+const VALID_LEVELS = ['beginner', 'intermediate', 'advanced', 'pro'];
+
+// Map UI labels/values to valid DB values
+const LEVEL_MAP = {
+  // Direct values (lowercase)
+  'beginner': 'beginner',
+  'intermediate': 'intermediate',
+  'advanced': 'advanced',
+  'pro': 'pro',
+  // Swedish labels
+  'nybörjare': 'beginner',
+  'medel': 'intermediate',
+  'avancerad': 'advanced',
+  'proffs': 'pro',
+  // Legacy values that might come from old code
+  'elite': 'pro',
+  'mixed': 'intermediate', // Default fallback for "mixed"
+};
+
+/**
+ * Normalize level value to valid DB constraint value
+ * @param {string} level - Level from UI (can be label or value)
+ * @returns {string} Valid level for DB
+ */
+function normalizeLevel(level) {
+  if (!level) return 'intermediate'; // Default
+  
+  const normalized = String(level).trim().toLowerCase();
+  
+  // Direct match to valid level
+  if (VALID_LEVELS.includes(normalized)) {
+    return normalized;
+  }
+  
+  // Map from label/legacy value
+  if (LEVEL_MAP[normalized]) {
+    return LEVEL_MAP[normalized];
+  }
+  
+  // Fallback
+  console.warn(`[matchesService] Unknown level "${level}", defaulting to "intermediate"`);
+  return 'intermediate';
+}
+
 /**
  * Create a new match
  * 
  * @param {object} payload - Match data
  * @param {string} payload.pitch_id - External venue ID (Base44 pitch ID)
  * @param {string} payload.starts_at - ISO datetime string
- * @param {string} payload.level - Skill level (beginner/intermediate/advanced/elite/mixed)
+ * @param {string} payload.level - Skill level (beginner/intermediate/advanced/pro)
  * @param {boolean} payload.is_public - Whether match is public
  * @param {string} [payload.format] - Match format (5v5/7v7/11v11)
  * @param {number} [payload.max_players] - Max players (null for spontaneous)
@@ -23,11 +68,15 @@ import { sessionStore } from '../client';
  * @param {boolean} [payload.is_spontaneous] - Whether match is spontaneous
  */
 export async function createMatch(payload) {
+  // Normalize level to valid DB value
+  const rawLevel = payload.skill_bracket || payload.level;
+  const level = normalizeLevel(rawLevel);
+  
   // Transform frontend format to backend format
   const backendPayload = {
     pitch_id: payload.venue_id || payload.pitch_id,
     starts_at: payload.starts_at || `${payload.date}T${payload.time}:00`,
-    level: payload.skill_bracket || payload.level || 'mixed',
+    level,
     is_public: payload.is_public !== false && !payload.is_private,
     format: payload.format || '5v5',
     max_players: payload.is_spontaneous ? null : (payload.max_players || 10),
@@ -36,8 +85,13 @@ export async function createMatch(payload) {
     is_spontaneous: payload.is_spontaneous || false
   };
   
+  console.log('[matchesService] createMatch payload:', { rawLevel, normalizedLevel: level });
+  
   return callEdgeFunction('create_match', backendPayload);
 }
+
+// Export for use in other components
+export { VALID_LEVELS, LEVEL_MAP, normalizeLevel };
 
 /**
  * Join a match
