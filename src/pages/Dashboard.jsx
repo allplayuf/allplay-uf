@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
 import { VARIANTS } from "../components/utils/motionTokens";
@@ -11,7 +10,6 @@ import {
   Users,
   PlayCircle,
   Award,
-  Flame,
   ChevronRight,
   ArrowRight,
   Target,
@@ -19,9 +17,7 @@ import {
   X,
   Plus,
   Zap,
-  TrendingUp,
-  Star,
-  Sparkles
+  TrendingUp
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -32,16 +28,25 @@ import CupsWidget from "../components/dashboard/CupsWidget";
 import MatchCard from "../components/matches/MatchCard";
 import NotificationsSlider from "../components/dashboard/NotificationsSlider";
 import NextMatchCard from "../components/dashboard/NextMatchCard";
-import { createMatch as supabaseCreateMatch, upsertVenue } from "../components/supabase/services";
+import { 
+  createMatch as supabaseCreateMatch, 
+  upsertVenue,
+  getVenues,
+  getMyProfile,
+  getPublicMatches,
+  getMyParticipantMatchIds,
+  getParticipantsForMatches,
+  transformMatchData
+} from "../components/supabase/services";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 
 // Query keys
 const QUERY_KEYS = {
-  user: ['user'],
-  matches: ['matches'],
-  venues: ['venues'],
-  participants: ['participants'],
-  userLocation: ['userLocation']
+  userProfile: ['supabase-userProfile'],
+  matches: ['supabase-matches'],
+  venues: ['supabase-venues'],
+  myParticipantMatchIds: ['supabase-myParticipantMatchIds'],
+  adminNotifications: ['adminNotifications']
 };
 
 export default function Dashboard() {
@@ -51,89 +56,79 @@ export default function Dashboard() {
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [showCreateMatchModal, setShowCreateMatchModal] = useState(false);
   const queryClient = useQueryClient();
-  const { isGuest } = useSupabaseAuth();
+  const { user: authUser, isGuest, isAuthenticated } = useSupabaseAuth();
 
-  // Fetch current user with OPTIMIZED caching (AUTH strategy)
-  // Returns guest user object if not authenticated - NEVER blocks the UI
-  const { data: user, isLoading: userLoading, error: userError } = useQuery({
-    queryKey: QUERY_KEYS.user,
-    queryFn: async () => {
-      try {
-        const isAuth = await base44.auth.isAuthenticated();
-        if (!isAuth) {
-          // Return a guest user object - app continues to work
-          return { is_guest: true, display_name: 'Gäst', full_name: 'Gäst' };
-        }
-        const currentUser = await base44.auth.me();
-        return currentUser;
-      } catch (error) {
-        // On any error, default to guest mode
-        return { is_guest: true, display_name: 'Gäst', full_name: 'Gäst' };
-      }
-    },
+  // Fetch user profile from Supabase users table
+  const { data: userProfile, isLoading: userLoading, error: userError } = useQuery({
+    queryKey: [...QUERY_KEYS.userProfile, authUser?.id],
+    queryFn: () => getMyProfile(),
     ...CACHE_STRATEGIES.AUTH,
+    enabled: isAuthenticated && !!authUser?.id,
     retry: false,
   });
 
-  // Fetch all matches with OPTIMIZED caching (SEMI_DYNAMIC strategy)
-  const { data: allMatches = [], isLoading: matchesLoading } = useQuery({
+  // Combine auth user with profile
+  const user = React.useMemo(() => {
+    if (isGuest) {
+      return { is_guest: true, display_name: 'Gäst', full_name: 'Gäst' };
+    }
+    if (!authUser) return null;
+    return {
+      ...authUser,
+      ...userProfile,
+      id: authUser.id
+    };
+  }, [authUser, userProfile, isGuest]);
+
+  // Fetch all matches from Supabase
+  const { data: allMatchesRaw = [], isLoading: matchesLoading } = useQuery({
     queryKey: QUERY_KEYS.matches,
     queryFn: async () => {
-      try {
-        return await base44.entities.Match.list('-date', 200);
-      } catch (error) {
-        console.error('Error fetching matches:', error);
-        return [];
-      }
+      const matches = await getPublicMatches({ status: 'upcoming' });
+      return matches.map(transformMatchData);
     },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
-    enabled: true, // Always fetch - guests can browse matches
+    enabled: true,
   });
 
-  // Fetch venues with OPTIMIZED caching (STATIC strategy)
+  // Fetch venues from Supabase
   const { data: venues = [], isLoading: venuesLoading } = useQuery({
     queryKey: QUERY_KEYS.venues,
-    queryFn: async () => {
-      try {
-        return await base44.entities.Venue.list();
-      } catch (error) {
-        console.error('Error fetching venues:', error);
-        return [];
-      }
-    },
+    queryFn: () => getVenues(),
     ...CACHE_STRATEGIES.STATIC,
-    enabled: true, // Always fetch - guests can browse venues
+    enabled: true,
   });
 
-  // Fetch all participants with OPTIMIZED caching (REALTIME strategy)
-  const { data: allParticipants = [], isLoading: participantsLoading } = useQuery({
-    queryKey: QUERY_KEYS.participants,
-    queryFn: async () => {
-      try {
-        return await base44.entities.MatchParticipant.list();
-      } catch (error) {
-        console.error('Error fetching participants:', error);
-        return [];
-      }
-    },
+  // Fetch user's participant match IDs from Supabase
+  const { data: myParticipantMatchIds = [] } = useQuery({
+    queryKey: [...QUERY_KEYS.myParticipantMatchIds, authUser?.id],
+    queryFn: () => getMyParticipantMatchIds(),
     ...CACHE_STRATEGIES.REALTIME,
-    enabled: true, // Always fetch - guests can see participant counts
+    enabled: isAuthenticated && !!authUser?.id,
   });
 
-  // Fetch admin notifications
+  // Get visible match IDs for fetching participants
+  const visibleMatchIds = React.useMemo(() => {
+    return allMatchesRaw.map(m => m.id);
+  }, [allMatchesRaw]);
+
+  // Fetch participants for visible matches
+  const { data: allParticipants = [], isLoading: participantsLoading } = useQuery({
+    queryKey: ['supabase-participantsForMatches', visibleMatchIds],
+    queryFn: () => getParticipantsForMatches(visibleMatchIds),
+    ...CACHE_STRATEGIES.REALTIME,
+    enabled: visibleMatchIds.length > 0,
+  });
+
+  // Fetch admin notifications (keeping this as is for now - can be migrated later)
   const { data: adminNotifications = [] } = useQuery({
-    queryKey: ['adminNotifications'],
+    queryKey: QUERY_KEYS.adminNotifications,
     queryFn: async () => {
-      try {
-        const notifs = await base44.entities.AdminNotification.filter({ is_active: true });
-        return notifs.sort((a, b) => (b.priority || 0) - (a.priority || 0));
-      } catch (error) {
-        console.error('Error fetching notifications:', error);
-        return [];
-      }
+      // TODO: Migrate to Supabase when admin_notifications table is ready
+      return [];
     },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
-    enabled: true, // Always fetch notifications
+    enabled: true,
   });
 
   useEffect(() => {
@@ -202,7 +197,7 @@ export default function Dashboard() {
     return `${days} ${days === 1 ? 'dag' : 'dagar'} sedan`;
   };
 
-  const handleMatchCreated = async (matchData) => {
+  const handleMatchCreated = async ({ match: matchData, venue: selectedVenue }) => {
     try {
       // Check if guest
       if (isGuest) {
@@ -210,11 +205,8 @@ export default function Dashboard() {
         return;
       }
 
-      // Find selected venue from venues list for upsert
-      const selectedVenue = venues.find(v => v.id === matchData.venue_id);
-
       // Upsert venue first to ensure it exists in Supabase
-      if (selectedVenue) {
+      if (selectedVenue?.id) {
         try {
           await upsertVenue(selectedVenue);
         } catch (e) {
@@ -228,7 +220,7 @@ export default function Dashboard() {
       setShowCreateMatchModal(false);
       
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.matches });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.participants });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myParticipantMatchIds });
       
     } catch (error) {
       console.error("Error creating match:", error);
@@ -238,15 +230,14 @@ export default function Dashboard() {
 
   // Process data when available
   const today = new Date().toISOString().split('T')[0];
-  const upcomingMatches = (allMatches || []).filter(m =>
+  const upcomingMatches = (allMatchesRaw || []).filter(m =>
     m && m.status === 'upcoming' && m.date >= today
   );
 
-  const userParticipations = (allParticipants || []).filter(p => p?.user_id === user?.id);
-  const userMatchIds = userParticipations.map(p => p.match_id);
+  const userMatchIds = myParticipantMatchIds;
 
   const myUpcomingMatches = upcomingMatches
-    .filter(m => userMatchIds.includes(m.id) || m.organizer_id === user?.id)
+    .filter(m => userMatchIds.includes(m.id) || m.organizer_id === authUser?.id)
     .sort((a, b) => {
       const dateTimeA = new Date(`${a.date}T${a.time}`);
       const dateTimeB = new Date(`${b.date}T${b.time}`);
@@ -258,27 +249,40 @@ export default function Dashboard() {
     .filter(m =>
       m.is_open &&
       !userMatchIds.includes(m.id) &&
-      m.organizer_id !== user?.id &&
+      m.organizer_id !== authUser?.id &&
       (m.is_spontaneous || m.current_players < m.max_players) &&
-      (!m.skill_bracket || m.skill_bracket === 'mixed' || m.skill_bracket === user?.skill_level)
+      (!m.skill_bracket || m.skill_bracket === 'mixed' || m.skill_bracket === userProfile?.skill_level)
     )
     .slice(0, 5);
 
-  // Calculate nearby matches
+  // Calculate nearby matches using venue data from matches (embedded in view)
   const nearbyMatches = userLocation ? upcomingMatches
-    .filter(m => !userMatchIds.includes(m.id) && m.organizer_id !== user?.id)
+    .filter(m => !userMatchIds.includes(m.id) && m.organizer_id !== authUser?.id)
     .map(match => {
-      const venue = venues.find(v => v.id === match.venue_id);
-      if (!venue || !venue.latitude || !venue.longitude) {
+      // Use embedded venue data from public_matches view
+      const venueLat = match._venue_lat || match.venue_lat;
+      const venueLng = match._venue_lng || match.venue_lng;
+      
+      if (!venueLat || !venueLng) {
         return { ...match, distance: Infinity };
       }
       const distance = calculateDistance(
         userLocation.lat,
         userLocation.lng,
-        parseFloat(venue.latitude),
-        parseFloat(venue.longitude)
+        parseFloat(venueLat),
+        parseFloat(venueLng)
       );
-      return { ...match, distance, venue };
+      return { 
+        ...match, 
+        distance, 
+        venue: {
+          name: match._venue_name || match.venue_name || 'Okänd plan',
+          city: match._venue_city || match.venue_city,
+          address: match._venue_address || match.venue_address,
+          latitude: venueLat,
+          longitude: venueLng
+        }
+      };
     })
     .filter(m => m.distance < 10)
     .sort((a, b) => a.distance - b.distance)
@@ -288,14 +292,14 @@ export default function Dashboard() {
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
 
-  const weeklyMatches = (allMatches || []).filter(m => {
+  const weeklyMatches = (allMatchesRaw || []).filter(m => {
     if (!m || m.status !== 'completed') return false;
     if (!m.completed_at) return false;
     const completedDate = new Date(m.completed_at);
     return completedDate > weekAgo && userMatchIds.includes(m.id);
   });
 
-  const weeklyMvps = weeklyMatches.filter(m => m.mvp_user_id === user?.id).length;
+  const weeklyMvps = weeklyMatches.filter(m => m.mvp_user_id === authUser?.id).length;
 
   const weeklyStats = {
     matchesPlayed: weeklyMatches.length,
@@ -307,84 +311,30 @@ export default function Dashboard() {
   const timeUntilMatch = myUpcomingMatches.length > 0 ? 
     (new Date(`${myUpcomingMatches[0].date}T${myUpcomingMatches[0].time}`) - new Date()) / (1000 * 60) : Infinity;
 
-  // Prepare notifications - combine admin notifications with dynamic ones
+  // Prepare notifications
   const notifications = [
     ...adminNotifications,
-    // Nya matcher nära användaren
     ...(nearbyMatches.length > 0 ? [{
       type: 'match',
       title: 'Ny match skapad nära dig!',
       subtitle: `${nearbyMatches[0].title} på ${nearbyMatches[0].venue?.name}`
     }] : []),
-    // Vänner i kommande matcher
     ...(friendsInUpcomingMatchesCount > 0 ? [{
       type: 'social',
       title: `${friendsInUpcomingMatchesCount} ${friendsInUpcomingMatchesCount === 1 ? 'vän' : 'vänner'} spelar snart`,
       subtitle: 'Gå med i deras matcher'
     }] : []),
-    // Påminnelse om kommande match
     ...(myUpcomingMatches.length > 0 && timeUntilMatch < 24 * 60 ? [{
       type: 'reminder',
       title: 'Din match är snart!',
       subtitle: `${myUpcomingMatches[0].title} börjar om ${Math.floor(timeUntilMatch / 60)}h`
     }] : []),
-    // Achievements
     ...(weeklyStats.mvps >= 2 ? [{
       type: 'achievement',
       title: 'Du är på gång!',
       subtitle: `${weeklyStats.mvps} MVPs denna vecka 🔥`
     }] : [])
   ];
-
-  // Calculate recent activity
-  const recentMatchesForActivity = (allMatches || [])
-    .filter(m => m && m.status === 'completed' && userMatchIds.includes(m.id))
-    .sort((a, b) => new Date(b.completed_at || 0) - new Date(a.completed_at || 0))
-    .slice(0, 2);
-
-  const recentActivity = [];
-
-  for (const match of recentMatchesForActivity) {
-    const venue = venues.find(v => v.id === match.venue_id);
-    const timeAgo = getTimeAgo(new Date(match.completed_at));
-
-    recentActivity.push({
-      type: 'match_played',
-      icon: Trophy,
-      text: `Du spelade på ${venue?.name || 'Okänd plan'}`,
-      time: timeAgo
-    });
-  }
-
-  if (weeklyMvps > 0) {
-    recentActivity.unshift({
-      type: 'mvp',
-      icon: Award,
-      text: `Du blev MVP ${weeklyMvps} ${weeklyMvps === 1 ? 'gång' : 'gånger'} denna vecka!`,
-      time: 'Denna vecka'
-    });
-  }
-
-  // Calculate friends in upcoming matches
-  useEffect(() => {
-    if (user && upcomingMatches.length > 0 && allParticipants.length > 0) {
-      const friendIds = user.friend_ids || [];
-      const friendsPlayingMatchIds = new Set();
-
-      if (friendIds.length > 0) {
-        upcomingMatches.forEach(match => {
-          if (!userMatchIds.includes(match.id) && match.organizer_id !== user.id) {
-            const matchParticipants = allParticipants.filter(p => p.match_id === match.id);
-            const hasFriendParticipating = matchParticipants.some(p => friendIds.includes(p.user_id));
-            if (hasFriendParticipating) {
-              friendsPlayingMatchIds.add(match.id);
-            }
-          }
-        });
-      }
-      setFriendsInUpcomingMatchesCount(friendsPlayingMatchIds.size);
-    }
-  }, [user, upcomingMatches, allParticipants, userMatchIds]);
 
   // Handle rate limit errors gracefully
   useEffect(() => {
@@ -393,7 +343,7 @@ export default function Dashboard() {
     }
   }, [userError]);
 
-  const isLoading = userLoading || matchesLoading || venuesLoading || participantsLoading;
+  const isLoading = (isAuthenticated && userLoading) || matchesLoading || venuesLoading || participantsLoading;
 
   if (isLoading) {
     return <PageLoadingSkeleton />;
@@ -452,7 +402,7 @@ export default function Dashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
 
-        {/* Premium Hero Card - Improved UI */}
+        {/* Premium Hero Card */}
         <motion.div
           variants={VARIANTS.item}
           className="relative overflow-hidden rounded-[32px] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7),0_0_40px_0px_rgba(43,168,74,0.1)] border border-[#2BA84A]/20 bg-[#0A0D0B]"
@@ -537,7 +487,7 @@ export default function Dashboard() {
           <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-14">
             <div className="flex items-center gap-3 sm:gap-5 lg:gap-8 mb-[20px] sm:mb-6 lg:mb-8">
               
-              {/* Profile Image - Small border */}
+              {/* Profile Image */}
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ 
@@ -581,7 +531,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Action Buttons Grid - Community Style */}
+            {/* Action Buttons Grid */}
             <motion.div
               variants={VARIANTS.item}
               className="grid grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-[24px] sm:mb-8 lg:mb-10"
@@ -634,10 +584,8 @@ export default function Dashboard() {
               </Link>
             </motion.div>
 
-            {/* Hitta spontana matcher - Kraftfull animation */}
-            <motion.div
-              variants={VARIANTS.item}
-            >
+            {/* Main CTA Button */}
+            <motion.div variants={VARIANTS.item}>
               <Link to={createPageUrl("Matches")}>
                 <motion.button
                   whileHover={{ 
@@ -662,7 +610,6 @@ export default function Dashboard() {
                   }}
                   className="relative h-[60px] sm:h-16 lg:h-20 w-full bg-gradient-to-r from-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center gap-2 sm:gap-3 font-black text-sm sm:text-base lg:text-xl text-white overflow-hidden"
                 >
-                  {/* Sweeping shine effect */}
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent"
                     animate={{
@@ -675,8 +622,6 @@ export default function Dashboard() {
                       repeatDelay: 2
                     }}
                   />
-
-                  {/* Icon */}
                   <motion.div
                     animate={{
                       scale: [1, 1.1, 1]
@@ -690,11 +635,7 @@ export default function Dashboard() {
                   >
                     <PlayCircle className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8" strokeWidth={2.5} />
                   </motion.div>
-
-                  {/* Text */}
                   <span className="relative z-10">Hitta spontana matcher nu</span>
-
-                  {/* Arrow */}
                   <motion.div
                     animate={{
                       x: [0, 6, 0]
@@ -708,8 +649,6 @@ export default function Dashboard() {
                   >
                     <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8" strokeWidth={3} />
                   </motion.div>
-
-
                 </motion.button>
               </Link>
             </motion.div>
@@ -718,17 +657,13 @@ export default function Dashboard() {
 
         {/* Notifications Slider */}
         {notifications.length > 0 && (
-          <motion.div
-            variants={VARIANTS.item}
-          >
+          <motion.div variants={VARIANTS.item}>
             <NotificationsSlider notifications={notifications} />
           </motion.div>
         )}
 
         {/* Cups Widget */}
-        <motion.div
-          variants={VARIANTS.item}
-        >
+        <motion.div variants={VARIANTS.item}>
           <CupsWidget />
         </motion.div>
 
@@ -736,9 +671,7 @@ export default function Dashboard() {
         <div className="grid lg:grid-cols-12 gap-8">
           <div className="lg:col-span-8 space-y-8">
             {/* Upcoming Matches */}
-            <motion.div
-              variants={VARIANTS.item}
-            >
+            <motion.div variants={VARIANTS.item}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
@@ -787,9 +720,7 @@ export default function Dashboard() {
             </motion.div>
 
             {nearbyMatches.length > 0 && (
-              <motion.div
-                variants={VARIANTS.item}
-              >
+              <motion.div variants={VARIANTS.item}>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
@@ -853,8 +784,6 @@ export default function Dashboard() {
                 </div>
               </motion.div>
             )}
-
-
           </div>
 
           {/* Right Column */}
@@ -865,16 +794,14 @@ export default function Dashboard() {
             {/* Next Match Card */}
             <NextMatchCard 
               match={myUpcomingMatches[0]} 
-              venue={myUpcomingMatches[0] ? venues.find(v => v.id === myUpcomingMatches[0].venue_id) : null}
+              venue={myUpcomingMatches[0]?.venue || venues.find(v => v.id === myUpcomingMatches[0]?.venue_id)}
               participants={myUpcomingMatches[0] ? allParticipants.filter(p => p.match_id === myUpcomingMatches[0].id) : []}
             />
           </motion.div>
         </div>
 
         {/* About AllPlay Card */}
-        <motion.div
-          variants={VARIANTS.item}
-        >
+        <motion.div variants={VARIANTS.item}>
           <Link to={createPageUrl("AboutAllPlay")}>
             <motion.div
               whileHover={{ scale: 1.02, y: -4 }}
@@ -882,7 +809,6 @@ export default function Dashboard() {
               className="relative overflow-hidden rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#223029] bg-gradient-to-br from-[#121715] to-[#0F1513] hover:border-[#2BA84A]/30 transition-all cursor-pointer"
             >
               <div className="flex flex-col sm:flex-row items-center sm:items-stretch gap-4 p-5 sm:p-6">
-                {/* Image */}
                 <div className="w-full sm:w-40 h-40 sm:h-auto rounded-xl overflow-hidden flex-shrink-0">
                   <img 
                     src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/afd97d702_P10905801.jpg"
@@ -890,8 +816,6 @@ export default function Dashboard() {
                     className="w-full h-full object-cover"
                   />
                 </div>
-
-                {/* Content */}
                 <div className="flex-1 flex flex-col justify-between min-w-0 text-center sm:text-left">
                   <div>
                     <h3 className="text-xl font-bold text-[#F4F7F5] mb-2">
@@ -901,7 +825,6 @@ export default function Dashboard() {
                       Vi bygger AllPlay för att göra spontanfotboll enkel, trygg och tillgänglig. Läs om varför appen finns, hur den funkar och vilka som står bakom.
                     </p>
                   </div>
-
                   <motion.button
                     whileHover={{ x: 4 }}
                     className="mt-4 inline-flex items-center justify-center sm:justify-start gap-2 text-[#2BA84A] font-semibold text-sm"
