@@ -75,6 +75,9 @@ function normalizeLevel(level) {
  * @returns {Promise<{match_id: string, message: string}>} - Created match ID and message
  */
 export async function createMatch(payload) {
+  // Log incoming payload for debugging
+  console.log('[matchesService] createMatch incoming payload:', payload);
+  
   // Normalize level to valid DB value
   const rawLevel = payload.skill_bracket || payload.level;
   const level = normalizeLevel(rawLevel);
@@ -82,7 +85,7 @@ export async function createMatch(payload) {
   // Transform frontend format to backend format
   const backendPayload = {
     pitch_id: payload.venue_id || payload.pitch_id,
-    starts_at: payload.starts_at || `${payload.date}T${payload.time}:00`,
+    starts_at: payload.starts_at || (payload.date && payload.time ? `${payload.date}T${payload.time}:00` : null),
     level,
     is_public: payload.is_public !== false && !payload.is_private,
     format: payload.format || '5v5',
@@ -92,7 +95,16 @@ export async function createMatch(payload) {
     is_spontaneous: payload.is_spontaneous || false
   };
   
-  console.log('[matchesService] createMatch payload:', { rawLevel, normalizedLevel: level });
+  // Log the full payload being sent to backend
+  console.log('[matchesService] createMatch backendPayload:', JSON.stringify(backendPayload, null, 2));
+  
+  // Validate required fields before sending
+  if (!backendPayload.pitch_id) {
+    throw new Error('Venue/pitch_id is required');
+  }
+  if (!backendPayload.starts_at) {
+    throw new Error('starts_at is required');
+  }
   
   // Edge Function returns { match_id, message } on success
   const result = await callEdgeFunction('create_match', backendPayload);
