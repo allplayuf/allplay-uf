@@ -1,7 +1,13 @@
 /**
  * Matches Service
  * 
- * All match-related operations using Supabase Edge Functions and REST API.
+ * ARCHITECTURE: Backend (Supabase RLS) is source of truth
+ * - No frontend security filtering
+ * - RLS determines what each user can see
+ * - Frontend only controls UI actions (join/leave/kick buttons)
+ * 
+ * All write operations go through Edge Functions.
+ * Read operations use REST API with RLS enforcement.
  */
 
 import { callEdgeFunction, callPublicEdgeFunction } from '../callEdgeFunction';
@@ -130,6 +136,11 @@ export async function checkInMatch(matchId, userLat, userLng) {
  * Get public matches feed (guest allowed)
  * Reads from public_matches view via REST API
  * 
+ * ARCHITECTURE: Backend (RLS) is source of truth
+ * - No frontend filtering of is_public
+ * - RLS determines what anon/authenticated users can see
+ * - Always sort by starts_at ASC
+ * 
  * @param {object} filters - Optional filters
  * @param {string} [filters.status] - Filter by status (upcoming/ongoing/completed)
  */
@@ -144,17 +155,19 @@ export async function getPublicMatches(filters = {}) {
     headers['apikey'] = config.anonKey;
   }
   
-  // Build query params for public_matches VIEW
+  // Include auth token if authenticated (RLS will handle access)
+  if (sessionStore.accessToken) {
+    headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
+  }
+  
+  // Build query - always sort by starts_at ASC (backend is source of truth)
   let queryParams = 'select=*&order=starts_at.asc';
   
   if (filters.status === 'upcoming') {
     queryParams += '&status=eq.upcoming';
   }
   
-  // Only show public matches or include private if user has access
-  if (!sessionStore.isAuthenticated) {
-    queryParams += '&is_public=eq.true';
-  }
+  // NO frontend filtering of is_public - RLS handles this
   
   const res = await fetch(`${SUPABASE_URL}/rest/v1/public_matches?${queryParams}`, {
     method: 'GET',
@@ -168,7 +181,7 @@ export async function getPublicMatches(filters = {}) {
   }
   
   const matches = await res.json();
-  console.log('[matchesService] Fetched', matches.length, 'matches from public_matches view');
+  console.log('[matchesService] Fetched', matches.length, 'matches');
   
   return matches;
 }
@@ -201,10 +214,25 @@ export async function getMyParticipation(matchId) {
 }
 
 /**
- * Get match participants
+ * Get match participants (all participants visible - RLS handles access)
+ * 
+ * ARCHITECTURE: Show ALL participants for a match
+ * - Backend determines who can see based on RLS
+ * - Frontend does NOT filter participants
+ * - Only hide ACTION buttons (join/leave/kick) based on auth
  * 
  * @param {string} matchId - Match UUID
  */
 export async function getMatchParticipants(matchId) {
   return callPublicEdgeFunction('get_match_participants', { match_id: matchId });
+}
+
+/**
+ * Get match feed - preferred method for listing matches
+ * Uses get_match_feed Edge Function which respects RLS
+ * 
+ * @param {object} filters - Optional filters
+ */
+export async function getMatchFeed(filters = {}) {
+  return callPublicEdgeFunction('get_match_feed', filters);
 }
