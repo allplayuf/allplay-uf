@@ -291,8 +291,8 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
               )}
 
               {/* Info button - ALWAYS visible */}
-              <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`} className={canJoin && !hasJoined ? "flex-shrink-0" : "flex-1"}>
-                <button className={`h-12 border-2 border-[#223029] hover:bg-[#18221E] hover:border-[#2BA84A]/50 text-[#F4F7F5] text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1 ${canJoin && !hasJoined ? 'px-5' : 'w-full'}`}>
+              <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`} className={canJoin ? "flex-shrink-0" : "flex-1"}>
+                <button className={`h-12 border-2 border-[#223029] hover:bg-[#18221E] hover:border-[#2BA84A]/50 text-[#F4F7F5] text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1 ${canJoin ? 'px-5' : 'w-full'}`}>
                   Info
                   <ChevronRight className="w-4 h-4" />
                 </button>
