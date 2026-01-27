@@ -57,10 +57,7 @@ export default function Dashboard() {
   const [showCreateMatchModal, setShowCreateMatchModal] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { user: authUser, isGuest, isAuthenticated, isLoading: authLoading } = useSupabaseAuth();
-  
-  // Debug auth state
-  console.log('[Dashboard] Auth state:', { authUser, isGuest, isAuthenticated, authLoading });
+  const { isGuest, isAuthenticated } = useSupabaseAuth();
 
   // Fetch user profile from Base44 (same as Profile page)
   const { data: base44User, isLoading: userLoading, error: userError } = useQuery({
