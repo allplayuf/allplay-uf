@@ -75,24 +75,30 @@ function normalizeLevel(level) {
  * @returns {Promise<{match_id: string, message: string}>} - Created match ID and message
  */
 export async function createMatch(payload) {
+  // Check if payload is wrapped in { match: ... } from CreateMatchForm
+  const matchData = payload.match || payload;
+  
   // Log incoming payload for debugging
-  console.log('[matchesService] createMatch incoming payload:', payload);
+  console.log('[matchesService] createMatch incoming:', { 
+    hasMatchWrapper: !!payload.match,
+    matchData 
+  });
   
   // Normalize level to valid DB value
-  const rawLevel = payload.skill_bracket || payload.level;
+  const rawLevel = matchData.skill_bracket || matchData.level;
   const level = normalizeLevel(rawLevel);
   
   // Transform frontend format to backend format
   const backendPayload = {
-    pitch_id: payload.venue_id || payload.pitch_id,
-    starts_at: payload.starts_at || (payload.date && payload.time ? `${payload.date}T${payload.time}:00` : null),
+    pitch_id: matchData.venue_id || matchData.pitch_id,
+    starts_at: matchData.starts_at || (matchData.date && matchData.time ? `${matchData.date}T${matchData.time}:00` : null),
     level,
-    is_public: payload.is_public !== false && !payload.is_private,
-    format: payload.format || '5v5',
-    max_players: payload.is_spontaneous ? null : (payload.max_players || 10),
-    title: payload.title || null,
-    notes: payload.notes || null,
-    is_spontaneous: payload.is_spontaneous || false
+    is_public: matchData.is_public !== false && !matchData.is_private,
+    format: matchData.format || '5v5',
+    max_players: matchData.is_spontaneous ? null : (matchData.max_players || 10),
+    title: matchData.title || null,
+    notes: matchData.notes || null,
+    is_spontaneous: matchData.is_spontaneous || false
   };
   
   // Log the full payload being sent to backend
