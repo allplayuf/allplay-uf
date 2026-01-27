@@ -27,10 +27,8 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
     is_ranked: false,
     is_open: true,
     is_private: false,
-    notes: '',
-    organizer_id: user.id,
-    current_players: 1,
-    status: 'upcoming'
+    notes: ''
+    // Removed: organizer_id, current_players, status - backend sets these
   });
   const [venueSearch, setVenueSearch] = useState('');
   const [showVenueDropdown, setShowVenueDropdown] = useState(false);
@@ -67,15 +65,31 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
 
     setIsSubmitting(true);
 
+    // Build starts_at as ISO string for proper timezone handling
+    const startsAtIso = new Date(`${formData.date}T${formData.time}:00`).toISOString();
+
     const submitData = {
-      ...formData,
+      title: formData.title,
+      venue_id: formData.venue_id,
+      starts_at: startsAtIso,
+      date: formData.date,
+      time: formData.time,
+      format: formData.format,
       max_players: formData.is_spontaneous ? null : formData.max_players,
-      is_team_match: false,
-      is_ranked: false
+      is_spontaneous: formData.is_spontaneous,
+      skill_bracket: formData.skill_bracket,
+      is_private: formData.is_private,
+      is_open: formData.is_open,
+      notes: formData.notes
+      // Backend sets: organizer_id, current_players, status
     };
 
+    // Find selected venue object for upsert
+    const selectedVenueObj = venues.find(v => v.id === formData.venue_id);
+
     try {
-      await onSubmit(submitData);
+      // Pass both match data and venue object to parent
+      await onSubmit({ match: submitData, venue: selectedVenueObj });
     } catch (error) {
       console.error("Error submitting match:", error);
     } finally {
