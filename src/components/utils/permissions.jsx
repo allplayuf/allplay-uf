@@ -1,14 +1,18 @@
 /**
  * Custom Role & Permission System for AllPlay
- * Independent of Base44's built-in role system
  * 
- * Roles:
- * - ADMIN: Full access to everything
- * - CUP_ADMIN: Full access to cups/tournaments only
- * - MODERATOR: Can moderate reports and content
- * - VENUE_MANAGER: Can manage venues
- * - USER: Standard authenticated user
- * - GUEST: Read-only access (non-authenticated)
+ * ARCHITECTURE: This is for UI gating only - backend RLS is source of truth
+ * 
+ * These functions help the frontend decide which UI elements to show/hide.
+ * Actual security is enforced by Supabase RLS policies.
+ * 
+ * Roles (from Supabase user_roles):
+ * - admin: Full access
+ * - cup_admin: Cup/tournament management
+ * - moderator: Report handling
+ * - venue_manager: Venue management
+ * - user: Standard authenticated user
+ * - guest: Read-only (not in DB - derived from auth state)
  */
 
 // ============================================
@@ -212,11 +216,14 @@ export function getUserRoles(user) {
 }
 
 // ============================================
-// MAIN PERMISSION CHECKER
+// MAIN PERMISSION CHECKER (UI-only)
 // ============================================
 
 /**
  * Check if user can perform an action in a context
+ * 
+ * NOTE: This is for UI gating only. Backend RLS enforces actual permissions.
+ * 
  * @param {Object} user - User object
  * @param {string} action - Action from ACTIONS
  * @param {string} context - Context from CONTEXTS
