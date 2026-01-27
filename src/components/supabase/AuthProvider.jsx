@@ -1,6 +1,10 @@
 /**
  * Supabase Auth Provider for Base44
- * Provides auth context throughout the app
+ * 
+ * ARCHITECTURE: Supabase session is source of truth
+ * - Session persisted via localStorage (handled by sessionStore)
+ * - Session restored automatically on page reload
+ * - Subscribe to auth state changes for reactive updates
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
@@ -31,23 +35,22 @@ export function SupabaseAuthProvider({ children }) {
     let isMounted = true;
     
     const init = async () => {
-      console.log('[SupabaseAuthProvider] Initializing auth...');
-      
       try {
-        // This will load session from localStorage and validate/refresh if needed
+        // supabaseClient.init() handles:
+        // 1. Load session from localStorage
+        // 2. Validate token (refresh if expired)
+        // 3. Set auth state (AUTHENTICATED or GUEST)
         await supabaseClient.init();
         
         if (!isMounted) return;
         
-        // Sync state from sessionStore
+        // Sync state from sessionStore (single source of truth)
         setAuthState(sessionStore.authState);
         setUser(sessionStore.user);
         setRoles(sessionStore.roles);
         
-        console.log('[SupabaseAuthProvider] Auth initialized, state:', sessionStore.authState);
       } catch (e) {
-        // Auth init failed - default to guest mode (NOT an error state)
-        console.log('[SupabaseAuthProvider] Init failed, defaulting to guest mode');
+        // Init failed - guest mode is valid state, not an error
         if (isMounted) {
           setAuthState(AUTH_STATES.GUEST);
         }
@@ -60,11 +63,9 @@ export function SupabaseAuthProvider({ children }) {
 
     init();
 
-    // Subscribe to session changes (handles login/logout events)
+    // Subscribe to session changes (login/logout/token refresh)
     const unsubscribe = sessionStore.subscribe((state) => {
       if (!isMounted) return;
-      
-      console.log('[SupabaseAuthProvider] Session changed:', state.authState);
       setAuthState(state.authState);
       setUser(state.user);
       setRoles(state.roles);
