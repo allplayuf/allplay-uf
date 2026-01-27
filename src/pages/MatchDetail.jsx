@@ -391,7 +391,8 @@ export default function MatchDetailPage() {
 
   const isOrganizer = match.organizer_id === user?.id;
   const isParticipant = participants.some(p => p.id === user?.id);
-  const canJoin = !isCupMatch && !isParticipant && match.status === 'upcoming' && (match.is_spontaneous || participants.length < match.max_players);
+  // UI-level check only - backend validates actual join permission
+  const canJoin = !isCupMatch && !isParticipant && match.status === 'upcoming' && !isGuest;
   const isCompleted = match.status === 'completed';
 
   const statusConfig = STATUS_CONFIG[match.status] || STATUS_CONFIG.upcoming;
