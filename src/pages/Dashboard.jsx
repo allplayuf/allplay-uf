@@ -19,7 +19,7 @@ import {
   Zap,
   TrendingUp
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
 import CreateMatchForm from "../components/matches/CreateMatchForm";
@@ -56,6 +56,7 @@ export default function Dashboard() {
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [showCreateMatchModal, setShowCreateMatchModal] = useState(false);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { user: authUser, isGuest, isAuthenticated } = useSupabaseAuth();
 
   // Fetch user profile from Supabase users table
@@ -214,13 +215,18 @@ export default function Dashboard() {
         }
       }
 
-      // Create match via Edge Function
-      await supabaseCreateMatch(matchData);
+      // Create match via Edge Function - returns { match_id, message }
+      const result = await supabaseCreateMatch(matchData);
 
       setShowCreateMatchModal(false);
       
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.matches });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myParticipantMatchIds });
+      
+      // Navigate to newly created match if we got an ID back
+      if (result?.match_id) {
+        navigate(`${createPageUrl("MatchDetail")}?id=${result.match_id}`);
+      }
       
     } catch (error) {
       console.error("Error creating match:", error);
