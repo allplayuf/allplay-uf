@@ -197,18 +197,15 @@ export async function getMatchDetails(matchId) {
 
 /**
  * Get current user's participation in a match
+ * Let backend return null for guests - no frontend guard needed
  * 
  * @param {string} matchId - Match UUID
  */
 export async function getMyParticipation(matchId) {
-  if (!sessionStore.isAuthenticated) {
-    return null;
-  }
-  
   try {
-    return await callEdgeFunction('my_participation', { match_id: matchId });
+    return await callPublicEdgeFunction('my_participation', { match_id: matchId });
   } catch (e) {
-    console.error('[matchesService] Failed to get participation:', e);
+    // Backend returns null for guests or non-participants
     return null;
   }
 }
