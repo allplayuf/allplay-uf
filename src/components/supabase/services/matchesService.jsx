@@ -72,6 +72,7 @@ function normalizeLevel(level) {
  * @param {string} [payload.title] - Match title
  * @param {string} [payload.notes] - Additional notes
  * @param {boolean} [payload.is_spontaneous] - Whether match is spontaneous
+ * @returns {Promise<{match_id: string, message: string}>} - Created match ID and message
  */
 export async function createMatch(payload) {
   // Normalize level to valid DB value
@@ -93,7 +94,10 @@ export async function createMatch(payload) {
   
   console.log('[matchesService] createMatch payload:', { rawLevel, normalizedLevel: level });
   
-  return callEdgeFunction('create_match', backendPayload);
+  // Edge Function returns { match_id, message } on success
+  const result = await callEdgeFunction('create_match', backendPayload);
+  console.log('[matchesService] createMatch result:', result);
+  return result;
 }
 
 // Export for use in other components
