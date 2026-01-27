@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, SlidersHorizontal, ChevronDown, ChevronUp, Loader2, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { createPageUrl } from "@/utils";
 
 import CreateMatchForm from "../components/matches/CreateMatchForm";
 import InfiniteMatchList from "../components/matches/InfiniteMatchList";
@@ -80,6 +82,7 @@ export default function MatchesPage() {
 
   const { confirm, alert, DialogContainer } = useCustomDialog();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   
   // Use Supabase auth as source of truth
   const { user: authUser, isGuest, isAuthenticated } = useSupabaseAuth();
@@ -245,13 +248,19 @@ export default function MatchesPage() {
       }
       
       // Create match via Edge Function (RLS enforced)
-      await createMatch(matchData);
+      // Returns { match_id, message } on success
+      const result = await createMatch(matchData);
 
       setShowCreateForm(false);
       setPreselectedVenueId(null);
       
       queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myParticipantMatchIds });
+      
+      // Navigate to newly created match if we got an ID back
+      if (result?.match_id) {
+        navigate(`${createPageUrl("MatchDetail")}?id=${result.match_id}`);
+      }
       
     } catch (error) {
       console.error("Error creating match:", error);
