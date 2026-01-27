@@ -88,9 +88,15 @@ export async function createMatch(payload) {
   const rawLevel = matchData.skill_bracket || matchData.level;
   const level = normalizeLevel(rawLevel);
   
+  // Get the venue UUID from frontend
+  const venueUuid = matchData.venue_id || matchData.pitch_id;
+  
   // Transform frontend format to backend format
+  // venue_id = UUID (matches.venue_id uuid column)
+  // pitch_id = text fallback (matches.pitch_id text NOT NULL column)
   const backendPayload = {
-    pitch_id: matchData.venue_id || matchData.pitch_id,
+    venue_id: venueUuid,
+    pitch_id: String(venueUuid),
     starts_at: matchData.starts_at || (matchData.date && matchData.time ? `${matchData.date}T${matchData.time}:00` : null),
     level,
     is_public: matchData.is_public !== false && !matchData.is_private,
