@@ -1,8 +1,10 @@
 /**
  * Supabase Edge Function Caller
  * 
- * Single shared helper for calling all Edge Functions.
- * Always includes proper auth headers and error handling.
+ * ARCHITECTURE: Backend (RLS/Edge Functions) is source of truth
+ * - Always include auth token if available
+ * - Let backend decide authorization via RLS
+ * - Frontend only catches errors and displays them
  */
 
 import { getSupabaseConfig, SUPABASE_FUNCTIONS_URL } from './config';
@@ -16,13 +18,11 @@ const IS_DEV = typeof window !== 'undefined' &&
  * 
  * @param {string} name - Function name (e.g., 'create_match', 'join_match')
  * @param {object} body - Request body payload
- * @param {object} options - Optional config { requireAuth: boolean }
+ * @param {object} options - Optional config
  * @returns {Promise<object>} - Parsed JSON response
- * @throws {Error} - On non-2xx responses
+ * @throws {Error} - On non-2xx responses (backend decides auth)
  */
 export async function callEdgeFunction(name, body = {}, options = {}) {
-  const { requireAuth = true } = options;
-  
   // Get config (includes anon key)
   const config = await getSupabaseConfig();
   
@@ -34,16 +34,14 @@ export async function callEdgeFunction(name, body = {}, options = {}) {
     'Content-Type': 'application/json',
   };
   
-  // Always include apikey if available
+  // Always include apikey
   if (config.anonKey) {
     headers['apikey'] = config.anonKey;
   }
   
-  // Include auth token if user is authenticated
+  // Always include auth token if available - let backend decide access
   if (sessionStore.accessToken) {
     headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
-  } else if (requireAuth) {
-    throw new Error('Du måste vara inloggad för att utföra denna åtgärd');
   }
   
   // Log in dev mode
