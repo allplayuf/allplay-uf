@@ -95,11 +95,18 @@ export {
 
 // =============================================================================
 // CONVENIENCE HELPERS
+// These only affect UI rendering - backend RLS is source of truth
 // =============================================================================
 import { sessionStore as _sessionStore } from './client';
 
-/** Check if current user is a guest (not authenticated) */
+/** 
+ * Check if current user is a guest (not authenticated)
+ * NOTE: Only for UI rendering decisions. Backend RLS handles actual access control.
+ */
 export const isGuest = () => !_sessionStore?.isAuthenticated;
 
-/** Check if current user is authenticated */
+/** 
+ * Check if current user is authenticated 
+ * NOTE: Only for UI rendering decisions. Backend RLS handles actual access control.
+ */
 export const isAuthenticated = () => _sessionStore?.isAuthenticated;
