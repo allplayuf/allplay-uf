@@ -32,12 +32,12 @@ import {
   createMatch as supabaseCreateMatch, 
   upsertVenue,
   getVenues,
-  getMyProfile,
   getPublicMatches,
   getMyParticipantMatchIds,
   getParticipantsForMatches,
   transformMatchData
 } from "../components/supabase/services";
+import { base44 } from "@/api/base44Client";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 
 // Query keys
