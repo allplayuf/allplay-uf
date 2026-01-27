@@ -241,7 +241,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
             {/* Actions - ALWAYS show Info button, conditionally show Join */}
             <div className="flex gap-3 pt-3 mt-auto">
               {/* Join button - show if joinable and user can join */}
-              {canJoin && !hasJoined && (
+              {canJoin && (
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.95 }}
