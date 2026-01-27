@@ -237,62 +237,65 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
               </div>
             )}
 
-            {/* Actions */}
+            {/* Actions - ALWAYS show Info button, conditionally show Join */}
             <div className="flex gap-3 pt-3 mt-auto">
-              {match.status === 'completed' ? (
+              {/* Join button - show if joinable and user can join */}
+              {canJoin && !hasJoined && (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
+                  animate={{ 
+                    scale: [1, 1.03, 1],
+                  }}
+                  transition={{ 
+                    duration: 1.2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                  onClick={handleJoinClick}
+                  className="flex-1 bg-[#F4743B] hover:bg-[#E5683A] text-white text-base font-extrabold uppercase tracking-wide h-12 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(244,116,59,0.4)] hover:shadow-[0_0_25px_rgba(244,116,59,0.6)] border border-[#F4743B]/50 relative overflow-hidden group/btn"
+                >
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12"
+                    initial={{ x: '-100%' }}
+                    animate={{ x: '200%' }}
+                    transition={{
+                      repeat: Infinity,
+                      duration: 1.5,
+                      ease: "easeInOut",
+                      repeatDelay: 0.5
+                    }}
+                  />
+                  <span className="relative z-10">Gå med</span>
+                </motion.button>
+              )}
+
+              {/* Status badges for non-joinable states */}
+              {match.status === 'completed' && (
                 <div className="flex-1 h-12 flex items-center justify-center border border-[#223029] rounded-xl bg-[#18221E]">
                   <span className="text-sm font-bold text-[#7B8A83]">Avslutad</span>
                 </div>
-              ) : canJoin ? (
-                <>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.95 }}
-                    animate={{ 
-                      scale: [1, 1.03, 1],
-                    }}
-                    transition={{ 
-                      duration: 1.2,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                    onClick={handleJoinClick}
-                    className="flex-1 bg-[#F4743B] hover:bg-[#E5683A] text-white text-base font-extrabold uppercase tracking-wide h-12 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(244,116,59,0.4)] hover:shadow-[0_0_25px_rgba(244,116,59,0.6)] border border-[#F4743B]/50 relative overflow-hidden group/btn"
-                  >
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12"
-                      initial={{ x: '-100%' }}
-                      animate={{ x: '200%' }}
-                      transition={{
-                        repeat: Infinity,
-                        duration: 1.5,
-                        ease: "easeInOut",
-                        repeatDelay: 0.5
-                      }}
-                    />
-                    <span className="relative z-10">Gå med</span>
-                  </motion.button>
-                  
-                  <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`} className="flex-shrink-0">
-                    <button className="h-12 px-5 border-2 border-[#223029] hover:bg-[#18221E] hover:border-[#F4743B]/50 text-[#F4F7F5] text-sm font-bold rounded-xl transition-all">
-                      Info
-                    </button>
-                  </Link>
-                </>
-              ) : match.status === 'upcoming' && !match.is_spontaneous && spotsLeft === 0 ? (
+              )}
+              
+              {match.status === 'upcoming' && !match.is_spontaneous && spotsLeft === 0 && !hasJoined && (
                 <div className="flex-1 h-12 flex items-center justify-center border border-[#223029] rounded-xl bg-[#18221E]">
                   <span className="text-sm font-bold text-[#7B8A83]">Fullbokad</span>
                 </div>
-              ) : null}
-
-              {(match.status === 'completed' || (match.status === 'upcoming' && (!isJoinable || (spotsLeft !== null && spotsLeft <= 0)))) && (
-                <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`} className="flex-1">
-                  <button className="w-full h-12 border-2 border-[#223029] hover:bg-[#18221E] hover:border-[#2BA84A]/50 text-[#F4F7F5] text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1">
-                    Detaljer
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </Link>
               )}
+
+              {hasJoined && match.status !== 'completed' && (
+                <div className="flex-1 h-12 flex items-center justify-center border border-[#2BA84A]/30 rounded-xl bg-[#2BA84A]/10">
+                  <span className="text-sm font-bold text-[#2BA84A]">Anmäld ✓</span>
+                </div>
+              )}
+
+              {/* Info button - ALWAYS visible */}
+              <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`} className={canJoin && !hasJoined ? "flex-shrink-0" : "flex-1"}>
+                <button className={`h-12 border-2 border-[#223029] hover:bg-[#18221E] hover:border-[#2BA84A]/50 text-[#F4F7F5] text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1 ${canJoin && !hasJoined ? 'px-5' : 'w-full'}`}>
+                  Info
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </Link>
             </div>
           </div>
         </CardContent>
