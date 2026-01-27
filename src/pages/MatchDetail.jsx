@@ -142,8 +142,20 @@ export default function MatchDetailPage() {
     queryKey: ['supabase-match', matchId],
     queryFn: async () => {
       const result = await getMatchDetails(matchId);
+      console.log('[MatchDetail] getMatchDetails result:', result);
+      
       // Transform Supabase match to expected format
       if (result) {
+        // Parse starts_at to get date and time
+        let parsedDate = result.date;
+        let parsedTime = result.time;
+        
+        if (result.starts_at && (!parsedDate || !parsedTime)) {
+          const startsAt = new Date(result.starts_at);
+          parsedDate = parsedDate || startsAt.toISOString().split('T')[0];
+          parsedTime = parsedTime || startsAt.toTimeString().substring(0, 5);
+        }
+        
         return {
           ...result,
           // Map 'finished' status to 'completed' for UI compatibility
@@ -151,10 +163,18 @@ export default function MatchDetailPage() {
           // Map level to skill_bracket for UI
           skill_bracket: result.level || result.skill_bracket,
           // Ensure venue_id is set
-          venue_id: result.pitch_id || result.venue_id,
-          // Parse date/time from starts_at if needed
-          date: result.date || (result.starts_at ? result.starts_at.split('T')[0] : null),
-          time: result.time || (result.starts_at ? result.starts_at.split('T')[1]?.substring(0, 5) : null),
+          venue_id: result.venue_id || result.pitch_id,
+          // Use title or generate one
+          title: result.title || result.name || 'Match',
+          // Parsed date/time
+          date: parsedDate,
+          time: parsedTime,
+          // Duration
+          duration_minutes: result.duration_minutes || result.duration || 90,
+          // Max players
+          max_players: result.max_players || result.capacity,
+          // Organizer
+          organizer_id: result.organizer_id || result.created_by,
         };
       }
       return null;
