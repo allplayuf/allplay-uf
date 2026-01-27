@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, SlidersHorizontal, ChevronDown, ChevronUp, Calendar, Loader2, CheckCircle2 } from "lucide-react";
+import { Plus, SlidersHorizontal, ChevronDown, ChevronUp, Loader2, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import CreateMatchForm from "../components/matches/CreateMatchForm";
@@ -14,31 +13,41 @@ import { useCustomDialog } from "../components/ui/custom-dialog";
 import { useInfiniteMatches } from "../components/hooks/useInfiniteMatches";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import { NoMatchesFound } from "../components/ui/empty-state";
-import { createMatch, joinMatch, upsertVenue } from "../components/supabase/services";
+import { 
+  createMatch, 
+  joinMatch, 
+  upsertVenue,
+  getVenues,
+  getMyProfile,
+  getMyParticipantMatchIds,
+  getParticipantsForMatches,
+  getCompletedMatches,
+  transformMatchData
+} from "../components/supabase/services";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
+import { callEdgeFunction } from "../components/supabase/callEdgeFunction";
 
 // Query keys
 const QUERY_KEYS = {
-  venues: ['venues'],
-  user: ['user'],
-  participants: ['allParticipants']
+  venues: ['supabase-venues'],
+  userProfile: ['supabase-userProfile'],
+  myParticipantMatchIds: ['supabase-myParticipantMatchIds'],
+  completedMatches: ['supabase-completedMatches']
 };
 
 // Simple skeleton for initial loading
 const PageLoadingSkeleton = () => (
   <div className="animate-pulse space-y-6">
-    <div className="h-8 bg-[#18221E] rounded-md w-3/4"></div> {/* Title */}
-    <div className="h-6 bg-[#18221E] rounded-md w-1/2 mt-2"></div> {/* Subtitle */}
-
+    <div className="h-8 bg-[#18221E] rounded-md w-3/4"></div>
+    <div className="h-6 bg-[#18221E] rounded-md w-1/2 mt-2"></div>
     <div className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[16px] p-4">
       <div className="flex gap-2 mb-4">
         <div className="flex-1 h-16 bg-[#18221E] rounded-[14px]"></div>
         <div className="flex-1 h-16 bg-[#18221E] rounded-[14px]"></div>
         <div className="flex-1 h-16 bg-[#18221E] rounded-[14px]"></div>
       </div>
-      <div className="h-10 bg-[#18221E] rounded-[12px] w-full"></div> {/* Filter Toggle */}
+      <div className="h-10 bg-[#18221E] rounded-[12px] w-full"></div>
     </div>
-
     <div className="space-y-4">
       <div className="bg-[#121715] border border-[#223029] rounded-[20px] p-6 h-40"></div>
       <div className="bg-[#121715] border border-[#223029] rounded-[20px] p-6 h-40"></div>
@@ -49,7 +58,7 @@ const PageLoadingSkeleton = () => (
 
 // Helper function for Haversine distance calculation
 function haversineDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371; // Earth's radius in kilometers
+  const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
   const a =
@@ -57,8 +66,7 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
     Math.sin(dLon / 2) * Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const distance = R * c;
-  return distance; // Distance in km
+  return R * c;
 }
 
 export default function MatchesPage() {
@@ -74,42 +82,42 @@ export default function MatchesPage() {
   const queryClient = useQueryClient();
   
   // Use Supabase auth as source of truth
-  const { isGuest, isAuthenticated } = useSupabaseAuth();
+  const { user: authUser, isGuest, isAuthenticated } = useSupabaseAuth();
 
-  // Fetch user with OPTIMIZED caching - only when authenticated
-  const { data: user, isLoading: isUserLoading } = useQuery({
-    queryKey: QUERY_KEYS.user,
-    queryFn: async () => {
-      const currentUser = await base44.auth.me();
-      return currentUser;
-    },
+  // Fetch user profile from Supabase users table
+  const { data: userProfile, isLoading: isUserLoading } = useQuery({
+    queryKey: [...QUERY_KEYS.userProfile, authUser?.id],
+    queryFn: () => getMyProfile(),
     ...CACHE_STRATEGIES.AUTH,
-    enabled: isAuthenticated
+    enabled: isAuthenticated && !!authUser?.id
   });
 
-  // Fetch venues with OPTIMIZED caching (STATIC data)
+  // Combine auth user with profile for backwards compatibility
+  const user = useMemo(() => {
+    if (!authUser) return null;
+    return {
+      ...authUser,
+      ...userProfile,
+      id: authUser.id // Ensure ID comes from auth
+    };
+  }, [authUser, userProfile]);
+
+  // Fetch venues from Supabase
   const { data: venues = [], isLoading: isVenuesLoading } = useQuery({
     queryKey: QUERY_KEYS.venues,
-    queryFn: async () => {
-      const venuesData = await base44.entities.Venue.list();
-      return venuesData;
-    },
+    queryFn: () => getVenues(),
     ...CACHE_STRATEGIES.STATIC,
   });
 
-  // Fetch participants with OPTIMIZED caching (REALTIME data)
-  const { data: allParticipants = [], isLoading: isParticipantsLoading } = useQuery({
-    queryKey: QUERY_KEYS.participants,
-    queryFn: async () => {
-      if (!user) return [];
-      const participants = await base44.entities.MatchParticipant.list();
-      return participants;
-    },
+  // Fetch user's participant match IDs from Supabase
+  const { data: myParticipantMatchIds = [], isLoading: isParticipantIdsLoading } = useQuery({
+    queryKey: [...QUERY_KEYS.myParticipantMatchIds, authUser?.id],
+    queryFn: () => getMyParticipantMatchIds(),
     ...CACHE_STRATEGIES.REALTIME,
-    enabled: !!user,
+    enabled: isAuthenticated && !!authUser?.id,
   });
 
-  // Use infinite scroll hook for matches with OPTIMIZED caching
+  // Use infinite scroll hook for matches (already uses Supabase)
   const {
     data: matchesData,
     fetchNextPage,
@@ -117,48 +125,61 @@ export default function MatchesPage() {
     isFetchingNextPage,
     isLoading: matchesLoading
   } = useInfiniteMatches({
-    skill_level: sortBy === 'my_level' ? user?.skill_level : 'all',
+    skill_level: sortBy === 'my_level' ? userProfile?.skill_level : 'all',
     date: sortBy === 'today' ? 'today' : undefined,
     venues
   });
 
-  // Process matches data for other tabs
-  // Filter out cup matches from general browsing
-  const allMatches = (matchesData?.pages.flatMap(page => page.matches) || [])
-    .filter(m => !m.is_cup_match);
-  
-  const userMatchIds = user ? allParticipants
-    .filter(p => p.user_id === user.id)
-    .map(p => p.match_id) : [];
-  
-  const myMatches = allMatches.filter(m => 
-    userMatchIds.includes(m.id) || m.organizer_id === user?.id
-  );
-  
-  // For completed matches, always fetch when enabled
-  const { data: completedMatchesData = [], isLoading: completedLoading } = useQuery({
-    queryKey: ['completedMatches', user?.id],
-    queryFn: async () => {
-      const matches = await base44.entities.Match.filter({ status: 'completed' });
-      // Only include completed matches where the current user was a participant
-      const userCompletedMatches = matches.filter(m => userMatchIds.includes(m.id));
-      return userCompletedMatches;
-    },
-    enabled: !!user && userMatchIds.length > 0, // Enabled when user and their match IDs are available
-    staleTime: 60 * 1000,
+  // Process matches data - filter out cup matches
+  const allMatches = useMemo(() => {
+    return (matchesData?.pages.flatMap(page => page.matches) || [])
+      .filter(m => !m.is_cup_match);
+  }, [matchesData]);
+
+  // Get visible match IDs for fetching participants
+  const visibleMatchIds = useMemo(() => {
+    return allMatches.map(m => m.id);
+  }, [allMatches]);
+
+  // Fetch participants for visible matches
+  const { data: visibleParticipants = [] } = useQuery({
+    queryKey: ['supabase-participantsForMatches', visibleMatchIds],
+    queryFn: () => getParticipantsForMatches(visibleMatchIds),
+    ...CACHE_STRATEGIES.REALTIME,
+    enabled: visibleMatchIds.length > 0,
   });
 
   // Group participants by match
-  const participantsByMatch = {};
-  allParticipants.forEach(p => {
-    if (!participantsByMatch[p.match_id]) {
-      participantsByMatch[p.match_id] = [];
-    }
-    participantsByMatch[p.match_id].push(p);
+  const participantsByMatch = useMemo(() => {
+    const grouped = {};
+    visibleParticipants.forEach(p => {
+      if (!grouped[p.match_id]) {
+        grouped[p.match_id] = [];
+      }
+      grouped[p.match_id].push(p);
+    });
+    return grouped;
+  }, [visibleParticipants]);
+
+  // Filter my matches from the loaded matches
+  const myMatches = useMemo(() => {
+    return allMatches.filter(m => 
+      myParticipantMatchIds.includes(m.id) || m.organizer_id === authUser?.id
+    );
+  }, [allMatches, myParticipantMatchIds, authUser?.id]);
+  
+  // Fetch completed matches from Supabase (uses 'finished' status)
+  const { data: completedMatchesRaw = [], isLoading: completedLoading } = useQuery({
+    queryKey: [...QUERY_KEYS.completedMatches, authUser?.id],
+    queryFn: () => getCompletedMatches(authUser?.id),
+    enabled: isAuthenticated && !!authUser?.id,
+    staleTime: 60 * 1000,
   });
 
-  // The filteredMatches memo logic is now expected to be handled within InfiniteMatchList
-  // as it now receives the raw matchesData and sorting parameters directly.
+  // Transform completed matches data
+  const completedMatchesData = useMemo(() => {
+    return completedMatchesRaw.map(transformMatchData);
+  }, [completedMatchesRaw]);
 
   // Join match mutation - uses Supabase Edge Function (RLS enforced)
   const joinMatchMutation = useMutation({
@@ -167,8 +188,9 @@ export default function MatchesPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.participants });
-      queryClient.invalidateQueries({ queryKey: ['completedMatches'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myParticipantMatchIds });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.completedMatches });
+      queryClient.invalidateQueries({ queryKey: ['supabase-participantsForMatches'] });
     },
   });
 
@@ -211,13 +233,10 @@ export default function MatchesPage() {
     }
   };
 
-  const handleMatchCreated = async (matchData) => {
+  const handleMatchCreated = async ({ match: matchData, venue: selectedVenue }) => {
     try {
-      // Find selected venue from venues list for upsert
-      const selectedVenue = venues.find(v => v.id === matchData.venue_id);
-      
       // Upsert venue first to ensure it exists in Supabase
-      if (selectedVenue) {
+      if (selectedVenue?.id) {
         try {
           await upsertVenue(selectedVenue);
         } catch (e) {
@@ -232,7 +251,7 @@ export default function MatchesPage() {
       setPreselectedVenueId(null);
       
       queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.participants });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myParticipantMatchIds });
       
     } catch (error) {
       console.error("Error creating match:", error);
@@ -249,10 +268,8 @@ export default function MatchesPage() {
       const match = allMatches.find(m => m.id === matchId);
       
       // Let backend handle all validation (auth, duplicates, capacity, skill level)
-      // Backend RLS will return proper error if not allowed
       await joinMatchMutation.mutateAsync({ matchId });
 
-      // Success popup
       await alert(
         'Anmäld! 🎉',
         `Du har anmält dig till "${match?.title || 'matchen'}". Vi ses där!`,
@@ -271,8 +288,9 @@ export default function MatchesPage() {
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
-    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.participants });
-    queryClient.invalidateQueries({ queryKey: ['completedMatches'] });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myParticipantMatchIds });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.completedMatches });
+    queryClient.invalidateQueries({ queryKey: ['supabase-participantsForMatches'] });
   };
 
   const handleDeleteMatch = async (matchId) => {
@@ -290,11 +308,12 @@ export default function MatchesPage() {
     if (!shouldDelete) return;
 
     try {
-      await base44.functions.invoke('deleteMatch', { matchId });
+      // Use Supabase Edge Function for delete
+      await callEdgeFunction('delete_match', { match_id: matchId });
 
       queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.participants });
-      queryClient.invalidateQueries({ queryKey: ['completedMatches'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myParticipantMatchIds });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.completedMatches });
 
       await alert(
         'Match raderad',
@@ -323,10 +342,8 @@ export default function MatchesPage() {
     fullest: 'Fylldast'
   };
 
-  // WAIT for all critical data before rendering
-  // matchesLoading from useInfiniteMatches also covers the initial fetch
-  const isLoading = isUserLoading || isVenuesLoading || matchesLoading;
-
+  // Wait for critical data before rendering
+  const isLoading = isVenuesLoading || matchesLoading || (isAuthenticated && isUserLoading);
 
   if (isLoading) {
     return (
