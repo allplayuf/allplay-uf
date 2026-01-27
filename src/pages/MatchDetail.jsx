@@ -30,7 +30,8 @@ import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
 import CupMatchGoals from "../components/cups/CupMatchGoals";
 import CheckInButton from "../components/matches/CheckInButton";
 import MatchPlayersModal from "../components/matches/MatchPlayersModal";
-import { joinMatch as supabaseJoinMatch, leaveMatch as supabaseLeaveMatch, isGuest } from "../components/supabase/matchService";
+import { joinMatch, leaveMatch } from "../components/supabase/services/matchesService";
+import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 
 // CONSISTENT SKILL LEVEL CONFIG - WCAG AA compliant colors
 const SKILL_LEVEL_CONFIG = {
@@ -105,12 +106,16 @@ export default function MatchDetailPage() {
   const [isActionLoading, setIsActionLoading] = useState(false);
 
   const { confirm, alert, DialogContainer } = useCustomDialog();
+  
+  // Use Supabase auth state as source of truth
+  const { isGuest, isAuthenticated } = useSupabaseAuth();
 
   // 1. Fetch Current User
   const { data: user } = useQuery({
     queryKey: ['user'],
     queryFn: async () => await base44.auth.me(),
-    ...CACHE_STRATEGIES.AUTH
+    ...CACHE_STRATEGIES.AUTH,
+    enabled: isAuthenticated // Only fetch if authenticated
   });
 
   const isAdmin = user?.role === 'admin';
@@ -184,29 +189,12 @@ export default function MatchDetailPage() {
   });
 
   const handleJoinMatch = async () => {
-    // Check if guest
-    if (isGuest()) {
-      await alert('Logga in krävs', 'Du måste vara inloggad för att gå med i en match.', { type: 'info' });
-      return;
-    }
-
     if (isActionLoading) return;
     setIsActionLoading(true);
     try {
-      const existingParticipation = participants.find(p => p.id === user.id);
-
-      if (existingParticipation) {
-        await alert('Redan anmäld', 'Du har redan anmält dig till denna match!', { type: 'info' });
-        return;
-      }
-
-      if (!match.is_spontaneous && participants.length >= match.max_players) {
-        await alert('Match fullbokad', 'Tyvärr är denna match redan fullbokad!', { type: 'warning' });
-        return;
-      }
-
-      // Use Supabase RPC instead of Base44 function
-      await supabaseJoinMatch(matchId);
+      // Let backend handle all validation (auth, duplicate check, capacity)
+      // Backend RLS/Edge Function will return proper error if not allowed
+      await joinMatch(matchId);
 
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['matchParticipants', matchId] });
@@ -226,9 +214,6 @@ export default function MatchDetailPage() {
   const handleLeaveMatch = async () => {
     if (isActionLoading) return;
     try {
-      const myParticipation = participants.find(p => p.id === user.id);
-      if (!myParticipation) return;
-
       const shouldLeave = await confirm(
         'Lämna match',
         'Är du säker på att du vill lämna denna match?',
@@ -239,8 +224,8 @@ export default function MatchDetailPage() {
 
       setIsActionLoading(true);
       
-      // Use Supabase RPC instead of Base44 function
-      await supabaseLeaveMatch(matchId);
+      // Let backend handle validation
+      await leaveMatch(matchId);
 
       queryClient.invalidateQueries({ queryKey: ['matchParticipants', matchId] });
       queryClient.invalidateQueries({ queryKey: ['participants'] });
