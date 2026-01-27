@@ -33,7 +33,7 @@ import MatchCard from "../components/matches/MatchCard";
 import NotificationsSlider from "../components/dashboard/NotificationsSlider";
 import NextMatchCard from "../components/dashboard/NextMatchCard";
 import { createMatch as supabaseCreateMatch, upsertVenue } from "../components/supabase/services";
-import { isGuest } from "../components/supabase";
+import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 
 // Query keys
 const QUERY_KEYS = {
@@ -51,6 +51,7 @@ export default function Dashboard() {
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [showCreateMatchModal, setShowCreateMatchModal] = useState(false);
   const queryClient = useQueryClient();
+  const { isGuest } = useSupabaseAuth();
 
   // Fetch current user with OPTIMIZED caching (AUTH strategy)
   // Returns guest user object if not authenticated - NEVER blocks the UI
@@ -204,7 +205,7 @@ export default function Dashboard() {
   const handleMatchCreated = async (matchData) => {
     try {
       // Check if guest
-      if (isGuest()) {
+      if (isGuest) {
         displayError('Du måste vara inloggad för att skapa en match.');
         return;
       }
