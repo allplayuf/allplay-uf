@@ -541,7 +541,7 @@ export default function Dashboard() {
                   transition={{ delay: 0.4 }}
                   className="text-xl sm:text-2xl lg:text-4xl font-black text-white tracking-tight mb-1.5 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] leading-tight"
                   >
-                  Välkommen tillbaka, {(user?.display_name || user?.full_name)?.split(' ')[0]}!
+                  Välkommen tillbaka, {(userProfile?.display_name || userProfile?.full_name || user?.display_name || user?.full_name)?.split(' ')[0]}!
                   </motion.h1>
                 
                 <motion.p
