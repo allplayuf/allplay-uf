@@ -68,17 +68,26 @@ export default function Dashboard() {
     retry: false,
   });
 
-  // Combine auth user with profile
+  // Combine auth user with profile - userProfile from Supabase users table has priority
   const user = React.useMemo(() => {
     if (isGuest) {
       return { is_guest: true, display_name: 'Gäst', full_name: 'Gäst' };
     }
     if (!authUser) return null;
-    return {
+    
+    // Merge auth data with profile data, profile takes priority
+    const merged = {
       ...authUser,
       ...userProfile,
-      id: authUser.id
+      id: authUser.id,
+      // Ensure profile_image_url is correctly mapped (Supabase might use avatar_url)
+      profile_image_url: userProfile?.profile_image_url || userProfile?.avatar_url || authUser?.profile_image_url || authUser?.avatar_url,
+      // Ensure display_name/full_name are available
+      display_name: userProfile?.display_name || userProfile?.full_name || authUser?.display_name || authUser?.full_name || authUser?.email?.split('@')[0],
+      full_name: userProfile?.full_name || userProfile?.display_name || authUser?.full_name || authUser?.display_name || authUser?.email?.split('@')[0],
     };
+    
+    return merged;
   }, [authUser, userProfile, isGuest]);
 
   // Fetch all matches from Supabase
