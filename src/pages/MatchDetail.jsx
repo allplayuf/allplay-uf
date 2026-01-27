@@ -209,20 +209,23 @@ export default function MatchDetailPage() {
   // Find venue from venues list or use embedded data
   const venue = React.useMemo(() => {
     if (!match) return null;
+    
+    // First check for embedded venue data (from Edge Function or view)
+    if (match._venue_name || match.venue_name || match.pitch_name) {
+      return {
+        name: match._venue_name || match.venue_name || match.pitch_name || 'Okänd plan',
+        city: match._venue_city || match.venue_city || match.pitch_city,
+        address: match._venue_address || match.venue_address || match.pitch_address,
+        latitude: match._venue_lat || match.venue_lat || match.pitch_lat,
+        longitude: match._venue_lng || match.venue_lng || match.pitch_lng,
+      };
+    }
+    
     // Try to find in venues list
     const venueFromList = venues.find(v => v.id === match.venue_id || v.id === match.pitch_id);
     if (venueFromList) return venueFromList;
-    // Use embedded venue data from match if available
-    if (match._venue_name || match.venue_name) {
-      return {
-        name: match._venue_name || match.venue_name || 'Okänd plan',
-        city: match._venue_city || match.venue_city,
-        address: match._venue_address || match.venue_address,
-        latitude: match._venue_lat || match.venue_lat,
-        longitude: match._venue_lng || match.venue_lng,
-      };
-    }
-    return null;
+    
+    return { name: 'Okänd plan' };
   }, [match, venues]);
 
   // 4. Fetch Participants from Supabase
