@@ -1,23 +1,22 @@
 /**
  * Reports Service
  * 
- * User reporting operations using Supabase Edge Functions.
+ * ARCHITECTURE: Backend (RLS) is source of truth
+ * - All operations go through Edge Functions
+ * - Backend decides authorization (admin/moderator checks)
+ * - No frontend role guards
  */
 
 import { callEdgeFunction } from '../callEdgeFunction';
 
 /**
  * Report a user
- * 
- * @param {object} reportData - Report payload
- * @param {string} reportData.reported_user_id - User being reported
- * @param {string} reportData.category - Report category (harassment/threats/etc)
- * @param {string} [reportData.details] - Additional details
- * @param {string} [reportData.match_id] - Related match ID if applicable
+ * Backend validates reporter is authenticated and payload is valid
  */
 export async function reportUser(reportData) {
   const { reported_user_id, category, details, match_id } = reportData;
   
+  // Only validate required fields - backend handles auth
   if (!reported_user_id || !category) {
     throw new Error('Användar-ID och kategori krävs för att rapportera');
   }
@@ -31,21 +30,16 @@ export async function reportUser(reportData) {
 }
 
 /**
- * Get reports (admin/moderator only)
- * 
- * @param {object} filters - Optional filters
- * @param {string} [filters.status] - Filter by status
+ * Get reports
+ * Backend RLS ensures only admin/moderator can access
  */
 export async function getReports(filters = {}) {
   return callEdgeFunction('get_reports', filters);
 }
 
 /**
- * Handle a report (admin/moderator only)
- * 
- * @param {string} reportId - Report UUID
- * @param {string} action - Action to take
- * @param {string} [notes] - Moderator notes
+ * Handle a report
+ * Backend RLS ensures only admin/moderator can execute
  */
 export async function handleReport(reportId, action, notes) {
   return callEdgeFunction('handle_report', {

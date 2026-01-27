@@ -1,31 +1,25 @@
 /**
  * Venues Service
  * 
- * Venue-related operations for Supabase.
+ * ARCHITECTURE: Backend (RLS) is source of truth
+ * - All writes go through Edge Functions
+ * - Reads use REST API with RLS enforcement
+ * - No frontend authorization checks
  */
 
 import { callEdgeFunction } from '../callEdgeFunction';
 import { getSupabaseConfig, SUPABASE_URL } from '../config';
+import { sessionStore } from '../client';
 
 /**
  * Upsert a venue (sync from Base44)
- * Creates or updates a venue based on external_id
- * 
- * @param {object} venue - Venue data from Base44
- * @param {string} venue.id - Base44 venue ID (external_id)
- * @param {string} venue.name - Venue name
- * @param {string} [venue.city] - City
- * @param {string} [venue.address] - Address
- * @param {number} [venue.latitude] - Latitude
- * @param {number} [venue.longitude] - Longitude
+ * Backend RLS decides if user can write - no frontend guard
  */
 export async function upsertVenue(venue) {
   if (!venue?.id) {
     console.warn('[venuesService] No venue to upsert');
     return null;
   }
-  
-  console.log('[venuesService] Upserting venue:', venue.id, venue.name);
   
   return callEdgeFunction('upsert_venue', {
     external_id: venue.id,
@@ -34,12 +28,12 @@ export async function upsertVenue(venue) {
     address: venue.address || null,
     lat: venue.latitude || venue.lat || null,
     lng: venue.longitude || venue.lng || null
-  }, { requireAuth: true });
+  });
 }
 
 /**
  * Get venues list from Supabase
- * Falls back to guest-accessible REST query
+ * Always include auth token - RLS decides what user can see
  */
 export async function getVenues() {
   const config = await getSupabaseConfig();
@@ -50,6 +44,11 @@ export async function getVenues() {
   
   if (config.anonKey) {
     headers['apikey'] = config.anonKey;
+  }
+  
+  // Always include auth if available - RLS handles access
+  if (sessionStore.accessToken) {
+    headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
   }
   
   try {
