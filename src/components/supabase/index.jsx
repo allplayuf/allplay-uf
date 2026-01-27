@@ -1,4 +1,3 @@
-
 /**
  * Supabase Integration Module
  * 
@@ -85,19 +84,20 @@ export {
 // LEGACY matchService.js removed - use services/* instead
 
 // =============================================================================
-// CONVENIENCE HELPERS
+// CONVENIENCE HELPERS - DEPRECATED
+// Use useSupabaseAuth() hook instead for React components
 // These only affect UI rendering - backend RLS is source of truth
 // =============================================================================
 import { sessionStore as _sessionStore } from './client';
 
 /** 
+ * @deprecated Use useSupabaseAuth() hook instead
  * Check if current user is a guest (not authenticated)
- * NOTE: Only for UI rendering decisions. Backend RLS handles actual access control.
  */
 export const isGuest = () => !_sessionStore?.isAuthenticated;
 
 /** 
+ * @deprecated Use useSupabaseAuth() hook instead
  * Check if current user is authenticated 
- * NOTE: Only for UI rendering decisions. Backend RLS handles actual access control.
  */
 export const isAuthenticated = () => _sessionStore?.isAuthenticated;
