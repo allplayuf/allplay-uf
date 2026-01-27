@@ -75,33 +75,13 @@ export default function Dashboard() {
     retry: false,
   });
 
-  // Combine auth user with profile - userProfile from Supabase users table has priority
+  // Use Base44 user (same as Profile page)
   const user = React.useMemo(() => {
     if (isGuest) {
       return { is_guest: true, display_name: 'Gäst', full_name: 'Gäst' };
     }
-    if (!authUser) return null;
-    
-    // Debug logging
-    console.log('[Dashboard] authUser:', authUser);
-    console.log('[Dashboard] userProfile:', userProfile);
-    
-    // Merge auth data with profile data, profile takes priority
-    const merged = {
-      ...authUser,
-      ...userProfile,
-      id: authUser.id,
-      // Ensure profile_image_url is correctly mapped (Supabase might use avatar_url)
-      profile_image_url: userProfile?.profile_image_url || userProfile?.avatar_url || authUser?.profile_image_url || authUser?.avatar_url || authUser?.user_metadata?.avatar_url,
-      // Ensure display_name/full_name are available - also check user_metadata from Supabase Auth
-      display_name: userProfile?.display_name || userProfile?.full_name || authUser?.display_name || authUser?.full_name || authUser?.user_metadata?.full_name || authUser?.user_metadata?.name || authUser?.email?.split('@')[0],
-      full_name: userProfile?.full_name || userProfile?.display_name || authUser?.full_name || authUser?.display_name || authUser?.user_metadata?.full_name || authUser?.user_metadata?.name || authUser?.email?.split('@')[0],
-    };
-    
-    console.log('[Dashboard] merged user:', merged);
-    
-    return merged;
-  }, [authUser, userProfile, isGuest]);
+    return base44User || null;
+  }, [base44User, isGuest]);
 
   // Fetch all matches from Supabase
   const { data: allMatchesRaw = [], isLoading: matchesLoading } = useQuery({
