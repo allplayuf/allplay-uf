@@ -10,9 +10,10 @@ import { Calendar, MapPin, Users, Trophy, Target, X, Info, Zap, Timer, AlertCirc
 import { motion } from 'framer-motion';
 import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { GuestOverlay } from "@/components/ui/guest-blocker";
-import { isGuest } from "@/components/supabase/matchService";
+import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
 
 export default function CreateMatchForm({ venues, user, onSubmit, onCancel, preselectedVenueId }) {
+  const { isGuest } = useSupabaseAuth();
   const [formData, setFormData] = useState({
     title: '',
     venue_id: preselectedVenueId || '',
@@ -46,8 +47,8 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Check if guest
-    if (isGuest()) {
+    // Check if guest - let backend handle, but show early warning
+    if (isGuest) {
       alert("Du måste vara inloggad för att skapa en match!");
       return;
     }

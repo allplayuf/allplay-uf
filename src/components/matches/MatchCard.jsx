@@ -298,6 +298,3 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
     </>
   );
 });
-
-// Also export for direct import
-export { MatchCard };

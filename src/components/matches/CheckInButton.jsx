@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import { MapPin, Loader2, Check, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { checkInMatch as supabaseCheckIn, isGuest } from "@/components/supabase/matchService";
+import { checkInMatch } from "@/components/supabase/services/matchesService";
+import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
 
 export default function CheckInButton({ match, isParticipant, onCheckInSuccess }) {
+  const { isGuest } = useSupabaseAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [error, setError] = useState(null);
@@ -32,7 +34,7 @@ export default function CheckInButton({ match, isParticipant, onCheckInSuccess }
 
   const handleCheckIn = async () => {
     // Check if guest
-    if (isGuest()) {
+    if (isGuest) {
       setError('Du måste vara inloggad för att checka in');
       return;
     }
@@ -58,7 +60,7 @@ export default function CheckInButton({ match, isParticipant, onCheckInSuccess }
       const userLng = position.coords.longitude;
 
       // Call Supabase RPC check-in (500m verification)
-      await supabaseCheckIn(match.id, userLat, userLng);
+      await checkInMatch(match.id, userLat, userLng);
 
       setIsCheckedIn(true);
       onCheckInSuccess?.();
