@@ -20,8 +20,7 @@ import {
   TrendingUp,
   Shield,
   Crown,
-  CheckCircle,
-  Info
+  CheckCircle
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { useCustomDialog } from "../components/ui/custom-dialog";
@@ -806,27 +805,20 @@ export default function MatchDetailPage() {
           </div>
         ) : (
           <Tabs defaultValue="participants" className="space-y-6">
-            <TabsList className="bg-[#121715] p-1 border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] grid grid-cols-3 w-full rounded-[16px]">
+            <TabsList className="bg-[#121715] p-1 border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] grid grid-cols-2 w-full rounded-[16px]">
               <TabsTrigger
                 value="participants"
                 className="flex items-center justify-center gap-2 data-[state=active]:bg-[#2BA84A]/16 data-[state=active]:text-[#EAF6EE] data-[state=active]:ring-1 data-[state=active]:ring-[#2BA84A]/30 text-[#B6C2BC] font-semibold rounded-[14px] transition-all"
               >
                 <Users className="w-4 h-4" />
-                <span className="hidden sm:inline">Deltagare</span> ({participants.length})
-              </TabsTrigger>
-              <TabsTrigger
-                value="info"
-                className="flex items-center justify-center gap-2 data-[state=active]:bg-[#2BA84A]/16 data-[state=active]:text-[#EAF6EE] data-[state=active]:ring-1 data-[state=active]:ring-[#2BA84A]/30 text-[#B6C2BC] font-semibold rounded-[14px] transition-all"
-              >
-                <Info className="w-4 h-4" />
-                <span className="hidden sm:inline">Info</span>
+                Deltagare ({participants.length})
               </TabsTrigger>
               <TabsTrigger
                 value="details"
                 className="flex items-center justify-center gap-2 data-[state=active]:bg-[#2BA84A]/16 data-[state=active]:text-[#EAF6EE] data-[state=active]:ring-1 data-[state=active]:ring-[#2BA84A]/30 text-[#B6C2BC] font-semibold rounded-[14px] transition-all"
               >
                 <Flag className="w-4 h-4" />
-                <span className="hidden sm:inline">Detaljer</span>
+                Detaljer
               </TabsTrigger>
             </TabsList>
 
@@ -939,121 +931,10 @@ export default function MatchDetailPage() {
             )}
           </TabsContent>
 
-          {/* INFO TAB - Match Information */}
-          <TabsContent value="info">
-            <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[20px]">
-              <CardHeader className="border-b border-[#223029]">
-                <CardTitle className="text-[#F4F7F5] text-[18px] leading-[24px] flex items-center gap-2">
-                  <Info className="w-5 h-5 text-[#2BA84A]" />
-                  Matchinformation
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-6">
-                {/* Venue Section */}
-                <div className="bg-[#18221E] rounded-[16px] p-4 border border-[#223029]">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-[#2BA84A]/16 rounded-xl flex items-center justify-center">
-                      <MapPin className="w-5 h-5 text-[#2BA84A]" />
-                    </div>
-                    <div>
-                      <h3 className="text-[16px] leading-[24px] font-semibold text-[#F4F7F5]">{venue?.name || 'Okänd plan'}</h3>
-                      <p className="text-[13px] leading-[18px] text-[#B6C2BC]">{venue?.address || 'Adress ej tillgänglig'}</p>
-                    </div>
-                  </div>
-                  {venue?.city && (
-                    <div className="text-[13px] leading-[18px] text-[#B6C2BC]">
-                      <span className="text-[#7B8A83]">Stad:</span> {venue.city}
-                    </div>
-                  )}
-                </div>
-
-                {/* Time & Date Section */}
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="bg-[#18221E] rounded-[16px] p-4 border border-[#223029]">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-[#4169E1]/16 rounded-xl flex items-center justify-center">
-                        <Calendar className="w-5 h-5 text-[#4169E1]" />
-                      </div>
-                      <div>
-                        <div className="text-[13px] leading-[18px] text-[#B6C2BC] mb-1">Datum</div>
-                        <div className="text-[16px] leading-[24px] font-semibold text-[#F4F7F5]">{match.date || 'Ej angivet'}</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-[#18221E] rounded-[16px] p-4 border border-[#223029]">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-[#F4743B]/16 rounded-xl flex items-center justify-center">
-                        <Clock className="w-5 h-5 text-[#F4743B]" />
-                      </div>
-                      <div>
-                        <div className="text-[13px] leading-[18px] text-[#B6C2BC] mb-1">Tid</div>
-                        <div className="text-[16px] leading-[24px] font-semibold text-[#F4F7F5]">{match.time || 'Ej angivet'} ({match.duration_minutes || 90} min)</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Match Details Grid */}
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-[#0F1513] rounded-[12px] p-4 text-center">
-                    <div className="text-[12px] leading-[16px] text-[#B6C2BC] mb-2">Format</div>
-                    <div className="text-[18px] leading-[26px] font-bold text-[#F4F7F5]">{match.format || '5v5'}</div>
-                  </div>
-                  <div className="bg-[#0F1513] rounded-[12px] p-4 text-center">
-                    <div className="text-[12px] leading-[16px] text-[#B6C2BC] mb-2">Spelare</div>
-                    <div className="text-[18px] leading-[26px] font-bold text-[#F4F7F5]">
-                      {match.is_spontaneous ? `${participants.length}` : `${participants.length}/${match.max_players || '?'}`}
-                    </div>
-                  </div>
-                  <div className="bg-[#0F1513] rounded-[12px] p-4 text-center">
-                    <div className="text-[12px] leading-[16px] text-[#B6C2BC] mb-2">Nivå</div>
-                    <div className="text-[18px] leading-[26px] font-bold text-[#F4F7F5]">
-                      {skillConfig?.label || 'Alla nivåer'}
-                    </div>
-                  </div>
-                  <div className="bg-[#0F1513] rounded-[12px] p-4 text-center">
-                    <div className="text-[12px] leading-[16px] text-[#B6C2BC] mb-2">Status</div>
-                    <Badge className={`${statusConfig.bgColor} ${statusConfig.textColor} font-semibold`}>
-                      {statusConfig.label}
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* Match Type */}
-                <div className="flex flex-wrap gap-3">
-                  {match.is_spontaneous && (
-                    <Badge className="h-8 px-4 bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30 font-semibold">
-                      Spontan match
-                    </Badge>
-                  )}
-                  {match.is_private && (
-                    <Badge className="h-8 px-4 bg-[#DC2626]/16 text-[#FCA5A5] ring-1 ring-[#DC2626]/30 font-semibold">
-                      Privat match
-                    </Badge>
-                  )}
-                  {!match.is_spontaneous && !match.is_private && (
-                    <Badge className="h-8 px-4 bg-[#2BA84A]/16 text-[#CFE8D6] ring-1 ring-[#2BA84A]/30 font-semibold">
-                      Öppen match
-                    </Badge>
-                  )}
-                </div>
-
-                {/* Notes */}
-                {match.notes && (
-                  <div className="bg-[#18221E] rounded-[16px] p-4 border border-[#223029]">
-                    <div className="text-[13px] leading-[18px] text-[#B6C2BC] mb-2">Anteckningar från arrangören</div>
-                    <p className="text-[14px] leading-[20px] text-[#F4F7F5]">{match.notes}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* DETAILS TAB - Additional Match Details */}
           <TabsContent value="details">
             <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[20px]">
               <CardHeader className="border-b border-[#223029]">
-                <CardTitle className="text-[#F4F7F5] text-[18px] leading-[24px]">Övriga detaljer</CardTitle>
+                <CardTitle className="text-[#F4F7F5] text-[18px] leading-[24px]">Matchdetaljer</CardTitle>
               </CardHeader>
               <CardContent className="p-6 space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
