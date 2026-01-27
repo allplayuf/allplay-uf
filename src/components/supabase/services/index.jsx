@@ -13,7 +13,7 @@
  * - Lets backend decide what to return
  */
 
-// Matches
+// Matches (writes via Edge Functions)
 export {
   createMatch,
   joinMatch,
@@ -29,11 +29,33 @@ export {
   normalizeLevel
 } from './matchesService';
 
+// Matches (read queries)
+export {
+  getMatchesByIds,
+  getMyMatches,
+  getCompletedMatches,
+  transformMatchData
+} from './matchesQueries';
+
 // Venues
 export {
   upsertVenue,
   getVenues
 } from './venuesService';
+
+// Users
+export {
+  getMyProfile,
+  getUsersByIds,
+  getUserById
+} from './usersService';
+
+// Participants
+export {
+  getMyParticipantMatchIds,
+  getParticipantsForMatches,
+  getAllParticipants
+} from './participantsService';
 
 // Reports
 export {
