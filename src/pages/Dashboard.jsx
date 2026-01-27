@@ -62,12 +62,16 @@ export default function Dashboard() {
   // Debug auth state
   console.log('[Dashboard] Auth state:', { authUser, isGuest, isAuthenticated, authLoading });
 
-  // Fetch user profile from Supabase users table
-  const { data: userProfile, isLoading: userLoading, error: userError } = useQuery({
-    queryKey: [...QUERY_KEYS.userProfile, authUser?.id],
-    queryFn: () => getMyProfile(),
-    ...CACHE_STRATEGIES.AUTH,
-    enabled: isAuthenticated && !!authUser?.id,
+  // Fetch user profile from Base44 (same as Profile page)
+  const { data: base44User, isLoading: userLoading, error: userError } = useQuery({
+    queryKey: ['base44-user'],
+    queryFn: async () => {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) return null;
+      return await base44.auth.me();
+    },
+    staleTime: 10 * 60 * 1000,
+    enabled: !isGuest,
     retry: false,
   });
 
