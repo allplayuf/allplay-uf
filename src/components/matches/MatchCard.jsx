@@ -121,7 +121,8 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
   };
 
   // UI-level check only - backend validates actual join permission
-  const canJoin = !isGuest && isJoinable && (match.is_spontaneous || spotsLeft > 0);
+  // Show join button if: not guest, match is joinable, not already joined, and has spots (or spontaneous)
+  const canJoin = !isGuest && isJoinable && !hasJoined && (match.is_spontaneous || spotsLeft === null || spotsLeft > 0);
 
   return (
     <>
