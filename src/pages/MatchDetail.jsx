@@ -30,7 +30,14 @@ import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
 import CupMatchGoals from "../components/cups/CupMatchGoals";
 import CheckInButton from "../components/matches/CheckInButton";
 import MatchPlayersModal from "../components/matches/MatchPlayersModal";
-import { joinMatch, leaveMatch } from "../components/supabase/services/matchesService";
+import { 
+  joinMatch, 
+  leaveMatch,
+  getMatchDetails,
+  getMatchParticipants
+} from "../components/supabase/services/matchesService";
+import { getVenues, getUsersByIds, getMyProfile } from "../components/supabase/services";
+import { callEdgeFunction } from "../components/supabase/callEdgeFunction";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 
 // CONSISTENT SKILL LEVEL CONFIG - WCAG AA compliant colors
@@ -108,30 +115,60 @@ export default function MatchDetailPage() {
   const { confirm, alert, DialogContainer } = useCustomDialog();
   
   // Use Supabase auth state as source of truth
-  const { isGuest, isAuthenticated } = useSupabaseAuth();
+  const { isGuest, isAuthenticated, user: authUser } = useSupabaseAuth();
 
-  // 1. Fetch Current User
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    queryFn: async () => await base44.auth.me(),
+  // 1. Fetch Current User Profile from Supabase
+  const { data: userProfile } = useQuery({
+    queryKey: ['supabase-userProfile', authUser?.id],
+    queryFn: () => getMyProfile(),
     ...CACHE_STRATEGIES.AUTH,
-    enabled: isAuthenticated // Only fetch if authenticated
+    enabled: isAuthenticated && !!authUser?.id
   });
+
+  // Combine auth user with profile
+  const user = React.useMemo(() => {
+    if (!authUser) return null;
+    return {
+      ...authUser,
+      ...userProfile,
+      id: authUser.id
+    };
+  }, [authUser, userProfile]);
 
   const isAdmin = user?.role === 'admin';
 
-  // 2. Fetch Match Data
-  const { data: match, isLoading: matchLoading } = useQuery({
-    queryKey: ['match', matchId],
-    queryFn: async () => await base44.entities.Match.get(matchId),
+  // 2. Fetch Match Data from Supabase Edge Function
+  const { data: matchData, isLoading: matchLoading } = useQuery({
+    queryKey: ['supabase-match', matchId],
+    queryFn: async () => {
+      const result = await getMatchDetails(matchId);
+      // Transform Supabase match to expected format
+      if (result) {
+        return {
+          ...result,
+          // Map 'finished' status to 'completed' for UI compatibility
+          status: result.status === 'finished' ? 'completed' : result.status,
+          // Map level to skill_bracket for UI
+          skill_bracket: result.level || result.skill_bracket,
+          // Ensure venue_id is set
+          venue_id: result.pitch_id || result.venue_id,
+          // Parse date/time from starts_at if needed
+          date: result.date || (result.starts_at ? result.starts_at.split('T')[0] : null),
+          time: result.time || (result.starts_at ? result.starts_at.split('T')[1]?.substring(0, 5) : null),
+        };
+      }
+      return null;
+    },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
     enabled: !!matchId
   });
 
+  const match = matchData;
+
   // Check if this is a cup match
   const isCupMatch = match?.is_cup_match || false;
 
-  // Fetch CupMatch to get cup_id for navigation
+  // Fetch CupMatch to get cup_id for navigation (keeping Base44 for cups for now)
   const { data: cupMatch } = useQuery({
     queryKey: ['cupMatch', matchId],
     queryFn: async () => {
@@ -142,39 +179,64 @@ export default function MatchDetailPage() {
     enabled: !!matchId && isCupMatch
   });
 
-  // 3. Fetch Venue Data (dependent on match)
-  const { data: venue } = useQuery({
-    queryKey: ['venue', match?.venue_id],
-    queryFn: async () => await base44.entities.Venue.get(match.venue_id),
+  // 3. Fetch Venues from Supabase
+  const { data: venues = [] } = useQuery({
+    queryKey: ['supabase-venues'],
+    queryFn: () => getVenues(),
     ...CACHE_STRATEGIES.STATIC,
-    enabled: !!match?.venue_id
   });
 
-  // 4. Fetch Participants & Users (Parallel Optimized)
-  const { data: participants = [], isLoading: participantsLoading } = useQuery({
-    queryKey: ['matchParticipants', matchId],
+  // Find venue from venues list or use embedded data
+  const venue = React.useMemo(() => {
+    if (!match) return null;
+    // Try to find in venues list
+    const venueFromList = venues.find(v => v.id === match.venue_id || v.id === match.pitch_id);
+    if (venueFromList) return venueFromList;
+    // Use embedded venue data from match if available
+    if (match._venue_name || match.venue_name) {
+      return {
+        name: match._venue_name || match.venue_name || 'Okänd plan',
+        city: match._venue_city || match.venue_city,
+        address: match._venue_address || match.venue_address,
+        latitude: match._venue_lat || match.venue_lat,
+        longitude: match._venue_lng || match.venue_lng,
+      };
+    }
+    return null;
+  }, [match, venues]);
+
+  // 4. Fetch Participants from Supabase
+  const { data: participantsRaw = [], isLoading: participantsLoading } = useQuery({
+    queryKey: ['supabase-matchParticipants', matchId],
     queryFn: async () => {
-      const parts = await base44.entities.MatchParticipant.filter({ match_id: matchId });
-      
-      // Parallel fetch users
-      const userIds = [...new Set(parts.map(p => p.user_id))];
-      const users = await Promise.all(
-        userIds.map(id => base44.entities.User.get(id).catch(() => null))
-      );
-      
-      // Merge user data with participant data
-      return users
-        .filter(u => u !== null)
-        .map(u => {
-          const participantInfo = parts.find(p => p.user_id === u.id);
-          return { ...u, participantInfo };
-        });
+      const parts = await getMatchParticipants(matchId);
+      return parts || [];
     },
-    ...CACHE_STRATEGIES.DYNAMIC, // Participants change often
+    ...CACHE_STRATEGIES.DYNAMIC,
     enabled: !!matchId
   });
 
-  // 5. Fetch Friendships (Optimized for current user)
+  // Fetch user data for participants
+  const participantUserIds = React.useMemo(() => {
+    return [...new Set(participantsRaw.map(p => p.user_id).filter(Boolean))];
+  }, [participantsRaw]);
+
+  const { data: participantUsers = [] } = useQuery({
+    queryKey: ['supabase-participantUsers', participantUserIds],
+    queryFn: () => getUsersByIds(participantUserIds),
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+    enabled: participantUserIds.length > 0
+  });
+
+  // Merge participants with user data
+  const participants = React.useMemo(() => {
+    return participantUsers.map(u => {
+      const participantInfo = participantsRaw.find(p => p.user_id === u.id);
+      return { ...u, participantInfo };
+    });
+  }, [participantUsers, participantsRaw]);
+
+  // 5. Fetch Friendships (keeping Base44 for friendships for now - can be migrated later)
   const { data: friendships = [] } = useQuery({
     queryKey: ['friendships', user?.id],
     queryFn: async () => {
@@ -185,7 +247,7 @@ export default function MatchDetailPage() {
       return [...sent, ...received];
     },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
-    enabled: !!user
+    enabled: !!user?.id
   });
 
   const handleJoinMatch = async () => {
@@ -197,9 +259,8 @@ export default function MatchDetailPage() {
       await joinMatch(matchId);
 
       // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['matchParticipants', matchId] });
-      queryClient.invalidateQueries({ queryKey: ['participants'] });
-      queryClient.invalidateQueries({ queryKey: ['matches'] });
+      queryClient.invalidateQueries({ queryKey: ['supabase-matchParticipants', matchId] });
+      queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
 
       await alert('Anmäld! 🎉', `Du har anmält dig till "${match.title}". Vi ses där!`, { type: 'success' });
 
@@ -227,9 +288,8 @@ export default function MatchDetailPage() {
       // Let backend handle validation
       await leaveMatch(matchId);
 
-      queryClient.invalidateQueries({ queryKey: ['matchParticipants', matchId] });
-      queryClient.invalidateQueries({ queryKey: ['participants'] });
-      queryClient.invalidateQueries({ queryKey: ['matches'] });
+      queryClient.invalidateQueries({ queryKey: ['supabase-matchParticipants', matchId] });
+      queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
 
       await alert('Match lämnad', 'Du har lämnat matchen', { type: 'info' });
 
@@ -243,15 +303,15 @@ export default function MatchDetailPage() {
 
   const handleMatchEnd = async (resultData) => {
     try {
-      await base44.entities.Match.update(matchId, {
-        status: 'completed',
-        ...resultData,
-        completed_at: new Date().toISOString()
+      // Use Supabase Edge Function to end match
+      await callEdgeFunction('end_match', {
+        match_id: matchId,
+        ...resultData
       });
 
       setShowEndModal(false);
-      queryClient.invalidateQueries({ queryKey: ['match', matchId] });
-      queryClient.invalidateQueries({ queryKey: ['matches'] });
+      queryClient.invalidateQueries({ queryKey: ['supabase-match', matchId] });
+      queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
       
       await alert("Match avslutad!", "Resultaten har sparats.", { type: 'success' });
 
@@ -326,9 +386,11 @@ export default function MatchDetailPage() {
       if (!shouldDelete) return;
 
       setIsActionLoading(true);
-      await base44.functions.invoke('deleteMatch', { matchId: matchId });
+      // Use Supabase Edge Function to delete match
+      await callEdgeFunction('delete_match', { match_id: matchId });
 
-      queryClient.invalidateQueries({ queryKey: ['matches'] });
+      queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
+      queryClient.invalidateQueries({ queryKey: ['supabase-match', matchId] });
       
       await alert('Match borttagen', 'Matchen har tagits bort', { type: 'success' });
       navigate(createPageUrl("Matches"));
@@ -607,7 +669,7 @@ export default function MatchDetailPage() {
                       match={match}
                       isParticipant={isParticipant}
                       onCheckInSuccess={() => {
-                        queryClient.invalidateQueries({ queryKey: ['matchParticipants', matchId] });
+                        queryClient.invalidateQueries({ queryKey: ['supabase-matchParticipants', matchId] });
                       }}
                     />
 
