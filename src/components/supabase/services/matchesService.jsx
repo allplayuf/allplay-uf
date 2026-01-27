@@ -216,11 +216,19 @@ export async function getPublicMatches(filters = {}) {
 
 /**
  * Get match details
+ * Returns: { match object with venue embedded }
  * 
  * @param {string} matchId - Match UUID
  */
 export async function getMatchDetails(matchId) {
-  return callPublicEdgeFunction('get_match_details', { match_id: matchId });
+  try {
+    const result = await callPublicEdgeFunction('get_match_details', { match_id: matchId });
+    console.log('[matchesService] getMatchDetails result:', result);
+    return result;
+  } catch (error) {
+    console.error('[matchesService] getMatchDetails error:', error);
+    return null;
+  }
 }
 
 /**
@@ -246,10 +254,35 @@ export async function getMyParticipation(matchId) {
  * - Frontend does NOT filter participants
  * - Only hide ACTION buttons (join/leave/kick) based on auth
  * 
+ * Response: ARRAY of { user_id, created_at, ... }
+ * Frontend MUST treat response as array directly (no wrapper object)
+ * 
  * @param {string} matchId - Match UUID
+ * @returns {Promise<Array>} Array of participant objects
  */
 export async function getMatchParticipants(matchId) {
-  return callPublicEdgeFunction('get_match_participants', { match_id: matchId });
+  try {
+    const result = await callPublicEdgeFunction('get_match_participants', { match_id: matchId });
+    console.log('[matchesService] getMatchParticipants result:', result);
+    
+    // CRITICAL: Response is an ARRAY, not { participants: [...] }
+    // Ensure we always return an array to prevent .map crashes
+    if (Array.isArray(result)) {
+      return result;
+    }
+    
+    // Fallback: if backend returns wrapped object, unwrap it
+    if (result && Array.isArray(result.participants)) {
+      return result.participants;
+    }
+    
+    // Default to empty array
+    console.warn('[matchesService] getMatchParticipants: unexpected response shape', result);
+    return [];
+  } catch (error) {
+    console.error('[matchesService] getMatchParticipants error:', error);
+    return [];
+  }
 }
 
 /**
