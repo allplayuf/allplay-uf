@@ -490,138 +490,26 @@ class SupabaseClient {
   }
 
   /**
-   * EDGE FUNCTION CALLS (Protected Operations)
+   * REMOVED: All domain-specific methods (createMatch, joinMatch, etc.)
+   * 
+   * ARCHITECTURE: Use services/* instead
+   * - matchesService.js for match operations
+   * - reportsService.js for report operations
+   * - venuesService.js for venue operations
+   * 
+   * This client only handles:
+   * - Session management (login/logout/refresh)
+   * - Low-level fetch with auth headers
+   * 
+   * Backend RLS handles all authorization - no frontend guards needed.
    */
-
-  // Create match
-  async createMatch(matchData) {
-    if (sessionStore.isGuest) {
-      return { error: { code: 401, message: 'You must be logged in to create a match.' } };
-    }
-
-    return this._fetch('/functions/v1/create_match', {
-      method: 'POST',
-      body: JSON.stringify(matchData)
-    });
-  }
-
-  // Join match
-  async joinMatch(matchId) {
-    if (sessionStore.isGuest) {
-      return { error: { code: 401, message: 'You must be logged in to join a match.' } };
-    }
-
-    return this._fetch('/functions/v1/join_match', {
-      method: 'POST',
-      body: JSON.stringify({ match_id: matchId })
-    });
-  }
-
-  // Leave match
-  async leaveMatch(matchId) {
-    if (sessionStore.isGuest) {
-      return { error: { code: 401, message: 'You must be logged in to leave a match.' } };
-    }
-
-    return this._fetch('/functions/v1/leave_match', {
-      method: 'POST',
-      body: JSON.stringify({ match_id: matchId })
-    });
-  }
-
-  // Report user
-  async reportUser(reportData) {
-    if (sessionStore.isGuest) {
-      return { error: { code: 401, message: 'You must be logged in to report a user.' } };
-    }
-
-    return this._fetch('/functions/v1/report_user', {
-      method: 'POST',
-      body: JSON.stringify(reportData)
-    });
-  }
-
-  /**
-   * READ ENDPOINTS (Some allow guest access)
-   */
-
-  // List public matches (guest allowed)
-  async listPublicMatches(filters = {}) {
-    return this._fetch('/functions/v1/list_public_matches', {
-      method: 'POST',
-      includeAuth: sessionStore.isAuthenticated,
-      body: JSON.stringify(filters)
-    });
-  }
-
-  // Get match details (guest allowed with reduced fields)
-  async getMatchDetails(matchId) {
-    return this._fetch('/functions/v1/get_match_details', {
-      method: 'POST',
-      includeAuth: sessionStore.isAuthenticated,
-      body: JSON.stringify({ match_id: matchId })
-    });
-  }
-
-  // List cups (guest allowed)
-  async listCups(filters = {}) {
-    return this._fetch('/functions/v1/list_cups', {
-      method: 'POST',
-      includeAuth: sessionStore.isAuthenticated,
-      body: JSON.stringify(filters)
-    });
-  }
-
-  // Get cup details (guest allowed)
-  async getCupDetails(cupId) {
-    return this._fetch('/functions/v1/get_cup_details', {
-      method: 'POST',
-      includeAuth: sessionStore.isAuthenticated,
-      body: JSON.stringify({ cup_id: cupId })
-    });
-  }
-
-  /**
-   * ADMIN ENDPOINTS (Role-protected)
-   */
-
-  // Get reports (admin/moderator only)
-  async getReports(filters = {}) {
-    if (!sessionStore.isAdmin() && !sessionStore.isModerator()) {
-      return { error: { code: 403, message: 'Admin access required.' } };
-    }
-
-    return this._fetch('/functions/v1/get_reports', {
-      method: 'POST',
-      body: JSON.stringify(filters)
-    });
-  }
-
-  // Handle report (admin/moderator only)
-  async handleReport(reportId, action, notes) {
-    if (!sessionStore.isAdmin() && !sessionStore.isModerator()) {
-      return { error: { code: 403, message: 'Admin access required.' } };
-    }
-
-    return this._fetch('/functions/v1/handle_report', {
-      method: 'POST',
-      body: JSON.stringify({ report_id: reportId, action, notes })
-    });
-  }
 }
 
 // Singleton client
 export const supabaseClient = new SupabaseClient();
 
-// Export convenience functions
+// Export only auth-related convenience functions
+// All domain operations should use services/* instead
 export const initSupabase = () => supabaseClient.init();
 export const login = (email, password) => supabaseClient.login(email, password);
 export const logout = () => supabaseClient.logout();
-export const createMatch = (data) => supabaseClient.createMatch(data);
-export const joinMatch = (matchId) => supabaseClient.joinMatch(matchId);
-export const leaveMatch = (matchId) => supabaseClient.leaveMatch(matchId);
-export const reportUser = (data) => supabaseClient.reportUser(data);
-export const listPublicMatches = (filters) => supabaseClient.listPublicMatches(filters);
-export const getMatchDetails = (matchId) => supabaseClient.getMatchDetails(matchId);
-export const listCups = (filters) => supabaseClient.listCups(filters);
-export const getCupDetails = (cupId) => supabaseClient.getCupDetails(cupId);
