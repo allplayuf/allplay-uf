@@ -278,11 +278,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
                 </div>
               )}
               
-              {match.status === 'upcoming' && !match.is_spontaneous && spotsLeft === 0 && !hasJoined && (
-                <div className="flex-1 h-12 flex items-center justify-center border border-[#223029] rounded-xl bg-[#18221E]">
-                  <span className="text-sm font-bold text-[#7B8A83]">Fullbokad</span>
-                </div>
-              )}
+
 
               {hasJoined && match.status !== 'completed' && (
                 <div className="flex-1 h-12 flex items-center justify-center border border-[#2BA84A]/30 rounded-xl bg-[#2BA84A]/10">
