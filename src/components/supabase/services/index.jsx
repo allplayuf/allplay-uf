@@ -24,7 +24,6 @@ export {
   getMyParticipation,
   getMatchParticipants,
   getMatchFeed,
-  // Level utilities
   VALID_LEVELS,
   LEVEL_MAP,
   normalizeLevel
