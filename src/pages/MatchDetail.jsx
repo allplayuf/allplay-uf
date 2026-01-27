@@ -138,39 +138,29 @@ export default function MatchDetailPage() {
   const isAdmin = user?.role === 'admin';
 
   // 2. Fetch Match Data from Supabase Edge Function
-  const { data: matchData, isLoading: matchLoading, error: matchError } = useQuery({
+  const { data: matchData, isLoading: matchLoading } = useQuery({
     queryKey: ['supabase-match', matchId],
     queryFn: async () => {
       const result = await getMatchDetails(matchId);
-      console.log('[MatchDetail] getMatchDetails raw result:', result);
-      
-      // Handle null/undefined response
-      if (!result) {
-        console.warn('[MatchDetail] No match data returned');
-        return null;
-      }
-      
       // Transform Supabase match to expected format
-      return {
-        ...result,
-        // Use title from response, fallback to "Untitled" only if truly missing
-        title: result.title || 'Untitled',
-        // Map 'finished' status to 'completed' for UI compatibility
-        status: result.status === 'finished' ? 'completed' : (result.status || 'upcoming'),
-        // Map level to skill_bracket for UI
-        skill_bracket: result.level || result.skill_bracket,
-        // Ensure venue_id is set
-        venue_id: result.venue_id || result.pitch_id,
-        // Parse date/time from starts_at if needed
-        date: result.date || (result.starts_at ? result.starts_at.split('T')[0] : null),
-        time: result.time || (result.starts_at ? result.starts_at.split('T')[1]?.substring(0, 5) : null),
-        // Venue data - backend returns venue object embedded in match
-        venue: result.venue || null,
-      };
+      if (result) {
+        return {
+          ...result,
+          // Map 'finished' status to 'completed' for UI compatibility
+          status: result.status === 'finished' ? 'completed' : result.status,
+          // Map level to skill_bracket for UI
+          skill_bracket: result.level || result.skill_bracket,
+          // Ensure venue_id is set
+          venue_id: result.pitch_id || result.venue_id,
+          // Parse date/time from starts_at if needed
+          date: result.date || (result.starts_at ? result.starts_at.split('T')[0] : null),
+          time: result.time || (result.starts_at ? result.starts_at.split('T')[1]?.substring(0, 5) : null),
+        };
+      }
+      return null;
     },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
-    enabled: !!matchId,
-    retry: 1
+    enabled: !!matchId
   });
 
   const match = matchData;
@@ -196,17 +186,13 @@ export default function MatchDetailPage() {
     ...CACHE_STRATEGIES.STATIC,
   });
 
-  // Find venue from embedded data first (from get_match_details), then fallback to venues list
+  // Find venue from venues list or use embedded data
   const venue = React.useMemo(() => {
     if (!match) return null;
-    
-    // Priority 1: Use embedded venue object from get_match_details response
-    if (match.venue && (match.venue.name || match.venue.id)) {
-      console.log('[MatchDetail] Using embedded venue:', match.venue);
-      return match.venue;
-    }
-    
-    // Priority 2: Use flattened venue fields from response
+    // Try to find in venues list
+    const venueFromList = venues.find(v => v.id === match.venue_id || v.id === match.pitch_id);
+    if (venueFromList) return venueFromList;
+    // Use embedded venue data from match if available
     if (match._venue_name || match.venue_name) {
       return {
         name: match._venue_name || match.venue_name || 'Okänd plan',
@@ -216,29 +202,18 @@ export default function MatchDetailPage() {
         longitude: match._venue_lng || match.venue_lng,
       };
     }
-    
-    // Priority 3: Find in venues list
-    const venueFromList = venues.find(v => v.id === match.venue_id || v.id === match.pitch_id);
-    if (venueFromList) return venueFromList;
-    
     return null;
   }, [match, venues]);
 
   // 4. Fetch Participants from Supabase
-  // Response is ARRAY directly: [{ user_id, created_at }, ...]
-  const { data: participantsRaw = [], isLoading: participantsLoading, error: participantsError } = useQuery({
+  const { data: participantsRaw = [], isLoading: participantsLoading } = useQuery({
     queryKey: ['supabase-matchParticipants', matchId],
     queryFn: async () => {
-      const result = await getMatchParticipants(matchId);
-      console.log('[MatchDetail] getMatchParticipants result:', result);
-      
-      // CRITICAL: Always ensure we return an array to prevent .map crashes
-      const participants = Array.isArray(result) ? result : [];
-      return participants;
+      const parts = await getMatchParticipants(matchId);
+      return parts || [];
     },
     ...CACHE_STRATEGIES.DYNAMIC,
-    enabled: !!matchId,
-    retry: 1
+    enabled: !!matchId
   });
 
   // Fetch user data for participants
