@@ -1,6 +1,10 @@
 /**
  * Guest Guard Components
- * UI gating for guest users (UX only - server enforces real security)
+ * 
+ * ARCHITECTURE: UI gating only - backend RLS is source of truth
+ * - These components only hide/show UI elements
+ * - They do NOT provide security - that's handled by Supabase RLS
+ * - Used to improve UX by showing login prompts for protected actions
  */
 
 import React, { useState } from 'react';
