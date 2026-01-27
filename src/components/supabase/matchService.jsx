@@ -2,7 +2,11 @@
  * Supabase Match Service (LEGACY)
  * 
  * DEPRECATED: Use services/matchesService.js instead.
- * This file is kept for backwards compatibility.
+ * 
+ * ARCHITECTURE: Backend (RLS) is source of truth
+ * - No frontend security filtering
+ * - RLS handles access control
+ * - Frontend only controls UI actions
  */
 
 import { getSupabaseConfig, SUPABASE_URL } from './config';
@@ -10,6 +14,7 @@ import { sessionStore } from './client';
 
 /**
  * Helper to call Supabase RPC functions
+ * Always includes auth token if available - RLS handles access
  */
 async function callRpc(functionName, params = {}) {
   const config = await getSupabaseConfig();
@@ -22,7 +27,7 @@ async function callRpc(functionName, params = {}) {
     headers['apikey'] = config.anonKey;
   }
 
-  // Add auth token if authenticated
+  // Always include auth token if available - RLS handles access control
   if (sessionStore.accessToken) {
     headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
   }
@@ -45,7 +50,11 @@ async function callRpc(functionName, params = {}) {
 
 /**
  * Read public matches from view (guest allowed)
- * CRITICAL: Uses public_matches view, NOT matches table directly
+ * 
+ * ARCHITECTURE: RLS is source of truth
+ * - Always sort by starts_at ASC
+ * - No frontend filtering of is_public (RLS handles this)
+ * - Include auth token so RLS can grant proper access
  */
 export async function getPublicMatches(filters = {}) {
   const config = await getSupabaseConfig();
@@ -58,15 +67,18 @@ export async function getPublicMatches(filters = {}) {
     headers['apikey'] = config.anonKey;
   }
 
-  // Build query params - read from public_matches VIEW
+  // Include auth token - RLS will determine what user can see
+  if (sessionStore.accessToken) {
+    headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
+  }
+
+  // Always sort by starts_at ASC - no frontend filtering of visibility
   let queryParams = 'select=*&order=starts_at.asc';
   
-  // Filter by status if specified
   if (filters.status === 'upcoming') {
     queryParams += `&status=eq.upcoming`;
   }
 
-  // IMPORTANT: Call /rest/v1/public_matches (the VIEW), NOT /rest/v1/matches
   const res = await fetch(`${SUPABASE_URL}/rest/v1/public_matches?${queryParams}`, {
     method: 'GET',
     headers
@@ -79,17 +91,15 @@ export async function getPublicMatches(filters = {}) {
   }
 
   const matches = await res.json();
-  console.log('[matchService] Fetched from public_matches view:', matches.length, 'matches');
+  console.log('[matchService] Fetched', matches.length, 'matches');
   return matches;
 }
 
 /**
- * Get match details (authenticated only for full data)
+ * Get match details
+ * RLS determines what data is returned based on auth state
  */
 export async function getMatchDetails(matchId) {
-  if (!sessionStore.isAuthenticated) {
-    throw new Error('Authentication required');
-  }
   return callRpc('get_match_details', { p_match_id: matchId });
 }
 
