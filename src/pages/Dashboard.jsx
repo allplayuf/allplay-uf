@@ -75,17 +75,23 @@ export default function Dashboard() {
     }
     if (!authUser) return null;
     
+    // Debug logging
+    console.log('[Dashboard] authUser:', authUser);
+    console.log('[Dashboard] userProfile:', userProfile);
+    
     // Merge auth data with profile data, profile takes priority
     const merged = {
       ...authUser,
       ...userProfile,
       id: authUser.id,
       // Ensure profile_image_url is correctly mapped (Supabase might use avatar_url)
-      profile_image_url: userProfile?.profile_image_url || userProfile?.avatar_url || authUser?.profile_image_url || authUser?.avatar_url,
-      // Ensure display_name/full_name are available
-      display_name: userProfile?.display_name || userProfile?.full_name || authUser?.display_name || authUser?.full_name || authUser?.email?.split('@')[0],
-      full_name: userProfile?.full_name || userProfile?.display_name || authUser?.full_name || authUser?.display_name || authUser?.email?.split('@')[0],
+      profile_image_url: userProfile?.profile_image_url || userProfile?.avatar_url || authUser?.profile_image_url || authUser?.avatar_url || authUser?.user_metadata?.avatar_url,
+      // Ensure display_name/full_name are available - also check user_metadata from Supabase Auth
+      display_name: userProfile?.display_name || userProfile?.full_name || authUser?.display_name || authUser?.full_name || authUser?.user_metadata?.full_name || authUser?.user_metadata?.name || authUser?.email?.split('@')[0],
+      full_name: userProfile?.full_name || userProfile?.display_name || authUser?.full_name || authUser?.display_name || authUser?.user_metadata?.full_name || authUser?.user_metadata?.name || authUser?.email?.split('@')[0],
     };
+    
+    console.log('[Dashboard] merged user:', merged);
     
     return merged;
   }, [authUser, userProfile, isGuest]);
