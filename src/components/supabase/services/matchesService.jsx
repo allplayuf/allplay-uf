@@ -111,8 +111,8 @@ export async function createMatch(payload) {
   console.log('[matchesService] createMatch backendPayload:', JSON.stringify(backendPayload, null, 2));
   
   // Validate required fields before sending
-  if (!backendPayload.pitch_id) {
-    throw new Error('Venue/pitch_id is required');
+  if (!backendPayload.venue_id) {
+    throw new Error('Venue/venue_id is required');
   }
   if (!backendPayload.starts_at) {
     throw new Error('starts_at is required');
