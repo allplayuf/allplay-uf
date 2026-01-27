@@ -3,16 +3,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Lock, LogIn, UserPlus } from "lucide-react";
 import { Button } from "./button";
 import { base44 } from "@/api/base44Client";
-import { createPageUrl } from "@/utils";
-import { isGuest } from "../utils/permissions";
-import { useQuery } from "@tanstack/react-query";
 import { useSupabaseAuth, LoginModal } from "@/components/supabase";
 
 /**
- * GuestBlocker - Wraps protected actions and shows login prompt for guests
+ * GuestBlocker - UI gating for guest users
+ * 
+ * ARCHITECTURE: UI-only protection
+ * - These components only show/hide UI elements
+ * - Backend RLS is the actual source of truth for security
+ * - Used to improve UX by showing login prompts for protected actions
  * 
  * Usage:
- * <GuestBlocker feature="join_match" fallback={<LoginPrompt />}>
+ * <GuestBlocker feature="join_match">
  *   <Button onClick={handleJoin}>Gå med</Button>
  * </GuestBlocker>
  */
