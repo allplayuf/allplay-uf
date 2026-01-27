@@ -1,8 +1,16 @@
-
 /**
  * Supabase Services Index
  * 
- * Re-export all service functions for easy imports.
+ * ARCHITECTURE: Backend (Supabase RLS) is source of truth
+ * 
+ * All write operations go through Edge Functions (RLS enforced).
+ * All read operations use REST API with auth token (RLS enforced).
+ * 
+ * Frontend:
+ * - Never filters data for security (RLS does that)
+ * - Only does UI-level filtering (e.g., city preference, date filter)
+ * - Passes auth token with every request
+ * - Lets backend decide what to return
  */
 
 // Matches
@@ -15,6 +23,7 @@ export {
   getMatchDetails,
   getMyParticipation,
   getMatchParticipants,
+  getMatchFeed,
   // Level utilities
   VALID_LEVELS,
   LEVEL_MAP,
