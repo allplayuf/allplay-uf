@@ -1,3 +1,4 @@
+
 /**
  * Supabase Integration Module
  * 
@@ -81,17 +82,7 @@ export {
   handleReport
 } from './services';
 
-// =============================================================================
-// LEGACY EXPORTS (for backwards compatibility - prefer services/* imports)
-// =============================================================================
-export {
-  getPublicMatches as getPublicMatchesLegacy,
-  getMatchDetails as getMatchDetailsRpc,
-  createMatch as createMatchRpc,
-  joinMatch as joinMatchRpc,
-  leaveMatch as leaveMatchRpc,
-  checkInMatch as checkInMatchRpc
-} from './matchService';
+// LEGACY matchService.js removed - use services/* instead
 
 // =============================================================================
 // CONVENIENCE HELPERS
