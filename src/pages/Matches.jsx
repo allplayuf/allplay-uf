@@ -14,8 +14,8 @@ import { useCustomDialog } from "../components/ui/custom-dialog";
 import { useInfiniteMatches } from "../components/hooks/useInfiniteMatches";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import { NoMatchesFound } from "../components/ui/empty-state";
-import { createMatch as supabaseCreateMatch, joinMatch as supabaseJoinMatch, upsertVenue } from "../components/supabase/services";
-import { sessionStore, isGuest } from "../components/supabase";
+import { createMatch, joinMatch, upsertVenue } from "../components/supabase/services";
+import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 
 // Query keys
 const QUERY_KEYS = {
@@ -72,8 +72,11 @@ export default function MatchesPage() {
 
   const { confirm, alert, DialogContainer } = useCustomDialog();
   const queryClient = useQueryClient();
+  
+  // Use Supabase auth as source of truth
+  const { isGuest, isAuthenticated } = useSupabaseAuth();
 
-  // Fetch user with OPTIMIZED caching
+  // Fetch user with OPTIMIZED caching - only when authenticated
   const { data: user, isLoading: isUserLoading } = useQuery({
     queryKey: QUERY_KEYS.user,
     queryFn: async () => {
@@ -81,6 +84,7 @@ export default function MatchesPage() {
       return currentUser;
     },
     ...CACHE_STRATEGIES.AUTH,
+    enabled: isAuthenticated
   });
 
   // Fetch venues with OPTIMIZED caching (STATIC data)
@@ -156,11 +160,10 @@ export default function MatchesPage() {
   // The filteredMatches memo logic is now expected to be handled within InfiniteMatchList
   // as it now receives the raw matchesData and sorting parameters directly.
 
-  // Join match mutation - NOW USES SUPABASE RPC
+  // Join match mutation - uses Supabase Edge Function (RLS enforced)
   const joinMatchMutation = useMutation({
     mutationFn: async ({ matchId }) => {
-      // Use Supabase RPC instead of direct entity write
-      await supabaseJoinMatch(matchId);
+      await joinMatch(matchId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
@@ -222,8 +225,8 @@ export default function MatchesPage() {
         }
       }
       
-      // Create match via Edge Function
-      await supabaseCreateMatch(matchData);
+      // Create match via Edge Function (RLS enforced)
+      await createMatch(matchData);
 
       setShowCreateForm(false);
       setPreselectedVenueId(null);
@@ -242,64 +245,17 @@ export default function MatchesPage() {
   };
 
   const handleJoinMatch = async (matchId) => {
-    // Check if guest - show login prompt
-    if (isGuest()) {
-      await alert(
-        'Logga in krävs',
-        'Du måste vara inloggad för att gå med i en match.',
-        { type: 'info' }
-      );
-      return;
-    }
-
     try {
       const match = allMatches.find(m => m.id === matchId);
       
-      const existingParticipation = allParticipants.filter(p =>
-        p.match_id === matchId && p.user_id === user.id
-      );
-
-      if (existingParticipation.length > 0) {
-        await alert(
-          'Redan anmäld',
-          'Du har redan anmält dig till denna match!',
-          { type: 'info' }
-        );
-        return;
-      }
-
-      if (!match.is_team_match && match.skill_bracket && match.skill_bracket !== 'mixed') {
-        if (user.skill_level !== match.skill_bracket) {
-          const shouldJoin = await confirm(
-            'Annan spelarnivå',
-            `Denna match är för ${match.skill_bracket}-nivå, men din nivå är ${user.skill_level}. Vill du ändå gå med?`,
-            { 
-              type: 'warning',
-              confirmText: 'Ja, gå med',
-              cancelText: 'Nej, avbryt'
-            }
-          );
-          if (!shouldJoin) return;
-        }
-      }
-
-      const currentParticipants = participantsByMatch[matchId] || [];
-      if (!match.is_spontaneous && currentParticipants.length >= match.max_players) {
-        await alert(
-          'Match fullbokad',
-          'Tyvärr är denna match redan fullbokad. Försök igen senare!',
-          { type: 'warning' }
-        );
-        return;
-      }
-
-      // Use Supabase RPC - no userId needed, server uses auth token
+      // Let backend handle all validation (auth, duplicates, capacity, skill level)
+      // Backend RLS will return proper error if not allowed
       await joinMatchMutation.mutateAsync({ matchId });
 
-      // Success popup with celebration
+      // Success popup
       await alert(
         'Anmäld! 🎉',
-        `Du har anmält dig till "${match.title}". Vi ses där!`,
+        `Du har anmält dig till "${match?.title || 'matchen'}". Vi ses där!`,
         { type: 'success' }
       );
 
@@ -307,7 +263,7 @@ export default function MatchesPage() {
       console.error("Error joining match:", error);
       await alert(
         'Ett fel uppstod',
-        error.message || 'Kunde inte anmäla dig till matchen. Kontrollera din internetanslutning och försök igen.',
+        error.message || 'Kunde inte anmäla dig till matchen.',
         { type: 'alert' }
       );
     }
