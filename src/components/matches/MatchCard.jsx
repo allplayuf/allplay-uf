@@ -5,8 +5,8 @@ import { MapPin, Clock, Users, Trophy, Target, ChevronRight, Shield, Zap, Trendi
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
-import { base44 } from "@/api/base44Client";
 import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
+import { getUsersByIds } from "@/components/supabase/services";
 
 const SKILL_LEVEL_CONFIG = {
   beginner: { label: 'Nybörjare', icon: Target },
@@ -90,14 +90,17 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
 
   const loadParticipantUsers = async () => {
     try {
-      const userPromises = participants.slice(0, 5).map(p => {
-        if (p?.user_id) {
-          return base44.entities.User.get(p.user_id).catch(() => null);
-        }
-        return Promise.resolve(null);
-      });
-      const users = await Promise.all(userPromises);
-      setParticipantUsers(users.filter(u => u !== null));
+      const userIds = participants.slice(0, 5)
+        .map(p => p?.user_id)
+        .filter(Boolean);
+      
+      if (userIds.length === 0) {
+        setParticipantUsers([]);
+        return;
+      }
+      
+      const users = await getUsersByIds(userIds);
+      setParticipantUsers(users || []);
     } catch (error) {
       console.error("Error loading participant users:", error);
       setParticipantUsers([]);
