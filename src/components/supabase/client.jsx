@@ -1,14 +1,15 @@
 /**
  * Supabase HTTP Client for Base44
  * 
- * SECURITY: Only uses SUPABASE_URL + SUPABASE_ANON_KEY
- * NEVER uses service role key
- * All writes go through Edge Functions
+ * ARCHITECTURE: Backend is source of truth
+ * - Frontend trusts Supabase RLS completely
+ * - No frontend-side security filtering
+ * - Session persisted via Supabase tokens
  * 
- * SESSION PERSISTENCE:
- * - Tokens stored in localStorage
- * - Auto-refresh on page reload
- * - Validates session on init
+ * SECURITY:
+ * - Only uses SUPABASE_URL + SUPABASE_ANON_KEY
+ * - NEVER uses service role key
+ * - All writes go through Edge Functions (RLS enforced)
  */
 
 import { getSupabaseConfig, SUPABASE_URL } from './config';
@@ -21,15 +22,6 @@ const STORAGE_KEYS = {
   ROLES: 'allplay_supabase_roles',
   AUTH_STATE: 'allplay_supabase_auth_state',
   TOKEN_EXPIRY: 'allplay_supabase_token_expiry'
-};
-
-// Also check for old keys and migrate if found
-const OLD_STORAGE_KEYS = {
-  ACCESS_TOKEN: 'supabase_access_token',
-  REFRESH_TOKEN: 'supabase_refresh_token',
-  USER: 'supabase_user',
-  ROLES: 'supabase_roles',
-  AUTH_STATE: 'supabase_auth_state'
 };
 
 // Auth states
@@ -55,40 +47,11 @@ class SessionStore {
     this._loaded = false;
   }
 
-  // Migrate old storage keys to new prefixed keys
-  _migrateOldKeys() {
-    try {
-      // Check if we have old keys but no new keys
-      const oldToken = localStorage.getItem(OLD_STORAGE_KEYS.ACCESS_TOKEN);
-      const newToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-      
-      if (oldToken && !newToken) {
-        console.log('[SessionStore] Migrating old session keys...');
-        
-        // Copy old values to new keys
-        Object.entries(OLD_STORAGE_KEYS).forEach(([key, oldKey]) => {
-          const value = localStorage.getItem(oldKey);
-          if (value) {
-            localStorage.setItem(STORAGE_KEYS[key], value);
-            localStorage.removeItem(oldKey); // Clean up old key
-          }
-        });
-        
-        console.log('[SessionStore] Migration complete');
-      }
-    } catch (e) {
-      console.error('[SessionStore] Migration failed:', e);
-    }
-  }
-
   // Load from localStorage on init
   load() {
-    if (this._loaded) return; // Prevent double-loading
+    if (this._loaded) return;
     
     try {
-      // First, migrate any old keys
-      this._migrateOldKeys();
-      
       this._accessToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
       this._refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
       this._tokenExpiry = localStorage.getItem(STORAGE_KEYS.TOKEN_EXPIRY);
@@ -99,17 +62,12 @@ class SessionStore {
       const rolesStr = localStorage.getItem(STORAGE_KEYS.ROLES);
       this._roles = rolesStr ? JSON.parse(rolesStr) : [];
       
-      const savedAuthState = localStorage.getItem(STORAGE_KEYS.AUTH_STATE);
-      
       // If we have a token, assume authenticated until validated
       if (this._accessToken) {
-        this._authState = savedAuthState === AUTH_STATES.AUTHENTICATED 
-          ? AUTH_STATES.AUTHENTICATED 
-          : AUTH_STATES.LOADING;
-        console.log('[SessionStore] Loaded existing session, token present');
+        this._authState = AUTH_STATES.AUTHENTICATED;
+        console.log('[SessionStore] Loaded session from storage');
       } else {
         this._authState = AUTH_STATES.GUEST;
-        console.log('[SessionStore] No session found, guest mode');
       }
       
       this._loaded = true;
@@ -154,7 +112,7 @@ class SessionStore {
 
   // Clear all session data (logout)
   clear() {
-    console.log('[SessionStore] Clearing session...');
+    console.log('[SessionStore] Clearing session');
     this._accessToken = null;
     this._refreshToken = null;
     this._tokenExpiry = null;
@@ -162,22 +120,8 @@ class SessionStore {
     this._roles = [];
     this._authState = AUTH_STATES.GUEST;
     
-    // Clear new keys
     Object.values(STORAGE_KEYS).forEach(key => {
-      try {
-        localStorage.removeItem(key);
-      } catch (e) {
-        // Ignore localStorage errors
-      }
-    });
-    
-    // Also clear any old keys that might exist
-    Object.values(OLD_STORAGE_KEYS).forEach(key => {
-      try {
-        localStorage.removeItem(key);
-      } catch (e) {
-        // Ignore localStorage errors
-      }
+      try { localStorage.removeItem(key); } catch (e) { /* ignore */ }
     });
     
     this._notifyListeners();
