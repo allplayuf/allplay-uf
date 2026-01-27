@@ -63,7 +63,7 @@ export { default as LoginModal } from './LoginModal';
 // SERVICES - Domain-specific operations
 // =============================================================================
 export {
-  // Matches
+  // Matches (writes)
   createMatch,
   joinMatch,
   leaveMatch,
@@ -76,9 +76,22 @@ export {
   VALID_LEVELS,
   LEVEL_MAP,
   normalizeLevel,
+  // Matches (reads)
+  getMatchesByIds,
+  getMyMatches,
+  getCompletedMatches,
+  transformMatchData,
   // Venues
   upsertVenue,
   getVenues,
+  // Users
+  getMyProfile,
+  getUsersByIds,
+  getUserById,
+  // Participants
+  getMyParticipantMatchIds,
+  getParticipantsForMatches,
+  getAllParticipants,
   // Reports
   reportUser,
   getReports,
