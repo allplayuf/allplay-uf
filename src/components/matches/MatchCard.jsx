@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
-import { useGuestBlock } from "@/components/ui/guest-blocker";
+import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
 
 const SKILL_LEVEL_CONFIG = {
   beginner: { label: 'Nybörjare', icon: Target },
@@ -48,7 +48,7 @@ const getStatusBadge = (status) => {
 export default React.memo(function MatchCard({ match, venues = [], user, participants = [], onJoin, onRefresh, index = 0 }) {
   // ALWAYS call hooks first, before any conditional returns
   const [participantUsers, setParticipantUsers] = useState([]);
-  const { checkAuth, GuestBlockModal, isGuest } = useGuestBlock();
+  const { isGuest } = useSupabaseAuth();
 
   useEffect(() => {
     if (participants && participants.length > 0) {
@@ -108,22 +108,20 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
     e.preventDefault();
     e.stopPropagation();
     
-    // Block guests from joining
-    if (!checkAuth('join_match', async () => {
-      if (onJoin) {
-        await onJoin(match.id);
-      }
-      if (onRefresh) {
-        await onRefresh();
-      }
-    })) {
-      return;
+    // Let backend handle auth - onJoin will show error if guest
+    if (onJoin) {
+      await onJoin(match.id);
+    }
+    if (onRefresh) {
+      await onRefresh();
     }
   };
 
+  // UI-level check only - backend validates actual join permission
+  const canJoin = !isGuest && isJoinable && (match.is_spontaneous || spotsLeft > 0);
+
   return (
     <>
-    <GuestBlockModal />
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -242,7 +240,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
                 <div className="flex-1 h-12 flex items-center justify-center border border-[#223029] rounded-xl bg-[#18221E]">
                   <span className="text-sm font-bold text-[#7B8A83]">Avslutad</span>
                 </div>
-              ) : isJoinable && (!match.is_spontaneous && spotsLeft > 0 || match.is_spontaneous) ? (
+              ) : canJoin ? (
                 <>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
@@ -300,3 +298,6 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
     </>
   );
 });
+
+// Also export for direct import
+export { MatchCard };
