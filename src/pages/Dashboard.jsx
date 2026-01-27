@@ -32,12 +32,12 @@ import {
   createMatch as supabaseCreateMatch, 
   upsertVenue,
   getVenues,
+  getMyProfile,
   getPublicMatches,
   getMyParticipantMatchIds,
   getParticipantsForMatches,
   transformMatchData
 } from "../components/supabase/services";
-import { base44 } from "@/api/base44Client";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 
 // Query keys
@@ -57,28 +57,47 @@ export default function Dashboard() {
   const [showCreateMatchModal, setShowCreateMatchModal] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { isGuest, isAuthenticated } = useSupabaseAuth();
+  const { user: authUser, isGuest, isAuthenticated, isLoading: authLoading } = useSupabaseAuth();
+  
+  // Debug auth state
+  console.log('[Dashboard] Auth state:', { authUser, isGuest, isAuthenticated, authLoading });
 
-  // Fetch user profile from Base44 (same as Profile page)
-  const { data: base44User, isLoading: userLoading, error: userError } = useQuery({
-    queryKey: ['base44-user'],
-    queryFn: async () => {
-      const isAuth = await base44.auth.isAuthenticated();
-      if (!isAuth) return null;
-      return await base44.auth.me();
-    },
-    staleTime: 10 * 60 * 1000,
-    enabled: !isGuest,
+  // Fetch user profile from Supabase users table
+  const { data: userProfile, isLoading: userLoading, error: userError } = useQuery({
+    queryKey: [...QUERY_KEYS.userProfile, authUser?.id],
+    queryFn: () => getMyProfile(),
+    ...CACHE_STRATEGIES.AUTH,
+    enabled: isAuthenticated && !!authUser?.id,
     retry: false,
   });
 
-  // Use Base44 user (same as Profile page)
+  // Combine auth user with profile - userProfile from Supabase users table has priority
   const user = React.useMemo(() => {
     if (isGuest) {
       return { is_guest: true, display_name: 'Gäst', full_name: 'Gäst' };
     }
-    return base44User || null;
-  }, [base44User, isGuest]);
+    if (!authUser) return null;
+    
+    // Debug logging
+    console.log('[Dashboard] authUser:', authUser);
+    console.log('[Dashboard] userProfile:', userProfile);
+    
+    // Merge auth data with profile data, profile takes priority
+    const merged = {
+      ...authUser,
+      ...userProfile,
+      id: authUser.id,
+      // Ensure profile_image_url is correctly mapped (Supabase might use avatar_url)
+      profile_image_url: userProfile?.profile_image_url || userProfile?.avatar_url || authUser?.profile_image_url || authUser?.avatar_url || authUser?.user_metadata?.avatar_url,
+      // Ensure display_name/full_name are available - also check user_metadata from Supabase Auth
+      display_name: userProfile?.display_name || userProfile?.full_name || authUser?.display_name || authUser?.full_name || authUser?.user_metadata?.full_name || authUser?.user_metadata?.name || authUser?.email?.split('@')[0],
+      full_name: userProfile?.full_name || userProfile?.display_name || authUser?.full_name || authUser?.display_name || authUser?.user_metadata?.full_name || authUser?.user_metadata?.name || authUser?.email?.split('@')[0],
+    };
+    
+    console.log('[Dashboard] merged user:', merged);
+    
+    return merged;
+  }, [authUser, userProfile, isGuest]);
 
   // Fetch all matches from Supabase
   const { data: allMatchesRaw = [], isLoading: matchesLoading } = useQuery({
@@ -506,10 +525,10 @@ export default function Dashboard() {
                 className="relative flex-shrink-0"
               >
                 <div className="relative w-16 h-16 sm:w-24 sm:h-24 lg:w-32 lg:h-32 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-[#2BA84A]/60 shadow-[0_20px_60px_rgba(43,168,74,0.4)] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm flex items-center justify-center">
-                  {user?.profile_image_url ? (
-                  <img src={user.profile_image_url} alt="Profile" className="w-full h-full object-cover" loading="eager" fetchpriority="high" />
+                  {(userProfile?.profile_image_url || user?.profile_image_url) ? (
+                  <img src={userProfile?.profile_image_url || user?.profile_image_url} alt="Profile" className="w-full h-full object-cover" loading="eager" fetchpriority="high" />
                   ) : (
-                  <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#FFFFFF]">{user?.full_name?.[0] || 'U'}</span>
+                  <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#FFFFFF]">{(userProfile?.full_name || user?.display_name || user?.full_name)?.[0] || 'U'}</span>
                   )}
                   </div>
                   </motion.div>
@@ -522,7 +541,7 @@ export default function Dashboard() {
                   transition={{ delay: 0.4 }}
                   className="text-xl sm:text-2xl lg:text-4xl font-black text-white tracking-tight mb-1.5 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] leading-tight"
                   >
-                  Välkommen tillbaka, {(user?.display_name || user?.full_name)?.split(' ')[0]}!
+                  Välkommen tillbaka, {(userProfile?.display_name || userProfile?.full_name || user?.display_name || user?.full_name)?.split(' ')[0]}!
                   </motion.h1>
                 
                 <motion.p
