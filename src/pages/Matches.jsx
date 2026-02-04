@@ -17,7 +17,8 @@ import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import { NoMatchesFound } from "../components/ui/empty-state";
 import { 
   createMatch, 
-  joinMatch, 
+  joinMatch,
+  deleteMatch,
   upsertVenue,
   getVenues,
   getMyProfile,
@@ -27,7 +28,6 @@ import {
   transformMatchData
 } from "../components/supabase/services";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
-import { callEdgeFunction } from "../components/supabase/callEdgeFunction";
 
 // Query keys
 const QUERY_KEYS = {
@@ -317,8 +317,8 @@ export default function MatchesPage() {
     if (!shouldDelete) return;
 
     try {
-      // Use Supabase Edge Function for delete
-      await callEdgeFunction('delete_match', { match_id: matchId });
+      // Use deleteMatch service method
+      await deleteMatch(matchId);
 
       queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myParticipantMatchIds });

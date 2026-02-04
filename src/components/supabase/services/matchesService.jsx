@@ -14,6 +14,10 @@ import { callEdgeFunction, callPublicEdgeFunction } from '../callEdgeFunction';
 import { getSupabaseConfig, SUPABASE_URL } from '../config';
 import { sessionStore } from '../client';
 
+// Dev mode check for console logging
+const IS_DEV = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || window.location.hostname.includes('base44'));
+
 // Valid level values for Supabase 'matches_level_check' constraint
 const VALID_LEVELS = ['beginner', 'intermediate', 'advanced', 'pro'];
 
@@ -79,10 +83,12 @@ export async function createMatch(payload) {
   const matchData = payload.match || payload;
   
   // Log incoming payload for debugging
-  console.log('[matchesService] createMatch incoming:', { 
-    hasMatchWrapper: !!payload.match,
-    matchData 
-  });
+  if (IS_DEV) {
+    console.log('[matchesService] createMatch incoming:', { 
+      hasMatchWrapper: !!payload.match,
+      matchData 
+    });
+  }
   
   // Normalize level to valid DB value
   const rawLevel = matchData.skill_bracket || matchData.level;
@@ -95,6 +101,7 @@ export async function createMatch(payload) {
   // venue_id = UUID (matches.venue_id uuid column)
   // pitch_id = text fallback (matches.pitch_id text NOT NULL column)
   const backendPayload = {
+    request_id: matchData.request_id || null, // Idempotency key
     venue_id: venueUuid,
     pitch_id: String(venueUuid),
     starts_at: matchData.starts_at || (matchData.date && matchData.time ? `${matchData.date}T${matchData.time}:00` : null),
@@ -108,7 +115,9 @@ export async function createMatch(payload) {
   };
   
   // Log the full payload being sent to backend
-  console.log('[matchesService] createMatch backendPayload:', JSON.stringify(backendPayload, null, 2));
+  if (IS_DEV) {
+    console.log('[matchesService] createMatch backendPayload:', JSON.stringify(backendPayload, null, 2));
+  }
   
   // Validate required fields before sending
   if (!backendPayload.venue_id) {
@@ -120,7 +129,9 @@ export async function createMatch(payload) {
   
   // Edge Function returns { match_id, message } on success
   const result = await callEdgeFunction('create_match', backendPayload);
-  console.log('[matchesService] createMatch result:', result);
+  if (IS_DEV) {
+    console.log('[matchesService] createMatch result:', result);
+  }
   return result;
 }
 
@@ -153,7 +164,7 @@ export async function leaveMatch(matchId) {
  * @param {number} userLng - User longitude
  */
 export async function checkInMatch(matchId, userLat, userLng) {
-  return callEdgeFunction('check_in_match', {
+  return callEdgeFunction('checkInToMatch', {
     match_id: matchId,
     user_lat: userLat,
     user_lng: userLng
@@ -209,7 +220,9 @@ export async function getPublicMatches(filters = {}) {
   }
   
   const matches = await res.json();
-  console.log('[matchesService] Fetched', matches.length, 'matches');
+  if (IS_DEV) {
+    console.log('[matchesService] Fetched', matches.length, 'matches');
+  }
   
   return matches;
 }
@@ -260,4 +273,16 @@ export async function getMatchParticipants(matchId) {
  */
 export async function getMatchFeed(filters = {}) {
   return callPublicEdgeFunction('get_match_feed', filters);
+}
+
+/**
+ * Delete a match (organizer only)
+ * 
+ * @param {string} matchId - Match UUID
+ */
+export async function deleteMatch(matchId) {
+  if (!matchId) {
+    throw new Error('matchId is required');
+  }
+  return callEdgeFunction('delete_match', { match_id: matchId });
 }

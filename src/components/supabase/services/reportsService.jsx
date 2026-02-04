@@ -48,3 +48,26 @@ export async function handleReport(reportId, action, notes) {
     notes: notes || null
   });
 }
+
+/**
+ * Report a match or match-related issue
+ * Backend validates reporter is authenticated and payload is valid
+ */
+export async function reportMatch(reportData) {
+  const { match_id, reported_user_id, category, details } = reportData;
+  
+  // Validate required fields - backend handles auth
+  if (!match_id) {
+    throw new Error('Match-ID krävs för att rapportera en match');
+  }
+  if (!category) {
+    throw new Error('Kategori krävs för att rapportera');
+  }
+  
+  return callEdgeFunction('report_match', {
+    match_id,
+    reported_user_id: reported_user_id || null,
+    category,
+    details: details || null
+  });
+}

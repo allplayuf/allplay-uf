@@ -32,7 +32,8 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
   });
   const [venueSearch, setVenueSearch] = useState('');
   const [showVenueDropdown, setShowVenueDropdown] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false); // New state for submission status
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [requestId] = useState(() => crypto.randomUUID()); // Generate once per form instance
 
   const filteredVenues = venues.filter(venue =>
     venue.name.toLowerCase().includes(venueSearch.toLowerCase()) ||
@@ -69,6 +70,7 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
     const startsAtIso = new Date(`${formData.date}T${formData.time}:00`).toISOString();
 
     const submitData = {
+      request_id: requestId, // Idempotency key to prevent duplicate creates
       title: formData.title,
       venue_id: formData.venue_id,
       starts_at: startsAtIso,
