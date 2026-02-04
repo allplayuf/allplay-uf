@@ -115,11 +115,28 @@ export function SupabaseAuthProvider({ children }) {
     return hasRole('moderator') || hasRole('admin');
   }, [hasRole]);
 
+  // Enrich user with metadata for easier access
+  const enrichedUser = React.useMemo(() => {
+    if (!user) return null;
+    
+    // Supabase Auth user has user_metadata with full_name, avatar_url etc.
+    const metadata = user.user_metadata || {};
+    
+    return {
+      ...user,
+      // Flatten useful metadata to top level for convenience
+      full_name: user.full_name || metadata.full_name || metadata.name || user.email?.split('@')[0],
+      display_name: user.display_name || metadata.display_name || metadata.full_name || metadata.name || user.email?.split('@')[0],
+      profile_image_url: user.profile_image_url || metadata.avatar_url || metadata.picture,
+      avatar_url: user.avatar_url || metadata.avatar_url || metadata.picture,
+    };
+  }, [user]);
+
   // Context value
   const value = {
     // State
     authState,
-    user,
+    user: enrichedUser, // Use enriched user with flattened metadata
     roles,
     error,
     isInitialized,
