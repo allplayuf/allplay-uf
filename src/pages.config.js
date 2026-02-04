@@ -1,3 +1,52 @@
+/**
+ * pages.config.js - Page routing configuration
+ * 
+ * This file is AUTO-GENERATED. Do not add imports or modify PAGES manually.
+ * Pages are auto-registered when you create files in the ./pages/ folder.
+ * 
+ * THE ONLY EDITABLE VALUE: mainPage
+ * This controls which page is the landing page (shown when users visit the app).
+ * 
+ * Example file structure:
+ * 
+ *   import HomePage from './pages/HomePage';
+ *   import Dashboard from './pages/Dashboard';
+ *   import Settings from './pages/Settings';
+ *   
+ *   export const PAGES = {
+ *       "HomePage": HomePage,
+ *       "Dashboard": Dashboard,
+ *       "Settings": Settings,
+ *   }
+ *   
+ *   export const pagesConfig = {
+ *       mainPage: "HomePage",
+ *       Pages: PAGES,
+ *   };
+ * 
+ * Example with Layout (wraps all pages):
+ *
+ *   import Home from './pages/Home';
+ *   import Settings from './pages/Settings';
+ *   import __Layout from './Layout.jsx';
+ *
+ *   export const PAGES = {
+ *       "Home": Home,
+ *       "Settings": Settings,
+ *   }
+ *
+ *   export const pagesConfig = {
+ *       mainPage: "Home",
+ *       Pages: PAGES,
+ *       Layout: __Layout,
+ *   };
+ *
+ * To change the main page from HomePage to Dashboard, use find_replace:
+ *   Old: mainPage: "HomePage",
+ *   New: mainPage: "Dashboard",
+ *
+ * The mainPage value must match a key in the PAGES object exactly.
+ */
 import AboutAllPlay from './pages/AboutAllPlay';
 import AccountSettings from './pages/AccountSettings';
 import Admin from './pages/Admin';
@@ -6,7 +55,6 @@ import Community from './pages/Community';
 import CreateCup from './pages/CreateCup';
 import CupDetail from './pages/CupDetail';
 import Cups from './pages/Cups';
-import Dashboard from './pages/Dashboard';
 import EditProfile from './pages/EditProfile';
 import Feedback from './pages/Feedback';
 import Home from './pages/Home';
@@ -16,6 +64,7 @@ import Matches from './pages/Matches';
 import Profile from './pages/Profile';
 import TeamOverview from './pages/TeamOverview';
 import TermsOfService from './pages/TermsOfService';
+import Dashboard from './pages/Dashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -28,7 +77,6 @@ export const PAGES = {
     "CreateCup": CreateCup,
     "CupDetail": CupDetail,
     "Cups": Cups,
-    "Dashboard": Dashboard,
     "EditProfile": EditProfile,
     "Feedback": Feedback,
     "Home": Home,
@@ -38,6 +86,7 @@ export const PAGES = {
     "Profile": Profile,
     "TeamOverview": TeamOverview,
     "TermsOfService": TermsOfService,
+    "Dashboard": Dashboard,
 }
 
 export const pagesConfig = {
