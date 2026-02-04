@@ -33,6 +33,7 @@ import MatchPlayersModal from "../components/matches/MatchPlayersModal";
 import { 
   joinMatch, 
   leaveMatch,
+  deleteMatch,
   getMatchDetails,
   getMatchParticipants
 } from "../components/supabase/services/matchesService";
@@ -409,8 +410,8 @@ export default function MatchDetailPage() {
       if (!shouldDelete) return;
 
       setIsActionLoading(true);
-      // Use Supabase Edge Function to delete match
-      await callEdgeFunction('delete_match', { match_id: matchId });
+      // Use deleteMatch service method
+      await deleteMatch(matchId);
 
       queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
       queryClient.invalidateQueries({ queryKey: ['supabase-match', matchId] });
