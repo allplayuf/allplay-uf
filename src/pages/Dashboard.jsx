@@ -511,7 +511,7 @@ export default function Dashboard() {
           <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-14">
             <div className="flex items-center gap-3 sm:gap-5 lg:gap-8 mb-[20px] sm:mb-6 lg:mb-8">
               
-              {/* Profile Image - uses same logic as Profile page */}
+              {/* Profile Image */}
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ 
@@ -525,10 +525,10 @@ export default function Dashboard() {
                 className="relative flex-shrink-0"
               >
                 <div className="relative w-16 h-16 sm:w-24 sm:h-24 lg:w-32 lg:h-32 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-[#2BA84A]/60 shadow-[0_20px_60px_rgba(43,168,74,0.4)] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm flex items-center justify-center">
-                  {(userProfile?.profile_image_url || user?.profile_image_url) ? (
-                  <img src={userProfile?.profile_image_url || user?.profile_image_url} alt="Profile" className="w-full h-full object-cover" loading="eager" fetchpriority="high" />
+                  {user?.profile_image_url ? (
+                  <img src={user.profile_image_url} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
-                  <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#FFFFFF]">{(userProfile?.full_name || user?.display_name || user?.full_name)?.[0] || 'U'}</span>
+                  <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#FFFFFF]">{(user?.display_name || user?.full_name)?.[0] || 'U'}</span>
                   )}
                   </div>
                   </motion.div>
@@ -541,7 +541,7 @@ export default function Dashboard() {
                   transition={{ delay: 0.4 }}
                   className="text-xl sm:text-2xl lg:text-4xl font-black text-white tracking-tight mb-1.5 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] leading-tight"
                   >
-                  Välkommen tillbaka, {(userProfile?.display_name || userProfile?.full_name || user?.display_name || user?.full_name)?.split(' ')[0]}!
+                  Välkommen tillbaka, {(user?.display_name || user?.full_name)?.split(' ')[0]}!
                   </motion.h1>
                 
                 <motion.p
