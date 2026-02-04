@@ -19,6 +19,7 @@ export {
   joinMatch,
   leaveMatch,
   checkInMatch,
+  deleteMatch,
   getPublicMatches,
   getMatchDetails,
   getMyParticipation,
@@ -60,6 +61,7 @@ export {
 // Reports
 export {
   reportUser,
+  reportMatch,
   getReports,
   handleReport
 } from './reportsService';
