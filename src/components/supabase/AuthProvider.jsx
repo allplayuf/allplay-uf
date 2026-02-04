@@ -7,7 +7,7 @@
  * - Subscribe to auth state changes for reactive updates
  */
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { sessionStore, supabaseClient, AUTH_STATES } from './client';
 
 // Auth context
