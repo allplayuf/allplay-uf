@@ -862,5 +862,6 @@ export default function Dashboard() {
         </motion.div>
       </div>
     </motion.div>
+    </PullToRefresh>
   );
 }
