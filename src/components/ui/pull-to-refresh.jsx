@@ -18,9 +18,11 @@ export function PullToRefresh({ onRefresh, children, threshold = 80 }) {
 
     let touchStartY = 0;
     let scrollTop = 0;
+    let lastScrollTop = 0;
 
     const handleTouchStart = (e) => {
       scrollTop = container.scrollTop;
+      lastScrollTop = scrollTop;
       if (scrollTop === 0) {
         touchStartY = e.touches[0].clientY;
         setStartY(touchStartY);
@@ -28,7 +30,13 @@ export function PullToRefresh({ onRefresh, children, threshold = 80 }) {
     };
 
     const handleTouchMove = (e) => {
-      if (isRefreshing || scrollTop > 0) return;
+      const currentScrollTop = container.scrollTop;
+      
+      // Prevent PTR if scrolling down or not at top
+      if (isRefreshing || scrollTop > 0 || currentScrollTop > 0 || currentScrollTop > lastScrollTop) {
+        lastScrollTop = currentScrollTop;
+        return;
+      }
 
       const currentY = e.touches[0].clientY;
       const distance = currentY - touchStartY;
