@@ -17,6 +17,7 @@ import { canAccessAdminPanel, isGuest } from "./components/utils/permissions";
 import { GuestBanner } from "@/components/ui/guest-banner";
 import { SupabaseAuthProvider, useSupabaseAuth, initSupabase } from "@/components/supabase";
 import { triggerHaptic } from "@/components/utils/motionTokens";
+import { ArrowLeft } from "lucide-react";
 
 // Guest banner wrapper that uses Supabase auth state
 function GuestBannerWrapper() {
@@ -241,8 +242,8 @@ export default function Layout({ children, currentPageName }) {
 
         {/* Main Content */}
         <main className="flex-1 flex flex-col bg-[#131816] min-h-screen lg:min-h-0">
-          {isRootPage && (
-            <header className="lg:hidden sticky top-0 z-40 bg-[#121715] border-b border-[#223029] px-4 py-3 safe-area-top">
+          <header className="lg:hidden sticky top-0 z-40 bg-[#121715] border-b border-[#223029] px-4 py-3 safe-area-top">
+            {isRootPage ? (
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-transparent">
                   <img 
@@ -256,8 +257,21 @@ export default function Layout({ children, currentPageName }) {
                   <h1 className="text-lg font-semibold text-[#F4F7F5]">AllPlay UF</h1>
                 </div>
               </div>
-            </header>
-          )}
+            ) : (
+              <button
+                onClick={() => {
+                  triggerHaptic('light');
+                  navigate(-1);
+                }}
+                className="flex items-center gap-2 text-[#F4F7F5] hover:text-[#2BA84A] transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m15 18-6-6 6-6"/>
+                </svg>
+                <span className="font-semibold">Tillbaka</span>
+              </button>
+            )}
+          </header>
 
           {/* PREVIEW BANNER REMOVED */}
 
