@@ -276,11 +276,6 @@ export default function MapPage() {
       <div className="lg:hidden flex flex-col pb-16" style={{ height: 'calc(100vh - env(safe-area-inset-top))' }}>
         <div className="sticky top-0 z-[100] bg-[#121715] border-b border-[#223029] p-3 space-y-3 shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold text-[#F4F7F5] flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-[#2BA84A]" />
-              Hitta planer
-            </h1>
-            
             <div className="flex gap-1 bg-[#18221E] rounded-[12px] p-1 border border-[#223029]">
               <button
                 onClick={() => setViewMode("list")}

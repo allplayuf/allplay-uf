@@ -242,7 +242,7 @@ export default function Layout({ children, currentPageName }) {
 
         {/* Main Content */}
         <main className="flex-1 flex flex-col bg-[#131816] min-h-screen lg:min-h-0">
-          <header className="lg:hidden sticky top-0 z-40 bg-[#121715] border-b border-[#223029] px-4 py-3 safe-area-top">
+          <header className="lg:hidden sticky top-0 z-40 bg-[#121715] border-b border-[#223029]" style={{ paddingLeft: 'calc(1rem + env(safe-area-inset-left))', paddingRight: 'calc(1rem + env(safe-area-inset-right))', paddingTop: 'calc(0.75rem + env(safe-area-inset-top))', paddingBottom: '0.75rem' }}>
             {isRootPage ? (
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-transparent">
@@ -290,7 +290,7 @@ export default function Layout({ children, currentPageName }) {
           </div>
 
           <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] bg-[#121715] border-t border-[#223029]">
-            <div className="flex items-center justify-around px-2 py-2 safe-area-bottom">
+            <div className="flex items-center justify-around" style={{ paddingLeft: 'calc(0.5rem + env(safe-area-inset-left))', paddingRight: 'calc(0.5rem + env(safe-area-inset-right))', paddingTop: '0.5rem', paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
               {navigationItems.map((item) => {
                 const isActive = location.pathname === item.url;
                 return (

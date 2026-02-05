@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Calendar, MapPin, Users, Trophy, Target, X, Info, Zap, Timer, AlertCircle } from "lucide-react";
@@ -11,6 +10,7 @@ import { motion } from 'framer-motion';
 import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { GuestOverlay } from "@/components/ui/guest-blocker";
 import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
+import { MobileSelect } from "@/components/ui/mobile-select";
 
 export default function CreateMatchForm({ venues, user, onSubmit, onCancel, preselectedVenueId }) {
   const { isGuest } = useSupabaseAuth();
