@@ -39,6 +39,7 @@ import {
   transformMatchData
 } from "../components/supabase/services";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
+import { PullToRefresh } from "../components/ui/pull-to-refresh";
 
 // Query keys
 const QUERY_KEYS = {
