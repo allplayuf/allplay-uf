@@ -268,8 +268,9 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
               placeholder="t.ex. Kvällsmatch på Östermalm"
               value={formData.title}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              onFocus={(e) => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
               className="bg-[#18221E] border border-[#223029] text-[#F4F7F5] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/30 placeholder:text-[#7B8A83] text-base h-11 sm:h-12 rounded-[14px]"
-            />
+              />
           </div>
 
           {/* Date and Time - NEW COMPONENT */}
@@ -375,8 +376,9 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
               placeholder="Extra information om matchen..."
               value={formData.notes}
               onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+              onFocus={(e) => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
               className="bg-[#18221E] border border-[#223029] text-[#F4F7F5] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/30 placeholder:text-[#7B8A83] h-20 text-base rounded-[14px]"
-            />
+              />
           </div>
         </form>
       </div>

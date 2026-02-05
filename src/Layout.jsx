@@ -163,6 +163,9 @@ export default function Layout({ children, currentPageName }) {
               border: '1px solid #223029',
             },
           }}
+          containerStyle={{
+            bottom: 'calc(5rem + env(safe-area-inset-bottom))',
+          }}
         />
         
         {/* Desktop Sidebar */}
@@ -278,7 +281,10 @@ export default function Layout({ children, currentPageName }) {
           <div 
             ref={mainContentRef}
             className="flex-1 overflow-auto lg:pb-0"
-            style={{ paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))' }}
+            style={{ 
+              paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))',
+              scrollPaddingTop: '120px'
+            }}
           >
             <RouteGuard currentRoute={location.pathname}>
               <PageTransition pageKey={location.pathname}>
