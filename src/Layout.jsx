@@ -199,7 +199,7 @@ export default function Layout({ children, currentPageName }) {
 
         {/* Main Content */}
         <main className="flex-1 flex flex-col bg-[#131816] min-h-screen lg:min-h-0">
-          <header className="lg:hidden sticky top-0 z-40 bg-[#121715] border-b border-[#223029] px-4 py-3">
+          <header className="lg:hidden sticky top-0 z-40 bg-[#121715] border-b border-[#223029] px-4 py-3 safe-area-top">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-transparent">
                 <img 
@@ -230,8 +230,8 @@ export default function Layout({ children, currentPageName }) {
             </RouteGuard>
           </div>
 
-          <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] bg-[#121715] border-t border-[#223029] safe-area-pb">
-            <div className="flex items-center justify-around px-2 py-2">
+          <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] bg-[#121715] border-t border-[#223029]">
+            <div className="flex items-center justify-around px-2 py-2 safe-area-bottom">
               {navigationItems.map((item) => {
                 const isActive = location.pathname === item.url;
                 return (

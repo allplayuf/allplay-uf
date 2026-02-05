@@ -274,26 +274,46 @@ export default function MatchDetailPage() {
     enabled: !!user?.id
   });
 
-  const handleJoinMatch = async () => {
-    if (isActionLoading) return;
-    setIsActionLoading(true);
-    try {
-      // Let backend handle all validation (auth, duplicate check, capacity)
-      // Backend RLS/Edge Function will return proper error if not allowed
-      await joinMatch(matchId);
-
-      // Invalidate queries to refresh data
+  const joinMatchMutation = useMutation({
+    mutationFn: () => joinMatch(matchId),
+    onMutate: async () => {
+      setIsActionLoading(true);
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['supabase-matchParticipants', matchId] });
+      
+      // Snapshot previous value
+      const previousParticipants = queryClient.getQueryData(['supabase-matchParticipants', matchId]);
+      
+      // Optimistically add current user to participants
+      if (user) {
+        queryClient.setQueryData(['supabase-matchParticipants', matchId], (old = []) => [
+          ...old,
+          { user_id: user.id, match_id: matchId, status: 'registered' }
+        ]);
+      }
+      
+      return { previousParticipants };
+    },
+    onError: (error, variables, context) => {
+      // Rollback on error
+      if (context?.previousParticipants) {
+        queryClient.setQueryData(['supabase-matchParticipants', matchId], context.previousParticipants);
+      }
+      alert('Ett fel uppstod', error.message || 'Kunde inte anmäla dig. Försök igen.', { type: 'alert' });
+    },
+    onSuccess: () => {
+      alert('Anmäld! 🎉', `Du har anmält dig till "${match.title}". Vi ses där!`, { type: 'success' });
+    },
+    onSettled: () => {
+      setIsActionLoading(false);
       queryClient.invalidateQueries({ queryKey: ['supabase-matchParticipants', matchId] });
       queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
-
-      await alert('Anmäld! 🎉', `Du har anmält dig till "${match.title}". Vi ses där!`, { type: 'success' });
-
-    } catch (error) {
-      console.error("Error joining match:", error);
-      await alert('Ett fel uppstod', error.message || 'Kunde inte anmäla dig. Försök igen.', { type: 'alert' });
-    } finally {
-      setIsActionLoading(false);
     }
+  });
+
+  const handleJoinMatch = async () => {
+    if (isActionLoading) return;
+    joinMatchMutation.mutate();
   };
 
   const handleLeaveMatch = async () => {
@@ -345,40 +365,67 @@ export default function MatchDetailPage() {
     }
   };
 
+  const addFriendMutation = useMutation({
+    mutationFn: (participantId) => base44.entities.Friendship.create({
+      requester_id: user.id,
+      addressee_id: participantId,
+      status: 'pending'
+    }),
+    onMutate: async (participantId) => {
+      setIsActionLoading(true);
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['friendships', user.id] });
+      
+      // Snapshot previous value
+      const previousFriendships = queryClient.getQueryData(['friendships', user.id]);
+      
+      // Optimistically add friendship
+      queryClient.setQueryData(['friendships', user.id], (old = []) => [
+        ...old,
+        {
+          requester_id: user.id,
+          addressee_id: participantId,
+          status: 'pending',
+          id: 'temp-' + Date.now()
+        }
+      ]);
+      
+      return { previousFriendships };
+    },
+    onError: (error, variables, context) => {
+      // Rollback on error
+      if (context?.previousFriendships) {
+        queryClient.setQueryData(['friendships', user.id], context.previousFriendships);
+      }
+      alert('Ett fel uppstod', 'Kunde inte skicka vänförfrågan. Försök igen.', { type: 'alert' });
+    },
+    onSuccess: () => {
+      alert('Vänförfrågan skickad! 🤝', 'Din vänförfrågan har skickats!', { type: 'success' });
+    },
+    onSettled: () => {
+      setIsActionLoading(false);
+      queryClient.invalidateQueries({ queryKey: ['friendships', user.id] });
+    }
+  });
+
   const handleAddFriend = async (participantId) => {
     if (isActionLoading) return;
-    setIsActionLoading(true);
-    try {
-      const existing = friendships.find(f =>
-        (f.requester_id === user.id && f.addressee_id === participantId) ||
-        (f.requester_id === participantId && f.addressee_id === user.id)
-      );
+    
+    const existing = friendships.find(f =>
+      (f.requester_id === user.id && f.addressee_id === participantId) ||
+      (f.requester_id === participantId && f.addressee_id === user.id)
+    );
 
-      if (existing) {
-        if (existing.status === 'accepted') {
-          await alert('Redan vänner', 'Ni är redan vänner!', { type: 'info' });
-        } else if (existing.status === 'pending') {
-          await alert('Vänförfrågan skickad', 'Du har redan skickat en vänförfrågan!', { type: 'info' });
-        }
-        return;
+    if (existing) {
+      if (existing.status === 'accepted') {
+        await alert('Redan vänner', 'Ni är redan vänner!', { type: 'info' });
+      } else if (existing.status === 'pending') {
+        await alert('Vänförfrågan skickad', 'Du har redan skickat en vänförfrågan!', { type: 'info' });
       }
-
-      await base44.entities.Friendship.create({
-        requester_id: user.id,
-        addressee_id: participantId,
-        status: 'pending'
-      });
-
-      queryClient.invalidateQueries({ queryKey: ['friendships', user.id] });
-      
-      await alert('Vänförfrågan skickad! 🤝', 'Din vänförfrågan har skickats!', { type: 'success' });
-
-    } catch (error) {
-      console.error("Error adding friend:", error);
-      await alert('Ett fel uppstod', 'Kunde inte skicka vänförfrågan. Försök igen.', { type: 'alert' });
-    } finally {
-      setIsActionLoading(false);
+      return;
     }
+
+    addFriendMutation.mutate(participantId);
   };
 
   const getFriendStatus = (participantId) => {
@@ -486,13 +533,35 @@ export default function MatchDetailPage() {
   const SkillIcon = skillConfig?.icon;
 
   return (
-    <div className="min-h-screen bg-[#0F1513] p-4 lg:p-8 pb-24 lg:pb-8">
+    <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
       <DialogContainer />
 
-      <div className="max-w-7xl mx-auto space-y-6">
+      {/* Mobile Sticky Header */}
+      <div className="lg:hidden sticky top-0 z-40 bg-[#0F1513] border-b border-[#223029] safe-area-top">
+        <div className="flex items-center gap-3 px-4 py-3">
+          <button
+            onClick={() => {
+              if (isCupMatch && cupMatch?.cup_id) {
+                navigate(`${createPageUrl("CupDetail")}?cup_id=${cupMatch.cup_id}`);
+              } else {
+                navigate(createPageUrl("Matches"));
+              }
+            }}
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#18221E] text-[#F4F7F5] hover:bg-[#223029] transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-base font-semibold text-[#F4F7F5] truncate">{match?.title || 'Match'}</h1>
+          </div>
+        </div>
+      </div>
 
-        {/* Back Button */}
+      <div className="max-w-7xl mx-auto space-y-6 p-4 lg:p-8">
+
+        {/* Desktop Back Button */}
         <button
+          className="hidden lg:inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border border-[#223029] px-4 text-[#F4F7F5] hover:bg-[#18221E] transition-all font-semibold"
           onClick={() => {
             if (isCupMatch && cupMatch?.cup_id) {
               navigate(`${createPageUrl("CupDetail")}?cup_id=${cupMatch.cup_id}`);

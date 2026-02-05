@@ -15,6 +15,8 @@ import { useCustomDialog } from "../components/ui/custom-dialog";
 import { useInfiniteMatches } from "../components/hooks/useInfiniteMatches";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import { NoMatchesFound } from "../components/ui/empty-state";
+import { PullToRefresh } from "../components/ui/pull-to-refresh";
+import { MobileSelect } from "../components/ui/mobile-select";
 import { 
   createMatch, 
   joinMatch,
@@ -295,11 +297,13 @@ export default function MatchesPage() {
     }
   };
 
-  const handleRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
-    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myParticipantMatchIds });
-    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.completedMatches });
-    queryClient.invalidateQueries({ queryKey: ['supabase-participantsForMatches'] });
+  const handleRefresh = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['matches-infinite'] }),
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myParticipantMatchIds }),
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.completedMatches }),
+      queryClient.invalidateQueries({ queryKey: ['supabase-participantsForMatches'] })
+    ]);
   };
 
   const handleDeleteMatch = async (matchId) => {
@@ -365,6 +369,7 @@ export default function MatchesPage() {
   }
 
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
       <DialogContainer />
       
@@ -494,30 +499,34 @@ export default function MatchesPage() {
                     <div className="flex gap-3 p-3 bg-[#18221E]/50 rounded-[12px] border border-[#223029]">
                       <div className="flex-1">
                         <label className="text-xs text-[#B6C2BC] mb-2 block font-medium">Filter</label>
-                        <Select value={sortBy} onValueChange={setSortBy}>
-                          <SelectTrigger className="bg-[#18221E] border border-[#223029] text-[#F4F7F5] rounded-[12px] h-10">
-                            <SelectValue>{sortByLabels[sortBy]}</SelectValue>
-                          </SelectTrigger>
-                          <SelectContent className="bg-[#121715] border border-[#223029] rounded-[14px]">
-                            <SelectItem value="all">Alla matcher</SelectItem>
-                            <SelectItem value="my_level">Min nivå</SelectItem>
-                            <SelectItem value="today">Idag</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <MobileSelect
+                          value={sortBy}
+                          onValueChange={setSortBy}
+                          placeholder="Filter"
+                          label="Filtrera matcher"
+                          className="w-full bg-[#18221E] border border-[#223029] text-[#F4F7F5] rounded-[12px] h-10 px-3 flex items-center"
+                          options={[
+                            { value: 'all', label: 'Alla matcher' },
+                            { value: 'my_level', label: 'Min nivå' },
+                            { value: 'today', label: 'Idag' }
+                          ]}
+                        />
                       </div>
 
                       <div className="flex-1">
                         <label className="text-xs text-[#B6C2BC] mb-2 block font-medium">Sortera</label>
-                        <Select value={matchSort} onValueChange={setMatchSort}>
-                          <SelectTrigger className="bg-[#18221E] border border-[#223029] text-[#F4F7F5] rounded-[12px] h-10">
-                            <SelectValue>{matchSortLabels[matchSort]}</SelectValue>
-                          </SelectTrigger>
-                          <SelectContent className="bg-[#121715] border border-[#223029] rounded-[14px]">
-                            <SelectItem value="nearest">Närmast</SelectItem>
-                            <SelectItem value="earliest">Tidigast</SelectItem>
-                            <SelectItem value="fullest">Fylldast</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <MobileSelect
+                          value={matchSort}
+                          onValueChange={setMatchSort}
+                          placeholder="Sortera"
+                          label="Sortera matcher"
+                          className="w-full bg-[#18221E] border border-[#223029] text-[#F4F7F5] rounded-[12px] h-10 px-3 flex items-center"
+                          options={[
+                            { value: 'nearest', label: 'Närmast' },
+                            { value: 'earliest', label: 'Tidigast' },
+                            { value: 'fullest', label: 'Fylldast' }
+                          ]}
+                        />
                       </div>
                     </div>
                   </motion.div>
@@ -610,5 +619,6 @@ export default function MatchesPage() {
         <Plus className="w-6 h-6 lg:w-7 lg:h-7" strokeWidth={2.5} />
       </motion.button>
     </div>
+    </PullToRefresh>
   );
 }

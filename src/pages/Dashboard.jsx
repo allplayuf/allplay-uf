@@ -362,7 +362,17 @@ export default function Dashboard() {
     return <PageLoadingSkeleton />;
   }
 
+  const handleRefresh = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['supabase-userProfile'] }),
+      queryClient.invalidateQueries({ queryKey: ['matches-infinite'] }),
+      queryClient.invalidateQueries({ queryKey: ['supabase-venues'] }),
+      queryClient.invalidateQueries({ queryKey: ['supabase-myParticipantMatchIds'] })
+    ]);
+  };
+
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <motion.div 
       variants={VARIANTS.container}
       initial="hidden"
