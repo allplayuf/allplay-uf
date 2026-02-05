@@ -4,8 +4,41 @@ css
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-background: #131816;
+    --color-surface: #121715;
+    --color-surface-hover: #18221E;
+    --color-border: #223029;
+    --color-text-primary: #F4F7F5;
+    --color-text-secondary: #B6C2BC;
+    --color-text-muted: #7B8A83;
+    --color-primary: #2BA84A;
+    --color-primary-hover: #248232;
+    --color-primary-light: #EAF6EE;
+    --color-accent: #F4743B;
+    --color-accent-hover: #E5683A;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      --color-background: #F4F7F5;
+      --color-surface: #FFFFFF;
+      --color-surface-hover: #EAF6EE;
+      --color-border: #D1DCD5;
+      --color-text-primary: #0F1513;
+      --color-text-secondary: #4A5A52;
+      --color-text-muted: #7B8A83;
+      --color-primary: #2BA84A;
+      --color-primary-hover: #248232;
+      --color-primary-light: #EAF6EE;
+      --color-accent: #F4743B;
+      --color-accent-hover: #E5683A;
+    }
+  }
+
   html, body {
-    background-color: #131816;
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
     margin: 0;
     padding: 0;
     overscroll-behavior: none;

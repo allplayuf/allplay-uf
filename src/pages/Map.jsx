@@ -273,7 +273,7 @@ export default function MapPage() {
 
   return (
     <div className="min-h-screen bg-[#0F1513]">
-      <div className="lg:hidden flex flex-col h-screen pb-16">
+      <div className="lg:hidden flex flex-col pb-16" style={{ height: 'calc(100vh - env(safe-area-inset-top))' }}>
         <div className="sticky top-0 z-[100] bg-[#121715] border-b border-[#223029] p-3 space-y-3 shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-semibold text-[#F4F7F5] flex items-center gap-2">
@@ -341,9 +341,9 @@ export default function MapPage() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-hidden relative">
+        <div className="flex-1 overflow-hidden relative" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           {viewMode === "list" ? (
-            <div className="h-full overflow-y-auto p-3 space-y-3 pb-4">
+            <div className="h-full overflow-y-auto p-3 space-y-3" style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}>
               <AnimatePresence mode="popLayout">
                 {filteredVenues.map((venue, index) => (
                   <motion.div
