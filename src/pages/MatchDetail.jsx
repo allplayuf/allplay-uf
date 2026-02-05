@@ -139,17 +139,21 @@ export default function MatchDetailPage() {
   const isAdmin = user?.role === 'admin';
 
   // 2. Fetch Match Data from Supabase Edge Function
-  const { data: matchData, isLoading: matchLoading } = useQuery({
+  const { data: matchData, isLoading: matchLoading, error: matchError } = useQuery({
     queryKey: ['supabase-match', matchId],
     queryFn: async () => {
-      const result = await getMatchDetails(matchId);
-      console.log('[MatchDetail] getMatchDetails result:', result);
+      if (!matchId) return null;
       
-      // Transform Supabase match to expected format
-      if (result) {
-        // Parse starts_at to get date and time
-        let parsedDate = result.date;
-        let parsedTime = result.time;
+      try {
+        const result = await getMatchDetails(matchId);
+        console.log('[MatchDetail] getMatchDetails result:', result);
+        console.log('[MatchDetail] result type:', typeof result, 'isArray:', Array.isArray(result));
+        
+        // Transform Supabase match to expected format
+        if (result) {
+          // Parse starts_at to get date and time
+          let parsedDate = result.date;
+          let parsedTime = result.time;
         
         if (result.starts_at && (!parsedDate || !parsedTime)) {
           const startsAt = new Date(result.starts_at);
@@ -179,9 +183,15 @@ export default function MatchDetailPage() {
         };
       }
       return null;
+      } catch (error) {
+        console.error('[MatchDetail] getMatchDetails error:', error);
+        // Don't throw - let UI show fallback
+        return null;
+      }
     },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
-    enabled: !!matchId
+    enabled: !!matchId,
+    retry: 1
   });
 
   const match = matchData;
@@ -233,8 +243,29 @@ export default function MatchDetailPage() {
   const { data: participantsRaw = [], isLoading: participantsLoading } = useQuery({
     queryKey: ['supabase-matchParticipants', matchId],
     queryFn: async () => {
-      const parts = await getMatchParticipants(matchId);
-      return parts || [];
+      if (!matchId) return [];
+      
+      try {
+        const parts = await getMatchParticipants(matchId);
+        console.log('[MatchDetail] getMatchParticipants result:', parts);
+        console.log('[MatchDetail] participants type:', typeof parts, 'isArray:', Array.isArray(parts));
+        
+        // CRITICAL: Normalize to array
+        if (!parts) return [];
+        if (Array.isArray(parts)) return parts;
+        
+        // If single object, wrap in array
+        if (typeof parts === 'object') {
+          console.warn('[MatchDetail] participants was object, wrapping in array');
+          return [parts];
+        }
+        
+        console.error('[MatchDetail] participants unexpected type:', typeof parts);
+        return [];
+      } catch (error) {
+        console.error('[MatchDetail] getMatchParticipants error:', error);
+        return [];
+      }
     },
     ...CACHE_STRATEGIES.DYNAMIC,
     enabled: !!matchId
@@ -242,6 +273,11 @@ export default function MatchDetailPage() {
 
   // Fetch user data for participants
   const participantUserIds = React.useMemo(() => {
+    // CRITICAL: Ensure participantsRaw is array
+    if (!Array.isArray(participantsRaw)) {
+      console.error('[MatchDetail] participantsRaw is not array:', typeof participantsRaw);
+      return [];
+    }
     return [...new Set(participantsRaw.map(p => p.user_id).filter(Boolean))];
   }, [participantsRaw]);
 
@@ -254,8 +290,17 @@ export default function MatchDetailPage() {
 
   // Merge participants with user data
   const participants = React.useMemo(() => {
-    return participantUsers.map(u => {
-      const participantInfo = participantsRaw.find(p => p.user_id === u.id);
+    // CRITICAL: Ensure arrays
+    const usersArray = Array.isArray(participantUsers) ? participantUsers : [];
+    const rawArray = Array.isArray(participantsRaw) ? participantsRaw : [];
+    
+    console.log('[MatchDetail] Merging participants:', { 
+      usersCount: usersArray.length, 
+      rawCount: rawArray.length 
+    });
+    
+    return usersArray.map(u => {
+      const participantInfo = rawArray.find(p => p.user_id === u.id);
       return { ...u, participantInfo };
     });
   }, [participantUsers, participantsRaw]);
@@ -523,7 +568,13 @@ export default function MatchDetailPage() {
   }
 
   const isOrganizer = match.organizer_id === user?.id;
-  const isParticipant = participants.some(p => p.id === user?.id);
+  
+  // CRITICAL: Safe participant check
+  const isParticipant = React.useMemo(() => {
+    if (!user?.id || !Array.isArray(participants)) return false;
+    return participants.some(p => p.id === user.id);
+  }, [participants, user?.id]);
+  
   // UI-level check only - backend validates actual join permission
   const canJoin = !isCupMatch && !isParticipant && match.status === 'upcoming' && !isGuest;
   const isCompleted = match.status === 'completed';
@@ -869,7 +920,7 @@ export default function MatchDetailPage() {
             </TabsList>
 
             <TabsContent value="participants">
-            {participants.length === 0 ? (
+            {!Array.isArray(participants) || participants.length === 0 ? (
               <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[20px] p-12 text-center">
                 <div className="w-16 h-16 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Users className="w-8 h-8 text-[#9FC9AC]" />
@@ -885,7 +936,8 @@ export default function MatchDetailPage() {
                   </p>
                 </div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {participants.map((participant) => {
+                {Array.isArray(participants) && participants.map((participant) => {
+                  if (!participant) return null;
                   const participantSkill = participant.skill_level ? SKILL_LEVEL_CONFIG[participant.skill_level] : null;
                   const ParticipantSkillIcon = participantSkill?.icon;
                   const friendStatus = getFriendStatus(participant.id);

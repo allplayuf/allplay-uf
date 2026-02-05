@@ -231,9 +231,28 @@ export async function getPublicMatches(filters = {}) {
  * Get match details
  * 
  * @param {string} matchId - Match UUID
+ * @returns {Promise<object>} - Match object with venue and participant data
  */
 export async function getMatchDetails(matchId) {
-  return callPublicEdgeFunction('get_match_details', { match_id: matchId });
+  if (!matchId) {
+    throw new Error('matchId is required');
+  }
+  
+  const result = await callPublicEdgeFunction('get_match_details', { match_id: matchId });
+  
+  // Log result shape for debugging
+  if (IS_DEV) {
+    console.log('[matchesService] getMatchDetails response:', {
+      type: typeof result,
+      isArray: Array.isArray(result),
+      hasMatch: !!result?.match,
+      hasParticipants: !!result?.participants,
+      participantsType: typeof result?.participants,
+      participantsIsArray: Array.isArray(result?.participants)
+    });
+  }
+  
+  return result;
 }
 
 /**
@@ -260,9 +279,34 @@ export async function getMyParticipation(matchId) {
  * - Only hide ACTION buttons (join/leave/kick) based on auth
  * 
  * @param {string} matchId - Match UUID
+ * @returns {Promise<Array>} - Array of participant objects
  */
 export async function getMatchParticipants(matchId) {
-  return callPublicEdgeFunction('get_match_participants', { match_id: matchId });
+  if (!matchId) {
+    throw new Error('matchId is required');
+  }
+  
+  const result = await callPublicEdgeFunction('get_match_participants', { match_id: matchId });
+  
+  // CRITICAL: Ensure result is array
+  if (!result) return [];
+  if (Array.isArray(result)) return result;
+  
+  // If wrapped in { participants: [...] }
+  if (result.participants && Array.isArray(result.participants)) {
+    return result.participants;
+  }
+  
+  // Log unexpected format
+  if (IS_DEV) {
+    console.warn('[matchesService] getMatchParticipants unexpected format:', {
+      type: typeof result,
+      isArray: Array.isArray(result),
+      keys: Object.keys(result || {})
+    });
+  }
+  
+  return [];
 }
 
 /**
