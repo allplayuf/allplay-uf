@@ -7,13 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Trophy, ArrowLeft, Calendar, MapPin, Users, Target, Sparkles, Upload, Image as ImageIcon } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
+import { MobileSelect } from "@/components/ui/mobile-select";
 
 export default function CreateCupPage() {
   const navigate = useNavigate();
@@ -353,21 +353,15 @@ export default function CreateCupPage() {
                   <MapPin className="w-4 h-4 text-[#F59E0B]" />
                   Plan för matcher *
                 </Label>
-                <Select 
-                  value={formData.venue_ids[0] || ''} 
+                <MobileSelect
+                  value={formData.venue_ids[0] || ''}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, venue_ids: [value] }))}
-                >
-                  <SelectTrigger className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30">
-                    <SelectValue placeholder="Välj en plan..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {venues.map((venue) => (
-                      <SelectItem key={venue.id} value={venue.id}>
-                        {venue.name} - {venue.city}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="Välj en plan..."
+                  options={venues.map(venue => ({
+                    value: venue.id,
+                    label: `${venue.name} - ${venue.city}`
+                  }))}
+                />
                 <p className="text-xs text-[#B6C2BC]">Välj vilken plan matcherna ska spelas på</p>
               </div>
 
@@ -375,19 +369,15 @@ export default function CreateCupPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-[#F4F7F5] font-semibold">Underlag *</Label>
-                  <Select 
-                    value={formData.surface_type} 
+                  <MobileSelect
+                    value={formData.surface_type}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, surface_type: value }))}
-                  >
-                    <SelectTrigger className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="grass">🌱 Gräs</SelectItem>
-                      <SelectItem value="artificial_turf">🏟️ Konstgräs</SelectItem>
-                      <SelectItem value="futsal">🏐 Futsal</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    options={[
+                      { value: 'grass', label: '🌱 Gräs' },
+                      { value: 'artificial_turf', label: '🏟️ Konstgräs' },
+                      { value: 'futsal', label: '🏐 Futsal' }
+                    ]}
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -481,15 +471,14 @@ export default function CreateCupPage() {
               {/* Signup Type */}
               <div className="space-y-2">
                 <Label className="text-[#F4F7F5] font-semibold">Anmälningstyp *</Label>
-                <Select value={formData.signup_type} onValueChange={(value) => setFormData(prev => ({ ...prev, signup_type: value }))}>
-                  <SelectTrigger className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="team">👥 Lag</SelectItem>
-                    <SelectItem value="solo">⚽ Solo (spelare)</SelectItem>
-                  </SelectContent>
-                </Select>
+                <MobileSelect
+                  value={formData.signup_type}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, signup_type: value }))}
+                  options={[
+                    { value: 'team', label: '👥 Lag' },
+                    { value: 'solo', label: '⚽ Solo (spelare)' }
+                  ]}
+                />
               </div>
 
               {/* Skill Level */}
@@ -498,18 +487,17 @@ export default function CreateCupPage() {
                   <Target className="w-4 h-4 text-[#F59E0B]" />
                   Nivå *
                 </Label>
-                <Select value={formData.skill_level} onValueChange={(value) => setFormData(prev => ({ ...prev, skill_level: value }))}>
-                  <SelectTrigger className="bg-[#18221E] border-[#223029] text-[#F4F7F5] focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="beginner">Nybörjare</SelectItem>
-                    <SelectItem value="intermediate">Medel</SelectItem>
-                    <SelectItem value="advanced">Avancerad</SelectItem>
-                    <SelectItem value="elite">Elite</SelectItem>
-                    <SelectItem value="mixed">Blandad nivå</SelectItem>
-                  </SelectContent>
-                </Select>
+                <MobileSelect
+                  value={formData.skill_level}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, skill_level: value }))}
+                  options={[
+                    { value: 'beginner', label: 'Nybörjare' },
+                    { value: 'intermediate', label: 'Medel' },
+                    { value: 'advanced', label: 'Avancerad' },
+                    { value: 'elite', label: 'Elite' },
+                    { value: 'mixed', label: 'Blandad nivå' }
+                  ]}
+                />
               </div>
 
               {/* Max Participants */}
