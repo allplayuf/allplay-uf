@@ -220,13 +220,45 @@ export default function CupDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F1513]">
+    <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
       <DialogContainer />
       
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 lg:pb-8">
+      {/* Mobile Sticky Header */}
+      <div className="lg:hidden sticky top-0 z-40 bg-[#0F1513] border-b border-[#223029] safe-area-top">
+        <div className="flex items-center gap-3 px-4 py-3">
+          <Link to={createPageUrl("Community") + "?tab=cups"}>
+            <button className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#18221E] text-[#F4F7F5] hover:bg-[#223029] transition-colors">
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          </Link>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-base font-semibold text-[#F4F7F5] truncate">{cup?.name || 'Cup'}</h1>
+          </div>
+          {canDelete && cup?.status !== 'ongoing' && cup?.status !== 'completed' && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#18221E] text-[#7B8A83] hover:text-[#F4F7F5] hover:bg-[#223029] transition-colors">
+                  <MoreVertical className="w-5 h-5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-[#121715] border-[#223029]">
+                <DropdownMenuItem 
+                  onClick={handleDeleteCup}
+                  className="text-[#DC2626] hover:text-[#DC2626] hover:bg-[#DC2626]/10 cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Ta bort turnering
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+      </div>
+      
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         
-        {/* Header Section */}
-        <div className="flex items-center justify-between mb-6">
+        {/* Desktop Header Section */}
+        <div className="hidden lg:flex items-center justify-between mb-6">
           <Link to={createPageUrl("Community") + "?tab=cups"}>
             <Button 
               variant="ghost" 
