@@ -569,11 +569,8 @@ export default function MatchDetailPage() {
 
   const isOrganizer = match.organizer_id === user?.id;
   
-  // CRITICAL: Safe participant check
-  const isParticipant = React.useMemo(() => {
-    if (!user?.id || !Array.isArray(participants)) return false;
-    return participants.some(p => p.id === user.id);
-  }, [participants, user?.id]);
+  // CRITICAL: Safe participant check (no useMemo - cheap calculation)
+  const isParticipant = !!user?.id && Array.isArray(participants) && participants.some(p => p.id === user.id);
   
   // UI-level check only - backend validates actual join permission
   const canJoin = !isCupMatch && !isParticipant && match.status === 'upcoming' && !isGuest;
