@@ -16,6 +16,7 @@ import OfflineDetector from "@/components/ui/offline-detector";
 import { canAccessAdminPanel, isGuest } from "./components/utils/permissions";
 import { GuestBanner } from "@/components/ui/guest-banner";
 import { SupabaseAuthProvider, useSupabaseAuth, initSupabase } from "@/components/supabase";
+import { triggerHaptic } from "@/components/utils/motionTokens";
 
 // Guest banner wrapper that uses Supabase auth state
 function GuestBannerWrapper() {
@@ -70,15 +71,53 @@ const navigationItems = [
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminCheckDone, setAdminCheckDone] = useState(false);
   const mainContentRef = React.useRef(null);
+  
+  // Track current path per tab for stack preservation
+  const [tabPaths, setTabPaths] = useState({
+    'Dashboard': createPageUrl('Dashboard'),
+    'Map': createPageUrl('Map'),
+    'Matches': createPageUrl('Matches'),
+    'Community': createPageUrl('Community'),
+    'Profile': createPageUrl('Profile')
+  });
+
+  // Update tab paths when location changes
+  useEffect(() => {
+    const currentPath = location.pathname;
+    const activeTab = navigationItems.find(item => currentPath.startsWith(item.url));
+    
+    if (activeTab) {
+      setTabPaths(prev => ({
+        ...prev,
+        [activeTab.title]: currentPath
+      }));
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     if (mainContentRef.current) {
       mainContentRef.current.scrollTop = 0;
     }
   }, [location.pathname]);
+  
+  // Handle tab click - navigate to root if already active, else to last path
+  const handleTabClick = (item) => {
+    triggerHaptic('light');
+    
+    const isCurrentTab = location.pathname.startsWith(item.url);
+    
+    if (isCurrentTab) {
+      // Already on this tab - navigate to root
+      navigate(item.url);
+    } else {
+      // Navigate to last known path for this tab
+      navigate(tabPaths[item.title] || item.url);
+    }
+  };
 
   // Use useQuery for consistent user state management across the app
   useQuery({
@@ -148,10 +187,10 @@ export default function Layout({ children, currentPageName }) {
               {navigationItems.map((item) => {
                 const isActive = location.pathname === item.url;
                 return (
-                  <Link
+                  <button
                     key={item.title}
-                    to={item.url}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl min-h-[44px] ${
+                    onClick={() => handleTabClick(item)}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl min-h-[44px] w-full text-left ${
                       isActive
                         ? 'bg-[#2BA84A]/16 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30'
                         : 'text-[#7B8A83] hover:bg-[#18221E] hover:text-[#F4F7F5]'
@@ -159,7 +198,7 @@ export default function Layout({ children, currentPageName }) {
                   >
                     <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-[#2BA84A]' : 'text-[#7B8A83]'}`} strokeWidth={2} />
                     <span className="font-medium text-[14px] leading-[20px]">{item.title}</span>
-                  </Link>
+                  </button>
                 );
               })}
             </div>
@@ -235,9 +274,9 @@ export default function Layout({ children, currentPageName }) {
               {navigationItems.map((item) => {
                 const isActive = location.pathname === item.url;
                 return (
-                  <Link
+                  <button
                     key={item.title}
-                    to={item.url}
+                    onClick={() => handleTabClick(item)}
                     className={`flex flex-col items-center justify-center min-w-[60px] min-h-[44px] px-3 py-2 rounded-xl ${
                       isActive
                         ? 'bg-[#2BA84A]/16 text-[#EAF6EE]'
@@ -246,7 +285,7 @@ export default function Layout({ children, currentPageName }) {
                   >
                     <item.icon className={`w-5 h-5 mb-1 ${isActive ? 'text-[#2BA84A]' : 'text-[#7B8A83]'}`} strokeWidth={2} />
                     <span className="text-[10px] font-medium">{item.title}</span>
-                  </Link>
+                  </button>
                 );
               })}
             </div>

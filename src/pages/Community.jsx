@@ -14,6 +14,7 @@ import { useCustomDialog } from "../components/ui/custom-dialog";
 import { NoPlayersFound, NoTeamsFound } from "../components/ui/empty-state";
 import { CUPS_QUERY_KEY } from "../components/dashboard/CupsWidget";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
+import { PullToRefresh } from "../components/ui/pull-to-refresh";
 
 const FriendsList = lazy(() => import("../components/community/FriendsList"));
 const FindPlayers = lazy(() => import("../components/community/FindPlayers"));
@@ -351,6 +352,17 @@ export default function CommunityPage() {
     }
   };
 
+  const handleRefresh = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.user }),
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.publicUsers }),
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.publicTeams }),
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships }),
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamInvites(user?.id) }),
+      queryClient.invalidateQueries({ queryKey: CUPS_QUERY_KEY })
+    ]);
+  };
+
   if (isLoading) {
     return <PageLoadingSkeleton />;
   }
@@ -378,6 +390,7 @@ export default function CommunityPage() {
   }
 
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
       <DialogContainer />
       
@@ -729,5 +742,6 @@ export default function CommunityPage() {
         </motion.button>
       )}
     </div>
+    </PullToRefresh>
   );
 }

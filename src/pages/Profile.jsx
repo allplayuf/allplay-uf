@@ -35,6 +35,7 @@ import { useCustomDialog } from "../components/ui/custom-dialog";
 import { ProfileSkeleton } from "../components/ui/loading-skeleton";
 import ReportModal from "../components/report/ReportModal";
 import BlockUserButton from "../components/user/BlockUserButton";
+import { PullToRefresh } from "../components/ui/pull-to-refresh";
 
 // Lazy load components
 const ProfileStats = lazy(() => import("../components/profile/ProfileStats"));
@@ -437,6 +438,18 @@ export default function ProfilePage() {
     }
   };
 
+  const handleRefresh = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.user }),
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships }),
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendRequests(user?.id) }),
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamInvites(user?.id) }),
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamJoinRequests(user?.id) }),
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friends(user?.id) }),
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.matchHistory(user?.id) })
+    ]);
+  };
+
   const isViewingOtherProfile = !!targetUserId && targetUserId !== user?.id;
   const displayUser = isViewingOtherProfile ? targetUser : user;
   const isLoading = userLoading || (targetUserId && targetUserLoading);
@@ -494,6 +507,7 @@ export default function ProfilePage() {
   const friendshipStatus = getFriendshipStatus();
 
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
       <DialogContainer />
       
@@ -1110,5 +1124,6 @@ export default function ProfilePage() {
         />
       )}
     </div>
+    </PullToRefresh>
   );
 }
