@@ -536,27 +536,6 @@ export default function MatchDetailPage() {
     <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
       <DialogContainer />
 
-      {/* Mobile Sticky Header */}
-      <div className="lg:hidden sticky top-0 z-40 bg-[#0F1513] border-b border-[#223029] safe-area-top">
-        <div className="flex items-center gap-3 px-4 py-3">
-          <button
-            onClick={() => {
-              if (isCupMatch && cupMatch?.cup_id) {
-                navigate(`${createPageUrl("CupDetail")}?cup_id=${cupMatch.cup_id}`);
-              } else {
-                navigate(createPageUrl("Matches"));
-              }
-            }}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#18221E] text-[#F4F7F5] hover:bg-[#223029] transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-base font-semibold text-[#F4F7F5] truncate">{match?.title || 'Match'}</h1>
-          </div>
-        </div>
-      </div>
-
       <div className="max-w-7xl mx-auto space-y-6 p-4 lg:p-8">
 
         {/* Desktop Back Button */}
