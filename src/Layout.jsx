@@ -137,6 +137,9 @@ export default function Layout({ children, currentPageName }) {
     retry: false
   });
 
+  // Determine if current page is a root page or sub-page
+  const isRootPage = navigationItems.some(item => location.pathname === item.url);
+
   return (
     <QueryProvider>
       <SupabaseAuthProvider>
@@ -238,27 +241,30 @@ export default function Layout({ children, currentPageName }) {
 
         {/* Main Content */}
         <main className="flex-1 flex flex-col bg-[#131816] min-h-screen lg:min-h-0">
-          <header className="lg:hidden sticky top-0 z-40 bg-[#121715] border-b border-[#223029] px-4 py-3 safe-area-top">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-transparent">
-                <img 
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png" 
-                  alt="AllPlay UF Logo" 
-                  className="w-full h-full object-contain"
-                  loading="eager"
-                />
+          {isRootPage && (
+            <header className="lg:hidden sticky top-0 z-40 bg-[#121715] border-b border-[#223029] px-4 py-3 safe-area-top">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-transparent">
+                  <img 
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png" 
+                    alt="AllPlay UF Logo" 
+                    className="w-full h-full object-contain"
+                    loading="eager"
+                  />
+                </div>
+                <div>
+                  <h1 className="text-lg font-semibold text-[#F4F7F5]">AllPlay UF</h1>
+                </div>
               </div>
-              <div>
-                <h1 className="text-lg font-semibold text-[#F4F7F5]">AllPlay UF</h1>
-              </div>
-            </div>
-          </header>
+            </header>
+          )}
 
           {/* PREVIEW BANNER REMOVED */}
 
           <div 
             ref={mainContentRef}
-            className="flex-1 overflow-auto pb-20 lg:pb-0"
+            className="flex-1 overflow-auto lg:pb-0"
+            style={{ paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))' }}
           >
             <RouteGuard currentRoute={location.pathname}>
               <PageTransition pageKey={location.pathname}>
