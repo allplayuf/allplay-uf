@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { MapPin, Calendar, Users, Trophy, User, Shield, AlertCircle } from "lucide-react";
 import { Toaster } from "sonner";

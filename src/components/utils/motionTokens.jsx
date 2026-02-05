@@ -69,3 +69,24 @@ export const VARIANTS = {
 export const getMotionProps = (variant = 'item') => {
   return VARIANTS[variant] || VARIANTS.item;
 };
+
+// Haptic feedback utility
+export const triggerHaptic = (type = 'light') => {
+  if (typeof window === 'undefined' || !window.navigator.vibrate) return;
+  
+  const patterns = {
+    light: 10,
+    medium: 20,
+    heavy: 30,
+    success: [10, 50, 10],
+    error: [20, 100, 20]
+  };
+  
+  window.navigator.vibrate(patterns[type] || patterns.light);
+};
+
+// Sound utility (placeholder - can be enhanced with actual sounds)
+export const playSound = (type = 'click') => {
+  // Placeholder for future sound implementation
+  // Can use Web Audio API or HTML5 Audio
+};
