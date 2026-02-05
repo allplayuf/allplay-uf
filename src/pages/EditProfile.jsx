@@ -24,6 +24,7 @@ import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
+import { triggerHaptic } from "@/components/utils/motionTokens";
 
 const SKILL_LEVELS = [
   { value: 'beginner', label: 'Nybörjare', icon: Target, color: 'from-[#10B981] to-[#059669]', textColor: 'text-[#A7F3D0]' },
@@ -197,6 +198,7 @@ export default function EditProfilePage() {
   };
 
   const toggleArrayItem = (field, value) => {
+    triggerHaptic('light');
     const current = formData[field] || [];
     if (current.includes(value)) {
       setFormData((prev) => ({
@@ -535,7 +537,7 @@ export default function EditProfilePage() {
           </Card>
 
           {/* Sticky Bottom Actions */}
-          <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#0F1513] via-[#0F1513] to-transparent lg:hidden">
+          <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#0F1513] via-[#0F1513] to-transparent lg:hidden" style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}>
             <div className="max-w-4xl mx-auto">
               <button
                 onClick={handleSave}

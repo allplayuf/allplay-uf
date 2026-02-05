@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { base44 } from "@/api/base44Client";
 import { Pencil, Clock } from 'lucide-react';
 import { useCustomDialog } from "../ui/custom-dialog";
+import { triggerHaptic } from "@/components/utils/motionTokens";
 
 export default function EditGoalModal({ goal, onClose, onSuccess }) {
   const [minute, setMinute] = useState(goal.minute || '');
@@ -19,6 +20,7 @@ export default function EditGoalModal({ goal, onClose, onSuccess }) {
       return;
     }
 
+    triggerHaptic('light');
     setIsSubmitting(true);
     try {
       await base44.entities.CupGoal.update(goal.id, {
@@ -39,7 +41,7 @@ export default function EditGoalModal({ goal, onClose, onSuccess }) {
   };
 
   return (
-    <div className="bg-[#121715] border border-[#223029] rounded-2xl lg:rounded-[20px] w-full p-4 lg:p-6 shadow-2xl max-w-md">
+    <div className="bg-[#121715] border border-[#223029] rounded-2xl lg:rounded-[20px] w-full p-4 lg:p-6 shadow-2xl max-w-md" style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}>
       <div className="flex items-center gap-2 lg:gap-3 mb-4 lg:mb-6 text-[#F59E0B]">
         <Pencil className="w-5 h-5 lg:w-6 lg:h-6" />
         <h2 className="text-lg lg:text-xl font-bold">Redigera mål</h2>
