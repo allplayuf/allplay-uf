@@ -40,6 +40,7 @@ import {
 import { getVenues, getUsersByIds, getMyProfile } from "../components/supabase/services";
 import { callEdgeFunction } from "../components/supabase/callEdgeFunction";
 import { EDGE } from "../components/supabase/edgeNames";
+import { getCachedUser, fetchUsersMissing } from "../components/supabase/services";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 
 // CONSISTENT SKILL LEVEL CONFIG - WCAG AA compliant colors
