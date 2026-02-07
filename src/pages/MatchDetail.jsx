@@ -393,10 +393,14 @@ export default function MatchDetailPage() {
   const handleMatchEnd = async (resultData) => {
     try {
       // Use Supabase Edge Function to end match
-      await callEdgeFunction('end_match', {
+      const result = await callEdgeFunction('end_match', {
         match_id: matchId,
         ...resultData
       });
+
+      if (!result.ok) {
+        throw new Error(result.error?.message || 'Kunde inte avsluta match');
+      }
 
       setShowEndModal(false);
       queryClient.invalidateQueries({ queryKey: ['supabase-match', matchId] });
@@ -406,7 +410,7 @@ export default function MatchDetailPage() {
 
     } catch (error) {
       console.error("Error ending match:", error);
-      await alert("Kunde inte avsluta match", "Försök igen.", { type: 'alert' });
+      await alert("Kunde inte avsluta match", error.message || "Försök igen.", { type: 'alert' });
     }
   };
 

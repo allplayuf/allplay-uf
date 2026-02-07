@@ -8,6 +8,7 @@
  */
 
 import { callEdgeFunction } from '../callEdgeFunction';
+import { EDGE } from '@/lib/supabase/edgeNames';
 
 /**
  * Report a user
