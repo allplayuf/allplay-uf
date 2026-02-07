@@ -13,6 +13,7 @@
 import { callEdgeFunction, callPublicEdgeFunction } from '../callEdgeFunction';
 import { getSupabaseConfig, SUPABASE_URL } from '../config';
 import { sessionStore } from '../client';
+import { EDGE } from '../edgeNames';
 
 // Dev mode check for console logging
 const IS_DEV = typeof window !== 'undefined' && 
@@ -128,7 +129,7 @@ export async function createMatch(payload) {
   }
   
   // Edge Function returns { match_id, message } on success
-  const result = await callEdgeFunction('create_match', backendPayload);
+  const result = await callEdgeFunction(EDGE.createMatch, backendPayload);
   if (IS_DEV) {
     console.log('[matchesService] createMatch result:', result);
   }
@@ -144,7 +145,7 @@ export { VALID_LEVELS, LEVEL_MAP, normalizeLevel };
  * @param {string} matchId - Match UUID
  */
 export async function joinMatch(matchId) {
-  return callEdgeFunction('join_match', { match_id: matchId });
+  return callEdgeFunction(EDGE.joinMatch, { match_id: matchId });
 }
 
 /**
@@ -153,7 +154,7 @@ export async function joinMatch(matchId) {
  * @param {string} matchId - Match UUID
  */
 export async function leaveMatch(matchId) {
-  return callEdgeFunction('leave_match', { match_id: matchId });
+  return callEdgeFunction(EDGE.leaveMatch, { match_id: matchId });
 }
 
 /**
@@ -164,7 +165,7 @@ export async function leaveMatch(matchId) {
  * @param {number} userLng - User longitude
  */
 export async function checkInMatch(matchId, userLat, userLng) {
-  return callEdgeFunction('checkInToMatch', {
+  return callEdgeFunction(EDGE.checkInMatch, {
     match_id: matchId,
     user_lat: userLat,
     user_lng: userLng
@@ -238,7 +239,7 @@ export async function getMatchDetails(matchId) {
     throw new Error('matchId is required');
   }
   
-  const result = await callPublicEdgeFunction('get_match_details', { match_id: matchId });
+  const result = await callPublicEdgeFunction(EDGE.getMatchDetails, { match_id: matchId });
   
   // Log result shape for debugging
   if (IS_DEV) {
@@ -263,7 +264,7 @@ export async function getMatchDetails(matchId) {
  */
 export async function getMyParticipation(matchId) {
   try {
-    return await callPublicEdgeFunction('my_participation', { match_id: matchId });
+    return await callPublicEdgeFunction(EDGE.getMyParticipation, { match_id: matchId });
   } catch (e) {
     // Backend returns null for guests or non-participants
     return null;
@@ -286,7 +287,7 @@ export async function getMatchParticipants(matchId) {
     throw new Error('matchId is required');
   }
   
-  const result = await callPublicEdgeFunction('get_match_participants', { match_id: matchId });
+  const result = await callPublicEdgeFunction(EDGE.getMatchParticipants, { match_id: matchId });
   
   // CRITICAL: Ensure result is array
   if (!result) return [];
@@ -316,7 +317,7 @@ export async function getMatchParticipants(matchId) {
  * @param {object} filters - Optional filters
  */
 export async function getMatchFeed(filters = {}) {
-  return callPublicEdgeFunction('get_match_feed', filters);
+  return callPublicEdgeFunction(EDGE.getMatchFeed, filters);
 }
 
 /**
@@ -328,5 +329,5 @@ export async function deleteMatch(matchId) {
   if (!matchId) {
     throw new Error('matchId is required');
   }
-  return callEdgeFunction('delete_match', { match_id: matchId });
+  return callEdgeFunction(EDGE.deleteMatch, { match_id: matchId });
 }
