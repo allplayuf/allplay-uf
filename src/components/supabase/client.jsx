@@ -457,20 +457,24 @@ class SupabaseClient {
     }
 
     const result = await this._fetch('/functions/v1/me', {
-      method: 'POST'
+      method: 'GET'
     });
 
     if (result.error || !result.data?.ok) {
       return false;
     }
 
-    sessionStore.setUser(result.data.user);
-    sessionStore.setRoles(result.data.roles || []);
+    // ROBUST: Handle missing user data
+    const userData = result.data.user || sessionStore.user || null;
+    const roles = Array.isArray(result.data.roles) ? result.data.roles : [];
+    
+    sessionStore.setUser(userData);
+    sessionStore.setRoles(roles);
     sessionStore.setAuthState(AUTH_STATES.AUTHENTICATED);
     
     // Sync user to Base44 on session validation too (handles returning users)
-    if (result.data.user) {
-      await this.syncUserToBase44(result.data.user);
+    if (userData) {
+      await this.syncUserToBase44(userData);
     }
     
     return true;
@@ -479,11 +483,12 @@ class SupabaseClient {
   // Fetch user roles from /me endpoint
   async fetchUserRoles() {
     const result = await this._fetch('/functions/v1/me', {
-      method: 'POST'
+      method: 'GET'
     });
 
     if (result.data?.ok) {
-      sessionStore.setRoles(result.data.roles || []);
+      const roles = Array.isArray(result.data.roles) ? result.data.roles : [];
+      sessionStore.setRoles(roles);
     }
 
     return result;

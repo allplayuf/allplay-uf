@@ -639,7 +639,7 @@ export default function MatchDetailPage() {
                   </div>
                   <div className="bg-[#18221E]/50 p-4 rounded-2xl border border-[#223029]">
                     <div className="text-[#B6C2BC] text-xs font-bold uppercase mb-1">Deltagare</div>
-                    <div className="text-white font-bold text-lg">{participants.length} spelare</div>
+                    <div className="text-white font-bold text-lg">{Array.isArray(participants) ? participants.length : 0} spelare</div>
                   </div>
                 </div>
 
@@ -743,13 +743,13 @@ export default function MatchDetailPage() {
                     <span className="text-[14px] leading-[20px]">{match.time} ({match.duration_minutes || 90} min)</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5 flex-shrink-0" />
-                    <span className="text-[14px] leading-[20px]">
-                      {match.is_spontaneous
-                        ? `${participants.length} anmälda (spontan match)`
-                        : `${participants.length}/${match.max_players} spelare`
-                      }
-                    </span>
+                   <Users className="w-5 h-5 flex-shrink-0" />
+                   <span className="text-[14px] leading-[20px]">
+                     {match.is_spontaneous
+                       ? `${Array.isArray(participants) ? participants.length : 0} anmälda (spontan match)`
+                       : `${Array.isArray(participants) ? participants.length : 0}/${match.max_players} spelare`
+                     }
+                   </span>
                   </div>
                 </div>
               </div>
@@ -901,11 +901,11 @@ export default function MatchDetailPage() {
           <Tabs defaultValue="participants" className="space-y-6">
             <TabsList className="bg-[#121715] p-1 border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] grid grid-cols-2 w-full rounded-[16px]">
               <TabsTrigger
-                value="participants"
-                className="flex items-center justify-center gap-2 data-[state=active]:bg-[#2BA84A]/16 data-[state=active]:text-[#EAF6EE] data-[state=active]:ring-1 data-[state=active]:ring-[#2BA84A]/30 text-[#B6C2BC] font-semibold rounded-[14px] transition-all"
+              value="participants"
+              className="flex items-center justify-center gap-2 data-[state=active]:bg-[#2BA84A]/16 data-[state=active]:text-[#EAF6EE] data-[state=active]:ring-1 data-[state=active]:ring-[#2BA84A]/30 text-[#B6C2BC] font-semibold rounded-[14px] transition-all"
               >
-                <Users className="w-4 h-4" />
-                Deltagare ({participants.length})
+              <Users className="w-4 h-4" />
+              Deltagare ({Array.isArray(participants) ? participants.length : 0})
               </TabsTrigger>
               <TabsTrigger
                 value="details"
@@ -929,7 +929,7 @@ export default function MatchDetailPage() {
               <>
                 <div className="mb-4 flex items-center justify-between">
                   <p className="text-sm text-[#B6C2BC]">
-                    {participants.filter(p => p.participantInfo?.checked_in).length} av {participants.length} spelare checkade in
+                    {Array.isArray(participants) ? participants.filter(p => p.participantInfo?.checked_in).length : 0} av {Array.isArray(participants) ? participants.length : 0} spelare checkade in
                   </p>
                 </div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
