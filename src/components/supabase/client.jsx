@@ -457,7 +457,7 @@ class SupabaseClient {
     }
 
     const result = await this._fetch('/functions/v1/me', {
-      method: 'GET'
+      method: 'POST'
     });
 
     if (result.error || !result.data?.ok) {
@@ -483,7 +483,7 @@ class SupabaseClient {
   // Fetch user roles from /me endpoint
   async fetchUserRoles() {
     const result = await this._fetch('/functions/v1/me', {
-      method: 'GET'
+      method: 'POST'
     });
 
     if (result.data?.ok) {
