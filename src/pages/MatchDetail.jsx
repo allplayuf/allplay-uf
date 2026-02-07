@@ -39,6 +39,7 @@ import {
 } from "../components/supabase/services/matchesService";
 import { getVenues, getUsersByIds, getMyProfile } from "../components/supabase/services";
 import { callEdgeFunction } from "../components/supabase/callEdgeFunction";
+import { EDGE } from "../components/supabase/edgeNames";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 
 // CONSISTENT SKILL LEVEL CONFIG - WCAG AA compliant colors
@@ -393,14 +394,10 @@ export default function MatchDetailPage() {
   const handleMatchEnd = async (resultData) => {
     try {
       // Use Supabase Edge Function to end match
-      const result = await callEdgeFunction('end_match', {
+      const result = await callEdgeFunction(EDGE.endMatch, {
         match_id: matchId,
         ...resultData
       });
-
-      if (!result.ok) {
-        throw new Error(result.error?.message || 'Kunde inte avsluta match');
-      }
 
       setShowEndModal(false);
       queryClient.invalidateQueries({ queryKey: ['supabase-match', matchId] });
