@@ -9,6 +9,8 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { sessionStore, supabaseClient, AUTH_STATES } from './client';
+import { CompleteProfileModal } from '@/components/profile/CompleteProfileModal';
+import { primeUsers } from './services/userCache';
 
 // Auth context
 const AuthContext = createContext(null);
@@ -29,6 +31,7 @@ export function SupabaseAuthProvider({ children }) {
   const [roles, setRoles] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState(null);
+  const [showCompleteProfile, setShowCompleteProfile] = useState(false);
 
   // Initialize on mount - restores session from localStorage
   useEffect(() => {
@@ -69,6 +72,19 @@ export function SupabaseAuthProvider({ children }) {
       setAuthState(state.authState);
       setUser(state.user);
       setRoles(state.roles);
+      
+      // Check if profile is incomplete
+      if (state.authState === AUTH_STATES.AUTHENTICATED && state.user) {
+        const needsCompletion = !state.user.full_name || !state.user.username;
+        setShowCompleteProfile(needsCompletion);
+        
+        // Prime cache with current user
+        if (state.user.id) {
+          primeUsers([state.user]);
+        }
+      } else {
+        setShowCompleteProfile(false);
+      }
     });
 
     return () => {
@@ -160,9 +176,25 @@ export function SupabaseAuthProvider({ children }) {
     clearError: () => setError(null)
   };
 
+  // Handle profile completion
+  const handleProfileComplete = useCallback((updatedUser) => {
+    // Update session store
+    if (updatedUser) {
+      sessionStore.setUser(updatedUser);
+      primeUsers([updatedUser]);
+    }
+    setShowCompleteProfile(false);
+  }, []);
+
   return (
     <AuthContext.Provider value={value}>
       {children}
+      
+      {/* Complete Profile Modal - blocks user until profile is complete */}
+      <CompleteProfileModal 
+        isOpen={showCompleteProfile} 
+        onComplete={handleProfileComplete}
+      />
     </AuthContext.Provider>
   );
 }

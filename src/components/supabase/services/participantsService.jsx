@@ -4,10 +4,12 @@
  * ARCHITECTURE: Backend (RLS) is source of truth
  * - All reads use REST API with RLS enforcement
  * - No frontend authorization checks
+ * - Participants enriched with public user data from cache
  */
 
 import { getSupabaseConfig, SUPABASE_URL } from '../config';
 import { sessionStore } from '../client';
+import { fetchUsersMissing } from './userCache';
 
 /**
  * Get current user's participant match IDs
@@ -52,7 +54,9 @@ export async function getMyParticipantMatchIds() {
 
 /**
  * Get participants for multiple matches
+ * Enriches with public user data from cache
  * @param {string[]} matchIds - Array of match IDs
+ * @returns {Promise<Array>} Participants with user data
  */
 export async function getParticipantsForMatches(matchIds) {
   if (!matchIds || matchIds.length === 0) {
@@ -84,7 +88,15 @@ export async function getParticipantsForMatches(matchIds) {
       throw new Error(`Failed to fetch participants: ${res.status}`);
     }
     
-    return await res.json();
+    const participants = await res.json();
+    
+    // Bulk-fetch user data for all participants
+    const userIds = [...new Set(participants.map(p => p.user_id).filter(Boolean))];
+    if (userIds.length > 0) {
+      await fetchUsersMissing(userIds);
+    }
+    
+    return participants;
   } catch (e) {
     console.error('[participantsService] Failed to fetch participants:', e);
     return [];
@@ -94,6 +106,7 @@ export async function getParticipantsForMatches(matchIds) {
 /**
  * Get all participants (for compatibility during migration)
  * Returns all participants visible to the user based on RLS
+ * Enriches with public user data from cache
  */
 export async function getAllParticipants() {
   const config = await getSupabaseConfig();
@@ -120,7 +133,15 @@ export async function getAllParticipants() {
       throw new Error(`Failed to fetch all participants: ${res.status}`);
     }
     
-    return await res.json();
+    const participants = await res.json();
+    
+    // Bulk-fetch user data for all participants
+    const userIds = [...new Set(participants.map(p => p.user_id).filter(Boolean))];
+    if (userIds.length > 0) {
+      await fetchUsersMissing(userIds);
+    }
+    
+    return participants;
   } catch (e) {
     console.error('[participantsService] Failed to fetch all participants:', e);
     return [];

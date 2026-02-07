@@ -1,3 +1,4 @@
+
 /**
  * Edge Function Names - Single Source of Truth
  * All edge function endpoints use snake_case
@@ -10,6 +11,7 @@ export const EDGE = {
   me: 'me',
   getUsersByIds: 'get_users_by_ids',
   getMyProfile: 'get_my_profile',
+  updateProfile: 'update_profile',
   
   // Matches
   createMatch: 'create_match',

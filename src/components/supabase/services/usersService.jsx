@@ -10,6 +10,7 @@ import { getSupabaseConfig, SUPABASE_URL } from '../config';
 import { sessionStore } from '../client';
 import { callEdgeFunction } from '../callEdgeFunction';
 import { EDGE } from '../edgeNames';
+import { primeUsers } from './userCache';
 
 /**
  * Get current user's profile from Supabase users table
@@ -104,4 +105,35 @@ export async function getUserById(id) {
   
   const users = await getUsersByIds([id]);
   return users?.[0] || null;
+}
+
+/**
+ * Update current user's profile
+ * @param {object} data - Profile data { full_name, username, avatar_url }
+ * @returns {Promise<{ok: boolean, user?: object, error?: object}>}
+ */
+export async function updateProfile(data) {
+  const { full_name, username, avatar_url } = data;
+  
+  if (!full_name && !username && !avatar_url) {
+    throw new Error('Minst ett fält måste uppdateras');
+  }
+  
+  try {
+    const result = await callEdgeFunction(EDGE.updateProfile, {
+      full_name: full_name || undefined,
+      username: username || undefined,
+      avatar_url: avatar_url || undefined
+    });
+    
+    // Prime cache with updated user
+    if (result.ok && result.user) {
+      primeUsers([result.user]);
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('[usersService] Failed to update profile:', error);
+    throw error;
+  }
 }

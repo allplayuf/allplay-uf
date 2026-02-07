@@ -48,8 +48,19 @@ export {
 export {
   getMyProfile,
   getUsersByIds,
-  getUserById
+  getUserById,
+  updateProfile
 } from './usersService';
+
+// User Cache
+export {
+  getCachedUser,
+  primeUsers,
+  fetchUsersMissing,
+  clearUserCache,
+  getUsers,
+  getUser
+} from './userCache';
 
 // Participants
 export {
