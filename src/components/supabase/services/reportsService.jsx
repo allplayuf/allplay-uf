@@ -8,7 +8,7 @@
  */
 
 import { callEdgeFunction } from '../callEdgeFunction';
-import { EDGE } from '@/lib/supabase/edgeNames';
+import { EDGE } from '../edgeNames';
 
 /**
  * Report a user
@@ -22,10 +22,11 @@ export async function reportUser(reportData) {
     throw new Error('Användar-ID och kategori krävs för att rapportera');
   }
   
-  return callEdgeFunction('report_user', {
+  return callEdgeFunction(EDGE.submitReport, {
+    reported_item_type: 'user',
     reported_user_id,
     category,
-    details: details || null,
+    description: details || null,
     match_id: match_id || null
   });
 }
@@ -65,10 +66,12 @@ export async function reportMatch(reportData) {
     throw new Error('Kategori krävs för att rapportera');
   }
   
-  return callEdgeFunction('report_match', {
+  return callEdgeFunction(EDGE.submitReport, {
+    reported_item_type: 'match',
+    reported_item_id: match_id,
     match_id,
     reported_user_id: reported_user_id || null,
     category,
-    details: details || null
+    description: details || null
   });
 }
