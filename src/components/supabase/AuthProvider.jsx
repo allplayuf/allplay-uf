@@ -30,7 +30,6 @@ export function SupabaseAuthProvider({ children }) {
   const [roles, setRoles] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState(null);
-  const [showCompleteProfile, setShowCompleteProfile] = useState(false);
 
   // Initialize on mount - restores session from localStorage
   useEffect(() => {
