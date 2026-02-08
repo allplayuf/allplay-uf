@@ -600,6 +600,7 @@ export default function MatchDetailPage() {
   return (
     <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
       <DialogContainer />
+      <GuestPrompt />
 
       <div className="max-w-7xl mx-auto space-y-6 p-4 lg:p-8">
 
