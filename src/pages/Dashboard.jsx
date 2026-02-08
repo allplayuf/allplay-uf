@@ -40,7 +40,6 @@ import {
 } from "../components/supabase/services";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { PullToRefresh } from "../components/ui/pull-to-refresh";
-import { AuthGate, AUTH_ACTIONS } from "../components/auth";
 
 // Query keys
 const QUERY_KEYS = {
@@ -209,6 +208,11 @@ export default function Dashboard() {
 
   const handleMatchCreated = async ({ match: matchData, venue: selectedVenue }) => {
     try {
+      // Check if guest
+      if (isGuest) {
+        displayError('Du måste vara inloggad för att skapa en match.');
+        return;
+      }
 
       // Upsert venue first to ensure it exists in Supabase
       if (selectedVenue?.id) {
@@ -572,24 +576,20 @@ export default function Dashboard() {
                 </motion.div>
               </Link>
               
-              <AuthGate action={AUTH_ACTIONS.CREATE_MATCH}>
-                {(run) => (
-                  <motion.div 
-                    whileHover={{ y: -6, scale: 1.03 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={run(() => setShowCreateMatchModal(true))}
-                    className="relative group cursor-pointer"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#F4743B]/30 to-[#E5683A]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div className="relative bg-[#2A1812]/60 backdrop-blur-md border border-[#F4743B]/20 rounded-2xl p-4 sm:p-5 lg:p-6 hover:bg-[#2A1812]/80 transition-all h-[110px] sm:h-32 lg:h-36 flex flex-col items-center justify-center gap-2 sm:gap-3 group-hover:border-[#F4743B]/40 group-hover:shadow-[0_8px_24px_rgba(244,116,59,0.15)]">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 rounded-xl bg-[#F4743B]/30 flex items-center justify-center ring-2 ring-[#F4743B]/40 flex-shrink-0">
-                        <Plus className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-[#FDE3D2]" strokeWidth={2.5} />
-                      </div>
-                      <span className="text-[10px] sm:text-xs lg:text-sm font-bold text-white text-center">Skapa match</span>
-                    </div>
-                  </motion.div>
-                )}
-              </AuthGate>
+              <motion.div 
+                whileHover={{ y: -6, scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setShowCreateMatchModal(true)}
+                className="relative group cursor-pointer"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-[#F4743B]/30 to-[#E5683A]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative bg-[#2A1812]/60 backdrop-blur-md border border-[#F4743B]/20 rounded-2xl p-4 sm:p-5 lg:p-6 hover:bg-[#2A1812]/80 transition-all h-[110px] sm:h-32 lg:h-36 flex flex-col items-center justify-center gap-2 sm:gap-3 group-hover:border-[#F4743B]/40 group-hover:shadow-[0_8px_24px_rgba(244,116,59,0.15)]">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 rounded-xl bg-[#F4743B]/30 flex items-center justify-center ring-2 ring-[#F4743B]/40 flex-shrink-0">
+                    <Plus className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-[#FDE3D2]" strokeWidth={2.5} />
+                  </div>
+                  <span className="text-[10px] sm:text-xs lg:text-sm font-bold text-white text-center">Skapa match</span>
+                </div>
+              </motion.div>
 
               <Link to={createPageUrl('Community')}>
                 <motion.div 
@@ -694,16 +694,14 @@ export default function Dashboard() {
         {/* Main Content */}
         <div className="grid lg:grid-cols-12 gap-8">
           <div className="lg:col-span-8 space-y-8">
-            {/* Upcoming Matches - Guest/Authenticated */}
+            {/* Upcoming Matches */}
             <motion.div variants={VARIANTS.item}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
                     <Calendar className="w-5 h-5 text-[#2BA84A]" strokeWidth={2.5} />
                   </div>
-                  <h2 className="text-lg sm:text-xl font-bold text-[#F4F7F5]">
-                    {isAuthenticated ? 'Dina kommande matcher' : 'Kommande matcher'}
-                  </h2>
+                  <h2 className="text-lg sm:text-xl font-bold text-[#F4F7F5]">Kommande matcher</h2>
                 </div>
                 <Link to={createPageUrl("Matches")} className="text-sm font-semibold text-[#2BA84A] hover:text-[#CFE8D6] flex items-center gap-1 transition-colors group">
                   Visa alla
@@ -716,8 +714,19 @@ export default function Dashboard() {
                 </Link>
               </div>
 
-              {/* For authenticated: show their matches */}
-              {isAuthenticated && myUpcomingMatches.length > 0 && (
+              {myUpcomingMatches.length === 0 ? (
+                <div className="card-base p-8 text-center bg-[#121715]">
+                  <div className="w-12 h-12 bg-[#2BA84A]/10 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <Calendar className="w-6 h-6 text-[#2BA84A]" />
+                  </div>
+                  <p className="text-secondary text-sm mb-4">Inga kommande matcher</p>
+                  <Link to={createPageUrl("Matches")}>
+                    <button className="btn-secondary px-4 h-9 text-sm">
+                      Hitta matcher
+                    </button>
+                  </Link>
+                </div>
+              ) : (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
                   {myUpcomingMatches.map((match, index) => (
                     <div key={match.id} className="h-full">
@@ -731,43 +740,6 @@ export default function Dashboard() {
                     </div>
                   ))}
                 </div>
-              )}
-
-              {/* For guests or users with no matches: show public upcoming matches */}
-              {(!isAuthenticated || myUpcomingMatches.length === 0) && (
-                <>
-                  {upcomingMatches.length === 0 ? (
-                    <div className="card-base p-8 text-center bg-[#121715]">
-                      <div className="w-12 h-12 bg-[#2BA84A]/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-                        <Calendar className="w-6 h-6 text-[#2BA84A]" />
-                      </div>
-                      <p className="text-secondary text-sm mb-4">
-                        {isAuthenticated ? 'Inga kommande matcher' : 'Inga matcher tillgängliga just nu'}
-                      </p>
-                      {isAuthenticated && (
-                        <Link to={createPageUrl("Matches")}>
-                          <button className="btn-secondary px-4 h-9 text-sm">
-                            Hitta matcher
-                          </button>
-                        </Link>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
-                      {upcomingMatches.slice(0, 4).map((match, index) => (
-                        <div key={match.id} className="h-full">
-                            <MatchCard 
-                                match={match} 
-                                venues={venues} 
-                                user={user} 
-                                participants={allParticipants.filter(p => p.match_id === match.id)}
-                                index={index}
-                            />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </>
               )}
             </motion.div>
 
