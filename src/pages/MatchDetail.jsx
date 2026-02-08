@@ -42,6 +42,7 @@ import { callEdgeFunction } from "../components/supabase/callEdgeFunction";
 import { EDGE } from "../components/supabase/edgeNames";
 import { getCachedUser, fetchUsersMissing } from "../components/supabase/services";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
+import { useGuestLoginPrompt } from "../components/ui/guest-login-prompt";
 
 // CONSISTENT SKILL LEVEL CONFIG - WCAG AA compliant colors
 const SKILL_LEVEL_CONFIG = {
@@ -116,6 +117,7 @@ export default function MatchDetailPage() {
   const [isActionLoading, setIsActionLoading] = useState(false);
 
   const { confirm, alert, DialogContainer } = useCustomDialog();
+  const { showPrompt, Prompt: GuestPrompt } = useGuestLoginPrompt();
   
   // Use Supabase auth state as source of truth
   const { isGuest, isAuthenticated, user: authUser } = useSupabaseAuth();
@@ -360,6 +362,13 @@ export default function MatchDetailPage() {
 
   const handleJoinMatch = async () => {
     if (isActionLoading) return;
+    
+    // Check if guest
+    if (isGuest) {
+      showPrompt('join_match');
+      return;
+    }
+    
     joinMatchMutation.mutate();
   };
 
@@ -457,6 +466,12 @@ export default function MatchDetailPage() {
 
   const handleAddFriend = async (participantId) => {
     if (isActionLoading) return;
+    
+    // Check if guest
+    if (isGuest) {
+      showPrompt('add_friend');
+      return;
+    }
     
     const existing = friendships.find(f =>
       (f.requester_id === user.id && f.addressee_id === participantId) ||
@@ -1102,6 +1117,9 @@ export default function MatchDetailPage() {
         matchId={matchId}
         matchTitle={match?.title}
       />
+      
+      {/* Guest Login Prompt */}
+      <GuestPrompt />
     </div>
   );
 }

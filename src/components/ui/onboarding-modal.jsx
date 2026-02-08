@@ -284,7 +284,7 @@ export function OnboardingModal() {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-[400px] bg-gradient-to-b from-[#040F0F] to-[#2D3A3A] rounded-[32px] border border-[#223029] shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+            className="relative w-full max-w-[400px] h-[600px] sm:h-[650px] bg-gradient-to-b from-[#040F0F] to-[#2D3A3A] rounded-[32px] border border-[#223029] shadow-2xl overflow-hidden flex flex-col"
           >
             {/* Top Bar */}
             <div className="flex items-center justify-between p-6 absolute top-0 left-0 right-0 z-20">
@@ -311,8 +311,8 @@ export function OnboardingModal() {
               )}
             </div>
 
-            {/* Content Scroll Area */}
-            <div className="flex-1 overflow-y-auto pt-20 px-6 pb-32 scrollbar-hide">
+            {/* Content Scroll Area - Fixed height with internal scroll */}
+            <div className="flex-1 overflow-y-auto pt-20 px-6 pb-32 scrollbar-hide" style={{ minHeight: 0 }}>
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentSlide}

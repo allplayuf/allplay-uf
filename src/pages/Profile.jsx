@@ -36,6 +36,9 @@ import { ProfileSkeleton } from "../components/ui/loading-skeleton";
 import ReportModal from "../components/report/ReportModal";
 import BlockUserButton from "../components/user/BlockUserButton";
 import { PullToRefresh } from "../components/ui/pull-to-refresh";
+import { useSupabaseAuth } from "../components/supabase/AuthProvider";
+import { GuestLoginPrompt } from "../components/ui/guest-login-prompt";
+import { LogIn } from "lucide-react";
 
 // Lazy load components
 const ProfileStats = lazy(() => import("../components/profile/ProfileStats"));
@@ -77,8 +80,10 @@ export default function ProfilePage() {
   const [showSettingsSheet, setShowSettingsSheet] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showGuestPrompt, setShowGuestPrompt] = useState(false);
 
   const { confirm, alert, DialogContainer } = useCustomDialog();
+  const { isGuest: isGuestUser } = useSupabaseAuth();
   const queryClient = useQueryClient();
   const location = useLocation();
 
@@ -458,25 +463,40 @@ export default function ProfilePage() {
     return <ProfileSkeleton />;
   }
 
-  // Guest users see a prompt to login
-  if (user?.is_guest && !targetUserId) {
+  // Guest users - show prompt when they try to access own profile
+  useEffect(() => {
+    if ((user?.is_guest || isGuestUser) && !targetUserId) {
+      setShowGuestPrompt(true);
+    }
+  }, [user?.is_guest, isGuestUser, targetUserId]);
+
+  // If guest and viewing own profile (no targetUserId), show prompt
+  if ((user?.is_guest || isGuestUser) && !targetUserId) {
     return (
-      <div className="min-h-screen bg-[#0F1513] flex items-center justify-center p-4">
-        <Card className="bg-[#121715] border border-[#223029] rounded-[20px] p-8 max-w-md w-full text-center">
-          <div className="w-20 h-20 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-[#2BA84A]/20">
-            <Users className="w-10 h-10 text-[#2BA84A]" />
-          </div>
-          <h2 className="text-2xl font-bold text-[#F4F7F5] mb-3">Logga in för att se din profil</h2>
-          <p className="text-[#B6C2BC] mb-6">Skapa ett konto eller logga in för att se din profil, hantera vänner och mycket mer.</p>
-          <Button 
-            onClick={() => base44.auth.redirectToLogin(window.location.pathname)}
-            className="w-full bg-[#2BA84A] hover:bg-[#248232] text-white h-12 rounded-xl font-semibold"
-          >
-            <LogIn className="w-5 h-5 mr-2" />
-            Logga in / Skapa konto
-          </Button>
-        </Card>
-      </div>
+      <>
+        <div className="min-h-screen bg-[#0F1513] flex items-center justify-center p-4">
+          <Card className="bg-[#121715] border border-[#223029] rounded-[20px] p-8 max-w-md w-full text-center">
+            <div className="w-20 h-20 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-[#2BA84A]/20">
+              <Users className="w-10 h-10 text-[#2BA84A]" />
+            </div>
+            <h2 className="text-2xl font-bold text-[#F4F7F5] mb-3">Logga in för att se din profil</h2>
+            <p className="text-[#B6C2BC] mb-6">Skapa ett konto eller logga in för att se din profil, hantera vänner och mycket mer.</p>
+            <Button 
+              onClick={() => setShowGuestPrompt(true)}
+              className="w-full bg-[#2BA84A] hover:bg-[#248232] text-white h-12 rounded-xl font-semibold"
+            >
+              <LogIn className="w-5 h-5 mr-2" />
+              Logga in / Skapa konto
+            </Button>
+          </Card>
+        </div>
+        <GuestLoginPrompt
+          isOpen={showGuestPrompt}
+          onClose={() => setShowGuestPrompt(false)}
+          feature="view_profile"
+          title="Logga in för att se din profil"
+        />
+      </>
     );
   }
 
