@@ -166,25 +166,9 @@ export function SupabaseAuthProvider({ children }) {
     clearError: () => setError(null)
   };
 
-  // Handle profile completion
-  const handleProfileComplete = useCallback((updatedUser) => {
-    // Update session store
-    if (updatedUser) {
-      sessionStore.setUser(updatedUser);
-      primeUsers([updatedUser]);
-    }
-    setShowCompleteProfile(false);
-  }, []);
-
   return (
     <AuthContext.Provider value={value}>
       {children}
-      
-      {/* Complete Profile Modal - blocks user until profile is complete */}
-      <CompleteProfileModal 
-        isOpen={showCompleteProfile} 
-        onComplete={handleProfileComplete}
-      />
     </AuthContext.Provider>
   );
 }
