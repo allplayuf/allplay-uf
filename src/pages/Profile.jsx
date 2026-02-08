@@ -37,6 +37,10 @@ import { ProfileSkeleton } from "../components/ui/loading-skeleton";
 import ReportModal from "../components/report/ReportModal";
 import BlockUserButton from "../components/user/BlockUserButton";
 import { PullToRefresh } from "../components/ui/pull-to-refresh";
+import { useSupabaseAuth } from "../components/supabase/AuthProvider";
+import { AuthGateModal } from "../components/ui/auth-gate-modal";
+import { LoginModal } from "../components/supabase";
+import { LogIn } from "lucide-react";
 
 // Lazy load components
 const ProfileStats = lazy(() => import("../components/profile/ProfileStats"));
