@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Friendship } from "@/entities/Friendship";
 import { TeamMember, Team } from "@/entities/Team";
+import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -83,41 +84,15 @@ export default function ProfilePage() {
   const { confirm, alert, DialogContainer } = useCustomDialog();
   const queryClient = useQueryClient();
   const location = useLocation();
+  const { isGuest, isAuthenticated, user: authUser } = useSupabaseAuth();
 
   const urlParams = new URLSearchParams(location.search);
   const targetUserId = urlParams.get('userId');
 
-  // Fetch current user with aggressive caching - PRIORITIZE
-  // Handle guest users - they should see a login prompt on Profile page
-  const { data: user, isLoading: userLoading, error: userError, refetch: refetchUser } = useQuery({
-    queryKey: QUERY_KEYS.user,
-    queryFn: async () => {
-      const isAuth = await base44.auth.isAuthenticated();
-      if (!isAuth) {
-        // Return guest marker - Profile page will show login prompt
-        return { is_guest: true };
-      }
-      const currentUser = await base44.auth.me();
-      // Preload profile image immediately if it exists
-      if (currentUser?.profile_image_url) {
-        const img = new Image();
-        img.src = currentUser.profile_image_url;
-      }
-      return currentUser;
-    },
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    cacheTime: 30 * 60 * 1000, // 30 minutes
-    refetchOnWindowFocus: false,
-    refetchOnMount: false, // Changed to false - use cache first
-    retry: false,
-  });
+  // Use auth state from SupabaseAuthProvider (consistent with Community)
+  const user = authUser;
 
-  // Handle rate limit errors
-  useEffect(() => {
-    if (userError?.message?.includes('rate limit') || userError?.message?.includes('Rate limit')) {
-      alert('För många förfrågningar', 'Vänta en stund och försök igen.', { type: 'alert' });
-    }
-  }, [userError, alert]);
+
 
   // Fetch target user if viewing someone else's profile
   const { data: targetUser, isLoading: targetUserLoading } = useQuery({
@@ -146,8 +121,8 @@ export default function ProfilePage() {
   const { data: friendships = [] } = useQuery({
     queryKey: QUERY_KEYS.friendships,
     queryFn: async () => await Friendship.list(),
-    staleTime: 30 * 1000,
-    enabled: !!user,
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+    enabled: !!user && !isGuest,
   });
 
   // Fetch friend requests (only for own profile)
@@ -158,8 +133,8 @@ export default function ProfilePage() {
         (f) => f.addressee_id === user.id && f.status === 'pending'
       );
     },
-    staleTime: 30 * 1000,
-    enabled: !!user && !targetUserId,
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+    enabled: !!user && !targetUserId && !isGuest,
   });
 
   // Fetch friends
@@ -175,8 +150,8 @@ export default function ProfilePage() {
       const allUsers = await base44.entities.User.list();
       return allUsers.filter(u => friendIds.includes(u.id));
     },
-    staleTime: 60 * 1000,
-    enabled: !!user && !targetUserId && friendships.length > 0,
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+    enabled: !!user && !targetUserId && !isGuest && friendships.length > 0,
   });
 
   // Fetch team invites (only for own profile)
@@ -188,8 +163,8 @@ export default function ProfilePage() {
         status: 'pending'
       });
     },
-    staleTime: 30 * 1000,
-    enabled: !!user && !targetUserId,
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+    enabled: !!user && !targetUserId && !isGuest,
   });
 
   // NEW: Fetch team join requests where user is captain
@@ -210,8 +185,8 @@ export default function ProfilePage() {
       
       return joinRequests;
     },
-    staleTime: 30 * 1000,
-    enabled: !!user && !targetUserId,
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+    enabled: !!user && !targetUserId && !isGuest,
   });
 
   // Fetch match history
@@ -224,8 +199,8 @@ export default function ProfilePage() {
       const matches = await base44.entities.Match.list('-date', 50);
       return matches.filter((m) => matchIds.includes(m.id)).slice(0, 10);
     },
-    staleTime: 60 * 1000,
-    enabled: !!user,
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+    enabled: !!user && !isGuest,
   });
 
   const handleProfileImageUpload = async (e) => {
@@ -454,7 +429,7 @@ export default function ProfilePage() {
 
   const isViewingOtherProfile = !!targetUserId && targetUserId !== user?.id;
   const displayUser = isViewingOtherProfile ? targetUser : user;
-  const isLoading = userLoading || (targetUserId && targetUserLoading);
+  const isLoading = (targetUserId && targetUserLoading);
 
   if (isLoading) {
     return <ProfileSkeleton />;
