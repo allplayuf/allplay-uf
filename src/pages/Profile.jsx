@@ -32,7 +32,6 @@ import {
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { Link, useLocation } from "react-router-dom";
-import { useCustomDialog } from "../components/ui/custom-dialog";
 import { ProfileSkeleton } from "../components/ui/loading-skeleton";
 import ReportModal from "../components/report/ReportModal";
 import BlockUserButton from "../components/user/BlockUserButton";
@@ -41,6 +40,7 @@ import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { AuthGateModal } from "../components/ui/auth-gate-modal";
 import { LoginModal } from "../components/supabase";
 import { LogIn } from "lucide-react";
+import { toast } from "sonner";
 
 // Lazy load components
 const ProfileStats = lazy(() => import("../components/profile/ProfileStats"));
@@ -71,7 +71,7 @@ const QUERY_KEYS = {
   friendships: ['friendships'],
   friendRequests: (userId) => ['friendRequests', userId],
   teamInvites: (userId) => ['teamInvites', userId],
-  teamJoinRequests: (userId) => ['teamJoinRequests', userId], // NEW
+  teamJoinRequests: (userId) => ['teamJoinRequests', userId],
   friends: (userId) => ['friends', userId],
   matchHistory: (userId) => ['matchHistory', userId]
 };
@@ -85,7 +85,6 @@ export default function ProfilePage() {
   const [showAuthGate, setShowAuthGate] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-  const { confirm, alert, DialogContainer } = useCustomDialog();
   const queryClient = useQueryClient();
   const location = useLocation();
   const { isGuest, isAuthenticated, user: authUser } = useSupabaseAuth();
@@ -93,10 +92,7 @@ export default function ProfilePage() {
   const urlParams = new URLSearchParams(location.search);
   const targetUserId = urlParams.get('userId');
 
-  // Use auth state from SupabaseAuthProvider (consistent with Community)
   const user = authUser;
-
-
 
   // Fetch target user if viewing someone else's profile
   const { data: targetUser, isLoading: targetUserLoading } = useQuery({
@@ -116,8 +112,8 @@ export default function ProfilePage() {
     enabled: !!targetUserId && !!user && targetUserId !== user?.id,
     staleTime: 2 * 60 * 1000,
     retry: false,
-    onError: async (error) => {
-      await alert('Kunde inte ladda profil', error.message, { type: 'alert' });
+    onError: (error) => {
+      toast.error(`Kunde inte ladda profil: ${error.message}`);
     }
   });
 
@@ -171,17 +167,15 @@ export default function ProfilePage() {
     enabled: !!user && !targetUserId && !isGuest,
   });
 
-  // NEW: Fetch team join requests where user is captain
+  // Fetch team join requests where user is captain
   const { data: teamJoinRequests = [] } = useQuery({
     queryKey: QUERY_KEYS.teamJoinRequests(user?.id),
     queryFn: async () => {
-      // Get all teams where user is captain
       const captainTeams = await base44.entities.Team.filter({ captain_id: user.id });
       const captainTeamIds = captainTeams.map(t => t.id);
       
       if (captainTeamIds.length === 0) return [];
       
-      // Get all pending join requests for these teams
       const allPendingMembers = await base44.entities.TeamMember.list();
       const joinRequests = allPendingMembers.filter(
         tm => captainTeamIds.includes(tm.team_id) && tm.status === 'pending'
@@ -212,12 +206,12 @@ export default function ProfilePage() {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      await alert('Ogiltig fil', 'Vänligen välj en bild.', { type: 'alert' });
+      toast.error('Ogiltig fil. Vänligen välj en bild.');
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      await alert('Fil för stor', 'Bilden är för stor. Max 5MB tillåten.', { type: 'alert' });
+      toast.error('Fil för stor. Bilden är för stor. Max 5MB tillåten.');
       return;
     }
 
@@ -225,9 +219,10 @@ export default function ProfilePage() {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       await base44.auth.updateMe({ profile_image_url: file_url });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.user });
+      toast.success('Profilbild uppdaterad! 📸');
     } catch (error) {
       console.error("Error uploading profile image:", error);
-      await alert('Uppladdningsfel', 'Kunde inte ladda upp bild. Försök igen.', { type: 'alert' });
+      toast.error('Uppladdningsfel. Kunde inte ladda upp bild. Försök igen.');
     }
   };
 
@@ -237,28 +232,21 @@ export default function ProfilePage() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friends(user.id) });
       
-      await alert('Nya vänner! 🎉', 'Ni är nu vänner!', { type: 'success' });
+      toast.success('Nya vänner! 🎉 Ni är nu vänner!');
     } catch (error) {
       console.error("Error accepting friend request:", error);
-      await alert('Fel vid vänförfrågan', 'Kunde inte acceptera förfrågan. Försök igen.', { type: 'alert' });
+      toast.error('Fel vid vänförfrågan. Kunde inte acceptera förfrågan. Försök igen.');
     }
   };
 
   const handleDeclineFriendRequest = async (requestId) => {
-    const shouldDecline = await confirm(
-      'Neka vänförfrågan',
-      'Är du säker på att du vill neka denna vänförfrågan?',
-      { type: 'warning', confirmText: 'Ja, neka', cancelText: 'Avbryt' }
-    );
-
-    if (!shouldDecline) return;
-
     try {
       await base44.entities.Friendship.delete(requestId);
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
+      toast.info('Vänförfrågan nekad');
     } catch (error) {
       console.error("Error declining friend request:", error);
-      await alert('Fel vid vänförfrågan', 'Kunde inte neka förfrågan. Försök igen.', { type: 'alert' });
+      toast.error('Fel vid vänförfrågan. Kunde inte neka förfrågan. Försök igen.');
     }
   };
 
@@ -267,37 +255,28 @@ export default function ProfilePage() {
       await base44.entities.TeamMember.update(inviteId, { status: 'active' });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamInvites(user.id) });
       
-      await alert('Välkommen till laget! 🎉', 'Du är nu medlem i laget!', { type: 'success' });
+      toast.success('Välkommen till laget! 🎉 Du är nu medlem i laget!');
     } catch (error) {
       console.error("Error accepting team invite:", error);
-      await alert('Fel vid laginbjudan', 'Kunde inte acceptera inbjudan. Försök igen.', { type: 'alert' });
+      toast.error('Fel vid laginbjudan. Kunde inte acceptera inbjudan. Försök igen.');
     }
   };
 
   const handleDeclineTeamInvite = async (inviteId) => {
-    const shouldDecline = await confirm(
-      'Neka laginbjudan',
-      'Är du säker på att du vill neka denna laginbjudan?',
-      { type: 'warning', confirmText: 'Ja, neka', cancelText: 'Avbryt' }
-    );
-
-    if (!shouldDecline) return;
-
     try {
       await base44.entities.TeamMember.update(inviteId, { status: 'declined' });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamInvites(user.id) });
+      toast.info('Laginbjudan nekad');
     } catch (error) {
       console.error("Error declining team invite:", error);
-      await alert('Fel vid laginbjudan', 'Kunde inte neka inbjudan. Försök igen.', { type: 'alert' });
+      toast.error('Fel vid laginbjudan. Kunde inte neka inbjudan. Försök igen.');
     }
   };
 
-  // NEW: Handle team join requests with confirmation dialogs
   const handleAcceptJoinRequest = async (requestId) => {
     const joinRequest = teamJoinRequests.find(jr => jr.id === requestId);
     if (!joinRequest) return;
 
-    // Get user and team info for confirmation
     let applicantName = 'denna spelare';
     let teamName = 'laget';
     
@@ -313,22 +292,9 @@ export default function ProfilePage() {
       console.error('Error fetching details:', err);
     }
 
-    const shouldAccept = await confirm(
-      'Godkänn ansökan',
-      `Vill du godkänna ${applicantName} som medlem i ${teamName}?`,
-      { 
-        type: 'confirm', 
-        confirmText: 'Ja, godkänn', 
-        cancelText: 'Avbryt' 
-      }
-    );
-
-    if (!shouldAccept) return;
-
     try {
       await base44.entities.TeamMember.update(requestId, { status: 'active' });
       
-      // Update team member count
       const team = await base44.entities.Team.get(joinRequest.team_id);
       await base44.entities.Team.update(joinRequest.team_id, {
         current_members: (team.current_members || 0) + 1
@@ -336,51 +302,27 @@ export default function ProfilePage() {
       
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamJoinRequests(user.id) });
       
-      await alert('Medlem godkänd! 🎉', `${applicantName} är nu medlem i ${teamName}!`, { type: 'success' });
+      toast.success(`Medlem godkänd! 🎉 ${applicantName} är nu medlem i ${teamName}!`);
     } catch (error) {
       console.error("Error accepting join request:", error);
-      await alert('Fel vid ansökan', 'Kunde inte godkänna ansökan. Försök igen.', { type: 'alert' });
+      toast.error('Fel vid ansökan. Kunde inte godkänna ansökan. Försök igen.');
     }
   };
 
   const handleDeclineJoinRequest = async (requestId) => {
-    const shouldDecline = await confirm(
-      'Neka ansökan',
-      'Är du säker på att du vill neka denna ansökan?',
-      { 
-        type: 'warning', 
-        confirmText: 'Ja, neka', 
-        cancelText: 'Avbryt' 
-      }
-    );
-
-    if (!shouldDecline) return;
-
     try {
       await base44.entities.TeamMember.update(requestId, { status: 'declined' });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamJoinRequests(user.id) });
       
-      await alert('Ansökan nekad', 'Ansökan har nekats.', { type: 'info' });
+      toast.info('Ansökan nekad');
     } catch (error) {
       console.error("Error declining join request:", error);
-      await alert('Fel vid ansökan', 'Kunde inte neka ansökan. Försök igen.', { type: 'alert' });
+      toast.error('Fel vid ansökan. Kunde inte neka ansökan. Försök igen.');
     }
   };
 
   const handleLogout = async () => {
-    const shouldLogout = await confirm(
-      'Logga ut',
-      'Är du säker på att du vill logga ut?',
-      { 
-        type: 'warning', 
-        confirmText: 'Logga ut', 
-        cancelText: 'Avbryt'
-      }
-    );
-
-    if (shouldLogout) {
-      await base44.auth.logout();
-    }
+    await base44.auth.logout();
   };
 
   const handleAddFriendFromProfile = async () => {
@@ -394,13 +336,14 @@ export default function ProfilePage() {
 
       if (existing) {
         if (existing.status === 'accepted') {
-          await alert('Redan vänner', 'Ni är redan vänner!', { type: 'info' });
+          toast.info('Redan vänner. Ni är redan vänner!');
         } else if (existing.status === 'pending') {
           if (existing.requester_id === user.id) {
-            await alert('Förfrågan skickad', 'Vänförfrågan redan skickad!', { type: 'info' });
+            toast.info('Förfrågan skickad. Vänförfrågan redan skickad!');
           } else {
             await base44.entities.Friendship.update(existing.id, { status: 'accepted' });
             queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
+            toast.success('Ni är nu vänner! 🎉');
           }
         }
         return;
@@ -413,9 +356,10 @@ export default function ProfilePage() {
       });
 
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
+      toast.success('Vänförfrågan skickad! 🤝');
     } catch (error) {
       console.error('Error adding friend:', error);
-      await alert('Fel vid vänförfrågan', 'Kunde inte skicka vänförfrågan. Försök igen.', { type: 'alert' });
+      toast.error('Fel vid vänförfrågan. Kunde inte skicka vänförfrågan. Försök igen.');
     }
   };
 
@@ -464,8 +408,8 @@ export default function ProfilePage() {
           <div className="w-20 h-20 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-[#2BA84A]/20">
             <Users className="w-10 h-10 text-[#2BA84A]" />
           </div>
-          <h2 className="text-2xl font-bold text-[#F4F7F5] mb-3">Logga in för att se din profil</h2>
-          <p className="text-[#B6C2BC] mb-6">Skapa ett konto eller logga in för att se din profil, hantera vänner och mycket mer.</p>
+          <h2 className="text-2xl font-bold text-[#F4F7F5] mb-3 leading-tight">Logga in för att se din profil</h2>
+          <p className="text-[#B6C2BC] mb-6 leading-relaxed">Skapa ett konto eller logga in för att se din profil, hantera vänner och mycket mer.</p>
           <Button 
             onClick={() => setShowAuthGate(true)}
             className="w-full bg-[#2BA84A] hover:bg-[#248232] text-white h-12 rounded-xl font-semibold"
@@ -508,11 +452,10 @@ export default function ProfilePage() {
   return (
     <PullToRefresh onRefresh={handleRefresh}>
     <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
-      <DialogContainer />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Hero Header Card - Improved UI */}
+        {/* Hero Header Card */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -531,70 +474,12 @@ export default function ProfilePage() {
             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
           />
 
-          {/* Enhanced Glowing Rings */}
-          <motion.div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] lg:w-[700px] lg:h-[700px] rounded-full border-2 border-[#2BA84A]/20"
-            animate={{
-              scale: [1, 1.15, 1],
-              rotate: [0, 90, 0],
-              opacity: [0.2, 0.4, 0.2]
-            }}
-            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] lg:w-[900px] lg:h-[900px] rounded-full border border-[#248232]/10"
-            animate={{
-              scale: [1.1, 1, 1.1],
-              rotate: [0, -90, 0],
-              opacity: [0.15, 0.3, 0.15]
-            }}
-            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 3 }}
-          />
+          {/* Simplified Background Effects */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] lg:w-[700px] lg:h-[700px] rounded-full border border-[#2BA84A]/15" />
 
-          {/* Ambient Orbs */}
-          <motion.div
-            className="absolute top-10 lg:top-20 right-10 lg:right-20 w-32 h-32 lg:w-48 lg:h-48 bg-[#2BA84A]/20 rounded-full blur-3xl"
-            animate={{
-              x: [0, 30, 0],
-              y: [0, -30, 0],
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.5, 0.3]
-            }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div
-            className="absolute bottom-10 lg:bottom-20 left-10 lg:left-20 w-40 h-40 lg:w-56 lg:h-56 bg-[#1A6029]/15 rounded-full blur-3xl"
-            animate={{
-              x: [0, -20, 0],
-              y: [0, 20, 0],
-              scale: [1, 1.15, 1],
-              opacity: [0.2, 0.4, 0.2]
-            }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          />
-
-          {/* Floating Light Particles */}
-          {[...Array(8)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-1 h-1 lg:w-2 lg:h-2 bg-[#2BA84A]/60 rounded-full"
-              style={{
-                left: `${15 + i * 12}%`,
-                top: `${25 + (i % 4) * 20}%`,
-              }}
-              animate={{
-                y: [0, -40, 0],
-                opacity: [0.2, 0.7, 0.2],
-                scale: [1, 1.5, 1]
-              }}
-              transition={{
-                duration: 4 + i * 0.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: i * 0.4,
-              }}
-            />
-          ))}
+          {/* Static Ambient Orbs */}
+          <div className="absolute top-10 lg:top-20 right-10 lg:right-20 w-32 h-32 lg:w-48 lg:h-48 bg-[#2BA84A]/20 rounded-full blur-3xl opacity-40" />
+          <div className="absolute bottom-10 lg:bottom-20 left-10 lg:left-20 w-40 h-40 lg:w-56 lg:h-56 bg-[#1A6029]/15 rounded-full blur-3xl opacity-30" />
 
           {/* Top Right Actions */}
           {!isViewingOtherProfile ? (
@@ -672,7 +557,7 @@ export default function ProfilePage() {
           <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-14">
             <div className="flex items-center gap-3 sm:gap-6 mb-4 sm:mb-6 lg:mb-8">
               
-              {/* Profile Image - Small border */}
+              {/* Profile Image */}
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ 
@@ -695,7 +580,7 @@ export default function ProfilePage() {
                       fetchpriority="high"
                     />
                   ) : (
-                    <span className="text-4xl font-bold text-[#FFFFFF]">
+                    <span className="text-3xl sm:text-4xl font-bold text-[#FFFFFF]">
                       {displayUser?.full_name?.[0] || 'U'}
                     </span>
                   )}
@@ -721,13 +606,13 @@ export default function ProfilePage() {
                 )}
               </motion.div>
 
-              {/* Info - Aligned with logo */}
+              {/* Info */}
               <div className="flex-1 min-w-0">
                 <motion.h1
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="text-xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight mb-1 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] leading-tight"
+                  className="text-xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight mb-1.5 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] leading-tight"
                 >
                   {displayUser?.display_name || displayUser?.full_name}
                 </motion.h1>
@@ -736,19 +621,19 @@ export default function ProfilePage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
-                  className="text-white/85 text-[11px] sm:text-sm lg:text-base font-medium leading-snug mb-3 sm:mb-4"
+                  className="text-white/85 text-xs sm:text-sm lg:text-base font-medium leading-relaxed mb-3 sm:mb-4"
                 >
                   {displayUser?.bio || 'AllPlays officiella konto'}
                 </motion.p>
 
                 {/* Chips */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2">
-                  <Badge className="h-7 px-2.5 sm:px-3 bg-transparent border border-[#FFFFFF]/30 text-[#FFFFFF] text-[10px] sm:text-xs">
+                  <Badge className="h-7 px-2.5 sm:px-3 bg-transparent border border-[#FFFFFF]/30 text-[#FFFFFF] text-xs font-medium">
                     <MapPin className="w-3 h-3 mr-1" />
                     {displayUser?.city || 'Stockholm'}
                   </Badge>
                   
-                  <Badge className={`h-7 px-2.5 sm:px-3 bg-gradient-to-r ${skillLevel.color} border-0 ${skillLevel.textColor} text-[10px] sm:text-xs font-semibold`}>
+                  <Badge className={`h-7 px-2.5 sm:px-3 bg-gradient-to-r ${skillLevel.color} border-0 ${skillLevel.textColor} text-xs font-semibold`}>
                     <SkillIcon className="w-3 h-3 mr-1" />
                     {skillLevel.label}
                   </Badge>
@@ -770,10 +655,10 @@ export default function ProfilePage() {
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center mx-auto mb-2">
                   <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
                 </div>
-                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-0.5">
+                <div className="text-2xl sm:text-3xl font-black text-white mb-1 leading-none">
                   {displayUser?.matches_played || 0}
                 </div>
-                <div className="text-[10px] sm:text-xs text-white/70 font-semibold">Matcher</div>
+                <div className="text-xs text-white/70 font-semibold leading-tight">Matcher</div>
               </motion.div>
               
               <motion.div 
@@ -783,10 +668,10 @@ export default function ProfilePage() {
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#F4743B]/30 rounded-lg sm:rounded-xl flex items-center justify-center mx-auto mb-2">
                   <Award className="w-4 h-4 sm:w-5 sm:h-5 text-[#FDE3D2]" strokeWidth={2.5} />
                 </div>
-                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-[#FDE3D2] mb-0.5">
+                <div className="text-2xl sm:text-3xl font-black text-[#FDE3D2] mb-1 leading-none">
                   {displayUser?.mvp_count || 0}
                 </div>
-                <div className="text-[10px] sm:text-xs text-[#FDE3D2]/70 font-semibold">MVPs</div>
+                <div className="text-xs text-[#FDE3D2]/70 font-semibold leading-tight">MVPs</div>
               </motion.div>
               
               <motion.div 
@@ -807,14 +692,14 @@ export default function ProfilePage() {
                     <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-[#FDE68A]" strokeWidth={2.5} />
                   </motion.div>
                 </div>
-                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-[#FDE68A] mb-0.5">
+                <div className="text-2xl sm:text-3xl font-black text-[#FDE68A] mb-1 leading-none">
                   {displayUser?.current_streak || 0}
                 </div>
-                <div className="text-[10px] sm:text-xs text-[#FDE68A]/70 font-semibold">Streak</div>
+                <div className="text-xs text-[#FDE68A]/70 font-semibold leading-tight">Streak</div>
               </motion.div>
             </motion.div>
 
-            {/* Action Buttons - In Hero */}
+            {/* Action Buttons */}
             {!isViewingOtherProfile && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -860,7 +745,7 @@ export default function ProfilePage() {
             
             {matchHistory.length > 0 && (
               <div className="mt-6">
-                <h3 className="text-lg font-bold text-[#F4F7F5] mb-4">Senaste matcher</h3>
+                <h3 className="text-lg font-bold text-[#F4F7F5] mb-4 leading-tight">Senaste matcher</h3>
                 <Suspense fallback={<ProfileSkeleton />}>
                   <MatchHistory matches={matchHistory} />
                 </Suspense>
@@ -872,10 +757,10 @@ export default function ProfilePage() {
                 <div className="w-20 h-20 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-[#2BA84A]/20">
                   <Trophy className="w-10 h-10 text-[#2BA84A]" />
                 </div>
-                <h3 className="text-2xl font-bold text-[#F4F7F5] mb-3">
+                <h3 className="text-2xl font-bold text-[#F4F7F5] mb-3 leading-tight">
                   Inga matcher spelade
                 </h3>
-                <p className="text-base text-[#B6C2BC]">
+                <p className="text-base text-[#B6C2BC] leading-relaxed">
                   Denna användare har inte spelat några matcher än.
                 </p>
               </Card>
@@ -893,7 +778,7 @@ export default function ProfilePage() {
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`relative flex items-center justify-center gap-2 h-12 px-4 text-sm font-medium transition-all duration-150 flex-shrink-0 ${
+                        className={`relative flex items-center justify-center gap-2 h-12 px-4 text-sm font-semibold transition-all duration-150 flex-shrink-0 ${
                           activeTab === tab.id
                             ? 'text-[#F4F7F5]'
                             : 'text-[#B6C2BC] hover:text-[#F4F7F5]'
@@ -940,7 +825,7 @@ export default function ProfilePage() {
                     {friends.length > 0 && (
                       <div>
                         <div className="flex items-center justify-between mb-4 mt-6">
-                          <h3 className="text-lg font-bold text-[#F4F7F5]">
+                          <h3 className="text-lg font-bold text-[#F4F7F5] leading-tight">
                             Dina vänner ({friends.length})
                           </h3>
                           <button 
@@ -974,7 +859,7 @@ export default function ProfilePage() {
                                           }
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                          <h4 className="font-semibold text-[#F4F7F5] text-sm truncate">{friend.display_name || friend.full_name}</h4>
+                                          <h4 className="font-semibold text-[#F4F7F5] text-sm truncate leading-tight">{friend.display_name || friend.full_name}</h4>
                                           <div className="flex items-center gap-1 text-xs text-[#B6C2BC]">
                                             <MapPin className="w-3 h-3" />
                                             {friend.city}
@@ -1031,16 +916,16 @@ export default function ProfilePage() {
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
                   >
-                    <h3 className="text-lg font-bold text-[#F4F7F5] mb-4">Lås upp utmärkelser genom att spela</h3>
+                    <h3 className="text-lg font-bold text-[#F4F7F5] mb-4 leading-tight">Lås upp utmärkelser genom att spela</h3>
                     {(displayUser?.matches_played || 0) === 0 ? (
                       <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[20px] p-12 text-center">
                         <div className="w-20 h-20 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-[#2BA84A]/20">
                           <Award className="w-10 h-10 text-[#2BA84A]" />
                         </div>
-                        <h3 className="text-2xl font-bold text-[#F4F7F5] mb-3">
+                        <h3 className="text-2xl font-bold text-[#F4F7F5] mb-3 leading-tight">
                           Spela din första match
                         </h3>
-                        <p className="text-base text-[#B6C2BC]">
+                        <p className="text-base text-[#B6C2BC] leading-relaxed">
                           Dina upplåsta utmärkelser kommer att visas här.
                         </p>
                       </Card>
@@ -1062,7 +947,7 @@ export default function ProfilePage() {
                   >
                     {matchHistory.length > 0 ? (
                       <div>
-                        <h3 className="text-lg font-bold text-[#F4F7F5] mb-4">Senaste matcher</h3>
+                        <h3 className="text-lg font-bold text-[#F4F7F5] mb-4 leading-tight">Senaste matcher</h3>
                         <Suspense fallback={<ProfileSkeleton />}>
                           <MatchHistory matches={matchHistory} />
                         </Suspense>
@@ -1072,10 +957,10 @@ export default function ProfilePage() {
                         <div className="w-20 h-20 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-[#2BA84A]/20">
                           <Trophy className="w-10 h-10 text-[#2BA84A]" />
                         </div>
-                        <h3 className="text-2xl font-bold text-[#F4F7F5] mb-3">
+                        <h3 className="text-2xl font-bold text-[#F4F7F5] mb-3 leading-tight">
                           Du har inga matcher än
                         </h3>
-                        <p className="text-base text-[#B6C2BC]">
+                        <p className="text-base text-[#B6C2BC] leading-relaxed">
                           Spelade matcher kommer att synas här.
                         </p>
                       </Card>
