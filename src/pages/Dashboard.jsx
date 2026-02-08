@@ -580,15 +580,13 @@ export default function Dashboard() {
                     onClick={run(() => setShowCreateMatchModal(true))}
                     className="relative group cursor-pointer"
                   >
-                )}
-              </AuthGate>
-                <div className="absolute inset-0 bg-gradient-to-br from-[#F4743B]/30 to-[#E5683A]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-[#2A1812]/60 backdrop-blur-md border border-[#F4743B]/20 rounded-2xl p-4 sm:p-5 lg:p-6 hover:bg-[#2A1812]/80 transition-all h-[110px] sm:h-32 lg:h-36 flex flex-col items-center justify-center gap-2 sm:gap-3 group-hover:border-[#F4743B]/40 group-hover:shadow-[0_8px_24px_rgba(244,116,59,0.15)]">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 rounded-xl bg-[#F4743B]/30 flex items-center justify-center ring-2 ring-[#F4743B]/40 flex-shrink-0">
-                    <Plus className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-[#FDE3D2]" strokeWidth={2.5} />
-                  </div>
-                  <span className="text-[10px] sm:text-xs lg:text-sm font-bold text-white text-center">Skapa match</span>
-                </div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#F4743B]/30 to-[#E5683A]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="relative bg-[#2A1812]/60 backdrop-blur-md border border-[#F4743B]/20 rounded-2xl p-4 sm:p-5 lg:p-6 hover:bg-[#2A1812]/80 transition-all h-[110px] sm:h-32 lg:h-36 flex flex-col items-center justify-center gap-2 sm:gap-3 group-hover:border-[#F4743B]/40 group-hover:shadow-[0_8px_24px_rgba(244,116,59,0.15)]">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 rounded-xl bg-[#F4743B]/30 flex items-center justify-center ring-2 ring-[#F4743B]/40 flex-shrink-0">
+                        <Plus className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-[#FDE3D2]" strokeWidth={2.5} />
+                      </div>
+                      <span className="text-[10px] sm:text-xs lg:text-sm font-bold text-white text-center">Skapa match</span>
+                    </div>
                   </motion.div>
                 )}
               </AuthGate>
