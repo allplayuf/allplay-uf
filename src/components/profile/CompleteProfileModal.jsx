@@ -2,7 +2,7 @@
  * Complete Profile Modal
  * 
  * Blocks user onboarding until profile is complete
- * Required fields: username
+ * Required fields: full_name, username
  */
 
 import React, { useState, useEffect } from 'react';
@@ -12,14 +12,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { updateProfile } from '@/components/supabase/services';
 import { useSupabaseAuth } from '@/components/supabase';
-import { AlertCircle, Loader2, CheckCircle2, X } from 'lucide-react';
+import { AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 
 // Username validation regex: 3-30 chars, lowercase, only [a-z0-9._]
 const USERNAME_REGEX = /^[a-z0-9._]{3,30}$/;
 
-export function CompleteProfileModal({ isOpen, onComplete, onClose }) {
+export function CompleteProfileModal({ isOpen, onComplete }) {
   const { user } = useSupabaseAuth();
   const [formData, setFormData] = useState({
+    full_name: '',
     username: ''
   });
   const [errors, setErrors] = useState({});
@@ -39,6 +40,13 @@ export function CompleteProfileModal({ isOpen, onComplete, onClose }) {
   // Validate form
   const validate = () => {
     const newErrors = {};
+
+    // Full name validation
+    if (!formData.full_name || formData.full_name.trim().length < 2) {
+      newErrors.full_name = 'Namn måste vara minst 2 tecken';
+    } else if (formData.full_name.length > 80) {
+      newErrors.full_name = 'Namn får vara max 80 tecken';
+    }
 
     // Username validation
     if (!formData.username || formData.username.length < 3) {
@@ -80,6 +88,7 @@ export function CompleteProfileModal({ isOpen, onComplete, onClose }) {
 
     try {
       const result = await updateProfile({
+        full_name: formData.full_name.trim(),
         username: formData.username.trim().toLowerCase()
       });
 
@@ -105,25 +114,42 @@ export function CompleteProfileModal({ isOpen, onComplete, onClose }) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={() => {}}>
       <DialogContent 
         className="bg-[#121715] border-[#223029] sm:max-w-md"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg bg-[#18221E] hover:bg-[#223029] text-[#B6C2BC] transition-colors"
-        >
-          <X className="w-4 h-4" />
-        </button>
-
         <DialogHeader>
           <DialogTitle className="text-[#F4F7F5] text-xl">Slutför din profil</DialogTitle>
           <DialogDescription className="text-[#B6C2BC]">
-            Välj ett användarnamn för att komma igång
+            Lägg till ditt namn och välj ett användarnamn för att komma igång
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+          {/* Full Name */}
+          <div className="space-y-2">
+            <Label htmlFor="full_name" className="text-[#F4F7F5]">
+              Namn <span className="text-[#F4743B]">*</span>
+            </Label>
+            <Input
+              id="full_name"
+              value={formData.full_name}
+              onChange={(e) => handleChange('full_name', e.target.value)}
+              placeholder="Ditt fullständiga namn"
+              className="bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#7B8A83]"
+              disabled={isSubmitting}
+              autoComplete="name"
+            />
+            {errors.full_name && (
+              <p className="text-[#F4743B] text-sm flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                {errors.full_name}
+              </p>
+            )}
+          </div>
+
           {/* Username */}
           <div className="space-y-2">
             <Label htmlFor="username" className="text-[#F4F7F5]">
