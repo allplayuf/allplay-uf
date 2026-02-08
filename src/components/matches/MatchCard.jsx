@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Clock, Users, Trophy, Target, ChevronRight, Shield, Zap, TrendingUp, Crown, Flame } from "lucide-react";
+import { MapPin, Clock, Users, Trophy, Target, ChevronRight, Shield, Zap, TrendingUp, Crown, Flame, LogIn } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
 import { getUsersByIds } from "@/components/supabase/services";
+import { AuthGateModal } from '@/components/ui/auth-gate-modal';
+import { LoginModal } from '@/components/supabase';
 
 const SKILL_LEVEL_CONFIG = {
   beginner: { label: 'Nybörjare', icon: Target },
@@ -48,6 +50,8 @@ const getStatusBadge = (status) => {
 export default React.memo(function MatchCard({ match, venues = [], user, participants = [], onJoin, onRefresh, index = 0 }) {
   // ALWAYS call hooks first, before any conditional returns
   const [participantUsers, setParticipantUsers] = useState([]);
+  const [showAuthGate, setShowAuthGate] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const { isGuest } = useSupabaseAuth();
 
   useEffect(() => {
@@ -111,6 +115,12 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
     e.preventDefault();
     e.stopPropagation();
     
+    // Check if guest
+    if (isGuest) {
+      setShowAuthGate(true);
+      return;
+    }
+    
     // Let backend handle auth - onJoin will show error if guest
     if (onJoin) {
       await onJoin(match.id);
@@ -126,6 +136,24 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
 
   return (
     <>
+    {/* Auth Gate Modal */}
+    <AuthGateModal 
+      isOpen={showAuthGate}
+      onClose={() => setShowAuthGate(false)}
+      onLogin={() => setShowLoginModal(true)}
+      feature="anmäla dig till matcher"
+    />
+    
+    {/* Login Modal */}
+    <LoginModal 
+      isOpen={showLoginModal}
+      onClose={() => setShowLoginModal(false)}
+      onSuccess={() => {
+        setShowLoginModal(false);
+        setShowAuthGate(false);
+      }}
+    />
+    
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
