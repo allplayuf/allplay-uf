@@ -250,14 +250,24 @@ export default function Dashboard() {
 
   const userMatchIds = myParticipantMatchIds;
 
-  const myUpcomingMatches = upcomingMatches
-    .filter(m => userMatchIds.includes(m.id) || m.organizer_id === authUser?.id)
-    .sort((a, b) => {
-      const dateTimeA = new Date(`${a.date}T${a.time}`);
-      const dateTimeB = new Date(`${b.date}T${b.time}`);
-      return dateTimeA - dateTimeB;
-    })
-    .slice(0, 2);
+  // For authenticated users: show their matches
+  // For guests: show all upcoming matches
+  const myUpcomingMatches = isGuest 
+    ? upcomingMatches
+        .sort((a, b) => {
+          const dateTimeA = new Date(`${a.date}T${a.time}`);
+          const dateTimeB = new Date(`${b.date}T${b.time}`);
+          return dateTimeA - dateTimeB;
+        })
+        .slice(0, 4)
+    : upcomingMatches
+        .filter(m => userMatchIds.includes(m.id) || m.organizer_id === authUser?.id)
+        .sort((a, b) => {
+          const dateTimeA = new Date(`${a.date}T${a.time}`);
+          const dateTimeB = new Date(`${b.date}T${b.time}`);
+          return dateTimeA - dateTimeB;
+        })
+        .slice(0, 2);
 
   const quickPlayMatches = upcomingMatches
     .filter(m =>
@@ -701,7 +711,9 @@ export default function Dashboard() {
                   <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
                     <Calendar className="w-5 h-5 text-[#2BA84A]" strokeWidth={2.5} />
                   </div>
-                  <h2 className="text-lg sm:text-xl font-bold text-[#F4F7F5]">Kommande matcher</h2>
+                  <h2 className="text-lg sm:text-xl font-bold text-[#F4F7F5]">
+                    {isGuest ? 'Kommande matcher' : 'Dina kommande matcher'}
+                  </h2>
                 </div>
                 <Link to={createPageUrl("Matches")} className="text-sm font-semibold text-[#2BA84A] hover:text-[#CFE8D6] flex items-center gap-1 transition-colors group">
                   Visa alla
@@ -719,15 +731,17 @@ export default function Dashboard() {
                   <div className="w-12 h-12 bg-[#2BA84A]/10 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <Calendar className="w-6 h-6 text-[#2BA84A]" />
                   </div>
-                  <p className="text-secondary text-sm mb-4">Inga kommande matcher</p>
+                  <p className="text-secondary text-sm mb-4">
+                    {isGuest ? 'Inga matcher just nu' : 'Inga kommande matcher'}
+                  </p>
                   <Link to={createPageUrl("Matches")}>
                     <button className="btn-secondary px-4 h-9 text-sm">
-                      Hitta matcher
+                      {isGuest ? 'Se alla matcher' : 'Hitta matcher'}
                     </button>
                   </Link>
                 </div>
               ) : (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-2">
                   {myUpcomingMatches.map((match, index) => (
                     <div key={match.id} className="h-full">
                         <MatchCard 
