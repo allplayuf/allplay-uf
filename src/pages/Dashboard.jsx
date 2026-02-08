@@ -40,7 +40,6 @@ import {
 } from "../components/supabase/services";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { PullToRefresh } from "../components/ui/pull-to-refresh";
-import { useGuestLoginPrompt } from "../components/ui/guest-login-prompt";
 
 // Query keys
 const QUERY_KEYS = {
@@ -60,7 +59,6 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { user: authUser, isGuest, isAuthenticated } = useSupabaseAuth();
-  const { showPrompt, Prompt } = useGuestLoginPrompt();
 
   // Fetch user profile from Supabase users table
   const { data: userProfile, isLoading: userLoading, error: userError } = useQuery({
@@ -210,10 +208,9 @@ export default function Dashboard() {
 
   const handleMatchCreated = async ({ match: matchData, venue: selectedVenue }) => {
     try {
-      // Check if guest - show prompt instead of error
+      // Check if guest
       if (isGuest) {
-        showPrompt('create_match');
-        setShowCreateMatchModal(false);
+        displayError('Du måste vara inloggad för att skapa en match.');
         return;
       }
 
@@ -582,13 +579,7 @@ export default function Dashboard() {
               <motion.div 
                 whileHover={{ y: -6, scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => {
-                  if (isGuest) {
-                    showPrompt('create_match');
-                  } else {
-                    setShowCreateMatchModal(true);
-                  }
-                }}
+                onClick={() => setShowCreateMatchModal(true)}
                 className="relative group cursor-pointer"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-[#F4743B]/30 to-[#E5683A]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -703,16 +694,14 @@ export default function Dashboard() {
         {/* Main Content */}
         <div className="grid lg:grid-cols-12 gap-8">
           <div className="lg:col-span-8 space-y-8">
-            {/* Upcoming Matches - Show "Mina matcher" for authenticated, "Browse matcher" for guests */}
+            {/* Upcoming Matches */}
             <motion.div variants={VARIANTS.item}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
                     <Calendar className="w-5 h-5 text-[#2BA84A]" strokeWidth={2.5} />
                   </div>
-                  <h2 className="text-lg sm:text-xl font-bold text-[#F4F7F5]">
-                    {isGuest ? 'Kommande matcher' : 'Mina matcher'}
-                  </h2>
+                  <h2 className="text-lg sm:text-xl font-bold text-[#F4F7F5]">Kommande matcher</h2>
                 </div>
                 <Link to={createPageUrl("Matches")} className="text-sm font-semibold text-[#2BA84A] hover:text-[#CFE8D6] flex items-center gap-1 transition-colors group">
                   Visa alla
@@ -725,7 +714,7 @@ export default function Dashboard() {
                 </Link>
               </div>
 
-              {(isGuest ? upcomingMatches.slice(0, 2) : myUpcomingMatches).length === 0 ? (
+              {myUpcomingMatches.length === 0 ? (
                 <div className="card-base p-8 text-center bg-[#121715]">
                   <div className="w-12 h-12 bg-[#2BA84A]/10 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <Calendar className="w-6 h-6 text-[#2BA84A]" />
@@ -739,7 +728,7 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
-                  {(isGuest ? upcomingMatches.slice(0, 2) : myUpcomingMatches).map((match, index) => (
+                  {myUpcomingMatches.map((match, index) => (
                     <div key={match.id} className="h-full">
                         <MatchCard 
                             match={match} 
@@ -873,9 +862,6 @@ export default function Dashboard() {
           </Link>
         </motion.div>
       </div>
-      
-      {/* Guest Login Prompt */}
-      <Prompt />
     </motion.div>
     </PullToRefresh>
   );
