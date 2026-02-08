@@ -15,6 +15,9 @@ import { NoPlayersFound, NoTeamsFound } from "../components/ui/empty-state";
 import { CUPS_QUERY_KEY } from "../components/dashboard/CupsWidget";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import { PullToRefresh } from "../components/ui/pull-to-refresh";
+import { AuthGateModal } from "../components/ui/auth-gate-modal";
+import { LoginModal } from "../components/supabase";
+import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 
 const FriendsList = lazy(() => import("../components/community/FriendsList"));
 const FindPlayers = lazy(() => import("../components/community/FindPlayers"));

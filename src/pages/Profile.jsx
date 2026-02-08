@@ -77,6 +77,8 @@ export default function ProfilePage() {
   const [showSettingsSheet, setShowSettingsSheet] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showAuthGate, setShowAuthGate] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const { confirm, alert, DialogContainer } = useCustomDialog();
   const queryClient = useQueryClient();
@@ -461,6 +463,23 @@ export default function ProfilePage() {
   // Guest users see a prompt to login
   if (user?.is_guest && !targetUserId) {
     return (
+      <>
+      <AuthGateModal 
+        isOpen={showAuthGate}
+        onClose={() => setShowAuthGate(false)}
+        onLogin={() => setShowLoginModal(true)}
+        feature="se din profil och hantera vänner"
+      />
+      
+      <LoginModal 
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onSuccess={() => {
+          setShowLoginModal(false);
+          setShowAuthGate(false);
+        }}
+      />
+      
       <div className="min-h-screen bg-[#0F1513] flex items-center justify-center p-4">
         <Card className="bg-[#121715] border border-[#223029] rounded-[20px] p-8 max-w-md w-full text-center">
           <div className="w-20 h-20 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-[#2BA84A]/20">
@@ -469,7 +488,7 @@ export default function ProfilePage() {
           <h2 className="text-2xl font-bold text-[#F4F7F5] mb-3">Logga in för att se din profil</h2>
           <p className="text-[#B6C2BC] mb-6">Skapa ett konto eller logga in för att se din profil, hantera vänner och mycket mer.</p>
           <Button 
-            onClick={() => base44.auth.redirectToLogin(window.location.pathname)}
+            onClick={() => setShowAuthGate(true)}
             className="w-full bg-[#2BA84A] hover:bg-[#248232] text-white h-12 rounded-xl font-semibold"
           >
             <LogIn className="w-5 h-5 mr-2" />
@@ -477,6 +496,7 @@ export default function ProfilePage() {
           </Button>
         </Card>
       </div>
+      </>
     );
   }
 
