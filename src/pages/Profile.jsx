@@ -440,7 +440,7 @@ export default function ProfilePage() {
   }
 
   // Guest users see a prompt to login
-  if (user?.is_guest && !targetUserId) {
+  if (isGuest && !targetUserId) {
     return (
       <>
       <AuthGateModal 
