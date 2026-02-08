@@ -71,17 +71,9 @@ export function SupabaseAuthProvider({ children }) {
       setUser(state.user);
       setRoles(state.roles);
       
-      // Check if profile is incomplete
-      if (state.authState === AUTH_STATES.AUTHENTICATED && state.user) {
-        const needsCompletion = !state.user.full_name || !state.user.username;
-        setShowCompleteProfile(needsCompletion);
-        
-        // Prime cache with current user
-        if (state.user.id) {
-          primeUsers([state.user]);
-        }
-      } else {
-        setShowCompleteProfile(false);
+      // Prime cache with current user
+      if (state.authState === AUTH_STATES.AUTHENTICATED && state.user?.id) {
+        primeUsers([state.user]);
       }
     });
 
