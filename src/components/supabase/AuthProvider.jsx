@@ -9,7 +9,6 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { sessionStore, supabaseClient, AUTH_STATES } from './client';
-import { CompleteProfileModal } from '@/components/profile/CompleteProfileModal';
 import { primeUsers } from './services/userCache';
 
 // Auth context
