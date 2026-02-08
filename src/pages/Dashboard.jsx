@@ -40,6 +40,8 @@ import {
 } from "../components/supabase/services";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { PullToRefresh } from "../components/ui/pull-to-refresh";
+import { AuthGateModal } from "../components/ui/auth-gate-modal";
+import { LoginModal } from "../components/supabase";
 
 // Query keys
 const QUERY_KEYS = {
@@ -56,6 +58,8 @@ export default function Dashboard() {
   const [errorMessage, setErrorMessage] = useState(null);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [showCreateMatchModal, setShowCreateMatchModal] = useState(false);
+  const [showAuthGate, setShowAuthGate] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { user: authUser, isGuest, isAuthenticated } = useSupabaseAuth();
@@ -384,6 +388,25 @@ export default function Dashboard() {
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
+    <>
+    {/* Auth Gate Modal */}
+    <AuthGateModal 
+      isOpen={showAuthGate}
+      onClose={() => setShowAuthGate(false)}
+      onLogin={() => setShowLoginModal(true)}
+      feature="skapa matcher och delta"
+    />
+    
+    {/* Login Modal */}
+    <LoginModal 
+      isOpen={showLoginModal}
+      onClose={() => setShowLoginModal(false)}
+      onSuccess={() => {
+        setShowLoginModal(false);
+        setShowAuthGate(false);
+      }}
+    />
+    
     <motion.div 
       variants={VARIANTS.container}
       initial="hidden"
@@ -589,7 +612,13 @@ export default function Dashboard() {
               <motion.div 
                 whileHover={{ y: -6, scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => setShowCreateMatchModal(true)}
+                onClick={() => {
+                  if (isGuest) {
+                    setShowAuthGate(true);
+                  } else {
+                    setShowCreateMatchModal(true);
+                  }
+                }}
                 className="relative group cursor-pointer"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-[#F4743B]/30 to-[#E5683A]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -877,6 +906,7 @@ export default function Dashboard() {
         </motion.div>
       </div>
     </motion.div>
+    </>
     </PullToRefresh>
   );
 }
