@@ -77,10 +77,146 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
     }
   };
 
+  // Handle consent acceptance: create account + save consent
+  const handleConsentAccept = async () => {
+    setConsentError(null);
+    setConsentLoading(true);
+
+    try {
+      // Step 1: Get anon key
+      const { base44 } = await import('@/api/base44Client');
+      let anonKey = '';
+      try {
+        const configResponse = await base44.functions.invoke('getSupabaseConfig');
+        anonKey = configResponse?.data?.anonKey || '';
+      } catch (e) {
+        console.error('Failed to get config:', e);
+      }
+
+      if (!anonKey) {
+        setConsentError('Kunde inte ansluta till servern. Försök igen.');
+        return;
+      }
+
+      // Step 2: Create Supabase account
+      const response = await fetch('https://vqfjjokqmykqawjlgevj.supabase.co/auth/v1/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': anonKey
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          data: { full_name: fullName }
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const errorMsg = data.error_description || data.msg || data.error || 'Registreringen misslyckades';
+        if (errorMsg.includes('already registered')) {
+          setConsentError('E-postadressen är redan registrerad. Försök logga in istället.');
+        } else if (errorMsg.includes('valid email')) {
+          setConsentError('Ange en giltig e-postadress.');
+        } else if (errorMsg.includes('password')) {
+          setConsentError('Lösenordet måste vara minst 6 tecken.');
+        } else {
+          setConsentError(errorMsg);
+        }
+        return;
+      }
+
+      // Step 3: Check if email confirmation needed
+      if (data.user && !data.session) {
+        // Can't save consent yet since no session - save pending consent locally
+        // It will be checked on first login
+        try {
+          localStorage.setItem('allplay_pending_consent', JSON.stringify({
+            version: CONSENT_VERSION,
+            doc: CONSENT_DOC,
+            accepted_at: new Date().toISOString()
+          }));
+        } catch (e) { /* ignore */ }
+        
+        setSuccessMessage('Konto skapat! Kolla din e-post för att verifiera kontot.');
+        setMode('login');
+        setPassword('');
+        setConfirmPassword('');
+        return;
+      }
+
+      // Step 4: Session available - store tokens
+      if (data.session || data.access_token) {
+        const { sessionStore, AUTH_STATES, supabaseClient } = await import('./client');
+        sessionStore.setTokens(data.access_token, data.refresh_token);
+        sessionStore.setUser(data.user);
+        sessionStore.setAuthState(AUTH_STATES.AUTHENTICATED);
+        
+        // Sync to Base44
+        await supabaseClient.syncUserToBase44(data.user);
+
+        // Step 5: Save consent to user entity
+        try {
+          await base44.auth.updateMe({
+            tos_version_accepted: CONSENT_VERSION,
+            tos_accepted_at: new Date().toISOString(),
+            tos_accepted_doc: CONSENT_DOC
+          });
+        } catch (consentErr) {
+          console.error('Failed to save consent:', consentErr);
+          // Rollback - logout user since consent wasn't saved
+          sessionStore.clear();
+          setConsentError('Kunde inte spara samtycke. Försök igen.');
+          return;
+        }
+
+        onSuccess?.();
+        onClose();
+        return;
+      }
+
+      // Auto-login fallback
+      const loginResult = await login(email, password);
+      if (loginResult.success) {
+        // Save consent after login
+        try {
+          await base44.auth.updateMe({
+            tos_version_accepted: CONSENT_VERSION,
+            tos_accepted_at: new Date().toISOString(),
+            tos_accepted_doc: CONSENT_DOC
+          });
+        } catch (consentErr) {
+          console.error('Failed to save consent after login:', consentErr);
+        }
+        onSuccess?.();
+        onClose();
+      } else {
+        setSuccessMessage('Konto skapat! Logga in med dina uppgifter.');
+        // Save pending consent for first login
+        try {
+          localStorage.setItem('allplay_pending_consent', JSON.stringify({
+            version: CONSENT_VERSION,
+            doc: CONSENT_DOC,
+            accepted_at: new Date().toISOString()
+          }));
+        } catch (e) { /* ignore */ }
+        setMode('login');
+      }
+    } catch (e) {
+      setConsentError('Ett fel uppstod. Försök igen.');
+    } finally {
+      setConsentLoading(false);
+    }
+  };
+
   const switchMode = () => {
-    setMode(mode === 'login' ? 'register' : 'login');
+    const newMode = mode === 'login' ? 'register' : 'login';
+    setMode(newMode);
     setLocalError(null);
     setSuccessMessage(null);
+    setConsentError(null);
     clearError();
   };
 
