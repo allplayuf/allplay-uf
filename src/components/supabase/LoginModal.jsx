@@ -57,86 +57,9 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
 
     try {
       if (mode === 'register') {
-        // Get anon key first
-        const { base44 } = await import('@/api/base44Client');
-        let anonKey = '';
-        try {
-          const configResponse = await base44.functions.invoke('getSupabaseConfig');
-          anonKey = configResponse?.data?.anonKey || '';
-        } catch (e) {
-          console.error('Failed to get config:', e);
-        }
-
-        if (!anonKey) {
-          setLocalError('Kunde inte ansluta till servern. Försök igen.');
-          return;
-        }
-
-        // Call Supabase signup endpoint
-        const response = await fetch('https://vqfjjokqmykqawjlgevj.supabase.co/auth/v1/signup', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': anonKey
-          },
-          body: JSON.stringify({
-            email,
-            password,
-            data: { full_name: fullName }
-          })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          // Handle specific error messages
-          const errorMsg = data.error_description || data.msg || data.error || 'Registreringen misslyckades';
-          if (errorMsg.includes('already registered')) {
-            setLocalError('E-postadressen är redan registrerad. Försök logga in istället.');
-          } else if (errorMsg.includes('valid email')) {
-            setLocalError('Ange en giltig e-postadress.');
-          } else if (errorMsg.includes('password')) {
-            setLocalError('Lösenordet måste vara minst 6 tecken.');
-          } else {
-            setLocalError(errorMsg);
-          }
-          return;
-        }
-
-        // Check if email confirmation is required
-        if (data.user && !data.session) {
-          setSuccessMessage('Konto skapat! Kolla din e-post för att verifiera kontot.');
-          setMode('login');
-          setPassword('');
-          setConfirmPassword('');
-          return;
-        }
-
-        // If we got a session, user is registered and logged in
-        if (data.session && data.access_token) {
-          // Store session and notify
-          const { sessionStore, AUTH_STATES, supabaseClient } = await import('./client');
-          sessionStore.setTokens(data.access_token, data.refresh_token);
-          sessionStore.setUser(data.user);
-          sessionStore.setAuthState(AUTH_STATES.AUTHENTICATED);
-          
-          // CRITICAL: Sync new user to Base44 User entity
-          await supabaseClient.syncUserToBase44(data.user);
-          
-          onSuccess?.();
-          onClose();
-          return;
-        }
-
-        // Auto-login if no email confirmation required but no session returned
-        const loginResult = await login(email, password);
-        if (loginResult.success) {
-          onSuccess?.();
-          onClose();
-        } else {
-          setSuccessMessage('Konto skapat! Logga in med dina uppgifter.');
-          setMode('login');
-        }
+        // Validate form first, then show consent gate
+        setMode('consent');
+        return;
       } else {
         const result = await login(email, password);
         
