@@ -22,9 +22,13 @@ import {
   Loader2,
   FileJson,
   Lock,
-  Mail
+  Mail,
+  FileText,
+  ShieldCheck,
+  ExternalLink
 } from "lucide-react";
 import { useCustomDialog } from "../components/ui/custom-dialog";
+import { CONSENT_VERSION } from "../components/legal/consentConstants";
 
 export default function AccountSettingsPage() {
   const navigate = useNavigate();
