@@ -18,6 +18,7 @@ import { GuestBanner } from "@/components/ui/guest-banner";
 import { SupabaseAuthProvider, useSupabaseAuth, initSupabase } from "@/components/supabase";
 import { triggerHaptic } from "@/components/utils/motionTokens";
 import { ArrowLeft } from "lucide-react";
+import ConsentChecker from "@/components/legal/ConsentChecker";
 
 // Guest banner wrapper that uses Supabase auth state
 function GuestBannerWrapper() {
