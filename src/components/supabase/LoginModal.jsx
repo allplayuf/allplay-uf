@@ -222,6 +222,22 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
 
   const displayError = localError || error;
 
+  // If in consent mode, render full-screen ConsentGate
+  if (mode === 'consent' && isOpen) {
+    return (
+      <ConsentGate
+        isSignup={true}
+        isLoading={consentLoading}
+        error={consentError}
+        onAccept={handleConsentAccept}
+        onCancel={() => {
+          setMode('register');
+          setConsentError(null);
+        }}
+      />
+    );
+  }
+
   return (
     <AnimatePresence>
       {isOpen && (
