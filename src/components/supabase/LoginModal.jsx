@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useSupabaseAuth } from './AuthProvider';
+import ConsentGate from '@/components/legal/ConsentGate';
+import { CONSENT_VERSION, CONSENT_DOC } from '@/components/legal/consentConstants';
 
 export default function LoginModal({ isOpen, onClose, onSuccess }) {
   const { login, error, clearError } = useSupabaseAuth();
