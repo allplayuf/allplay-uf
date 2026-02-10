@@ -15,7 +15,7 @@ import { CONSENT_VERSION, CONSENT_DOC } from '@/components/legal/consentConstant
 
 export default function LoginModal({ isOpen, onClose, onSuccess }) {
   const { login, error, clearError } = useSupabaseAuth();
-  const [mode, setMode] = useState('login'); // 'login' or 'register'
+  const [mode, setMode] = useState('login'); // 'login', 'register', or 'consent'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -24,6 +24,8 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
   const [isLoading, setIsLoading] = useState(false);
   const [localError, setLocalError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [consentError, setConsentError] = useState(null);
+  const [consentLoading, setConsentLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
