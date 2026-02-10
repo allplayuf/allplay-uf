@@ -324,7 +324,7 @@ export default function Layout({ children, currentPageName }) {
         </div>
         </ConsentChecker>
         </ErrorBoundary>
-        </SupabaseAuthProvider>
-        </QueryProvider>
+      </SupabaseAuthProvider>
+      </QueryProvider>
         );
         }
