@@ -153,6 +153,9 @@ export default function Layout({ children, currentPageName }) {
         {/* Guest Banner - shown when browsing as guest */}
         <GuestBannerWrapper />
 
+        {/* Consent check - blocks authenticated users without valid consent */}
+        <ConsentChecker>
+
         <div className="min-h-screen flex w-full bg-[#131816]">
         <Toaster 
           position="bottom-center"
