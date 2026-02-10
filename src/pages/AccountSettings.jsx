@@ -274,6 +274,45 @@ export default function AccountSettingsPage() {
             </CardContent>
           </Card>
 
+          {/* Legal / ToS */}
+          <Card className="bg-[#121715] border border-[#223029] rounded-2xl">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-[#2BA84A]/10 rounded-xl flex items-center justify-center ring-1 ring-[#2BA84A]/20">
+                  <ShieldCheck className="w-5 h-5 text-[#2BA84A]" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-[#F4F7F5]">Användarvillkor & Integritetspolicy</h2>
+                  <p className="text-sm text-[#7B8A83]">Läs våra villkor och policy</p>
+                </div>
+              </div>
+
+              {user?.tos_version_accepted && (
+                <div className="bg-[#2BA84A]/5 border border-[#2BA84A]/20 rounded-xl p-3 mb-4">
+                  <p className="text-sm text-[#B6C2BC]">
+                    <span className="text-[#2BA84A] font-medium">Senast godkänd:</span>{' '}
+                    {user.tos_version_accepted}
+                    {user.tos_accepted_at && (
+                      <span className="text-[#7B8A83]">
+                        {' '}({new Date(user.tos_accepted_at).toLocaleDateString('sv-SE')})
+                      </span>
+                    )}
+                  </p>
+                </div>
+              )}
+
+              <Button
+                onClick={() => navigate(createPageUrl("LegalPolicy"))}
+                variant="outline"
+                className="w-full border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] rounded-xl h-11 gap-2"
+              >
+                <FileText className="w-4 h-4" />
+                Visa fullständiga villkor
+                <ExternalLink className="w-3 h-3 ml-auto" />
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* Data Export */}
           <Card className="bg-[#121715] border border-[#223029] rounded-2xl">
             <CardContent className="p-6">
