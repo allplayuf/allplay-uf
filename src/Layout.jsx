@@ -322,6 +322,7 @@ export default function Layout({ children, currentPageName }) {
           </nav>
         </main>
         </div>
+        </ConsentChecker>
         </ErrorBoundary>
         </SupabaseAuthProvider>
         </QueryProvider>
