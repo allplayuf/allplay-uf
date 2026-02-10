@@ -323,8 +323,8 @@ export default function Layout({ children, currentPageName }) {
         </main>
         </div>
         </ConsentChecker>
-        </ErrorBoundary>
+      </ErrorBoundary>
       </SupabaseAuthProvider>
-      </QueryProvider>
-        );
-        }
+    </QueryProvider>
+  );
+}
