@@ -29,6 +29,9 @@ import {
 } from "lucide-react";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import { CONSENT_VERSION } from "../components/legal/consentConstants";
+import { useSupabaseAuth } from "../components/supabase/AuthProvider";
+import { getMyProfile } from "../components/supabase/services/usersService";
+import { callEdgeFunction } from "../components/supabase/callEdgeFunction";
 
 export default function AccountSettingsPage() {
   const navigate = useNavigate();
@@ -46,13 +49,20 @@ export default function AccountSettingsPage() {
     hide_exact_location: false
   });
 
-  // Use optimized cache strategy for user data
+  const { user: authUser, isAuthenticated, logout } = useSupabaseAuth();
+
+  // Use Supabase profile for settings data
   const { data: user, isLoading } = useQuery({
-    queryKey: ['user'],
-    queryFn: async () => await base44.auth.me(),
-    staleTime: 10 * 60 * 1000,
+    queryKey: ['supabase-userProfile', authUser?.id],
+    queryFn: async () => {
+      const profile = await getMyProfile();
+      // Merge auth user with profile for complete data
+      return profile ? { ...authUser, ...profile } : authUser;
+    },
+    staleTime: 5 * 60 * 1000,
     cacheTime: 30 * 60 * 1000,
     retry: false,
+    enabled: isAuthenticated && !!authUser?.id,
   });
 
   useEffect(() => {
@@ -79,8 +89,8 @@ export default function AccountSettingsPage() {
     setSettings(prev => ({ ...prev, [key]: value }));
     
     try {
-      await base44.auth.updateMe({ [key]: value });
-      queryClient.invalidateQueries({ queryKey: ['user'] });
+      await callEdgeFunction('update_profile', { [key]: value });
+      queryClient.invalidateQueries({ queryKey: ['supabase-userProfile'] });
     } catch (error) {
       console.error("Error updating setting:", error);
       // Revert on error
@@ -154,7 +164,7 @@ export default function AccountSettingsPage() {
         );
         
         // Logout user
-        await base44.auth.logout();
+        logout();
       }
     } catch (error) {
       console.error("Error deleting account:", error);
