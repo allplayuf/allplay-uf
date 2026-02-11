@@ -10,6 +10,8 @@
 
 import { callEdgeFunction } from '../callEdgeFunction';
 import { EDGE } from '../edgeNames';
+import { getSupabaseConfig, SUPABASE_URL } from '../config';
+import { sessionStore } from '../client';
 
 // In-memory cache
 const userCache = new Map();
@@ -149,11 +151,38 @@ export async function fetchUsersMissing(userIds) {
   // Create new request promise
   const requestPromise = (async () => {
     try {
-      const response = await callEdgeFunction(EDGE.getUsersByIds, { 
-        user_ids: missingIds 
-      });
+      let users = [];
       
-      const users = response?.users || [];
+      // Try Edge Function first
+      try {
+        const response = await callEdgeFunction(EDGE.getUsersByIds, { 
+          user_ids: missingIds 
+        });
+        users = response?.users || [];
+      } catch (edgeError) {
+        console.warn('[userCache] Edge function failed, trying REST:', edgeError.message);
+      }
+      
+      // Fallback to REST API if edge function returned no users
+      if (users.length === 0) {
+        try {
+          const config = await getSupabaseConfig();
+          const headers = { 'Content-Type': 'application/json' };
+          if (config.anonKey) headers['apikey'] = config.anonKey;
+          if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
+          
+          const idsParam = `(${missingIds.join(',')})`;
+          const res = await fetch(
+            `${SUPABASE_URL}/rest/v1/users?id=in.${idsParam}&select=id,full_name,username,display_name,avatar_url,profile_image_url,city,skill_level,matches_played,mvp_count,elo_rating`,
+            { method: 'GET', headers }
+          );
+          if (res.ok) {
+            users = await res.json();
+          }
+        } catch (restError) {
+          console.warn('[userCache] REST fallback failed:', restError.message);
+        }
+      }
       
       // Prime cache with fetched users
       primeUsers(users);
