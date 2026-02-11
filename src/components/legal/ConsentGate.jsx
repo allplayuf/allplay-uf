@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { CheckSquare, Square, ExternalLink, Loader2, AlertCircle, ShieldCheck } from "lucide-react";
+import { CheckSquare, Square, ExternalLink, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CONSENT_VERSION, CONSENT_DOC } from "./consentConstants";
 import PolicyRenderer from "./PolicyRenderer";
@@ -16,7 +16,7 @@ import { createPageUrl } from "@/utils";
  * - isLoading: boolean - shows spinner on CTA
  * - error: string|null - shows error message
  */
-export default function ConsentGate({ onAccept, onCancel, isSignup = false, isLoading = false, error = null }) {
+export default function ConsentGate({ onAccept, onCancel, isSignup = false }) {
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
   const [checkboxChecked, setCheckboxChecked] = useState(false);
   const scrollRef = useRef(null);
@@ -30,7 +30,7 @@ export default function ConsentGate({ onAccept, onCancel, isSignup = false, isLo
     }
   }, []);
 
-  const canAccept = hasScrolledToBottom && checkboxChecked && !isLoading;
+  const canAccept = hasScrolledToBottom && checkboxChecked;
 
   return (
     <div className="fixed inset-0 z-[200] bg-[#0F1513] flex flex-col">
@@ -76,18 +76,6 @@ export default function ConsentGate({ onAccept, onCancel, isSignup = false, isLo
       <div className="flex-shrink-0 border-t border-[#223029] bg-[#121715] px-4 py-4"
         style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}>
         <div className="max-w-2xl mx-auto space-y-3">
-          {/* Error */}
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm"
-            >
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              <span>{error}</span>
-            </motion.div>
-          )}
-
           {/* Checkbox */}
           <button
             onClick={() => hasScrolledToBottom && setCheckboxChecked(!checkboxChecked)}
@@ -127,7 +115,6 @@ export default function ConsentGate({ onAccept, onCancel, isSignup = false, isLo
               onClick={onCancel}
               variant="outline"
               className="flex-1 h-12 border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] rounded-xl"
-              disabled={isLoading}
             >
               Avbryt
             </Button>
@@ -136,14 +123,7 @@ export default function ConsentGate({ onAccept, onCancel, isSignup = false, isLo
               disabled={!canAccept}
               className="flex-1 h-12 bg-[#2BA84A] hover:bg-[#248232] text-white font-bold rounded-xl disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              {isLoading ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Sparar...
-                </span>
-              ) : (
-                isSignup ? "Acceptera och skapa konto" : "Acceptera och fortsätt"
-              )}
+              {isSignup ? "Acceptera och skapa konto" : "Acceptera och fortsätt"}
             </Button>
           </div>
 
