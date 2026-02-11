@@ -11,7 +11,7 @@ import { RouteGuard } from "@/components/ui/route-guard";
 import { OnboardingModal } from "@/components/ui/onboarding-modal";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import OfflineDetector from "@/components/ui/offline-detector";
-import { canAccessAdminPanel, isGuest } from "./components/utils/permissions";
+import { canAccessAdminPanel } from "./components/utils/permissions";
 import { GuestBanner } from "@/components/ui/guest-banner";
 import { SupabaseAuthProvider, useSupabaseAuth, initSupabase } from "@/components/supabase";
 import { triggerHaptic } from "@/components/utils/motionTokens";
