@@ -140,7 +140,7 @@ function LayoutInner({ children }) {
   const isRootPage = navigationItems.some(item => location.pathname === item.url);
 
   return (
-      <ErrorBoundary>
+    <ErrorBoundary>
         <RouteProgress />
         <OnboardingModal />
         <OfflineDetector />
@@ -318,7 +318,7 @@ function LayoutInner({ children }) {
         </main>
         </div>
         </ConsentChecker>
-      </ErrorBoundary>
+    </ErrorBoundary>
   );
 }
 
