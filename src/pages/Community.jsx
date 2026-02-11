@@ -71,6 +71,8 @@ export default function CommunityPage() {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [showCreateTeamForm, setShowCreateTeamForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAuthGate, setShowAuthGate] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const { confirm, alert, DialogContainer } = useCustomDialog();
   const queryClient = useQueryClient();
 
@@ -369,9 +371,6 @@ export default function CommunityPage() {
   if (isLoading) {
     return <PageLoadingSkeleton />;
   }
-
-  const [showAuthGate, setShowAuthGate] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
 
   // Guest users see a prompt to login
   if (user?.is_guest) {
