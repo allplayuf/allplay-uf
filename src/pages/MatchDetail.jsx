@@ -350,7 +350,7 @@ export default function MatchDetailPage() {
       if (context?.previousParticipants) {
         queryClient.setQueryData(['supabase-matchParticipants', matchId], context.previousParticipants);
       }
-      alert('Ett fel uppstod', error.message || 'Kunde inte anmäla dig. Försök igen.', { type: 'alert' });
+      alert('Kunde inte anmäla dig', error.message || 'Försök igen.', { type: 'alert' });
     },
     onSuccess: () => {
       alert('Anmäld! 🎉', `Du har anmält dig till "${match.title}". Vi ses där!`, { type: 'success' });
@@ -390,7 +390,7 @@ export default function MatchDetailPage() {
 
     } catch (error) {
       console.error("Error leaving match:", error);
-      await alert('Ett fel uppstod', error.message || 'Kunde inte lämna matchen. Försök igen.', { type: 'alert' });
+      await alert('Kunde inte lämna matchen', error.message || 'Försök igen.', { type: 'alert' });
     } finally {
       setIsActionLoading(false);
     }
@@ -448,7 +448,7 @@ export default function MatchDetailPage() {
       if (context?.previousFriendships) {
         queryClient.setQueryData(['friendships', user.id], context.previousFriendships);
       }
-      alert('Ett fel uppstod', 'Kunde inte skicka vänförfrågan. Försök igen.', { type: 'alert' });
+      alert('Kunde inte skicka vänförfrågan', error.message || 'Försök igen.', { type: 'alert' });
     },
     onSuccess: () => {
       alert('Vänförfrågan skickad! 🤝', 'Din vänförfrågan har skickats!', { type: 'success' });
@@ -480,7 +480,7 @@ export default function MatchDetailPage() {
   };
 
   const getFriendStatus = (participantId) => {
-    if (!friendships || participantId === user?.id) return null;
+    if (!user?.id || !friendships || participantId === user?.id) return null;
 
     const friendship = friendships.find(f =>
       (f.requester_id === user?.id && f.addressee_id === participantId) ||
@@ -519,7 +519,7 @@ export default function MatchDetailPage() {
 
     } catch (error) {
       console.error("Error deleting match:", error);
-      await alert('Ett fel uppstod', 'Kunde inte ta bort matchen. Försök igen.', { type: 'alert' });
+      await alert('Kunde inte ta bort matchen', error.message || 'Försök igen.', { type: 'alert' });
     } finally {
       setIsActionLoading(false);
     }
@@ -527,6 +527,7 @@ export default function MatchDetailPage() {
 
   const generateGoogleCalendarUrl = () => {
     if (!match) return '';
+    if (typeof match.date !== 'string' || typeof match.time !== 'string' || !match.date || !match.time) return '';
     try {
       const [year, month, day] = match.date.split('-');
       const [hour, minute] = match.time.split(':');
@@ -548,6 +549,11 @@ export default function MatchDetailPage() {
       return '#';
     }
   };
+
+  // Participant count: prefer raw data length (loads before user enrichment)
+  const participantCount = Array.isArray(participantsRaw) && participantsRaw.length > 0
+    ? participantsRaw.length
+    : (Array.isArray(participants) ? participants.length : 0);
 
   const isLoading = matchLoading || participantsLoading;
 
@@ -645,7 +651,7 @@ export default function MatchDetailPage() {
                   </div>
                   <div className="bg-[#18221E]/50 p-4 rounded-2xl border border-[#223029]">
                     <div className="text-[#B6C2BC] text-xs font-bold uppercase mb-1">Deltagare</div>
-                    <div className="text-white font-bold text-lg">{Array.isArray(participants) ? participants.length : 0} spelare</div>
+                    <div className="text-white font-bold text-lg">{participantCount} spelare</div>
                   </div>
                 </div>
 
@@ -752,8 +758,8 @@ export default function MatchDetailPage() {
                    <Users className="w-5 h-5 flex-shrink-0" />
                    <span className="text-[14px] leading-[20px]">
                      {match.is_spontaneous
-                       ? `${Array.isArray(participants) ? participants.length : 0} anmälda (spontan match)`
-                       : `${Array.isArray(participants) ? participants.length : 0}/${match.max_players} spelare`
+                       ? `${participantCount} anmälda (spontan match)`
+                       : `${participantCount}/${match.max_players} spelare`
                      }
                    </span>
                   </div>
@@ -911,7 +917,7 @@ export default function MatchDetailPage() {
               className="flex items-center justify-center gap-2 data-[state=active]:bg-[#2BA84A]/16 data-[state=active]:text-[#EAF6EE] data-[state=active]:ring-1 data-[state=active]:ring-[#2BA84A]/30 text-[#B6C2BC] font-semibold rounded-[14px] transition-all"
               >
               <Users className="w-4 h-4" />
-              Deltagare ({Array.isArray(participants) ? participants.length : 0})
+              Deltagare ({participantCount})
               </TabsTrigger>
               <TabsTrigger
                 value="details"
@@ -935,7 +941,7 @@ export default function MatchDetailPage() {
               <>
                 <div className="mb-4 flex items-center justify-between">
                   <p className="text-sm text-[#B6C2BC]">
-                    {Array.isArray(participants) ? participants.filter(p => p.participantInfo?.checked_in).length : 0} av {Array.isArray(participants) ? participants.length : 0} spelare checkade in
+                   {Array.isArray(participants) ? participants.filter(p => p.participantInfo?.checked_in).length : 0} av {participantCount} spelare checkade in
                   </p>
                 </div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -11,7 +11,7 @@ import { getSupabaseConfig, SUPABASE_FUNCTIONS_URL } from './config';
 import { sessionStore } from './client';
 
 const IS_DEV = typeof window !== 'undefined' && 
-  (window.location.hostname === 'localhost' || window.location.hostname.includes('base44'));
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
 /**
  * Call a Supabase Edge Function
@@ -49,62 +49,70 @@ export async function callEdgeFunction(name, body = {}, options = {}) {
     console.log(`[EdgeFunction] Calling ${name}`, { hasAuth: !!sessionStore.accessToken });
   }
   
+  let res;
   try {
-    const res = await fetch(url, {
+    res = await fetch(url, {
       method: 'POST',
       headers,
       body: JSON.stringify(body)
     });
-    
-    // Try to parse response
-    let data;
-    const contentType = res.headers.get('content-type');
-    if (contentType?.includes('application/json')) {
-      data = await res.json().catch(() => ({}));
-    } else {
-      const text = await res.text().catch(() => '');
-      data = { message: text };
-    }
-    
-    // Log response in dev mode
-    if (IS_DEV) {
-      console.log(`[EdgeFunction] ${name} response:`, res.status, res.ok ? 'OK' : 'ERROR');
-    }
-    
-    // Handle errors
-    if (!res.ok) {
-      const errorMessage = data?.message || data?.error || `EdgeFunction ${name} failed: ${res.status}`;
-      
-      // Create error with details
-      const error = new Error(errorMessage);
-      error.status = res.status;
-      error.details = data;
-      error.functionName = name;
-      
-      // Handle specific status codes
-      if (res.status === 401) {
-        error.message = 'Session utgången. Logga in igen.';
-        // Clear invalid session
-        sessionStore.clear();
-      } else if (res.status === 403) {
-        error.message = 'Du har inte behörighet att utföra denna åtgärd.';
-      } else if (res.status === 400) {
-        error.message = data?.message || 'Ogiltig förfrågan.';
-      }
-      
-      throw error;
-    }
-    
-    return data;
-    
-  } catch (error) {
-    // Network errors
-    if (!error.status) {
-      error.message = 'Nätverksfel. Kontrollera din anslutning.';
-      error.isNetworkError = true;
-    }
+  } catch (networkErr) {
+    // True network error (DNS, offline, CORS preflight blocked, etc.)
+    const error = new Error('Nätverksfel. Kontrollera din anslutning.');
+    error.status = 0;
+    error.message = 'Nätverksfel. Kontrollera din anslutning.';
+    error.data = null;
+    error.isNetworkError = true;
+    error.functionName = name;
     throw error;
   }
+    
+  // Always read body as text first – safe regardless of content-type
+  let rawText = '';
+  try {
+    rawText = await res.text();
+  } catch (_) {
+    // empty body
+  }
+
+  // Try to parse as JSON
+  let data = null;
+  try {
+    data = rawText ? JSON.parse(rawText) : {};
+  } catch (_) {
+    data = { message: rawText };
+  }
+    
+  // Log response in dev mode
+  if (IS_DEV) {
+    console.log(`[EdgeFunction] ${name} response:`, res.status, res.ok ? 'OK' : 'ERROR');
+  }
+    
+  // Handle errors
+  if (!res.ok) {
+    const errorMessage = data?.message || data?.error || `EdgeFunction ${name} failed: ${res.status}`;
+      
+    // Create standardised error object
+    const error = new Error(errorMessage);
+    error.status = res.status;
+    error.data = data;
+    error.isNetworkError = false;
+    error.functionName = name;
+      
+    // Handle specific status codes
+    if (res.status === 401) {
+      error.message = 'Session utgången. Logga in igen.';
+      sessionStore.clear();
+    } else if (res.status === 403) {
+      error.message = 'Du saknar behörighet att utföra denna åtgärd.';
+    } else if (res.status === 400) {
+      error.message = data?.message || 'Ogiltig förfrågan.';
+    }
+      
+    throw error;
+  }
+    
+  return data;
 }
 
 /**

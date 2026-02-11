@@ -17,7 +17,7 @@ import { EDGE } from '../edgeNames';
 
 // Dev mode check for console logging
 const IS_DEV = typeof window !== 'undefined' && 
-  (window.location.hostname === 'localhost' || window.location.hostname.includes('base44'));
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
 // Valid level values for Supabase 'matches_level_check' constraint
 const VALID_LEVELS = ['beginner', 'intermediate', 'advanced', 'pro'];
@@ -95,16 +95,17 @@ export async function createMatch(payload) {
   const rawLevel = matchData.skill_bracket || matchData.level;
   const level = normalizeLevel(rawLevel);
   
-  // Get the venue UUID from frontend
-  const venueUuid = matchData.venue_id || matchData.pitch_id;
+  // Require venue_id (UUID) from frontend
+  const venueUuid = matchData.venue_id;
+  if (!venueUuid) {
+    throw new Error('Välj en plats/plan');
+  }
   
   // Transform frontend format to backend format
-  // venue_id = UUID (matches.venue_id uuid column)
-  // pitch_id = text fallback (matches.pitch_id text NOT NULL column)
   const backendPayload = {
     request_id: matchData.request_id || null, // Idempotency key
     venue_id: venueUuid,
-    pitch_id: String(venueUuid),
+    pitch_id: String(venueUuid), // text fallback required by backend
     starts_at: matchData.starts_at || (matchData.date && matchData.time ? `${matchData.date}T${matchData.time}:00` : null),
     level,
     is_public: matchData.is_public !== false && !matchData.is_private,
@@ -121,9 +122,6 @@ export async function createMatch(payload) {
   }
   
   // Validate required fields before sending
-  if (!backendPayload.venue_id) {
-    throw new Error('Venue/venue_id is required');
-  }
   if (!backendPayload.starts_at) {
     throw new Error('starts_at is required');
   }
