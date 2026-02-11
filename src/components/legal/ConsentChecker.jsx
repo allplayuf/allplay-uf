@@ -22,7 +22,7 @@ export default function ConsentChecker({ children }) {
     }
 
     // Check user metadata for consent version
-    const userConsentVersion = user.tos_accepted_version;
+    const userConsentVersion = user.tos_version_accepted;
     if (userConsentVersion === CONSENT_VERSION) {
       setAccepted(true);
     } else {
@@ -41,7 +41,11 @@ export default function ConsentChecker({ children }) {
     setSaving(true);
     try {
       // Save to user profile so it persists across sessions
-      await base44.auth.updateMe({ tos_accepted_version: CONSENT_VERSION });
+      await base44.auth.updateMe({ 
+        tos_version_accepted: CONSENT_VERSION,
+        tos_accepted_at: new Date().toISOString(),
+        tos_accepted_doc: 'tos_privacy_combined'
+      });
       // Also set sessionStorage so we don't re-check until page reloads
       try { sessionStorage.setItem('allplay_tos_accepted', CONSENT_VERSION); } catch {}
       setAccepted(true);
