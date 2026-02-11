@@ -35,11 +35,15 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requestId] = useState(() => crypto.randomUUID()); // Generate once per form instance
 
-  const filteredVenues = venues.filter(venue =>
-    venue.name.toLowerCase().includes(venueSearch.toLowerCase()) ||
-    venue.city.toLowerCase().includes(venueSearch.toLowerCase()) ||
-    venue.address.toLowerCase().includes(venueSearch.toLowerCase())
-  );
+  const filteredVenues = venues.filter(venue => {
+    if (!venueSearch) return true; // Show all venues when no search
+    const search = venueSearch.toLowerCase();
+    return (
+      (venue.name || '').toLowerCase().includes(search) ||
+      (venue.city || '').toLowerCase().includes(search) ||
+      (venue.address || '').toLowerCase().includes(search)
+    );
+  });
 
   const selectedVenue = venues.find(v => v.id === formData.venue_id);
 
@@ -168,15 +172,21 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
                     setFormData(prev => ({ ...prev, venue_id: '' }));
                   }
                 }}
-                onFocus={() => setShowVenueDropdown(true)}
-                onBlur={() => setTimeout(() => setShowVenueDropdown(false), 100)}
+                onFocus={() => {
+                  if (selectedVenue) {
+                    setFormData(prev => ({ ...prev, venue_id: '' }));
+                    setVenueSearch('');
+                  }
+                  setShowVenueDropdown(true);
+                }}
+                onBlur={() => setTimeout(() => setShowVenueDropdown(false), 200)}
                 className="w-full h-11 sm:h-12 px-4 bg-[#18221E] border border-[#223029] text-[#F4F7F5] placeholder:text-[#7B8A83] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/30 rounded-[14px] text-base outline-none transition-all"
               />
 
-              {showVenueDropdown && (venueSearch || !selectedVenue) && (
+              {showVenueDropdown && !selectedVenue && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-[#121715] border border-[#223029] rounded-[14px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] max-h-64 overflow-y-auto z-50">
                   {filteredVenues.length > 0 ? (
-                    filteredVenues.slice(0, 5).map(venue => (
+                    filteredVenues.slice(0, 10).map(venue => (
                       <button
                         key={venue.id}
                         type="button"
@@ -186,7 +196,7 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
                         <div className="font-semibold text-[#F4F7F5] text-sm mb-1">{venue.name}</div>
                         <div className="text-[13px] leading-[18px] text-[#B6C2BC] flex items-center gap-2">
                           <MapPin className="w-3 h-3" />
-                          {venue.address}, {venue.city}
+                          {[venue.address, venue.city].filter(Boolean).join(', ') || 'Ingen adress'}
                         </div>
                         {venue.formats_supported && venue.formats_supported.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-2">
