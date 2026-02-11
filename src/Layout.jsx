@@ -6,7 +6,6 @@ import { Toaster } from "sonner";
 import { QueryProvider, queryClient } from "@/components/providers/QueryProvider";
 import { PageLoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { PageTransition } from "@/components/ui/page-transition";
-import { base44 } from "@/api/base44Client";
 import { RouteProgress } from "@/components/ui/route-progress";
 import { RouteGuard } from "@/components/ui/route-guard";
 import { OnboardingModal } from "@/components/ui/onboarding-modal";
