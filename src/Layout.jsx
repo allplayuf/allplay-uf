@@ -121,23 +121,25 @@ export default function Layout({ children, currentPageName }) {
     }
   };
 
-  // Use useQuery for consistent user state management across the app
-  useQuery({
-    queryKey: ['user'],
-    queryFn: async () => {
-      const isAuth = await base44.auth.isAuthenticated();
-      if (!isAuth) {
-        setAdminCheckDone(true);
-        return { is_guest: true };
-      }
-      const currentUser = await base44.auth.me();
-      setIsAdmin(canAccessAdminPanel(currentUser));
-      setAdminCheckDone(true);
-      return currentUser;
-    },
-    staleTime: 10 * 60 * 1000, // 10 minutes (matches AUTH strategy)
-    retry: false
-  });
+  // Use Supabase auth state for admin check (SupabaseAuthProvider is source of truth)
+  const { user: supabaseUser, isAuthenticated: isSupabaseAuth, isLoading: isSupabaseLoading, roles: supabaseRoles, hasRole: supabaseHasRole } = useSupabaseAuth();
+
+  useEffect(() => {
+    if (isSupabaseLoading) return;
+    
+    if (isSupabaseAuth && supabaseUser) {
+      // Build a user-like object for canAccessAdminPanel
+      const userForCheck = {
+        ...supabaseUser,
+        role: supabaseHasRole('admin') ? 'admin' : 'user',
+        custom_roles: supabaseRoles.filter(r => r !== 'admin').map(r => r.toUpperCase())
+      };
+      setIsAdmin(canAccessAdminPanel(userForCheck));
+    } else {
+      setIsAdmin(false);
+    }
+    setAdminCheckDone(true);
+  }, [isSupabaseLoading, isSupabaseAuth, supabaseUser, supabaseRoles]);
 
   // Determine if current page is a root page or sub-page
   const isRootPage = navigationItems.some(item => location.pathname === item.url);
