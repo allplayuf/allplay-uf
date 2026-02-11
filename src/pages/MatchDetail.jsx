@@ -140,56 +140,56 @@ export default function MatchDetailPage() {
 
   const isAdmin = user?.role === 'admin';
 
-  // 2. Fetch Match Data from Supabase Edge Function
+  // Helper: normalize raw match data to UI format
+  const normalizeMatch = (raw) => {
+    if (!raw) return null;
+    // If result is wrapped in { match: {...} }
+    const m = raw.match || raw;
+    
+    let parsedDate = m.date;
+    let parsedTime = m.time;
+    if (m.starts_at && (!parsedDate || !parsedTime)) {
+      const startsAt = new Date(m.starts_at);
+      parsedDate = parsedDate || startsAt.toISOString().split('T')[0];
+      parsedTime = parsedTime || startsAt.toTimeString().substring(0, 5);
+    }
+    return {
+      ...m,
+      status: m.status === 'finished' ? 'completed' : m.status,
+      skill_bracket: m.level || m.skill_bracket,
+      venue_id: m.venue_id || m.pitch_id,
+      title: m.title || m.name || 'Match',
+      date: parsedDate,
+      time: parsedTime,
+      duration_minutes: m.duration_minutes || m.duration || 90,
+      max_players: m.max_players || m.capacity,
+      organizer_id: m.organizer_id || m.created_by,
+    };
+  };
+
+  // 2. Fetch Match Data - try Edge Function, fallback to Base44
   const { data: matchData, isLoading: matchLoading, error: matchError } = useQuery({
     queryKey: ['supabase-match', matchId],
     queryFn: async () => {
       if (!matchId) return null;
       
+      // Try Supabase Edge Function first
       try {
         const result = await getMatchDetails(matchId);
-        console.log('[MatchDetail] getMatchDetails result:', result);
-        console.log('[MatchDetail] result type:', typeof result, 'isArray:', Array.isArray(result));
-        
-        // Transform Supabase match to expected format
-        if (result) {
-          // Parse starts_at to get date and time
-          let parsedDate = result.date;
-          let parsedTime = result.time;
-        
-        if (result.starts_at && (!parsedDate || !parsedTime)) {
-          const startsAt = new Date(result.starts_at);
-          parsedDate = parsedDate || startsAt.toISOString().split('T')[0];
-          parsedTime = parsedTime || startsAt.toTimeString().substring(0, 5);
-        }
-        
-        return {
-          ...result,
-          // Map 'finished' status to 'completed' for UI compatibility
-          status: result.status === 'finished' ? 'completed' : result.status,
-          // Map level to skill_bracket for UI
-          skill_bracket: result.level || result.skill_bracket,
-          // Ensure venue_id is set
-          venue_id: result.venue_id || result.pitch_id,
-          // Use title or generate one
-          title: result.title || result.name || 'Match',
-          // Parsed date/time
-          date: parsedDate,
-          time: parsedTime,
-          // Duration
-          duration_minutes: result.duration_minutes || result.duration || 90,
-          // Max players
-          max_players: result.max_players || result.capacity,
-          // Organizer
-          organizer_id: result.organizer_id || result.created_by,
-        };
-      }
-      return null;
+        if (result) return normalizeMatch(result);
       } catch (error) {
-        console.error('[MatchDetail] getMatchDetails error:', error);
-        // Don't throw - let UI show fallback
-        return null;
+        console.warn('[MatchDetail] Edge function failed, falling back to Base44:', error.message);
       }
+      
+      // Fallback: load from Base44 entities
+      try {
+        const matches = await base44.entities.Match.filter({ id: matchId });
+        if (matches && matches.length > 0) return normalizeMatch(matches[0]);
+      } catch (e) {
+        console.error('[MatchDetail] Base44 fallback also failed:', e.message);
+      }
+      
+      return null;
     },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
     enabled: !!matchId,
@@ -241,33 +241,30 @@ export default function MatchDetailPage() {
     return { name: 'Okänd plan' };
   }, [match, venues]);
 
-  // 4. Fetch Participants from Supabase
+  // 4. Fetch Participants - try Edge Function, fallback to Base44
   const { data: participantsRaw = [], isLoading: participantsLoading } = useQuery({
     queryKey: ['supabase-matchParticipants', matchId],
     queryFn: async () => {
       if (!matchId) return [];
       
+      // Try Supabase Edge Function first
       try {
         const parts = await getMatchParticipants(matchId);
-        console.log('[MatchDetail] getMatchParticipants result:', parts);
-        console.log('[MatchDetail] participants type:', typeof parts, 'isArray:', Array.isArray(parts));
-        
-        // CRITICAL: Normalize to array
-        if (!parts) return [];
         if (Array.isArray(parts)) return parts;
-        
-        // If single object, wrap in array
-        if (typeof parts === 'object') {
-          console.warn('[MatchDetail] participants was object, wrapping in array');
-          return [parts];
-        }
-        
-        console.error('[MatchDetail] participants unexpected type:', typeof parts);
-        return [];
+        if (parts && typeof parts === 'object' && !Array.isArray(parts)) return [parts];
       } catch (error) {
-        console.error('[MatchDetail] getMatchParticipants error:', error);
-        return [];
+        console.warn('[MatchDetail] Edge participants failed, falling back to Base44:', error.message);
       }
+      
+      // Fallback: load from Base44 entities
+      try {
+        const parts = await base44.entities.MatchParticipant.filter({ match_id: matchId });
+        return Array.isArray(parts) ? parts : [];
+      } catch (e) {
+        console.error('[MatchDetail] Base44 participants fallback failed:', e.message);
+      }
+      
+      return [];
     },
     ...CACHE_STRATEGIES.DYNAMIC,
     enabled: !!matchId
@@ -292,19 +289,26 @@ export default function MatchDetailPage() {
 
   // Merge participants with user data
   const participants = React.useMemo(() => {
-    // CRITICAL: Ensure arrays
     const usersArray = Array.isArray(participantUsers) ? participantUsers : [];
     const rawArray = Array.isArray(participantsRaw) ? participantsRaw : [];
     
-    console.log('[MatchDetail] Merging participants:', { 
-      usersCount: usersArray.length, 
-      rawCount: rawArray.length 
-    });
+    // If we have user data, merge with participant info
+    if (usersArray.length > 0) {
+      return usersArray.map(u => {
+        const participantInfo = rawArray.find(p => p.user_id === u.id);
+        return { ...u, participantInfo };
+      });
+    }
     
-    return usersArray.map(u => {
-      const participantInfo = rawArray.find(p => p.user_id === u.id);
-      return { ...u, participantInfo };
-    });
+    // If no user data fetched yet but we have raw participants, show them with minimal info
+    return rawArray.map(p => ({
+      id: p.user_id,
+      full_name: p.full_name || p.display_name || 'Spelare',
+      display_name: p.display_name || p.full_name,
+      profile_image_url: p.profile_image_url,
+      city: p.city,
+      participantInfo: p,
+    }));
   }, [participantUsers, participantsRaw]);
 
   // 5. Fetch Friendships (keeping Base44 for friendships for now - can be migrated later)
