@@ -69,7 +69,7 @@ const navigationItems = [
   }
 ];
 
-export default function Layout({ children, currentPageName }) {
+function LayoutInner({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -111,22 +111,19 @@ export default function Layout({ children, currentPageName }) {
     const isCurrentTab = location.pathname.startsWith(item.url);
     
     if (isCurrentTab) {
-      // Already on this tab - navigate to root
       navigate(item.url);
     } else {
-      // Navigate to last known path for this tab
       navigate(tabPaths[item.title] || item.url);
     }
   };
 
-  // Use Supabase auth state for admin check (SupabaseAuthProvider is source of truth)
+  // Use Supabase auth state for admin check
   const { user: supabaseUser, isAuthenticated: isSupabaseAuth, isLoading: isSupabaseLoading, roles: supabaseRoles, hasRole: supabaseHasRole } = useSupabaseAuth();
 
   useEffect(() => {
     if (isSupabaseLoading) return;
     
     if (isSupabaseAuth && supabaseUser) {
-      // Build a user-like object for canAccessAdminPanel
       const userForCheck = {
         ...supabaseUser,
         role: supabaseHasRole('admin') ? 'admin' : 'user',
@@ -143,8 +140,6 @@ export default function Layout({ children, currentPageName }) {
   const isRootPage = navigationItems.some(item => location.pathname === item.url);
 
   return (
-    <QueryProvider>
-      <SupabaseAuthProvider>
       <ErrorBoundary>
         <RouteProgress />
         <OnboardingModal />
