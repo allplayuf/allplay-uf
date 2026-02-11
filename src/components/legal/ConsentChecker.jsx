@@ -1,31 +1,65 @@
 /**
  * ConsentChecker - wraps app content
- * If authenticated user hasn't accepted current ToS version in this session, shows ConsentGate.
- * Acceptance is purely client-side (session state) - no backend save required.
+ * If authenticated user hasn't accepted current ToS version, shows ConsentGate.
+ * Acceptance is persisted on the user's profile via updateMe so it survives sessions.
  */
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
 import { CONSENT_VERSION } from "./consentConstants";
 import ConsentGate from "./ConsentGate";
+import { base44 } from "@/api/base44Client";
 
 export default function ConsentChecker({ children }) {
-  const { isAuthenticated, isGuest, isLoading, logout } = useSupabaseAuth();
-  const [accepted, setAccepted] = useState(() => {
-    try {
-      return sessionStorage.getItem('allplay_tos_accepted') === CONSENT_VERSION;
-    } catch { return false; }
-  });
+  const { isAuthenticated, isGuest, isLoading, logout, user } = useSupabaseAuth();
+  const [accepted, setAccepted] = useState(null); // null = checking, true/false = known
+  const [saving, setSaving] = useState(false);
 
-  const handleAccept = () => {
-    try { sessionStorage.setItem('allplay_tos_accepted', CONSENT_VERSION); } catch {}
-    setAccepted(true);
+  // Check if user already accepted this version (from user profile data)
+  useEffect(() => {
+    if (isLoading || isGuest || !isAuthenticated || !user) {
+      setAccepted(null);
+      return;
+    }
+
+    // Check user metadata for consent version
+    const userConsentVersion = user.tos_accepted_version;
+    if (userConsentVersion === CONSENT_VERSION) {
+      setAccepted(true);
+    } else {
+      // Also check sessionStorage as fallback during same session after accepting
+      try {
+        if (sessionStorage.getItem('allplay_tos_accepted') === CONSENT_VERSION) {
+          setAccepted(true);
+          return;
+        }
+      } catch {}
+      setAccepted(false);
+    }
+  }, [isLoading, isGuest, isAuthenticated, user]);
+
+  const handleAccept = async () => {
+    setSaving(true);
+    try {
+      // Save to user profile so it persists across sessions
+      await base44.auth.updateMe({ tos_accepted_version: CONSENT_VERSION });
+      // Also set sessionStorage so we don't re-check until page reloads
+      try { sessionStorage.setItem('allplay_tos_accepted', CONSENT_VERSION); } catch {}
+      setAccepted(true);
+    } catch (err) {
+      console.error('Failed to save consent:', err);
+      // Still let user through this session even if save fails
+      try { sessionStorage.setItem('allplay_tos_accepted', CONSENT_VERSION); } catch {}
+      setAccepted(true);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = () => {
     logout();
   };
 
-  if (isLoading) return children;
+  if (isLoading || accepted === null) return children;
   if (isGuest || !isAuthenticated) return children;
 
   if (!accepted) {
