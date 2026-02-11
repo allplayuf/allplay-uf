@@ -319,6 +319,14 @@ function LayoutInner({ children }) {
         </div>
         </ConsentChecker>
       </ErrorBoundary>
+  );
+}
+
+export default function Layout({ children, currentPageName }) {
+  return (
+    <QueryProvider>
+      <SupabaseAuthProvider>
+        <LayoutInner>{children}</LayoutInner>
       </SupabaseAuthProvider>
     </QueryProvider>
   );
