@@ -11,7 +11,6 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
   ArrowLeft,
-  Download,
   Trash2,
   Bell,
   Shield,
@@ -20,7 +19,6 @@ import {
   AlertTriangle,
   Check,
   Loader2,
-  FileJson,
   Lock,
   Mail,
   FileText,
@@ -38,7 +36,6 @@ export default function AccountSettingsPage() {
   const queryClient = useQueryClient();
   const { confirm, alert, DialogContainer } = useCustomDialog();
   
-  const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteConfirmEmail, setDeleteConfirmEmail] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -96,39 +93,6 @@ export default function AccountSettingsPage() {
       // Revert on error
       setSettings(prev => ({ ...prev, [key]: !value }));
       await alert('Fel', 'Kunde inte uppdatera inställning. Försök igen.', { type: 'alert' });
-    }
-  };
-
-  const handleExportData = async () => {
-    setIsExporting(true);
-    try {
-      const { data: response } = await base44.functions.invoke('exportUserData', {});
-      
-      if (response?.success) {
-        // Create downloadable JSON file
-        const blob = new Blob([JSON.stringify(response.data, null, 2)], { 
-          type: 'application/json' 
-        });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `allplay-data-${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        a.remove();
-
-        await alert(
-          'Data exporterad!', 
-          'Din data har laddats ner som en JSON-fil.',
-          { type: 'success' }
-        );
-      }
-    } catch (error) {
-      console.error("Error exporting data:", error);
-      await alert('Exportfel', 'Kunde inte exportera data. Försök igen.', { type: 'alert' });
-    } finally {
-      setIsExporting(false);
     }
   };
 

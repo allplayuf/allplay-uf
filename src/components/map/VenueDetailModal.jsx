@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   X,
   MapPin,
-  Star,
   Navigation,
   Calendar,
   Users,
