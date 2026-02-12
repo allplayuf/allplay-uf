@@ -11,7 +11,7 @@ export default function FilterSheet({ filters, onFilterChange }) {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <button className="flex-1 h-11 flex items-center justify-center gap-2 bg-[#18221E] border border-[#223029] hover:bg-[#2BA84A]/20 text-[#F4F7F5] rounded-[14px] transition-all font-medium text-sm">
+        <button className="flex-1 h-10 flex items-center justify-center gap-2 bg-[#18221E]/80 border border-[#223029]/60 hover:bg-[#2BA84A]/15 hover:border-[#2BA84A]/25 text-[#F4F7F5] rounded-full transition-all font-semibold text-xs shadow-[0_0_8px_rgba(43,168,74,0.08)]">
           <SlidersHorizontal className="w-4 h-4" />
           Filter
         </button>
