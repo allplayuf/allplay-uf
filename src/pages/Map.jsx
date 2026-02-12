@@ -270,46 +270,58 @@ export default function MapPage() {
   };
 
   const totalMatchesInRange = filteredVenues.reduce((sum, venue) => sum + (venue.upcoming_matches?.length || 0), 0);
+  const nearbyActiveMatches = filteredVenues.filter(v => (v.upcoming_matches?.length || 0) > 0).length;
 
   return (
     <div className="min-h-screen bg-[#0F1513]">
       <div className="lg:hidden flex flex-col pb-16" style={{ height: 'calc(100vh - env(safe-area-inset-top))' }}>
-        <div className="sticky top-0 z-[100] bg-[#121715] border-b border-[#223029] p-3 space-y-3 shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
-          <div className="flex items-center justify-between">
-            <div className="flex gap-1 bg-[#18221E] rounded-[12px] p-1 border border-[#223029]">
+        <div className="sticky top-0 z-[100] bg-[#121715]/95 backdrop-blur-xl border-b border-[#223029]/60 p-3 space-y-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+          
+          {/* Live matches banner */}
+          {totalMatchesInRange > 0 && viewMode === 'map' && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#2BA84A]/10 border border-[#2BA84A]/20">
+              <div className="w-2 h-2 rounded-full bg-[#2BA84A] animate-pulse" />
+              <span className="text-xs font-semibold text-[#86EFAC]">
+                {totalMatchesInRange} {totalMatchesInRange === 1 ? 'match' : 'matcher'} nära dig just nu
+              </span>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2">
+            <div className="flex gap-1 bg-[#18221E]/80 rounded-full p-1 border border-[#223029]/60">
               <button
                 onClick={() => setViewMode("list")}
-                className={`flex items-center justify-center gap-1 px-3 h-9 rounded-[10px] text-[13px] leading-[18px] font-medium transition-all ${
+                className={`flex items-center justify-center gap-1 px-3 h-8 rounded-full text-[12px] font-semibold transition-all ${
                   viewMode === "list"
                     ? 'bg-[#2BA84A]/16 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30'
-                    : 'text-[#B6C2BC]'
+                    : 'text-[#7B8A83]'
                 }`}
               >
-                <List className="w-4 h-4" />
+                <List className="w-3.5 h-3.5" />
                 Lista
               </button>
               <button
                 onClick={() => setViewMode("map")}
-                className={`flex items-center justify-center gap-1 px-3 h-9 rounded-[10px] text-[13px] leading-[18px] font-medium transition-all ${
+                className={`flex items-center justify-center gap-1 px-3 h-8 rounded-full text-[12px] font-semibold transition-all ${
                   viewMode === "map"
                     ? 'bg-[#2BA84A]/16 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30'
-                    : 'text-[#B6C2BC]'
+                    : 'text-[#7B8A83]'
                 }`}
               >
-                <MapIcon className="w-4 h-4" />
+                <MapIcon className="w-3.5 h-3.5" />
                 Karta
               </button>
             </div>
-          </div>
-          
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B6C2BC] w-5 h-5" />
-            <Input
-              placeholder="Sök planer..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-11 bg-[#18221E] border border-[#223029] text-[#F4F7F5] placeholder:text-[#B6C2BC] focus:border-[#2BA84A] rounded-[14px] text-sm"
-            />
+            
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#7B8A83] w-4 h-4" />
+              <Input
+                placeholder="Sök planer..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 h-10 bg-[#18221E]/80 border border-[#223029]/60 text-[#F4F7F5] placeholder:text-[#7B8A83] focus:border-[#2BA84A]/50 rounded-full text-xs"
+              />
+            </div>
           </div>
 
           <div className="flex gap-2">
@@ -317,19 +329,16 @@ export default function MapPage() {
             
             <button 
               onClick={getUserLocation}
-              className="h-11 w-11 flex-shrink-0 flex items-center justify-center bg-[#18221E] border border-[#223029] hover:bg-[#2BA84A]/20 text-[#2BA84A] rounded-[14px] transition-all"
+              className="h-10 w-10 flex-shrink-0 flex items-center justify-center bg-[#2BA84A]/12 border border-[#2BA84A]/25 hover:bg-[#2BA84A]/20 text-[#2BA84A] rounded-full transition-all shadow-[0_0_12px_rgba(43,168,74,0.15)]"
             >
-              <Navigation className="w-5 h-5" />
+              <Navigation className="w-4 h-4" />
             </button>
-          </div>
-
-          <div className="flex items-center justify-between text-[13px] leading-[18px]">
-            <span className="font-medium text-[#F4F7F5]">{filteredVenues.length} planer</span>
-            <div className="flex items-center gap-2">
-              <span className="inline-flex h-6 items-center rounded-full bg-[#2BA84A]/18 px-2 font-medium text-[#CFE8D6] ring-1 ring-[#2BA84A]/25">
-                {totalMatchesInRange} matcher
+            
+            <div className="flex items-center gap-1.5 ml-auto">
+              <span className="inline-flex h-7 items-center rounded-full bg-[#2BA84A]/12 px-2.5 text-[11px] font-bold text-[#86EFAC] ring-1 ring-[#2BA84A]/20">
+                ⚽ {totalMatchesInRange}
               </span>
-              <span className="inline-flex h-6 items-center rounded-full bg-[#F4743B]/18 px-2 font-medium text-[#FDE3D2] ring-1 ring-[#F4743B]/25">
+              <span className="inline-flex h-7 items-center rounded-full bg-[#18221E] px-2.5 text-[11px] font-medium text-[#7B8A83] ring-1 ring-[#223029]/60">
                 {filters.distance}km
               </span>
             </div>
