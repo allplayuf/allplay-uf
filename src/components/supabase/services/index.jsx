@@ -69,6 +69,14 @@ export {
   getAllParticipants
 } from './participantsService';
 
+// Teams
+export {
+  getTeams,
+  getTeamMembers,
+  getMyTeamMemberships,
+  createTeam as createSupabaseTeam
+} from './teamsService';
+
 // Reports
 export {
   reportUser,

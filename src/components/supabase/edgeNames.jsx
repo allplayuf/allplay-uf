@@ -37,9 +37,13 @@ export const EDGE = {
   getCupDetails: 'get_cup_details',
   signupToCup: 'signup_to_cup',
 
+  // Teams
+  createTeam: 'create_team',
+  
   // Account
   deleteAccount: 'delete_account',
   
   // Legacy mappings (for migration period)
   checkInToMatch: 'check_in_match', // Old name -> new name
 };
+
