@@ -402,32 +402,52 @@ export default function MapPage() {
       </div>
 
       <div className="hidden lg:flex h-screen">
-        <div className="w-96 bg-[#121715] border-r border-[#223029] flex flex-col z-10">
-          <div className="sticky top-0 z-10 bg-[#121715] p-4 border-b border-[#223029] space-y-3">
-            <h1 className="text-[28px] leading-[34px] font-semibold text-[#F4F7F5] flex items-center gap-2">
-              <MapPin className="w-6 h-6 text-[#2BA84A]" />
-              Hitta planer
-            </h1>
+        <div className="w-96 bg-[#121715] border-r border-[#223029]/60 flex flex-col z-10">
+          <div className="sticky top-0 z-10 bg-[#121715] p-4 border-b border-[#223029]/60 space-y-3">
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl font-bold text-[#F4F7F5] flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-[#2BA84A]/15 flex items-center justify-center ring-1 ring-[#2BA84A]/25">
+                  <MapPin className="w-4 h-4 text-[#2BA84A]" />
+                </div>
+                Hitta planer
+              </h1>
+              <button 
+                onClick={getUserLocation}
+                className="h-9 w-9 flex items-center justify-center bg-[#2BA84A]/12 border border-[#2BA84A]/25 hover:bg-[#2BA84A]/20 text-[#2BA84A] rounded-full transition-all shadow-[0_0_12px_rgba(43,168,74,0.15)]"
+              >
+                <Navigation className="w-4 h-4" />
+              </button>
+            </div>
+            
+            {/* Live banner */}
+            {totalMatchesInRange > 0 && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#2BA84A]/8 border border-[#2BA84A]/15">
+                <div className="w-2 h-2 rounded-full bg-[#2BA84A] animate-pulse" />
+                <span className="text-xs font-semibold text-[#86EFAC]">
+                  {totalMatchesInRange} {totalMatchesInRange === 1 ? 'match' : 'matcher'} nära dig
+                </span>
+              </div>
+            )}
             
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B6C2BC] w-5 h-5" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#7B8A83] w-4 h-4" />
               <Input
                 placeholder="Sök planer eller områden..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-12 bg-[#18221E] border border-[#223029] text-[#F4F7F5] placeholder:text-[#B6C2BC] focus:border-[#2BA84A] rounded-[16px] text-base"
+                className="pl-10 h-11 bg-[#18221E]/80 border border-[#223029]/60 text-[#F4F7F5] placeholder:text-[#7B8A83] focus:border-[#2BA84A]/50 rounded-full text-sm"
               />
             </div>
 
             <div className="flex gap-2">
               <Select value={filters.format} onValueChange={(value) => setFilters(prev => ({ ...prev, format: value }))}>
-                <SelectTrigger className="h-12 flex-1 bg-[#18221E] border border-[#223029] text-[#F4F7F5] rounded-[16px]">
-                  <Filter className="w-5 h-5 mr-2" />
+                <SelectTrigger className="h-10 flex-1 bg-[#18221E]/80 border border-[#223029]/60 text-[#F4F7F5] rounded-full text-xs">
+                  <Filter className="w-4 h-4 mr-1.5" />
                   <SelectValue>
                     {formatLabels[filters.format]}
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent className="bg-[#121715] border border-[#223029] rounded-[16px]">
+                <SelectContent className="bg-[#121715] border border-[#223029] rounded-xl">
                   <SelectItem value="all">Alla format</SelectItem>
                   <SelectItem value="5v5">5v5</SelectItem>
                   <SelectItem value="7v7">7v7</SelectItem>
@@ -436,36 +456,29 @@ export default function MapPage() {
               </Select>
               
               <Select value={filters.sortBy} onValueChange={(value) => setFilters(prev => ({ ...prev, sortBy: value }))}>
-                <SelectTrigger className="h-12 flex-1 bg-[#18221E] border border-[#223029] text-[#F4F7F5] rounded-[16px]">
-                  <SlidersHorizontal className="w-5 h-5 mr-2" />
+                <SelectTrigger className="h-10 flex-1 bg-[#18221E]/80 border border-[#223029]/60 text-[#F4F7F5] rounded-full text-xs">
+                  <SlidersHorizontal className="w-4 h-4 mr-1.5" />
                   <SelectValue>
                     {sortByLabels[filters.sortBy]}
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent className="bg-[#121715] border border-[#223029] rounded-[16px]">
+                <SelectContent className="bg-[#121715] border border-[#223029] rounded-xl">
                   <SelectItem value="distance">Närmast</SelectItem>
                   <SelectItem value="rating">Betyg</SelectItem>
                   <SelectItem value="matches">Matcher</SelectItem>
                 </SelectContent>
               </Select>
-
-              <button 
-                onClick={getUserLocation}
-                className="h-12 w-12 flex items-center justify-center bg-[#18221E] border border-[#223029] hover:bg-[#2BA84A]/20 text-[#2BA84A] rounded-[16px] transition-all hover:scale-[1.02]"
-              >
-                <Navigation className="w-5 h-5" />
-              </button>
             </div>
 
-            <div className="flex items-center justify-between">
-              <span className="text-base font-medium text-[#F4F7F5]">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-semibold text-[#F4F7F5]">
                 {filteredVenues.length} planer
               </span>
-              <div className="flex items-center gap-2">
-                <span className="inline-flex h-7 items-center rounded-full bg-[#2BA84A]/18 px-3 text-[13px] leading-[18px] font-medium text-[#CFE8D6] ring-1 ring-[#2BA84A]/25">
-                  {totalMatchesInRange} matcher
+              <div className="flex items-center gap-1.5">
+                <span className="inline-flex h-6 items-center rounded-full bg-[#2BA84A]/12 px-2.5 font-bold text-[#86EFAC] ring-1 ring-[#2BA84A]/20 text-[11px]">
+                  ⚽ {totalMatchesInRange}
                 </span>
-                <span className="inline-flex h-7 items-center rounded-full bg-[#F4743B]/18 px-3 text-[13px] leading-[18px] font-medium text-[#FDE3D2] ring-1 ring-[#F4743B]/25">
+                <span className="inline-flex h-6 items-center rounded-full bg-[#18221E] px-2.5 font-medium text-[#7B8A83] ring-1 ring-[#223029]/60 text-[11px]">
                   {filters.distance}km
                 </span>
               </div>
