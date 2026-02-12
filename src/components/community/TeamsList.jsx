@@ -8,7 +8,7 @@ import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import RankBadge from "../teams/RankBadge";
 
-export default function TeamsList({ teams, user, onRefresh }) {
+export default function TeamsList({ teams, user, onRefresh, onCreateTeam }) {
   if (teams.length === 0) {
     return (
       <Card className="relative overflow-hidden bg-gradient-to-br from-[#2BA84A] to-[#0F2917] rounded-[16px] lg:rounded-[20px] p-8 sm:p-12 lg:p-16 shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029]">
@@ -19,11 +19,14 @@ export default function TeamsList({ teams, user, onRefresh }) {
           <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-[#FFFFFF]/15 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6 border border-[#FFFFFF]/25">
             <Shield className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-[#EAF6EE]" />
           </div>
-          <h3 className="text-[20px] leading-[28px] sm:text-[28px] sm:leading-[34px] font-semibold text-[#EAF6EE] mb-3">Inga lag än</h3>
+          <h3 className="text-[20px] leading-[28px] sm:text-[28px] sm:leading-[34px] font-semibold text-[#EAF6EE] mb-3">Inga lag ännu</h3>
           <p className="text-[14px] leading-[20px] text-[#CFE8D6] mb-8 max-w-md mx-auto">
-            Skapa eller gå med i ett lag för att tävla tillsammans och bygga något större!
+            Skapa ett nytt lag för att tävla tillsammans och bygga något större!
           </p>
-          <button className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#FFFFFF]/16 px-6 text-[#EAF6EE] ring-1 ring-[#FFFFFF]/30 transition-all hover:bg-[#FFFFFF]/24 hover:ring-[#FFFFFF]/45 hover:scale-[1.02] font-semibold">
+          <button 
+            onClick={onCreateTeam}
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#FFFFFF]/16 px-6 text-[#EAF6EE] ring-1 ring-[#FFFFFF]/30 transition-all hover:bg-[#FFFFFF]/24 hover:ring-[#FFFFFF]/45 hover:scale-[1.02] font-semibold"
+          >
             <Plus className="w-5 h-5" />
             Skapa ditt första lag
           </button>
