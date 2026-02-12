@@ -111,7 +111,8 @@ export default function CommunityPage() {
     };
   }, [authUser, userProfile, isGuestUser]);
 
-  const userLoading = authLoading || (isAuthenticatedUser && (!authUser || profileLoading));
+  // Only block on auth loading, not profile loading - data queries can start once we have authUser
+  const userLoading = authLoading;
   const userError = null; // Errors handled by individual queries
 
   // Handle rate limit errors
