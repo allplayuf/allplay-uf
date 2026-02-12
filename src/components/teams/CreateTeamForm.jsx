@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Shield, X, Upload, Image as ImageIcon, Info, Palette, Check } from "lucide-react";
+import { Shield, X, Upload, Image as ImageIcon, Palette, Check, Loader2, Users, MapPin } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 
@@ -21,9 +21,10 @@ export default function CreateTeamForm({ user, onSubmit, onCancel }) {
     current_members: 1,
     elo_rating: 1000,
     rank_tier: 'brons',
-    teamColor: '#2BA84A' // Default green
+    teamColor: '#2BA84A'
   });
   const [isUploading, setIsUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [logoPreview, setLogoPreview] = useState('');
 
   const handleLogoUpload = async (e) => {
@@ -53,34 +54,60 @@ export default function CreateTeamForm({ user, onSubmit, onCancel }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.city) {
-      alert("Fyll i lagnamn och stad!");
-      return;
+    if (!formData.name.trim() || !formData.city.trim()) return;
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await onSubmit(formData);
+    } finally {
+      setIsSubmitting(false);
     }
-    onSubmit(formData);
   };
+
+  const canSubmit = formData.name.trim().length > 0 && formData.city.trim().length > 0 && !isSubmitting;
 
   return (
     <>
       <Card className="bg-[#121715] border-0 shadow-none rounded-t-[20px] lg:rounded-[20px] flex flex-col h-full overflow-hidden">
-        <CardHeader className="border-b border-[#223029] bg-gradient-to-br from-[#9B59B6]/10 to-[#8E44AD]/10 rounded-t-[20px] lg:rounded-t-[16px] p-4 sm:p-6 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg sm:text-xl lg:text-2xl font-semibold text-[#F4F7F5] flex items-center gap-2 sm:gap-3">
-              <Shield className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#9B59B6]" />
-              <span>Skapa nytt lag</span>
-            </CardTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onCancel}
-              className="text-[#B6C2BC] hover:bg-[#18221E] hover:text-[#F4F7F5] rounded-xl min-w-[40px] min-h-[40px] sm:min-w-[44px] sm:min-h-[44px]"
-            >
-              <X className="w-5 h-5 sm:w-6 sm:h-6" />
-            </Button>
+        {/* Header with team color preview */}
+        <div className="relative overflow-hidden rounded-t-[20px] lg:rounded-t-[16px] flex-shrink-0">
+          <div 
+            className="absolute inset-0 opacity-20"
+            style={{ background: `linear-gradient(135deg, ${formData.teamColor}, transparent)` }}
+          />
+          <div className="relative border-b border-[#223029] p-4 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div 
+                  className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg overflow-hidden"
+                  style={{ background: `linear-gradient(135deg, ${formData.teamColor}, ${formData.teamColor}88)` }}
+                >
+                  {logoPreview || formData.logo_url ? (
+                    <img src={logoPreview || formData.logo_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <Shield className="w-6 h-6 text-white" />
+                  )}
+                </div>
+                <div>
+                  <h2 className="text-lg sm:text-xl font-bold text-[#F4F7F5]">
+                    {formData.name || 'Nytt lag'}
+                  </h2>
+                  <p className="text-xs text-[#7B8A83]">
+                    {formData.city || 'Välj stad'} • {formData.max_members} spelare max
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={onCancel}
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-[#7B8A83] hover:bg-[#18221E] hover:text-[#F4F7F5] transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
-        </CardHeader>
+        </div>
 
         <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4 overflow-y-auto flex-1 overscroll-contain">
           <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
@@ -228,57 +255,28 @@ export default function CreateTeamForm({ user, onSubmit, onCancel }) {
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-2 pt-2">
-              <button
-                type="button"
-                onClick={onCancel}
-                className="flex-1 inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] hover:text-[#F4F7F5] font-semibold transition-all min-h-[44px]"
-              >
-                Avbryt
-              </button>
-              
-              <motion.button
-                type="submit"
-                animate={{
-                  boxShadow: [
-                    '0 4px 16px rgba(155, 89, 182, 0.3)',
-                    '0 4px 20px rgba(155, 89, 182, 0.5)',
-                    '0 4px 16px rgba(155, 89, 182, 0.3)'
-                  ]
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  repeatDelay: 3
-                }}
-                whileHover={{
-                  scale: 1.03,
-                  boxShadow: '0 6px 24px rgba(155, 89, 182, 0.6)'
-                }}
-                whileTap={{ 
-                  scale: 0.98,
-                  boxShadow: '0 2px 12px rgba(155, 89, 182, 0.4)'
-                }}
-                className="flex-1 inline-flex h-11 items-center justify-center gap-2 rounded-[14px] bg-gradient-to-r from-[#9B59B6] to-[#8E44AD] text-white font-bold text-[13px] tracking-wide uppercase ring-2 ring-[#9B59B6]/30 transition-all relative overflow-hidden min-h-[44px]"
-              >
-                <span className="relative z-10">Skapa lag</span>
-                <Shield className="w-4 h-4 relative z-10" />
-                
-                {/* Shine effect */}
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                  animate={{
-                    x: ['-100%', '100%']
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    repeatDelay: 4
-                  }}
-                />
-              </motion.button>
-            </div>
+            {/* Submit Button - always visible */}
+            <button
+              type="submit"
+              disabled={!canSubmit}
+              className={`w-full h-12 rounded-[14px] font-bold text-base flex items-center justify-center gap-2 transition-all ${
+                canSubmit
+                  ? 'bg-gradient-to-r from-[#2BA84A] to-[#248232] text-white shadow-[0_4px_16px_rgba(43,168,74,0.4)] hover:shadow-[0_6px_24px_rgba(43,168,74,0.5)] hover:scale-[1.01] active:scale-[0.99]'
+                  : 'bg-[#18221E] text-[#7B8A83] cursor-not-allowed'
+              }`}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Skapar lag...
+                </>
+              ) : (
+                <>
+                  <Shield className="w-5 h-5" />
+                  Skapa lag
+                </>
+              )}
+            </button>
           </form>
         </CardContent>
       </Card>
