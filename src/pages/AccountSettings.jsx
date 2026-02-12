@@ -43,6 +43,7 @@ export default function AccountSettingsPage() {
   const [settings, setSettings] = useState({
     marketing_opt_in: false,
     publicProfile: true,
+    is_public: true,
     hide_exact_location: false
   });
 
@@ -67,6 +68,7 @@ export default function AccountSettingsPage() {
       setSettings({
         marketing_opt_in: user.marketing_opt_in || false,
         publicProfile: user.publicProfile !== false,
+        is_public: user.is_public !== false,
         hide_exact_location: user.hide_exact_location || user.is_minor || false
       });
     }
@@ -83,16 +85,29 @@ export default function AccountSettingsPage() {
       return;
     }
 
+    // Optimistic update
+    const prevSettings = { ...settings };
     setSettings(prev => ({ ...prev, [key]: value }));
+
+    // If toggling is_public, also sync publicProfile for legacy compatibility
+    const payload = { [key]: value };
+    if (key === 'is_public') {
+      payload.publicProfile = value;
+      setSettings(prev => ({ ...prev, publicProfile: value }));
+    }
+    if (key === 'publicProfile') {
+      payload.is_public = value;
+      setSettings(prev => ({ ...prev, is_public: value }));
+    }
     
     try {
-      await callEdgeFunction('update_profile', { [key]: value });
+      await callEdgeFunction('update_profile', payload);
       queryClient.invalidateQueries({ queryKey: ['supabase-userProfile'] });
     } catch (error) {
       console.error("Error updating setting:", error);
       // Revert on error
-      setSettings(prev => ({ ...prev, [key]: !value }));
-      await alert('Fel', 'Kunde inte uppdatera inställning. Försök igen.', { type: 'alert' });
+      setSettings(prevSettings);
+      await alert('Fel', 'Det gick inte att uppdatera profilinställningen. Försök igen.', { type: 'alert' });
     }
   };
 
@@ -186,17 +201,23 @@ export default function AccountSettingsPage() {
                 <h2 className="text-lg font-semibold text-[#F4F7F5]">Integritet</h2>
               </div>
 
-              {/* Public Profile */}
+              {/* Public Profile (is_public) */}
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <Label className="text-[#F4F7F5] font-semibold">Offentlig profil</Label>
                   <p className="text-sm text-[#7B8A83]">
                     Låt andra spelare se din profil och statistik
                   </p>
+                  {!settings.is_public && (
+                    <p className="text-xs text-[#F4743B] mt-1 flex items-center gap-1">
+                      <EyeOff className="w-3 h-3" />
+                      Ditt namn, bild och statistik döljs för andra
+                    </p>
+                  )}
                 </div>
                 <Switch
-                  checked={settings.publicProfile}
-                  onCheckedChange={(checked) => handleSettingChange('publicProfile', checked)}
+                  checked={settings.is_public}
+                  onCheckedChange={(checked) => handleSettingChange('is_public', checked)}
                 />
               </div>
 
