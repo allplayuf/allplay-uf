@@ -85,34 +85,34 @@ export default function CommunityPage() {
     }
   }, [locationHook.search, activeTab, urlParams]);
 
-  // Fetch current user with OPTIMIZED caching (same as Dashboard)
-  // Handle guest users - they should see a login prompt on Community page
-  const { data: user, isLoading: userLoading, error: userError } = useQuery({
-    queryKey: QUERY_KEYS.user,
-    queryFn: async () => {
-      const isAuth = await base44.auth.isAuthenticated();
-      if (!isAuth) {
-        // Return guest marker - Community page will show login prompt
-        return { is_guest: true };
-      }
-      const currentUser = await base44.auth.me();
-      
-      if (currentUser.city && !currentUser.cityNormalized) {
-        try {
-          await base44.auth.updateMe({
-            cityNormalized: currentUser.city.trim().toLowerCase()
-          });
-          currentUser.cityNormalized = currentUser.city.trim().toLowerCase();
-        } catch (err) {
-          console.error('Failed to update cityNormalized:', err);
-        }
-      }
-      
-      return currentUser;
-    },
+  const { user: authUser, isGuest: isGuestUser, isAuthenticated: isAuthenticatedUser, isLoading: authLoading } = useSupabaseAuth();
+
+  // Fetch user profile from Supabase users table for profile_image_url etc.
+  const { data: userProfile, isLoading: profileLoading } = useQuery({
+    queryKey: ['supabase-userProfile', authUser?.id],
+    queryFn: () => getMyProfile(),
     ...CACHE_STRATEGIES.AUTH,
-    retry: false,
+    enabled: isAuthenticatedUser && !!authUser?.id,
   });
+
+  // Merge auth user with Supabase profile (consistent with Dashboard and Profile)
+  const user = React.useMemo(() => {
+    if (isGuestUser) {
+      return { is_guest: true, display_name: 'Gäst', full_name: 'Gäst' };
+    }
+    if (!authUser) return null;
+    return {
+      ...authUser,
+      ...userProfile,
+      id: authUser.id,
+      profile_image_url: userProfile?.profile_image_url || userProfile?.avatar_url || authUser?.profile_image_url || authUser?.avatar_url,
+      display_name: userProfile?.display_name || userProfile?.full_name || authUser?.display_name || authUser?.full_name,
+      full_name: userProfile?.full_name || userProfile?.display_name || authUser?.full_name || authUser?.display_name,
+    };
+  }, [authUser, userProfile, isGuestUser]);
+
+  const userLoading = authLoading || (isAuthenticatedUser && profileLoading);
+  const userError = null; // Errors handled by individual queries
 
   // Handle rate limit errors
   useEffect(() => {
