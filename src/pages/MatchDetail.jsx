@@ -34,6 +34,7 @@ import {
   joinMatch, 
   leaveMatch,
   deleteMatch,
+  finishMatch,
   getMatchDetails,
   getMatchParticipants
 } from "../components/supabase/services/matchesService";
@@ -350,10 +351,12 @@ export default function MatchDetailPage() {
       if (context?.previousParticipants) {
         queryClient.setQueryData(['supabase-matchParticipants', matchId], context.previousParticipants);
       }
-      alert('Kunde inte anmäla dig', error.message || 'Försök igen.', { type: 'alert' });
+      // Map specific errors to Swedish
+      const msg = error.message || 'Det gick inte att gå med i matchen. Försök igen.';
+      alert('Kunde inte anmäla dig', msg, { type: 'alert' });
     },
     onSuccess: () => {
-      alert('Anmäld! 🎉', `Du har anmält dig till "${match.title}". Vi ses där!`, { type: 'success' });
+      alert('Du är med i matchen! ⚽', `Du har anmält dig till "${match?.title || 'matchen'}". Vi ses där!`, { type: 'success' });
     },
     onSettled: () => {
       setIsActionLoading(false);
@@ -398,21 +401,28 @@ export default function MatchDetailPage() {
 
   const handleMatchEnd = async (resultData) => {
     try {
-      // Use Supabase Edge Function to end match
-      const result = await callEdgeFunction(EDGE.endMatch, {
-        match_id: matchId,
-        ...resultData
+      // Use finish_match Edge Function
+      await finishMatch(matchId, {
+        home_score: resultData?.home_score ?? resultData?.teamAScore,
+        away_score: resultData?.away_score ?? resultData?.teamBScore,
+        notes: resultData?.notes || resultData?.matchFeedback
       });
 
       setShowEndModal(false);
       queryClient.invalidateQueries({ queryKey: ['supabase-match', matchId] });
+      queryClient.invalidateQueries({ queryKey: ['supabase-matchParticipants', matchId] });
       queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
       
       await alert("Match avslutad!", "Resultaten har sparats.", { type: 'success' });
 
     } catch (error) {
       console.error("Error ending match:", error);
-      await alert("Kunde inte avsluta match", error.message || "Försök igen.", { type: 'alert' });
+      const msg = error.status === 403 
+        ? 'Endast arrangören kan avsluta matchen.' 
+        : error.status === 401 
+          ? 'Du måste vara inloggad.' 
+          : (error.message || 'Det gick inte att avsluta matchen. Försök igen.');
+      await alert("Kunde inte avsluta match", msg, { type: 'alert' });
     }
   };
 
@@ -519,7 +529,12 @@ export default function MatchDetailPage() {
 
     } catch (error) {
       console.error("Error deleting match:", error);
-      await alert('Kunde inte ta bort matchen', error.message || 'Försök igen.', { type: 'alert' });
+      const msg = error.status === 403 
+        ? 'Endast arrangören kan radera matchen.' 
+        : error.status === 401 
+          ? 'Du måste vara inloggad.' 
+          : (error.message || 'Det gick inte att radera matchen. Försök igen.');
+      await alert('Kunde inte ta bort matchen', msg, { type: 'alert' });
     } finally {
       setIsActionLoading(false);
     }
@@ -835,16 +850,25 @@ export default function MatchDetailPage() {
                 )}
 
                 {isOrganizer && match.status === 'upcoming' && (
-                  <button
-                    onClick={() => setShowEndModal(true)}
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#F4743B] px-6 text-[#FFFFFF] font-semibold hover:bg-[#E5683A] transition-all"
-                  >
-                    <Trophy className="w-5 h-5" />
-                    Avsluta match
-                  </button>
+                  <>
+                    <button
+                      onClick={() => setShowEndModal(true)}
+                      className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#F4743B] px-6 text-[#FFFFFF] font-semibold hover:bg-[#E5683A] transition-all"
+                    >
+                      <Trophy className="w-5 h-5" />
+                      Avsluta match
+                    </button>
+                    <button
+                      onClick={handleDeleteMatch}
+                      disabled={isActionLoading}
+                      className={`inline-flex h-12 items-center justify-center gap-2 rounded-[16px] border border-[#DC2626]/40 px-6 text-[#DC2626] font-semibold hover:bg-[#DC2626]/10 transition-all ${isActionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      {isActionLoading ? 'Tar bort...' : 'Radera match'}
+                    </button>
+                  </>
                 )}
 
-                {isAdmin && (
+                {isAdmin && !isOrganizer && (
                   <button
                     onClick={handleDeleteMatch}
                     disabled={isActionLoading}

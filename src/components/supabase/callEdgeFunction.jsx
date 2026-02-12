@@ -99,14 +99,28 @@ export async function callEdgeFunction(name, body = {}, options = {}) {
     error.isNetworkError = false;
     error.functionName = name;
       
-    // Handle specific status codes
+    // Handle specific status codes with Swedish error messages
     if (res.status === 401) {
-      error.message = 'Session utgången. Logga in igen.';
+      error.message = 'Du måste vara inloggad. Logga in och försök igen.';
       sessionStore.clear();
     } else if (res.status === 403) {
       error.message = 'Du saknar behörighet att utföra denna åtgärd.';
-    } else if (res.status === 400) {
-      error.message = data?.message || 'Ogiltig förfrågan.';
+    } else if (res.status === 400 || res.status === 409 || res.status === 404) {
+      // Map common backend errors to Swedish
+      const raw = (data?.message || data?.error || '').toLowerCase();
+      if (raw.includes('match is full') || raw.includes('full')) {
+        error.message = 'Matchen är full.';
+      } else if (raw.includes('already joined') || raw.includes('already a participant')) {
+        error.message = 'Du är redan anmäld till denna match.';
+      } else if (raw.includes('not found') || raw.includes('does not exist')) {
+        error.message = 'Matchen hittades inte.';
+      } else if (raw.includes('already finished') || raw.includes('already completed')) {
+        error.message = 'Matchen är redan avslutad.';
+      } else if (raw.includes('only the organizer') || raw.includes('only organizer') || raw.includes('not the organizer')) {
+        error.message = 'Endast arrangören kan utföra denna åtgärd.';
+      } else {
+        error.message = data?.message || 'Ogiltig förfrågan.';
+      }
     }
       
     throw error;

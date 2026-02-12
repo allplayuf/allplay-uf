@@ -319,6 +319,25 @@ export async function getMatchFeed(filters = {}) {
 }
 
 /**
+ * Finish a match (organizer only)
+ * 
+ * @param {string} matchId - Match UUID
+ * @param {number} [homeScore] - Home team score
+ * @param {number} [awayScore] - Away team score
+ * @param {string} [notes] - Optional notes
+ */
+export async function finishMatch(matchId, { home_score, away_score, notes } = {}) {
+  if (!matchId) throw new Error('matchId is required');
+  
+  const payload = { match_id: matchId };
+  if (home_score !== undefined && home_score !== null) payload.home_score = home_score;
+  if (away_score !== undefined && away_score !== null) payload.away_score = away_score;
+  if (notes) payload.notes = notes;
+  
+  return callEdgeFunction(EDGE.finishMatch, payload);
+}
+
+/**
  * Delete a match (organizer only)
  * 
  * @param {string} matchId - Match UUID
@@ -327,5 +346,11 @@ export async function deleteMatch(matchId) {
   if (!matchId) {
     throw new Error('matchId is required');
   }
-  return callEdgeFunction(EDGE.deleteMatch, { match_id: matchId });
+  // Try delete_matches first (new endpoint), fallback to delete_match
+  try {
+    return await callEdgeFunction(EDGE.deleteMatches, { match_id: matchId });
+  } catch (e) {
+    // Fallback to old endpoint
+    return callEdgeFunction(EDGE.deleteMatch, { match_id: matchId });
+  }
 }

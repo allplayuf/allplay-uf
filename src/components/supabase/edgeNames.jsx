@@ -23,7 +23,9 @@ export const EDGE = {
   getMatchFeed: 'get_match_feed',
   getMyParticipation: 'my_participation',
   endMatch: 'end_match',
+  finishMatch: 'finish_match',
   deleteMatch: 'delete_match',
+  deleteMatches: 'delete_matches',
   
   // Venues
   getVenues: 'get_venues',
