@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
-import { useQuery, useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -122,29 +122,17 @@ export default function CommunityPage() {
     }
   }, [userError, alert]);
 
-  // Fetch public users via backend with OPTIMIZED caching and pagination
-  const { 
-    data: usersData,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading: usersLoading
-  } = useInfiniteQuery({
+  // allUsers used for friends lookup – fetch from Supabase REST
+  const { data: allUsers = [], isLoading: usersLoading } = useQuery({
     queryKey: QUERY_KEYS.publicUsers,
-    queryFn: async ({ pageParam = 0 }) => {
-      const response = await base44.functions.invoke('getPublicUsers', {
-        limit: 50,
-        offset: pageParam
-      });
-      return response.data;
+    queryFn: async () => {
+      const { searchPlayers } = await import("../components/supabase/services/playersService");
+      const res = await searchPlayers({ limit: 200 });
+      return res.players || [];
     },
-    getNextPageParam: (lastPage) => lastPage.nextOffset,
-    initialPageParam: 0,
     ...CACHE_STRATEGIES.STATIC,
     enabled: !!user,
   });
-
-  const allUsers = usersData?.pages.flatMap(page => page.users) || [];
 
   // Fetch teams from Supabase teams table (RLS enforced)
   const { data: allTeams = [], isLoading: teamsLoading } = useQuery({
