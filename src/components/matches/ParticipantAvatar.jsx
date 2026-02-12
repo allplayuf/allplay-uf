@@ -6,13 +6,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { getCachedUser, getUser } from '@/components/supabase/services';
+import { getAvatarUrl } from '@/components/utils/privacyMask';
 
 export function ParticipantAvatar({ userId, size = 'md', className = '' }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
-    // Try cache first
+    setImgError(false);
     const cached = getCachedUser(userId);
     if (cached) {
       setUser(cached);
@@ -20,7 +22,6 @@ export function ParticipantAvatar({ userId, size = 'md', className = '' }) {
       return;
     }
 
-    // Fetch if not in cache
     setIsLoading(true);
     getUser(userId).then(userData => {
       setUser(userData);
@@ -36,6 +37,7 @@ export function ParticipantAvatar({ userId, size = 'md', className = '' }) {
 
   const displayName = user?.display_name || user?.full_name || user?.username || 'Spelare';
   const initials = displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+  const avatarUrl = getAvatarUrl(user);
 
   if (isLoading) {
     return (
@@ -43,16 +45,14 @@ export function ParticipantAvatar({ userId, size = 'md', className = '' }) {
     );
   }
 
-  if (user?.avatar_url || user?.profile_image_url) {
+  if (avatarUrl && !imgError) {
     return (
       <img
-        src={user.avatar_url || user.profile_image_url}
+        src={avatarUrl}
         alt={displayName}
         className={`${sizeClasses[size]} rounded-full object-cover bg-[#18221E] ${className}`}
-        onError={(e) => {
-          e.target.style.display = 'none';
-          e.target.nextSibling.style.display = 'flex';
-        }}
+        loading="lazy"
+        onError={() => setImgError(true)}
       />
     );
   }

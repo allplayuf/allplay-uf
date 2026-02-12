@@ -70,6 +70,11 @@ export {
   getAllParticipants
 } from './participantsService';
 
+// Players
+export {
+  searchPlayers
+} from './playersService';
+
 // Teams
 export {
   getTeams,
