@@ -441,6 +441,7 @@ export default function ProfilePage() {
   const handleRefresh = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.user }),
+      queryClient.invalidateQueries({ queryKey: ['supabase-userProfile'] }),
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships }),
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendRequests(user?.id) }),
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamInvites(user?.id) }),
