@@ -417,9 +417,24 @@ class SupabaseClient {
 
   // Sync Supabase Auth user to Base44 User entity
   // Idempotent - safe to call multiple times
+  // ROBUST: 401/403 from Base44 entity endpoints is non-fatal
   async syncUserToBase44(supabaseUser) {
-    if (!supabaseUser?.id || !supabaseUser?.email) {
+    if (!supabaseUser?.id && !supabaseUser?.email) {
       console.log('[syncUserToBase44] Missing user data, skipping sync');
+      return;
+    }
+
+    // Build payload from Supabase auth user, falling back to session data
+    const email = supabaseUser?.email || sessionStore.user?.email;
+    const fullName = supabaseUser?.user_metadata?.full_name 
+      || supabaseUser?.full_name 
+      || sessionStore.user?.user_metadata?.full_name 
+      || (email ? email.split('@')[0] : 'Spelare');
+    const provider = supabaseUser?.app_metadata?.provider || 'email';
+    const supabaseId = supabaseUser?.id || sessionStore.user?.id;
+
+    if (!supabaseId || !email) {
+      console.log('[syncUserToBase44] Cannot determine user id/email, skipping sync');
       return;
     }
 
@@ -427,20 +442,26 @@ class SupabaseClient {
       const { base44 } = await import('@/api/base44Client');
       
       const result = await base44.functions.invoke('auth/syncUser', {
-        supabase_user_id: supabaseUser.id,
-        email: supabaseUser.email,
-        full_name: supabaseUser.user_metadata?.full_name || supabaseUser.email.split('@')[0],
-        provider: supabaseUser.app_metadata?.provider || 'email'
+        supabase_user_id: supabaseId,
+        email,
+        full_name: fullName,
+        provider
       });
 
       if (result?.data?.ok) {
         console.log('[syncUserToBase44] User synced successfully:', result.data.created ? 'created' : 'existing');
       } else {
-        console.warn('[syncUserToBase44] Sync returned non-ok:', result?.data);
+        console.warn('[syncUserToBase44] Sync returned non-ok (non-blocking):', result?.data);
       }
     } catch (error) {
-      // Log but don't block - user is authenticated in Supabase
-      console.error('[syncUserToBase44] Error syncing user (non-blocking):', error);
+      // 401/403 from Base44 entity endpoints is expected if Base44 auth doesn't
+      // match Supabase auth. This is non-fatal — Supabase is the real auth source.
+      const status = error?.response?.status || error?.status;
+      if (status === 401 || status === 403) {
+        console.log('[syncUserToBase44] Base44 auth mismatch (401/403), skipping sync silently');
+      } else {
+        console.warn('[syncUserToBase44] Sync failed (non-blocking):', error?.message || error);
+      }
     }
   }
 
@@ -473,8 +494,9 @@ class SupabaseClient {
     sessionStore.setAuthState(AUTH_STATES.AUTHENTICATED);
     
     // Sync user to Base44 on session validation too (handles returning users)
+    // Fire-and-forget: don't block session validation on Base44 sync
     if (userData) {
-      await this.syncUserToBase44(userData);
+      this.syncUserToBase44(userData).catch(() => {});
     }
     
     return true;
