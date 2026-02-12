@@ -55,21 +55,22 @@ export function primeUsers(users) {
 }
 
 /**
- * Normalize user shape for consistent frontend use
+ * Normalize user shape for consistent frontend use.
+ * Handles both old view (few columns) and new view (many columns).
  */
 function normalizeUser(user) {
   return {
     id: user.id,
     full_name: user.full_name || user.username || 'Spelare',
-    username: user.username || user.full_name || null,
-    display_name: user.display_name || user.username || user.full_name || 'Spelare',
+    username: user.username || null,
+    display_name: user.display_name || user.full_name || user.username || 'Spelare',
     avatar_url: user.avatar_url || user.profile_image_url || null,
     profile_image_url: user.profile_image_url || user.avatar_url || null,
     city: user.city || null,
     skill_level: user.skill_level || null,
     matches_played: user.matches_played || 0,
     mvp_count: user.mvp_count || 0,
-    elo_rating: user.elo_rating || null
+    elo_rating: user.elo_rating || user.elo || null
   };
 }
 
@@ -172,12 +173,23 @@ export async function fetchUsersMissing(userIds) {
           if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
           
           const idsParam = `(${missingIds.join(',')})`;
+          // Use select=* so we get whatever columns the view exposes;
+          // normalizeUser() handles missing fields safely.
           const res = await fetch(
-            `${SUPABASE_URL}/rest/v1/users?id=in.${idsParam}&select=id,full_name,username,display_name,avatar_url,profile_image_url,city,skill_level,matches_played,mvp_count,elo_rating`,
+            `${SUPABASE_URL}/rest/v1/users?id=in.${idsParam}&select=*`,
             { method: 'GET', headers }
           );
           if (res.ok) {
             users = await res.json();
+          } else if (res.status === 400) {
+            // Retry with only guaranteed-safe columns
+            const safeRes = await fetch(
+              `${SUPABASE_URL}/rest/v1/users?id=in.${idsParam}&select=id,full_name,username,avatar_url,elo_rating`,
+              { method: 'GET', headers }
+            );
+            if (safeRes.ok) {
+              users = await safeRes.json();
+            }
           }
         } catch (restError) {
           console.warn('[userCache] REST fallback failed:', restError.message);

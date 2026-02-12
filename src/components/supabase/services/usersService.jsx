@@ -13,7 +13,8 @@ import { EDGE } from '../edgeNames';
 import { primeUsers } from './userCache';
 
 /**
- * Fetch users directly from Supabase REST API (fallback when Edge Function fails)
+ * Fetch users directly from Supabase REST API (fallback when Edge Function fails).
+ * Uses select=* and falls back to safe columns if the view rejects unknown columns.
  */
 async function fetchUsersViaRest(ids) {
   if (!ids || ids.length === 0) return [];
@@ -24,10 +25,18 @@ async function fetchUsersViaRest(ids) {
   if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
   
   const idsParam = `(${ids.join(',')})`;
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/users?id=in.${idsParam}&select=id,full_name,username,display_name,avatar_url,profile_image_url,city,skill_level,matches_played,mvp_count,elo_rating`,
+  let res = await fetch(
+    `${SUPABASE_URL}/rest/v1/users?id=in.${idsParam}&select=*`,
     { method: 'GET', headers }
   );
+  
+  // If select=* fails (old view without aliases), retry with guaranteed columns
+  if (res.status === 400) {
+    res = await fetch(
+      `${SUPABASE_URL}/rest/v1/users?id=in.${idsParam}&select=id,full_name,username,avatar_url,elo_rating`,
+      { method: 'GET', headers }
+    );
+  }
   
   if (!res.ok) throw new Error(`REST users fetch failed: ${res.status}`);
   return await res.json();
@@ -86,14 +95,16 @@ export async function getUsersByIds(ids) {
 
   const normalize = (user) => ({
     id: user.id,
-    full_name: user.full_name || user.username || user.display_name || 'Okänd användare',
-    display_name: user.display_name || user.username || user.full_name || 'Okänd användare',
+    full_name: user.full_name || user.username || 'Okänd användare',
+    username: user.username || null,
+    display_name: user.display_name || user.full_name || user.username || 'Okänd användare',
+    avatar_url: user.avatar_url || user.profile_image_url || null,
     profile_image_url: user.profile_image_url || user.avatar_url || null,
     city: user.city || null,
     skill_level: user.skill_level || null,
     matches_played: user.matches_played || 0,
     mvp_count: user.mvp_count || 0,
-    elo_rating: user.elo_rating || null
+    elo_rating: user.elo_rating || user.elo || null
   });
 
   // Try Edge Function first

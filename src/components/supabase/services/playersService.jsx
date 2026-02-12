@@ -1,15 +1,19 @@
 /**
  * Players Service
  * 
- * Fetches players from Supabase `users` table via REST API.
- * RLS determines visibility. Frontend applies privacy masking.
+ * Fetches players from Supabase `users` view via REST API.
+ * IMPORTANT: Only select columns that actually exist in the view.
+ * Build display_name / profile_image_url locally as fallbacks.
  */
 
 import { getSupabaseConfig, SUPABASE_URL } from '../config';
 import { sessionStore } from '../client';
 
-const IS_DEV = typeof window !== 'undefined' &&
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+/**
+ * Columns guaranteed to exist in the public.users view.
+ * After the SQL migration more columns may exist, but these always work.
+ */
+const SAFE_SELECT = 'id,full_name,username,avatar_url,elo_rating';
 
 /**
  * Build auth headers for Supabase REST
@@ -23,7 +27,29 @@ async function buildHeaders() {
 }
 
 /**
- * Search/list players from Supabase users table.
+ * Normalize a raw row into a shape the frontend expects.
+ * Safely handles both old and new view schemas.
+ */
+function normalizePlayer(row) {
+  return {
+    id: row.id,
+    full_name: row.full_name || row.username || 'Spelare',
+    username: row.username || null,
+    display_name: row.display_name || row.full_name || row.username || 'Spelare',
+    avatar_url: row.avatar_url || row.profile_image_url || null,
+    profile_image_url: row.profile_image_url || row.avatar_url || null,
+    city: row.city || null,
+    skill_level: row.skill_level || null,
+    matches_played: row.matches_played || 0,
+    mvp_count: row.mvp_count || 0,
+    elo_rating: row.elo_rating || row.elo || null,
+    is_public: row.is_public !== false,
+  };
+}
+
+/**
+ * Search/list players from Supabase users view.
+ * Uses SAFE_SELECT first; if the view has extra columns they're normalised locally.
  *
  * @param {object} opts
  * @param {string} [opts.search] - Search term (ilike on full_name, username)
@@ -34,12 +60,10 @@ async function buildHeaders() {
 export async function searchPlayers({ search = '', limit = 50, offset = 0 } = {}) {
   const headers = await buildHeaders();
 
-  // Select only the fields we need
-  const fields = 'id,full_name,username,display_name,avatar_url,profile_image_url,city,skill_level,matches_played,mvp_count,elo_rating,is_public';
+  // Try extended select first (after SQL migration), fall back to safe select
+  let url = `${SUPABASE_URL}/rest/v1/users?select=*&order=full_name.asc`;
 
-  let url = `${SUPABASE_URL}/rest/v1/users?select=${fields}&order=full_name.asc`;
-
-  // Search filter using Supabase `or` with ilike
+  // Search filter using Supabase `or` with ilike on safe columns
   if (search && search.trim()) {
     const q = encodeURIComponent(`%${search.trim()}%`);
     url += `&or=(full_name.ilike.${q},username.ilike.${q})`;
@@ -51,7 +75,14 @@ export async function searchPlayers({ search = '', limit = 50, offset = 0 } = {}
   headers['Range'] = `${rangeStart}-${rangeEnd}`;
   headers['Prefer'] = 'count=estimated';
 
-  const res = await fetch(url, { method: 'GET', headers });
+  let res = await fetch(url, { method: 'GET', headers });
+
+  // If select=* fails (unlikely but safe), retry with minimal columns
+  if (res.status === 400) {
+    console.warn('[playersService] select=* failed, retrying with safe columns');
+    const safeUrl = url.replace('select=*', `select=${SAFE_SELECT}`);
+    res = await fetch(safeUrl, { method: 'GET', headers });
+  }
 
   if (res.status === 401) {
     throw Object.assign(new Error('Du måste vara inloggad för att söka spelare.'), { status: 401 });
@@ -63,16 +94,13 @@ export async function searchPlayers({ search = '', limit = 50, offset = 0 } = {}
     throw Object.assign(new Error('Kunde inte hämta spelare.'), { status: res.status });
   }
 
-  const players = await res.json();
+  const raw = await res.json();
+  const players = raw.map(normalizePlayer);
 
   // Parse total count from Content-Range header: "0-49/120"
   const contentRange = res.headers.get('content-range') || '';
   const totalMatch = contentRange.match(/\/(\d+|\*)/);
   const total = totalMatch && totalMatch[1] !== '*' ? parseInt(totalMatch[1], 10) : players.length;
-
-  if (IS_DEV) {
-    console.log('[playersService] Fetched', players.length, 'players, total:', total);
-  }
 
   return {
     players,
