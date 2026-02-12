@@ -702,18 +702,14 @@ export default function CommunityPage() {
                   transition={{ duration: 0.3, ease: "easeOut" }}
                 >
                   <Suspense fallback={<PageLoadingSkeleton />}>
-                    {!allTeams || allTeams.length === 0 ? (
-                      <NoTeamsFound onCreateTeam={() => setShowCreateTeamForm(true)} />
-                    ) : (
-                      <TeamsList
-                        teams={allTeams}
-                        myTeams={myTeams}
-                        teamInvites={teamInvites}
-                        user={user}
-                        onCreateTeam={() => setShowCreateTeamForm(true)}
-                        onAcceptInvite={handleAcceptTeamInvite}
-                      />
-                    )}
+                    <TeamsList
+                      teams={allTeams}
+                      myTeams={myTeams}
+                      teamInvites={teamInvites}
+                      user={user}
+                      onCreateTeam={() => setShowCreateTeamForm(true)}
+                      onAcceptInvite={handleAcceptTeamInvite}
+                    />
                   </Suspense>
                 </motion.div>
               )}
