@@ -41,6 +41,7 @@ import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { AuthGateModal } from "../components/ui/auth-gate-modal";
 import { LoginModal } from "../components/supabase";
 import { LogIn } from "lucide-react";
+import { getMyProfile } from "../components/supabase/services";
 
 // Lazy load components
 const ProfileStats = lazy(() => import("../components/profile/ProfileStats"));
