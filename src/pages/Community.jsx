@@ -374,7 +374,7 @@ export default function CommunityPage() {
   }
 
   // Guest users see a prompt to login
-  if (user?.is_guest) {
+  if (isGuestUser || user?.is_guest) {
     return (
       <>
       <AuthGateModal 
