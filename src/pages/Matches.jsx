@@ -290,8 +290,8 @@ export default function MatchesPage() {
     } catch (error) {
       console.error("Error joining match:", error);
       await alert(
-        'Ett fel uppstod',
-        error.message || 'Kunde inte anmäla dig till matchen.',
+        'Kunde inte gå med',
+        error.message || 'Det gick inte att gå med i matchen. Försök igen.',
         { type: 'alert' }
       );
     }
@@ -335,11 +335,12 @@ export default function MatchesPage() {
       );
     } catch (error) {
       console.error("Error deleting match:", error);
-      await alert(
-        'Ett fel uppstod',
-        'Kunde inte ta bort matchen. Försök igen.',
-        { type: 'alert' }
-      );
+      const msg = error.status === 403 
+        ? 'Endast arrangören kan radera matchen.' 
+        : error.status === 401 
+          ? 'Du måste vara inloggad.' 
+          : (error.message || 'Det gick inte att radera matchen. Försök igen.');
+      await alert('Kunde inte ta bort matchen', msg, { type: 'alert' });
     }
   };
 
