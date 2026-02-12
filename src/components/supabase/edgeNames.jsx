@@ -36,6 +36,9 @@ export const EDGE = {
   // Cups
   getCupDetails: 'get_cup_details',
   signupToCup: 'signup_to_cup',
+
+  // Account
+  deleteAccount: 'delete_account',
   
   // Legacy mappings (for migration period)
   checkInToMatch: 'check_in_match', // Old name -> new name

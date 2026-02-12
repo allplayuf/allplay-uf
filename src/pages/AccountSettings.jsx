@@ -104,7 +104,7 @@ export default function AccountSettingsPage() {
 
     const shouldDelete = await confirm(
       '⚠️ Radera konto permanent',
-      'Detta går INTE att ångra. Ditt konto kommer att raderas efter 30 dagar. Under den tiden kan du återaktivera kontot genom att logga in igen.',
+      'Detta går INTE att ångra. All din data raderas permanent. Är du helt säker?',
       {
         type: 'warning',
         confirmText: 'Ja, radera mitt konto',
@@ -116,23 +116,30 @@ export default function AccountSettingsPage() {
 
     setIsDeleting(true);
     try {
-      const { data: response } = await base44.functions.invoke('deleteAccount', {
-        confirmEmail: deleteConfirmEmail
-      });
+      await callEdgeFunction('delete_account', {});
 
-      if (response?.success) {
-        await alert(
-          'Konto markerat för radering',
-          `Ditt konto kommer att raderas ${new Date(response.deletion_scheduled).toLocaleDateString('sv-SE')}. Du kommer nu att loggas ut.`,
-          { type: 'success' }
-        );
-        
-        // Logout user
-        logout();
-      }
+      await alert(
+        'Ditt konto är raderat',
+        'Kontot har raderats. Du loggas nu ut.',
+        { type: 'success' }
+      );
+      
+      // Clear session and redirect to login
+      logout();
+
     } catch (error) {
       console.error("Error deleting account:", error);
-      await alert('Fel', 'Kunde inte radera konto. Försök igen.', { type: 'alert' });
+      
+      let msg;
+      if (error.status === 401) {
+        msg = 'Du måste vara inloggad.';
+      } else if (error.status === 500 && (error.data?.message || '').toLowerCase().includes('misconfigured')) {
+        msg = 'Det gick inte att radera kontot just nu. Försök igen senare.';
+      } else {
+        msg = error.message || 'Det gick inte att radera kontot. Försök igen.';
+      }
+      
+      await alert('Kunde inte radera konto', msg, { type: 'alert' });
     } finally {
       setIsDeleting(false);
     }
