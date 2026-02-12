@@ -111,7 +111,7 @@ export default function CommunityPage() {
     };
   }, [authUser, userProfile, isGuestUser]);
 
-  const userLoading = authLoading || (isAuthenticatedUser && profileLoading);
+  const userLoading = authLoading || (isAuthenticatedUser && (!authUser || profileLoading));
   const userError = null; // Errors handled by individual queries
 
   // Handle rate limit errors
