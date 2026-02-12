@@ -112,6 +112,8 @@ export async function callEdgeFunction(name, body = {}, options = {}) {
         error.message = 'Matchen är full.';
       } else if (raw.includes('already joined') || raw.includes('already a participant')) {
         error.message = 'Du är redan anmäld till denna match.';
+      } else if (raw.includes('not joined') || raw.includes('not a participant') || raw.includes('not in')) {
+        error.message = 'Du är inte med i matchen.';
       } else if (raw.includes('not found') || raw.includes('does not exist')) {
         error.message = 'Matchen hittades inte.';
       } else if (raw.includes('already finished') || raw.includes('already completed')) {

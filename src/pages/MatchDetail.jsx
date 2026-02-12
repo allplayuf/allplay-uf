@@ -391,7 +391,10 @@ export default function MatchDetailPage() {
 
     } catch (error) {
       console.error("Error leaving match:", error);
-      await alert('Kunde inte lämna matchen', error.message || 'Försök igen.', { type: 'alert' });
+      const msg = error.status === 401
+        ? 'Du måste vara inloggad.'
+        : (error.message || 'Det gick inte att lämna matchen. Försök igen.');
+      await alert('Kunde inte lämna matchen', msg, { type: 'alert' });
     } finally {
       setIsActionLoading(false);
     }
