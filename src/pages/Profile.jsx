@@ -243,6 +243,7 @@ export default function ProfilePage() {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       await base44.auth.updateMe({ profile_image_url: file_url });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.user });
+      queryClient.invalidateQueries({ queryKey: ['supabase-userProfile'] });
     } catch (error) {
       console.error("Error uploading profile image:", error);
       await alert('Uppladdningsfel', 'Kunde inte ladda upp bild. Försök igen.', { type: 'alert' });
