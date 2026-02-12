@@ -77,6 +77,35 @@ css
   }
 }
 
+/* AllPlay themed scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #121715;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #223029;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2BA84A;
+}
+
+::-webkit-scrollbar-corner {
+  background: #121715;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #223029 #121715;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
