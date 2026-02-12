@@ -164,7 +164,7 @@ export async function fetchUsersMissing(userIds) {
         console.warn('[userCache] Edge function failed (status:', edgeError.status, ', network:', edgeError.isNetworkError, '), trying REST. Msg:', edgeError.message);
       }
       
-      // Fallback to REST API if edge function returned no users
+      // Always try REST fallback if edge function returned no users
       if (users.length === 0) {
         try {
           const config = await getSupabaseConfig();
@@ -173,26 +173,32 @@ export async function fetchUsersMissing(userIds) {
           if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
           
           const idsParam = `(${missingIds.join(',')})`;
-          // Use select=* so we get whatever columns the view exposes;
-          // normalizeUser() handles missing fields safely.
-          const res = await fetch(
-            `${SUPABASE_URL}/rest/v1/users?id=in.${idsParam}&select=*`,
+          const safeColumns = 'id,full_name,username,display_name,avatar_url,profile_image_url,elo_rating';
+          
+          // Try with known-safe columns first (avoids 400 from missing columns)
+          let res = await fetch(
+            `${SUPABASE_URL}/rest/v1/users?id=in.${idsParam}&select=${safeColumns}`,
             { method: 'GET', headers }
           );
-          if (res.ok) {
-            users = await res.json();
-          } else if (res.status === 400) {
-            // Retry with only guaranteed-safe columns
-            const safeRes = await fetch(
-              `${SUPABASE_URL}/rest/v1/users?id=in.${idsParam}&select=id,full_name,username,avatar_url,elo_rating`,
+          
+          // If that fails (columns don't exist), try minimal set
+          if (res.status === 400) {
+            console.warn('[userCache] REST safe-columns failed, trying minimal');
+            res = await fetch(
+              `${SUPABASE_URL}/rest/v1/users?id=in.${idsParam}&select=id,full_name,username,avatar_url`,
               { method: 'GET', headers }
             );
-            if (safeRes.ok) {
-              users = await safeRes.json();
-            }
+          }
+          
+          if (res.ok) {
+            users = await res.json();
+            console.log(`[userCache] REST fallback returned ${users.length} users`);
+          } else {
+            const body = await res.text().catch(() => '');
+            console.warn(`[userCache] REST fallback failed: ${res.status}`, body.slice(0, 200));
           }
         } catch (restError) {
-          console.warn('[userCache] REST fallback failed:', restError.message);
+          console.warn('[userCache] REST fallback network error:', restError.message);
         }
       }
       

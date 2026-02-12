@@ -25,20 +25,26 @@ async function fetchUsersViaRest(ids) {
   if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
   
   const idsParam = `(${ids.join(',')})`;
+  const safeColumns = 'id,full_name,username,display_name,avatar_url,profile_image_url,elo_rating';
+  
+  // Use known-safe columns (avoids 400 from unknown columns in view)
   let res = await fetch(
-    `${SUPABASE_URL}/rest/v1/users?id=in.${idsParam}&select=*`,
+    `${SUPABASE_URL}/rest/v1/users?id=in.${idsParam}&select=${safeColumns}`,
     { method: 'GET', headers }
   );
   
-  // If select=* fails (old view without aliases), retry with guaranteed columns
+  // Retry with minimal columns if safe set fails
   if (res.status === 400) {
     res = await fetch(
-      `${SUPABASE_URL}/rest/v1/users?id=in.${idsParam}&select=id,full_name,username,avatar_url,elo_rating`,
+      `${SUPABASE_URL}/rest/v1/users?id=in.${idsParam}&select=id,full_name,username,avatar_url`,
       { method: 'GET', headers }
     );
   }
   
-  if (!res.ok) throw new Error(`REST users fetch failed: ${res.status}`);
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`REST users fetch failed: ${res.status} – ${body.slice(0, 200)}`);
+  }
   return await res.json();
 }
 
@@ -107,7 +113,7 @@ export async function getUsersByIds(ids) {
     elo_rating: user.elo_rating || user.elo || null
   });
 
-  // Try Edge Function first
+  // Try Edge Function first (may fail with CORS)
   try {
     const result = await callEdgeFunction(EDGE.getUsersByIds, { user_ids: ids });
     const users = result?.users || [];
@@ -115,20 +121,22 @@ export async function getUsersByIds(ids) {
       return users.map(normalize);
     }
   } catch (e) {
-    console.warn('[usersService] Edge function failed, trying REST fallback:', e.message);
+    console.warn('[usersService] Edge function failed (status:', e.status, ', network:', e.isNetworkError, '):', e.message);
   }
 
   // Fallback: fetch directly from Supabase REST API
   try {
     const users = await fetchUsersViaRest(ids);
     if (users.length > 0) {
+      console.log('[usersService] REST fallback returned', users.length, 'users');
       return users.map(normalize);
     }
   } catch (e) {
-    console.error('[usersService] REST fallback also failed:', e.message);
+    console.warn('[usersService] REST fallback also failed:', e.message);
   }
 
-  // Last resort: return minimal fallback
+  // Last resort: return fallback objects so UI never breaks
+  console.warn('[usersService] All user fetch methods failed, returning fallbacks for', ids.length, 'users');
   return ids.map(id => normalize({ id }));
 }
 
