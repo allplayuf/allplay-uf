@@ -116,7 +116,7 @@ export default function ConsentGate({ onAccept, onCancel, isSignup = false }) {
               variant="outline"
               className="flex-1 h-12 border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] rounded-xl"
             >
-              Avbryt
+              Stäng
             </Button>
             <Button
               onClick={onAccept}

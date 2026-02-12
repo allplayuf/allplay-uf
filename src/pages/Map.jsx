@@ -59,8 +59,7 @@ export default function MapPage() {
 
   const sortByLabels = {
     distance: 'Närmast',
-    rating: 'Betyg',
-    matches: 'Matcher'
+    matches: 'Mest bokade'
   };
 
   const calculateDistance = useCallback((lat1, lon1, lat2, lon2) => {
@@ -464,8 +463,7 @@ export default function MapPage() {
                 </SelectTrigger>
                 <SelectContent className="bg-[#121715] border border-[#223029] rounded-xl">
                   <SelectItem value="distance">Närmast</SelectItem>
-                  <SelectItem value="rating">Betyg</SelectItem>
-                  <SelectItem value="matches">Matcher</SelectItem>
+                  <SelectItem value="matches">Mest bokade</SelectItem>
                 </SelectContent>
               </Select>
             </div>

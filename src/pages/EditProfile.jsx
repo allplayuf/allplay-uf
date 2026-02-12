@@ -27,16 +27,21 @@ export default function EditProfile() {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [initialData, setInitialData] = useState({ full_name: '', username: '' });
 
   // Load current values
   useEffect(() => {
     if (user) {
-      setFormData({
+      const data = {
         full_name: user.full_name || '',
         username: user.username || ''
-      });
+      };
+      setFormData(data);
+      setInitialData(data);
     }
   }, [user]);
+
+  const hasChanges = formData.full_name !== initialData.full_name || formData.username !== initialData.username;
 
   // Validate form
   const validate = () => {
@@ -195,7 +200,7 @@ export default function EditProfile() {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={isSubmitting || saved}
+                  disabled={isSubmitting || saved || !hasChanges}
                   className="flex-1 bg-[#2BA84A] hover:bg-[#248232] text-white"
                 >
                   {isSubmitting ? (

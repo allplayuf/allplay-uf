@@ -67,7 +67,16 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
           onSuccess?.();
           onClose();
         } else {
-          setLocalError(result.error?.message || 'Inloggningen misslyckades');
+          const msg = result.error?.message || '';
+          if (msg.toLowerCase().includes('email not confirmed') || msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('credentials')) {
+            if (msg.toLowerCase().includes('email not confirmed')) {
+              setLocalError('Gå in i din e-post och verifiera ditt konto innan du loggar in.');
+            } else {
+              setLocalError('Felaktig e-post eller lösenord. Försök igen.');
+            }
+          } else {
+            setLocalError(msg || 'Inloggningen misslyckades. Försök igen.');
+          }
         }
       }
     } catch (e) {

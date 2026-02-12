@@ -21,12 +21,21 @@ export default function ConsentChecker({ children }) {
       return;
     }
 
+    // Check localStorage first (persists across page reloads within session)
+    try {
+      if (localStorage.getItem('allplay_tos_accepted') === CONSENT_VERSION) {
+        setAccepted(true);
+        return;
+      }
+    } catch {}
+
     // Check user metadata for consent version
     const userConsentVersion = user.tos_version_accepted;
     if (userConsentVersion === CONSENT_VERSION) {
+      try { localStorage.setItem('allplay_tos_accepted', CONSENT_VERSION); } catch {}
       setAccepted(true);
     } else {
-      // Also check sessionStorage as fallback during same session after accepting
+      // Also check sessionStorage as fallback
       try {
         if (sessionStorage.getItem('allplay_tos_accepted') === CONSENT_VERSION) {
           setAccepted(true);
@@ -46,12 +55,13 @@ export default function ConsentChecker({ children }) {
         tos_accepted_at: new Date().toISOString(),
         tos_accepted_doc: 'tos_privacy_combined'
       });
-      // Also set sessionStorage so we don't re-check until page reloads
+      // Persist acceptance locally so modal never re-appears this session
+      try { localStorage.setItem('allplay_tos_accepted', CONSENT_VERSION); } catch {}
       try { sessionStorage.setItem('allplay_tos_accepted', CONSENT_VERSION); } catch {}
       setAccepted(true);
     } catch (err) {
       console.error('Failed to save consent:', err);
-      // Still let user through this session even if save fails
+      try { localStorage.setItem('allplay_tos_accepted', CONSENT_VERSION); } catch {}
       try { sessionStorage.setItem('allplay_tos_accepted', CONSENT_VERSION); } catch {}
       setAccepted(true);
     } finally {

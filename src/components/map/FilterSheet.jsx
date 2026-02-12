@@ -105,7 +105,7 @@ export default function FilterSheet({ filters, onFilterChange }) {
                     <SelectItem value="beginner">Nybörjare</SelectItem>
                     <SelectItem value="intermediate">Medel</SelectItem>
                     <SelectItem value="advanced">Avancerad</SelectItem>
-                    <SelectItem value="elite">Elite</SelectItem>
+                    <SelectItem value="elite">Elit</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -121,8 +121,7 @@ export default function FilterSheet({ filters, onFilterChange }) {
                   </SelectTrigger>
                   <SelectContent className="bg-[#121715] border border-[#223029] rounded-[14px]">
                     <SelectItem value="distance">Närmast</SelectItem>
-                    <SelectItem value="rating">Betyg</SelectItem>
-                    <SelectItem value="matches">Flest matcher</SelectItem>
+                    <SelectItem value="matches">Mest bokade</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

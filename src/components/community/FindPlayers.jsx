@@ -14,7 +14,7 @@ const SKILL_LEVEL_CONFIG = {
   beginner: { label: 'Nybörjare', icon: Target, color: 'bg-[#10B981]/20 text-[#A7F3D0]' },
   intermediate: { label: 'Medel', icon: TrendingUp, color: 'bg-[#14B8A6]/20 text-[#99F6E4]' },
   advanced: { label: 'Avancerad', icon: Shield, color: 'bg-[#8B5CF6]/20 text-[#DDD6FE]' },
-  elite: { label: 'Elite', icon: Crown, color: 'bg-[#F59E0B]/20 text-[#FDE68A]' }
+  elite: { label: 'Elit', icon: Crown, color: 'bg-[#F59E0B]/20 text-[#FDE68A]' }
 };
 
 export default function FindPlayers({ friendships = [], currentUser, onAddFriend }) {

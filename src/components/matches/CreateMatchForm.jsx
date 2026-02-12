@@ -119,10 +119,10 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
 
   // Valid levels matching Supabase constraint: beginner, intermediate, advanced, pro
   const skillBracketOptions = [
-    { value: 'beginner', label: 'Nybörjare' },
-    { value: 'intermediate', label: 'Medel' },
-    { value: 'advanced', label: 'Avancerad' },
-    { value: 'pro', label: 'Proffs' },
+    { value: 'beginner', label: 'Nybörjare', desc: 'Lär dig fortfarande grunderna' },
+    { value: 'intermediate', label: 'Medel', desc: 'Spelar regelbundet, god förståelse' },
+    { value: 'advanced', label: 'Avancerad', desc: 'Hög teknisk nivå och spelförståelse' },
+    { value: 'pro', label: 'Elit', desc: 'Tävlingsinriktad, högsta nivån' },
   ];
 
   const handleVenueSelect = (venue) => {
@@ -350,34 +350,22 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
                   key={option.value}
                   type="button"
                   onClick={() => setFormData(prev => ({ ...prev, skill_bracket: option.value }))}
-                  className={`h-12 sm:h-14 font-bold text-[11px] sm:text-xs lg:text-sm transition-all rounded-[12px] ${
+                  className={`h-auto py-2.5 sm:py-3 flex-col gap-0.5 font-bold text-[11px] sm:text-xs lg:text-sm transition-all rounded-[12px] ${
                     formData.skill_bracket === option.value
                       ? 'bg-gradient-to-r from-[#F4743B] to-[#E5683A] text-[#FFFFFF] border border-[#F4743B] shadow-lg shadow-[#F4743B]/30'
                       : 'bg-[#121715] text-[#B6C2BC] border border-[#223029] hover:border-[#F4743B] hover:text-[#F4F7F5]'
                   }`}
                 >
-                  {option.label}
+                  <span>{option.label}</span>
+                  <span className={`text-[9px] sm:text-[10px] font-normal leading-tight ${
+                    formData.skill_bracket === option.value ? 'text-white/80' : 'text-[#7B8A83]'
+                  }`}>{option.desc}</span>
                 </Button>
               ))}
             </div>
           </div>
 
-          {/* Options */}
-          {!formData.is_spontaneous && (
-            <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-[#18221E] rounded-[14px] border border-[#223029]">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <Label className="text-[#F4F7F5] font-semibold text-sm sm:text-base">Privat match</Label>
-                  <p className="text-[11px] sm:text-xs lg:text-sm text-[#B6C2BC]">Endast inbjudna kan gå med</p>
-                </div>
-                <Switch
-                  checked={formData.is_private}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_private: checked }))}
-                  className="data-[state=checked]:bg-[#2BA84A]"
-                />
-              </div>
-            </div>
-          )}
+          {/* Private match toggle removed per design */}
 
           {/* Notes */}
           <div className="space-y-2">

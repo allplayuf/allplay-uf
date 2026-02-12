@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Star, Calendar, Users, ChevronRight, Plus, Zap, X } from 'lucide-react';
+import { MapPin, Calendar, Users, ChevronRight, Plus, Zap, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
@@ -43,15 +43,7 @@ export default function MapVenuePreview({ venue, matches = [], allParticipants =
                     <MapPin className="w-3 h-3 text-[#2BA84A]" />
                     {venue.city}
                   </span>
-                  {venue.rating && (
-                    <>
-                      <span className="w-1 h-1 rounded-full bg-[#223029]" />
-                      <span className="flex items-center gap-0.5 text-[#F4F7F5]">
-                        <Star className="w-3 h-3 text-[#F59E0B] fill-[#F59E0B]" />
-                        {venue.rating}
-                      </span>
-                    </>
-                  )}
+
                 </div>
               </div>
               

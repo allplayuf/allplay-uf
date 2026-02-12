@@ -323,43 +323,6 @@ export default function AccountSettingsPage() {
             </CardContent>
           </Card>
 
-          {/* Data Export */}
-          <Card className="bg-[#121715] border border-[#223029] rounded-2xl">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-[#9370DB]/10 rounded-xl flex items-center justify-center ring-1 ring-[#9370DB]/20">
-                  <Download className="w-5 h-5 text-[#9370DB]" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-[#F4F7F5]">Ladda ner min data</h2>
-                  <p className="text-sm text-[#7B8A83]">Exportera all din data som JSON</p>
-                </div>
-              </div>
-
-              <p className="text-sm text-[#B6C2BC] mb-4">
-                Inkluderar: profil, matchhistorik, lagmedlemskap, vänner, badges, ELO-historik och rapporter du skickat.
-              </p>
-
-              <Button
-                onClick={handleExportData}
-                disabled={isExporting}
-                className="w-full bg-[#9370DB] hover:bg-[#8B008B] text-white rounded-xl h-11 gap-2"
-              >
-                {isExporting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Exporterar...
-                  </>
-                ) : (
-                  <>
-                    <FileJson className="w-4 h-4" />
-                    Ladda ner data
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-
           {/* Delete Account */}
           <Card className="bg-[#121715] border border-red-500/30 rounded-2xl">
             <CardContent className="p-6">

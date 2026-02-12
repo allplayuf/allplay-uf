@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Star, Calendar, Users } from "lucide-react";
+import { MapPin, Calendar, Users } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 import { motion } from "framer-motion";
@@ -77,12 +77,7 @@ export default function VenueCard({ venue, matches, isSelected, onClick, onMatch
               )}
             </div>
           </div>
-          {venue.rating && (
-            <div className="flex items-center gap-1 flex-shrink-0 ml-2">
-              <Star className="w-3.5 h-3.5 text-[#F4743B] fill-[#F4743B]" />
-              <span className="text-sm font-medium text-white">{venue.rating}</span>
-            </div>
-          )}
+
         </div>
 
         {/* Formats */}

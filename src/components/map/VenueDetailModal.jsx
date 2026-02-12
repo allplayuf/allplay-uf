@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -68,15 +67,7 @@ export default function VenueDetailModal({ venue, matches, onClose, onCreateMatc
                       <span className="truncate">{venue.address}, {venue.city}</span>
                     </p>
                     
-                    {venue.rating && (
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                          <span className="text-sm font-semibold text-[#EAF6EE]">{venue.rating}</span>
-                        </div>
-                        <span className="text-xs text-[#CFE8D6]">/ 5.0</span>
-                      </div>
-                    )}
+
                   </div>
                 </div>
 
