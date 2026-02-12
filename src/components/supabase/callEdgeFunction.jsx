@@ -58,9 +58,9 @@ export async function callEdgeFunction(name, body = {}, options = {}) {
     });
   } catch (networkErr) {
     // True network error (DNS, offline, CORS preflight blocked, etc.)
-    const error = new Error('Nätverksfel. Kontrollera din anslutning.');
+    console.error(`[EdgeFunction] ${name} network/CORS error:`, networkErr.message || networkErr);
+    const error = new Error(`Nätverksfel vid anrop till ${name}: ${networkErr.message || 'CORS/fetch blocked'}`);
     error.status = 0;
-    error.message = 'Nätverksfel. Kontrollera din anslutning.';
     error.data = null;
     error.isNetworkError = true;
     error.functionName = name;

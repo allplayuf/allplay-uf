@@ -93,21 +93,28 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
   const SkillIcon = match.skill_bracket ? getSkillBracketIcon(match.skill_bracket) : null;
 
   const loadParticipantUsers = async () => {
+    const userIds = participants.slice(0, 5)
+      .map(p => p?.user_id)
+      .filter(Boolean);
+    
+    if (userIds.length === 0) {
+      setParticipantUsers([]);
+      return;
+    }
+    
     try {
-      const userIds = participants.slice(0, 5)
-        .map(p => p?.user_id)
-        .filter(Boolean);
-      
-      if (userIds.length === 0) {
-        setParticipantUsers([]);
-        return;
-      }
-      
       const users = await getUsersByIds(userIds);
       setParticipantUsers(users || []);
     } catch (error) {
-      console.error("Error loading participant users:", error);
-      setParticipantUsers([]);
+      // Never block card render – show fallback avatars
+      console.warn("[MatchCard] Failed to load participant users, using fallbacks:", error.message);
+      setParticipantUsers(userIds.map(id => ({
+        id,
+        full_name: 'Spelare',
+        display_name: 'Spelare',
+        avatar_url: null,
+        profile_image_url: null
+      })));
     }
   };
 
@@ -236,19 +243,23 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
                 {participantUsers.length > 0 && (
                   <div className="flex items-center gap-2 pt-1">
                     <div className="flex -space-x-2">
-                      {participantUsers.slice(0, 5).map((participant, i) => (
-                        <div 
-                          key={participant?.id || i}
-                          className="w-6 h-6 rounded-full bg-gradient-to-br from-[#2BA84A] to-[#248232] border border-[#121715] flex items-center justify-center overflow-hidden"
-                          title={participant?.full_name || 'User'}
-                        >
-                          {participant?.profile_image_url ? (
-                            <img src={participant.profile_image_url} alt={participant.display_name || participant.full_name || 'User'} className="w-full h-full object-cover" />
-                          ) : (
-                            <span className="text-[9px] font-semibold text-white">{(participant?.display_name || participant?.full_name)?.[0] || '?'}</span>
-                          )}
-                        </div>
-                      ))}
+                      {participantUsers.slice(0, 5).map((participant, i) => {
+                        const avatarSrc = participant?.avatar_url || participant?.profile_image_url;
+                        const name = participant?.display_name || participant?.full_name || 'Spelare';
+                        return (
+                          <div 
+                            key={participant?.id || i}
+                            className="w-6 h-6 rounded-full bg-gradient-to-br from-[#2BA84A] to-[#248232] border border-[#121715] flex items-center justify-center overflow-hidden"
+                            title={name}
+                          >
+                            {avatarSrc ? (
+                              <img src={avatarSrc} alt={name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
+                            ) : (
+                              <span className="text-[9px] font-semibold text-white">{name[0] || '?'}</span>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                     {actualParticipantCount > 5 && (
                       <span className="text-[10px] leading-[14px] text-[#B6C2BC]">+{actualParticipantCount - 5}</span>

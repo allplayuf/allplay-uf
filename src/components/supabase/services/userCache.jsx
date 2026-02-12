@@ -154,14 +154,14 @@ export async function fetchUsersMissing(userIds) {
     try {
       let users = [];
       
-      // Try Edge Function first
+      // Try Edge Function first (may fail due to CORS)
       try {
         const response = await callEdgeFunction(EDGE.getUsersByIds, { 
           user_ids: missingIds 
         });
         users = response?.users || [];
       } catch (edgeError) {
-        console.warn('[userCache] Edge function failed, trying REST:', edgeError.message);
+        console.warn('[userCache] Edge function failed (status:', edgeError.status, ', network:', edgeError.isNetworkError, '), trying REST. Msg:', edgeError.message);
       }
       
       // Fallback to REST API if edge function returned no users
