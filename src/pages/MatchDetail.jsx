@@ -39,8 +39,6 @@ import {
   getMatchParticipants
 } from "../components/supabase/services/matchesService";
 import { getVenues, getUsersByIds, getMyProfile } from "../components/supabase/services";
-import { callEdgeFunction } from "../components/supabase/callEdgeFunction";
-import { EDGE } from "../components/supabase/edgeNames";
 import { getCachedUser, fetchUsersMissing } from "../components/supabase/services";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 
@@ -156,7 +154,7 @@ export default function MatchDetailPage() {
     }
     return {
       ...m,
-      status: m.status === 'finished' ? 'completed' : m.status,
+      status: (m.status === 'finished' || m.status === 'ended') ? 'completed' : m.status,
       skill_bracket: m.level || m.skill_bracket,
       venue_id: m.venue_id || m.pitch_id,
       title: m.title || m.name || 'Match',
@@ -304,9 +302,9 @@ export default function MatchDetailPage() {
     // If no user data fetched yet but we have raw participants, show them with minimal info
     return rawArray.map(p => ({
       id: p.user_id,
-      full_name: p.full_name || p.display_name || 'Spelare',
-      display_name: p.display_name || p.full_name,
-      profile_image_url: p.profile_image_url,
+      full_name: p.full_name || p.display_name || p.username || 'Spelare',
+      display_name: p.display_name || p.full_name || p.username || 'Spelare',
+      profile_image_url: p.profile_image_url || p.avatar_url,
       city: p.city,
       participantInfo: p,
     }));
