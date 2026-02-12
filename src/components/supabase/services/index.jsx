@@ -41,6 +41,7 @@ export {
 // Venues
 export {
   upsertVenue,
+  getVenueByExternalId,
   getVenues
 } from './venuesService';
 
