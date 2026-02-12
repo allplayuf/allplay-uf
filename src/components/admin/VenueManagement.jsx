@@ -156,6 +156,33 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
 
   const handleCreateVenue = useCallback(async (venueData) => {
     try {
+      // Generate a stable external_id from name+city to prevent duplicates
+      const externalId = `admin_${(venueData.name || '').toLowerCase().trim()}_${(venueData.city || '').toLowerCase().trim()}`.replace(/\s+/g, '_');
+      
+      // Check if venue with same external_id already exists
+      const existingVenues = venues.filter(v => {
+        const vKey = `${(v.name || '').toLowerCase().trim()}_${(v.city || '').toLowerCase().trim()}`;
+        const newKey = `${(venueData.name || '').toLowerCase().trim()}_${(venueData.city || '').toLowerCase().trim()}`;
+        return vKey === newKey;
+      });
+      
+      if (existingVenues.length > 0) {
+        // Update existing instead of creating duplicate
+        await Venue.update(existingVenues[0].id, {
+          ...venueData,
+          latitude: pendingPosition.lat,
+          longitude: pendingPosition.lng,
+          is_active: true,
+          is_verified: true,
+          added_by_admin: true
+        });
+        setShowCreateModal(false);
+        setPendingPosition(null);
+        alert('Befintlig plan uppdaterad!');
+        onRefresh();
+        return;
+      }
+
       await Venue.create({
         ...venueData,
         latitude: pendingPosition.lat,
@@ -173,7 +200,7 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
       console.error("Error creating venue:", error);
       alert('Kunde inte skapa plan. Försök igen.');
     }
-  }, [pendingPosition, onRefresh]);
+  }, [pendingPosition, onRefresh, venues]);
 
   const handleCancelCreate = useCallback(() => {
     setShowCreateModal(false);
@@ -204,8 +231,19 @@ export default function VenueManagement({ venues: initialVenues, onRefresh }) {
         await Venue.update(editingVenue.id, venueData);
         alert('Plan uppdaterad!');
       } else {
-        await Venue.create(venueData);
-        alert('Plan tillagd!');
+        // Check for existing venue with same name+city before creating
+        const existingVenue = venues.find(v => 
+          (v.name || '').toLowerCase().trim() === (venueData.name || '').toLowerCase().trim() &&
+          (v.city || '').toLowerCase().trim() === (venueData.city || '').toLowerCase().trim()
+        );
+        
+        if (existingVenue) {
+          await Venue.update(existingVenue.id, venueData);
+          alert('Befintlig plan uppdaterad (samma namn och stad)!');
+        } else {
+          await Venue.create(venueData);
+          alert('Plan tillagd!');
+        }
       }
       
       setEditingVenue(null);
