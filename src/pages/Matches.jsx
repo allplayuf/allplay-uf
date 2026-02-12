@@ -240,13 +240,10 @@ export default function MatchesPage() {
 
   const handleMatchCreated = async ({ match: matchData, venue: selectedVenue }) => {
     try {
-      // Upsert venue first to ensure it exists in Supabase
+      // Upsert venue to ensure it exists in Supabase (dedup by external_id)
       if (selectedVenue?.id) {
-        try {
-          await upsertVenue(selectedVenue);
-        } catch (e) {
-          console.warn('[Matches] Venue upsert failed (may already exist):', e.message);
-        }
+        await upsertVenue(selectedVenue);
+        // upsertVenue handles duplicate key errors gracefully
       }
       
       // Create match via Edge Function (RLS enforced)
