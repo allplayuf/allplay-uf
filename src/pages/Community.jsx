@@ -18,7 +18,7 @@ import { PullToRefresh } from "../components/ui/pull-to-refresh";
 import { AuthGateModal } from "../components/ui/auth-gate-modal";
 import { LoginModal } from "../components/supabase";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
-import { getMyProfile } from "../components/supabase/services";
+import { getMyProfile, getTeams, getMyTeamMemberships, createSupabaseTeam } from "../components/supabase/services";
 
 const FriendsList = lazy(() => import("../components/community/FriendsList"));
 const FindPlayers = lazy(() => import("../components/community/FindPlayers"));
@@ -146,16 +146,15 @@ export default function CommunityPage() {
 
   const allUsers = usersData?.pages.flatMap(page => page.users) || [];
 
-  // Fetch public teams via backend with OPTIMIZED caching
+  // Fetch teams from Supabase teams table (RLS enforced)
   const { data: allTeams = [], isLoading: teamsLoading } = useQuery({
     queryKey: QUERY_KEYS.publicTeams,
     queryFn: async () => {
-      const response = await base44.functions.invoke('getPublicTeams');
-      const teams = response.data.teams || [];
-      return user?.role === 'admin' ? teams : teams.filter(t => t.is_active !== false);
+      const teams = await getTeams();
+      return teams;
     },
-    ...CACHE_STRATEGIES.SEMI_DYNAMIC, // Changed from DYNAMIC to reduce aggressive fetching on mount
-    refetchOnMount: false, // Don't refetch every time, trust cache
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+    refetchOnMount: false,
     enabled: !!user,
   });
 
@@ -180,15 +179,12 @@ export default function CommunityPage() {
     enabled: !!user,
   });
 
-  // Fetch user's teams with OPTIMIZED caching
+  // Fetch user's team memberships from Supabase
   const { data: myTeams = [], isLoading: myTeamsLoading } = useQuery({
     queryKey: QUERY_KEYS.teamMembers(user?.id),
     queryFn: async () => {
-      const teamMemberships = await base44.entities.TeamMember.filter({ 
-        user_id: user.id, 
-        status: 'active' 
-      });
-      const teamIds = teamMemberships.map(tm => tm.team_id);
+      const memberships = await getMyTeamMemberships();
+      const teamIds = memberships.map(m => m.team_id);
       return allTeams.filter(t => teamIds.includes(t.id));
     },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
@@ -329,15 +325,29 @@ export default function CommunityPage() {
 
   const handleCreateTeam = async (teamData) => {
     try {
-      const response = await base44.functions.invoke('teams/createTeam', teamData);
+      const result = await createSupabaseTeam(teamData);
       
       setShowCreateTeamForm(false);
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.publicTeams });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamMembers(user?.id) });
       
-      await alert('Lag skapat! 🎉', `${teamData.name} har skapats!`, { type: 'success' });
+      await alert('Lag skapat! ⚽', `${teamData.name} har skapats!`, { type: 'success' });
+
+      // Navigate to team detail if we got an ID back
+      if (result?.team_id || result?.id) {
+        const { createPageUrl } = await import('@/utils');
+        const { useNavigate } = await import('react-router-dom');
+        // Use window.location for simplicity since we're in an async callback
+        window.location.href = `${createPageUrl("TeamOverview")}?id=${result.team_id || result.id}`;
+      }
     } catch (error) {
       console.error("Error creating team:", error);
-      await alert('Ett fel uppstod', 'Kunde inte skapa laget.', { type: 'alert' });
+      const msg = error.status === 401
+        ? 'Du måste vara inloggad.'
+        : error.status === 409
+          ? 'Ett lag med det namnet finns redan.'
+          : (error.message || 'Kunde inte skapa laget. Försök igen.');
+      await alert('Kunde inte skapa lag', msg, { type: 'alert' });
     }
   };
 
