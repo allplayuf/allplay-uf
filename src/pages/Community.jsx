@@ -111,8 +111,8 @@ export default function CommunityPage() {
     };
   }, [authUser, userProfile, isGuestUser]);
 
-  // Only block on auth loading, not profile loading - data queries can start once we have authUser
-  const userLoading = authLoading;
+  // Show loading until we know auth state AND have a user object (or confirmed guest)
+  const userLoading = authLoading || (!isGuestUser && !user);
   const userError = null; // Errors handled by individual queries
 
   // Handle rate limit errors
