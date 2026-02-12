@@ -12,8 +12,15 @@ import { getSupabaseConfig, SUPABASE_URL } from '../config';
 import { sessionStore } from '../client';
 
 /**
- * Upsert a venue (sync from Base44)
- * Backend RLS decides if user can write - no frontend guard
+ * Upsert a venue by external_id
+ * 
+ * ARCHITECTURE: external_id is the unique key.
+ * - Calls upsert_venue edge function (onConflict: external_id)
+ * - If edge function returns duplicate key error, refetch by external_id
+ * - Never creates duplicate rows for the same external_id
+ * 
+ * @param {object} venue - Venue object (must have .id as external_id)
+ * @returns {Promise<object|null>} - Upserted venue or existing venue
  */
 export async function upsertVenue(venue) {
   if (!venue?.id) {
@@ -21,14 +28,52 @@ export async function upsertVenue(venue) {
     return null;
   }
   
-  return callEdgeFunction('upsert_venue', {
-    external_id: venue.id,
+  const payload = {
+    external_id: String(venue.id),
     name: venue.name || 'Okänd plan',
     city: venue.city || null,
     address: venue.address || null,
     lat: venue.latitude || venue.lat || null,
     lng: venue.longitude || venue.lng || null
-  });
+  };
+
+  try {
+    return await callEdgeFunction('upsert_venue', payload);
+  } catch (e) {
+    // Handle duplicate key / conflict errors gracefully
+    const msg = (e.message || '').toLowerCase();
+    if (msg.includes('duplicate') || msg.includes('conflict') || msg.includes('unique') || msg.includes('23505')) {
+      console.info('[venuesService] Venue already exists, fetching by external_id:', payload.external_id);
+      return getVenueByExternalId(payload.external_id);
+    }
+    // Re-throw other errors
+    throw e;
+  }
+}
+
+/**
+ * Get a single venue by its external_id
+ * Used as fallback when upsert hits a duplicate key conflict
+ */
+export async function getVenueByExternalId(externalId) {
+  if (!externalId) return null;
+  
+  const config = await getSupabaseConfig();
+  const headers = { 'Content-Type': 'application/json' };
+  if (config.anonKey) headers['apikey'] = config.anonKey;
+  if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/venues?external_id=eq.${encodeURIComponent(externalId)}&limit=1`,
+      { method: 'GET', headers }
+    );
+    if (!res.ok) return null;
+    const rows = await res.json();
+    return rows[0] || null;
+  } catch {
+    return null;
+  }
 }
 
 /**
