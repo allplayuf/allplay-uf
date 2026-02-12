@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { base44 } from "@/api/base44Client";
+import { finishMatch } from "@/components/supabase/services/matchesService";
+import { callEdgeFunction } from "@/components/supabase/callEdgeFunction";
 import {
   Trophy,
   Star,
@@ -132,18 +134,38 @@ export default function MatchEndModal({
   };
 
   const completeMatch = async (score = null) => {
-    const updateData = {
-      status: 'completed',
-      completed_at: new Date().toISOString(),
-      result_reported_by: currentUser.id
-    };
+    // Parse score string "5-3" into home_score/away_score
+    let home_score = null;
+    let away_score = null;
+    if (score) {
+      const parts = score.split('-').map(s => parseInt(s.trim(), 10));
+      if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+        home_score = parts[0];
+        away_score = parts[1];
+      }
+    }
 
-    if (score) updateData.final_score = score;
-    if (matchFeedback) updateData.notes = matchFeedback;
-
-    await base44.entities.Match.update(match.id, updateData);
+    // Use finish_match Edge Function as primary path
+    try {
+      await finishMatch(match.id, {
+        home_score,
+        away_score,
+        notes: matchFeedback || undefined
+      });
+    } catch (edgeError) {
+      console.warn('[MatchEndModal] finish_match failed, falling back to Base44:', edgeError.message);
+      // Fallback: update via Base44 entities
+      const updateData = {
+        status: 'completed',
+        completed_at: new Date().toISOString(),
+        result_reported_by: currentUser.id
+      };
+      if (score) updateData.final_score = score;
+      if (matchFeedback) updateData.notes = matchFeedback;
+      await base44.entities.Match.update(match.id, updateData);
+    }
     
-    // Calculate MVP winner based on all votes
+    // Calculate MVP winner based on all votes (best-effort)
     try {
       const allVotes = await base44.entities.MVPVote.filter({ match_id: match.id });
       if (allVotes && allVotes.length > 0) {
@@ -156,23 +178,11 @@ export default function MatchEndModal({
           voteCounts[a] > voteCounts[b] ? a : b
         );
         
-        // Update match with MVP and increment MVP count
         await base44.entities.Match.update(match.id, { mvp_user_id: mvpId });
-        
-        const mvpUser = participants.find(p => p.id === mvpId);
-        if (mvpUser) {
-          await base44.auth.updateMe({ 
-            mvp_count: (mvpUser.mvp_count || 0) + 1 
-          });
-        }
       }
     } catch (error) {
       console.error('Error calculating MVP:', error);
     }
-
-    await base44.auth.updateMe({
-      matches_played: (currentUser.matches_played || 0) + 1
-    });
   };
 
   const handleResultSubmit = async () => {

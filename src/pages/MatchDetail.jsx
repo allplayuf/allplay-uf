@@ -594,13 +594,13 @@ export default function MatchDetailPage() {
     );
   }
 
-  const isOrganizer = match.organizer_id === user?.id;
+  const isOrganizer = match.organizer_id === user?.id || match.created_by === user?.id;
   
   // CRITICAL: Safe participant check (no useMemo - cheap calculation)
   const isParticipant = !!user?.id && Array.isArray(participants) && participants.some(p => p.id === user.id);
   
   // UI-level check only - backend validates actual join permission
-  const canJoin = !isCupMatch && !isParticipant && match.status === 'upcoming' && !isGuest;
+  const canJoin = !isCupMatch && !isParticipant && match.status === 'upcoming' && !isGuest && !isOrganizer;
   const isCompleted = match.status === 'completed';
 
   const statusConfig = STATUS_CONFIG[match.status] || STATUS_CONFIG.upcoming;
@@ -648,12 +648,19 @@ export default function MatchDetailPage() {
                   <span className="text-[#2BA84A]">Avslutad</span>
                 </div>
 
-                {match.final_score && (
+                {(match.final_score || match.home_score !== undefined) && (
                   <div className="mb-8">
                     <div className="inline-block px-8 py-4 bg-[#18221E] rounded-2xl border border-[#223029] shadow-inner">
                       <div className="text-xs text-[#7B8A83] font-bold uppercase tracking-widest mb-1">Resultat</div>
-                      <div className="text-5xl font-black text-white tracking-tight">{match.final_score}</div>
+                      <div className="text-5xl font-black text-white tracking-tight">
+                        {match.final_score || `${match.home_score ?? '?'}-${match.away_score ?? '?'}`}
+                      </div>
                     </div>
+                  </div>
+                )}
+                {!match.final_score && match.home_score === undefined && (
+                  <div className="mb-8 px-4 py-3 bg-[#18221E]/50 rounded-xl border border-[#223029]">
+                    <p className="text-sm text-[#7B8A83]">Inget resultat inlagt</p>
                   </div>
                 )}
 
