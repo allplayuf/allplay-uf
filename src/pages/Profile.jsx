@@ -94,9 +94,26 @@ export default function ProfilePage() {
   const urlParams = new URLSearchParams(location.search);
   const targetUserId = urlParams.get('userId');
 
-  // Use auth state from SupabaseAuthProvider (consistent with Community)
-  const user = authUser;
+  // Fetch user profile from Supabase users table (has profile_image_url, etc.)
+  const { data: userProfile } = useQuery({
+    queryKey: ['supabase-userProfile', authUser?.id],
+    queryFn: () => getMyProfile(),
+    ...CACHE_STRATEGIES.AUTH,
+    enabled: isAuthenticated && !!authUser?.id,
+  });
 
+  // Merge auth user with Supabase profile data (profile has priority for profile_image_url etc.)
+  const user = React.useMemo(() => {
+    if (!authUser) return null;
+    return {
+      ...authUser,
+      ...userProfile,
+      id: authUser.id,
+      profile_image_url: userProfile?.profile_image_url || userProfile?.avatar_url || authUser?.profile_image_url || authUser?.avatar_url,
+      display_name: userProfile?.display_name || userProfile?.full_name || authUser?.display_name || authUser?.full_name,
+      full_name: userProfile?.full_name || userProfile?.display_name || authUser?.full_name || authUser?.display_name,
+    };
+  }, [authUser, userProfile]);
 
 
   // Fetch target user if viewing someone else's profile
