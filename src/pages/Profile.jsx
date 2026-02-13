@@ -758,7 +758,7 @@ export default function ProfilePage() {
                   transition={{ delay: 0.5 }}
                   className="text-white/85 text-[11px] sm:text-sm lg:text-base font-medium leading-snug mb-3 sm:mb-4"
                 >
-                  {displayUser?.bio || 'AllPlays officiella konto'}
+                  {displayUser?.bio || (isViewingOtherProfile ? '' : 'Tryck på Redigera för att lägga till en bio')}
                 </motion.p>
 
                 {/* Chips */}

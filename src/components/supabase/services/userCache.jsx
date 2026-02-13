@@ -87,8 +87,10 @@ function createFallbackUser(userId) {
     display_name: 'Spelare',
     avatar_url: null,
     profile_image_url: null,
+    bio: null,
     city: null,
     skill_level: null,
+    birth_year: null,
     matches_played: 0,
     mvp_count: 0,
     elo_rating: null
@@ -175,7 +177,7 @@ export async function fetchUsersMissing(userIds) {
           if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
           
           const idsParam = `(${missingIds.join(',')})`;
-          const safeColumns = 'id,full_name,username,display_name,avatar_url,profile_image_url,elo_rating';
+          const safeColumns = 'id,full_name,username,display_name,avatar_url,profile_image_url,bio,city,skill_level,birth_year,elo_rating,matches_played,mvp_count';
           
           // Try with known-safe columns first (avoids 400 from missing columns)
           let res = await fetch(
