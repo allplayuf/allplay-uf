@@ -110,8 +110,9 @@ export function SupabaseAuthProvider({ children }) {
   }, [roles]);
 
   const isAdmin = useCallback(() => {
-    return hasRole('admin');
-  }, [hasRole]);
+    // Check DB-sourced is_admin flag first, then fall back to role
+    return user?.is_admin === true || hasRole('admin');
+  }, [hasRole, user]);
 
   const isCupAdmin = useCallback(() => {
     return hasRole('cup_admin') || hasRole('admin');

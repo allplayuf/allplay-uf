@@ -120,20 +120,35 @@ function LayoutInner({ children }) {
   // Use Supabase auth state for admin check
   const { user: supabaseUser, isAuthenticated: isSupabaseAuth, isLoading: isSupabaseLoading, roles: supabaseRoles, hasRole: supabaseHasRole } = useSupabaseAuth();
 
+  // Fetch profile to get is_admin from DB
+  const [userProfile, setUserProfile] = useState(null);
+  
   useEffect(() => {
     if (isSupabaseLoading) return;
     
     if (isSupabaseAuth && supabaseUser) {
-      const userForCheck = {
-        ...supabaseUser,
-        role: supabaseHasRole('admin') ? 'admin' : 'user',
-        custom_roles: supabaseRoles.filter(r => r !== 'admin').map(r => r.toUpperCase())
-      };
-      setIsAdmin(canAccessAdminPanel(userForCheck));
+      // Fetch profile from Supabase to get is_admin flag
+      import("../components/supabase/services/usersService").then(({ getMyProfile }) => {
+        getMyProfile().then(profile => {
+          setUserProfile(profile);
+          const userForCheck = {
+            ...supabaseUser,
+            ...profile,
+            is_admin: profile?.is_admin === true,
+            role: profile?.is_admin === true ? 'admin' : (supabaseHasRole('admin') ? 'admin' : 'user'),
+            custom_roles: supabaseRoles.filter(r => r !== 'admin').map(r => r.toUpperCase())
+          };
+          setIsAdmin(canAccessAdminPanel(userForCheck));
+          setAdminCheckDone(true);
+        }).catch(() => {
+          setIsAdmin(false);
+          setAdminCheckDone(true);
+        });
+      });
     } else {
       setIsAdmin(false);
+      setAdminCheckDone(true);
     }
-    setAdminCheckDone(true);
   }, [isSupabaseLoading, isSupabaseAuth, supabaseUser, supabaseRoles]);
 
   // Determine if current page is a root page or sub-page
