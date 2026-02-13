@@ -162,6 +162,7 @@ export async function getUserById(id) {
 export async function updateProfile(data) {
   // Filter out undefined values, keep nulls (explicit removal)
   const payload = {};
+  // SECURITY: is_admin is intentionally excluded - it can only be set via DB
   const ALLOWED_FIELDS = ['full_name', 'username', 'avatar_url', 'bio', 'skill_level', 'city', 'birth_year'];
   
   for (const key of ALLOWED_FIELDS) {
