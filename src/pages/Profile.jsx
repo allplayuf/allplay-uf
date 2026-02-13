@@ -102,7 +102,7 @@ export default function ProfilePage() {
     enabled: isAuthenticated && !!authUser?.id,
   });
 
-  // Merge auth user with Supabase profile data (profile has priority for profile_image_url etc.)
+  // Merge auth user with Supabase profile data (profile has priority)
   const user = React.useMemo(() => {
     if (!authUser) return null;
     return {
@@ -112,6 +112,10 @@ export default function ProfilePage() {
       profile_image_url: userProfile?.profile_image_url || userProfile?.avatar_url || authUser?.profile_image_url || authUser?.avatar_url,
       display_name: userProfile?.display_name || userProfile?.full_name || authUser?.display_name || authUser?.full_name,
       full_name: userProfile?.full_name || userProfile?.display_name || authUser?.full_name || authUser?.display_name,
+      bio: userProfile?.bio || '',
+      city: userProfile?.city || authUser?.city || '',
+      skill_level: userProfile?.skill_level || authUser?.skill_level || '',
+      birth_year: userProfile?.birth_year || null,
     };
   }, [authUser, userProfile]);
 
