@@ -153,9 +153,10 @@ export function isAuthenticated(user) {
 
 /**
  * Check if user is full admin
+ * Reads is_admin from Supabase profile (DB source of truth)
  */
 export function isAdmin(user) {
-  return user?.role === 'admin';
+  return user?.is_admin === true || user?.role === 'admin';
 }
 
 /**

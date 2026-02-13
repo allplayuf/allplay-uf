@@ -25,7 +25,7 @@ async function fetchUsersViaRest(ids) {
   if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
   
   const idsParam = `(${ids.join(',')})`;
-  const safeColumns = 'id,full_name,username,display_name,avatar_url,profile_image_url,bio,city,skill_level,birth_year,elo_rating,matches_played,mvp_count';
+  const safeColumns = 'id,full_name,username,display_name,avatar_url,profile_image_url,bio,city,skill_level,birth_year,elo_rating,matches_played,mvp_count,is_admin';
   
   // Use known-safe columns (avoids 400 from unknown columns in view)
   let res = await fetch(
