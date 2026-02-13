@@ -1,8 +1,81 @@
-import React from "react";
-import { motion } from "framer-motion";
-import { ArrowLeft, Globe, Instagram, Music, ExternalLink, Users, Target, Zap, Shield, MapPin, Calendar } from "lucide-react";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, Globe, Instagram, Music, ExternalLink, Users, Target, Zap, Shield, MapPin, Calendar, ChevronDown, ChevronUp, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { POLICY_SECTIONS } from "@/components/legal/policyText";
+
+function PolicyBlock() {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.85 }}
+      className="bg-[#121715] border border-[#223029] rounded-2xl overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.3)]"
+    >
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center justify-between p-6 sm:p-8 text-left"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-[#9370DB]/20 rounded-lg flex items-center justify-center flex-shrink-0">
+            <FileText className="w-5 h-5 text-[#9370DB]" strokeWidth={2} />
+          </div>
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-[#F4F7F5]">Användarpolicy</h2>
+            <p className="text-sm text-[#B6C2BC] mt-0.5">Användarvillkor & Integritetspolicy</p>
+          </div>
+        </div>
+        {isExpanded ? (
+          <ChevronUp className="w-5 h-5 text-[#7B8A83] flex-shrink-0" />
+        ) : (
+          <ChevronDown className="w-5 h-5 text-[#7B8A83] flex-shrink-0" />
+        )}
+      </button>
+
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="px-6 sm:px-8 pb-6 sm:pb-8 space-y-4 max-h-[60vh] overflow-y-auto">
+              {POLICY_SECTIONS.map((section, i) => {
+                if (section.type === "title") {
+                  return <h3 key={i} className="text-lg font-bold text-[#F4F7F5] pt-2">{section.text}</h3>;
+                }
+                if (section.type === "heading") {
+                  return <h4 key={i} className="text-base font-semibold text-[#2BA84A] pt-4">{section.text}</h4>;
+                }
+                if (section.type === "intro" || section.type === "paragraph") {
+                  return <p key={i} className="text-sm text-[#B6C2BC] leading-relaxed">{section.text}</p>;
+                }
+                if (section.type === "list") {
+                  return (
+                    <ul key={i} className="space-y-2 pl-4">
+                      {section.items.map((item, j) => (
+                        <li key={j} className="text-sm text-[#B6C2BC] leading-relaxed list-disc ml-2">{item}</li>
+                      ))}
+                    </ul>
+                  );
+                }
+                if (section.type === "divider") {
+                  return <hr key={i} className="border-[#223029] my-4" />;
+                }
+                return null;
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
 
 export default function AboutAllPlay() {
   return (
@@ -174,6 +247,9 @@ export default function AboutAllPlay() {
             Vår vision är att göra det lika enkelt att spela fotboll som att öppna en social media-app. AllPlay ska bli Nordens ledande plattform för spontanidrott – där fotboll, och på sikt fler sporter, samlar människor över stadsdels- och bakgrundsgränser. För kommuner vill vi vara ett modernt verktyg för folkhälsa, integration och tryggare kvällsmiljöer. För dig som spelare är AllPlay friheten att spela när du vill, med vem du vill.
           </p>
         </motion.div>
+
+        {/* Policy Section */}
+        <PolicyBlock />
 
         {/* Social Links */}
         <motion.div
