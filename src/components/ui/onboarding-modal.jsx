@@ -71,15 +71,11 @@ export function OnboardingModal() {
   const [isProcessingReferral, setIsProcessingReferral] = useState(false);
 
   useEffect(() => {
-    // TEMP: Always show onboarding for preview testing
-    const t = setTimeout(() => setIsOpen(true), 400);
-    return () => clearTimeout(t);
-    // Original logic:
-    // const done = localStorage.getItem(ONBOARDING_STORAGE_KEY);
-    // if (!done) {
-    //   const t = setTimeout(() => setIsOpen(true), 400);
-    //   return () => clearTimeout(t);
-    // }
+    const done = localStorage.getItem(ONBOARDING_STORAGE_KEY);
+    if (!done) {
+      const t = setTimeout(() => setIsOpen(true), 400);
+      return () => clearTimeout(t);
+    }
   }, []);
 
   // Handle referral codes
@@ -200,14 +196,14 @@ export function OnboardingModal() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/85 backdrop-blur-md"
+          className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-md"
         >
           <motion.div
             initial={{ y: 60, opacity: 0, scale: 0.97 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 60, opacity: 0, scale: 0.97 }}
             transition={{ type: "spring", damping: 28, stiffness: 280 }}
-            className="relative w-full sm:max-w-[440px] h-[100dvh] sm:h-auto sm:max-h-[min(680px,90vh)] bg-[#0A0E0C] sm:rounded-[28px] border-0 sm:border border-[#1A2420] shadow-[0_-20px_60px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col"
+            className="relative w-full max-w-none sm:max-w-[440px] sm:w-[440px] h-[100dvh] sm:h-[min(600px,80vh)] bg-[#0A0E0C] sm:rounded-[28px] border-0 sm:border border-[#1A2420] shadow-[0_-20px_60px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col"
           >
             {/* Ambient gradient */}
             <div className={`absolute inset-0 bg-gradient-to-br ${slide.gradient} pointer-events-none opacity-60`} />
