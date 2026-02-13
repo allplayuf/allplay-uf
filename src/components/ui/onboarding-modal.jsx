@@ -200,14 +200,14 @@ export function OnboardingModal() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-md"
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/85 backdrop-blur-md"
         >
           <motion.div
             initial={{ y: 60, opacity: 0, scale: 0.97 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 60, opacity: 0, scale: 0.97 }}
             transition={{ type: "spring", damping: 28, stiffness: 280 }}
-            className="relative w-full max-w-[440px] h-[92vh] sm:h-[680px] bg-[#0A0E0C] rounded-t-[28px] sm:rounded-[28px] border border-[#1A2420] shadow-[0_-20px_60px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col"
+            className="relative w-full sm:max-w-[440px] h-[100dvh] sm:h-auto sm:max-h-[min(680px,90vh)] bg-[#0A0E0C] sm:rounded-[28px] border-0 sm:border border-[#1A2420] shadow-[0_-20px_60px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col"
           >
             {/* Ambient gradient */}
             <div className={`absolute inset-0 bg-gradient-to-br ${slide.gradient} pointer-events-none opacity-60`} />
@@ -222,7 +222,7 @@ export function OnboardingModal() {
             />
 
             {/* Top bar: progress + skip */}
-            <div className="relative z-10 flex items-center justify-between px-6 pt-5 pb-2 flex-shrink-0">
+            <div className="relative z-10 flex items-center justify-between px-5 sm:px-6 flex-shrink-0" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top))', paddingBottom: '0.5rem' }}>
               {/* Progress bar */}
               <div className="flex-1 h-1 bg-[#1A2420] rounded-full overflow-hidden mr-4">
                 <motion.div
@@ -243,7 +243,7 @@ export function OnboardingModal() {
             </div>
 
             {/* Slide content */}
-            <div className="flex-1 overflow-y-auto px-6 py-4 relative z-10" style={{ minHeight: 0 }}>
+            <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-3 sm:py-4 relative z-10" style={{ minHeight: 0 }}>
               <AnimatePresence mode="wait" custom={direction}>
                 <motion.div
                   key={currentSlide}
@@ -256,16 +256,16 @@ export function OnboardingModal() {
                   className="flex flex-col"
                 >
                   {/* Title */}
-                  <h2 className="text-[28px] sm:text-[32px] font-black text-white leading-tight mb-2 whitespace-pre-line">
+                  <h2 className="text-[24px] sm:text-[28px] md:text-[32px] font-black text-white leading-tight mb-1.5 sm:mb-2 whitespace-pre-line">
                     {slide.title}
                   </h2>
-                  <p className="text-[15px] text-[#9CA3AF] mb-8 leading-relaxed">
+                  <p className="text-[14px] sm:text-[15px] text-[#9CA3AF] mb-5 sm:mb-8 leading-relaxed">
                     {slide.subtitle}
                   </p>
 
                   {/* --- WELCOME SLIDE --- */}
                   {slide.id === "welcome" && (
-                    <div className="space-y-3">
+                    <div className="space-y-2.5 sm:space-y-3">
                       {slide.features.map((f, i) => {
                         const Icon = f.icon;
                         return (
@@ -274,15 +274,15 @@ export function OnboardingModal() {
                             initial={{ opacity: 0, y: 16 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.15 + i * 0.1 }}
-                            className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06]"
+                            className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06]"
                           >
                             <div
-                              className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                              className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center flex-shrink-0"
                               style={{ backgroundColor: `${f.color}20` }}
                             >
                               <Icon className="w-5 h-5" style={{ color: f.color }} strokeWidth={2} />
                             </div>
-                            <span className="text-[15px] font-medium text-[#E5E7EB]">{f.text}</span>
+                            <span className="text-[14px] sm:text-[15px] font-medium text-[#E5E7EB]">{f.text}</span>
                           </motion.div>
                         );
                       })}
@@ -433,7 +433,7 @@ export function OnboardingModal() {
             </div>
 
             {/* Bottom CTA */}
-            <div className="relative z-10 flex-shrink-0 px-6 pt-3 space-y-3" style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}>
+            <div className="relative z-10 flex-shrink-0 px-5 sm:px-6 pt-2 sm:pt-3 space-y-2.5 sm:space-y-3" style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}>
               {isLast ? (
                 <>
                   {/* Primary: Login / Create account */}
@@ -443,7 +443,7 @@ export function OnboardingModal() {
                         setIsOpen(false);
                         setShowLoginModal(true);
                       }}
-                      className="w-full h-[52px] rounded-2xl font-bold text-[15px] shadow-lg bg-[#2BA84A] hover:bg-[#248232] text-white"
+                      className="w-full h-[48px] sm:h-[52px] rounded-2xl font-bold text-[14px] sm:text-[15px] shadow-lg bg-[#2BA84A] hover:bg-[#248232] text-white"
                     >
                       <LogIn className="w-5 h-5 mr-2" />
                       Logga in / Skapa konto
@@ -454,7 +454,7 @@ export function OnboardingModal() {
                     <Button
                       onClick={handleNext}
                       variant="ghost"
-                      className="w-full h-[48px] rounded-2xl text-[#7B8A83] hover:text-[#E5E7EB] hover:bg-white/5 font-medium text-[14px]"
+                      className="w-full h-[44px] sm:h-[48px] rounded-2xl text-[#7B8A83] hover:text-[#E5E7EB] hover:bg-white/5 font-medium text-[13px] sm:text-[14px]"
                     >
                       Fortsätt utan konto
                     </Button>
@@ -465,7 +465,7 @@ export function OnboardingModal() {
                   <Button
                     onClick={handleNext}
                     disabled={isVerifyingAge}
-                    className="w-full h-[52px] rounded-2xl font-bold text-[15px] shadow-lg transition-all disabled:opacity-50 bg-[#F4743B] hover:bg-[#E5683A] text-white"
+                    className="w-full h-[48px] sm:h-[52px] rounded-2xl font-bold text-[14px] sm:text-[15px] shadow-lg transition-all disabled:opacity-50 bg-[#F4743B] hover:bg-[#E5683A] text-white"
                   >
                     {isVerifyingAge ? (
                       "Verifierar..."
