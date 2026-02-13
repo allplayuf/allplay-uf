@@ -361,22 +361,17 @@ export function OnboardingModal() {
                         )}
                       </div>
 
-                      <button
-                        onClick={() => {
-                          handleComplete();
-                          window.open(createPageUrl('LegalPolicy') + '?tab=privacy', '_blank');
-                        }}
-                        className="w-full flex items-center gap-3 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.05] transition-colors text-left"
-                      >
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#9370DB]/15">
-                          <FileText className="w-5 h-5 text-[#9370DB]" strokeWidth={2} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-sm text-[#E5E7EB]">Användarpolicy</div>
-                          <div className="text-xs text-[#7B8A83] mt-0.5">Läs om hur vi hanterar dina uppgifter</div>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-[#7B8A83] flex-shrink-0" />
-                      </button>
+                      <p className="text-xs text-[#7B8A83] text-center leading-relaxed">
+                        Genom att använda AllPlay godkänner du vår{" "}
+                        <a
+                          href={createPageUrl('AboutAllPlay')}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[#2BA84A] underline underline-offset-2 hover:text-[#248232]"
+                        >
+                          användarpolicy
+                        </a>.
+                      </p>
                     </div>
                   )}
 
@@ -443,8 +438,9 @@ export function OnboardingModal() {
                   <motion.div whileTap={{ scale: 0.98 }}>
                     <Button
                       onClick={() => {
-                        handleComplete();
-                        setTimeout(() => setShowLoginModal(true), 300);
+                        setIsOpen(false);
+                        localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
+                        setShowLoginModal(true);
                       }}
                       className="w-full h-[52px] rounded-2xl font-bold text-[15px] shadow-lg bg-[#2BA84A] hover:bg-[#248232] text-white"
                     >
