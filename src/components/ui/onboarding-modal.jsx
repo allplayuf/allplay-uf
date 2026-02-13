@@ -1,274 +1,189 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  MapPin, 
-  Shield, 
-  Users, 
-  Bell, 
-  ChevronRight, 
-  X, 
-  Check, 
-  Map as MapIcon,
-  Trophy,
-  UserPlus,
-  Navigation,
-  LogIn
+  MapPin, Shield, Users, Bell, ChevronRight, Check,
+  Trophy, Navigation, LogIn, Zap, Star, Target
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/utils";
-import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
+import { base44 } from "@/api/base44Client";
 import { LoginModal } from "@/components/supabase";
 
 const ONBOARDING_STORAGE_KEY = 'allplay_onboarding_completed_v3';
 
 const SLIDES = [
   {
-    id: "screen_0_welcome",
-    title: "Välkommen till AllPlay!",
-    description: "Din plattform för att hitta matcher, bygga lag och spela fotboll med likasinnade.",
-    bullets: [
-      "Hitta matcher nära dig på sekunder",
-      "Skapa lag och spela turneringar",
-      "Bygg din profil och samla MVP-röster"
+    id: "welcome",
+    title: "Välkommen till\nAllPlay",
+    subtitle: "Spontanfotboll, förenklat.",
+    features: [
+      { icon: MapPin, text: "Hitta matcher nära dig", color: "#2BA84A" },
+      { icon: Users, text: "Bygg lag med vänner", color: "#9370DB" },
+      { icon: Trophy, text: "Samla MVP-röster & badges", color: "#F59E0B" },
     ],
-    icon: Trophy,
-    color: "#2BA84A"
+    gradient: "from-[#2BA84A]/30 via-transparent to-[#F4743B]/20",
+    accentColor: "#2BA84A",
   },
   {
-    id: "screen_0_age",
+    id: "how-it-works",
+    title: "Så funkar det",
+    subtitle: "Tre steg till din första match.",
+    steps: [
+      { number: "1", title: "Hitta en plan", desc: "Se fotbollsplaner nära dig på kartan", icon: MapPin, color: "#2BA84A" },
+      { number: "2", title: "Gå med i en match", desc: "Välj nivå och anmäl dig direkt", icon: Zap, color: "#F4743B" },
+      { number: "3", title: "Spela & utvecklas", desc: "Bygg din profil med stats och badges", icon: Star, color: "#F59E0B" },
+    ],
+    gradient: "from-[#F4743B]/25 via-transparent to-[#9370DB]/20",
+    accentColor: "#F4743B",
+  },
+  {
+    id: "age",
     title: "Hur gammal är du?",
-    description: "Detta är valfritt, men om du anger din ålder måste du vara minst 13 år. Om du är under 18 år aktiveras extra skydd automatiskt.",
-    isAgeVerificationScreen: true,
-    icon: Shield,
-    color: "#2BA84A"
+    subtitle: "Valfritt — men under 18 ger extra skydd.",
+    isAgeScreen: true,
+    gradient: "from-[#2BA84A]/20 via-transparent to-[#2BA84A]/10",
+    accentColor: "#2BA84A",
   },
   {
-    id: "screen_1",
-    title: "Hitta matcher nära dig",
-    description: "AllPlay visar fotbollsplaner och matcher nära dig, så du slipper chattgrupper och krånglig planering.",
-    bullets: [
-      "Se planer på karta i din stad",
-      "Skapa egna matcher på sekunder",
-      "Gå med i öppna matcher i närheten"
-    ],
-    icon: MapIcon,
-    color: "#F4743B"
-  },
-  {
-    id: "screen_2",
-    title: "Spela på rätt nivå",
-    description: "Du anger din nivå och AllPlay hjälper dig hitta matcher med spelare som ligger ungefär som du.",
-    bullets: [
-      "Nivåsystem inspirerat av ELO",
-      "Matcher filtrerade på nivå",
-      "Verifiering via rapportering"
-    ],
-    tags: [
-      { label: "Nivåmatchning", color: "bg-[#2BA84A]" },
-      { label: "Trygghet", color: "bg-[#F4743B]" }
-    ],
-    icon: Shield,
-    color: "#2BA84A"
-  },
-  {
-    id: "screen_3",
-    title: "Bygg lag & hitta vänner",
-    description: "Skapa eller gå med i lag, samla badges och bygg streaks tillsammans med andra.",
-    bullets: [
-      "Skapa lag med dina vänner",
-      "Se när dina vänner spelar",
-      "Samla badges och MVP-röster"
-    ],
-    icon: Users,
-    color: "#9370DB"
-  },
-  {
-    id: "screen_4_permissions",
-    title: "För att AllPlay ska fungera",
-    description: "Vi använder din position och notiser för att visa relevanta matcher och påminna dig i tid.",
+    id: "permissions",
+    title: "Nästan klart!",
+    subtitle: "Aktivera för bästa upplevelsen.",
     isPermissionScreen: true,
-    icon: Bell,
-    color: "#F59E0B"
-  }
+    gradient: "from-[#F59E0B]/25 via-transparent to-[#2BA84A]/15",
+    accentColor: "#F59E0B",
+  },
 ];
 
 export function OnboardingModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [permissions, setPermissions] = useState({
-    location: false,
-    notifications: false
-  });
-  const [isProcessingReferral, setIsProcessingReferral] = useState(false);
+  const [direction, setDirection] = useState(1);
+  const [permissions, setPermissions] = useState({ location: false, notifications: false });
   const [birthDay, setBirthDay] = useState('');
   const [birthMonth, setBirthMonth] = useState('');
   const [birthYear, setBirthYear] = useState('');
   const [ageVerified, setAgeVerified] = useState(false);
   const [ageError, setAgeError] = useState('');
   const [isVerifyingAge, setIsVerifyingAge] = useState(false);
-  const [continueAsGuest, setContinueAsGuest] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const navigate = useNavigate();
+  const [isProcessingReferral, setIsProcessingReferral] = useState(false);
 
   useEffect(() => {
-    const checkOnboarding = () => {
-      // Check localStorage ONLY - onboarding is shown once per device
-      const hasCompletedOnboarding = localStorage.getItem(ONBOARDING_STORAGE_KEY);
-      
-      if (!hasCompletedOnboarding) {
-        // Small delay for better UX on load
-        const timer = setTimeout(() => setIsOpen(true), 500);
-        return () => clearTimeout(timer);
-      }
-    };
-
-    checkOnboarding();
+    const done = localStorage.getItem(ONBOARDING_STORAGE_KEY);
+    if (!done) {
+      const t = setTimeout(() => setIsOpen(true), 400);
+      return () => clearTimeout(t);
+    }
   }, []);
 
-  // Check for referral code on mount
+  // Handle referral codes
   useEffect(() => {
-    const processReferral = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const referralCode = urlParams.get('ref');
-      
-      if (referralCode && !isProcessingReferral) {
-        setIsProcessingReferral(true);
+    const urlParams = new URLSearchParams(window.location.search);
+    const ref = urlParams.get('ref');
+    if (ref && !isProcessingReferral) {
+      setIsProcessingReferral(true);
+      (async () => {
         try {
           const isAuth = await base44.auth.isAuthenticated();
           if (isAuth) {
             const user = await base44.auth.me();
-            
-            // Only process if user doesn't already have a referrer
             if (!user.referred_by) {
-              await base44.functions.invoke('auth/handleReferralSignup', {
-                userId: user.id,
-                referralCode: referralCode
-              });
+              await base44.functions.invoke('auth/handleReferralSignup', { userId: user.id, referralCode: ref });
             }
           } else {
-            // Store referral code for after signup
-            sessionStorage.setItem('pending_referral_code', referralCode);
+            sessionStorage.setItem('pending_referral_code', ref);
           }
-        } catch (error) {
-          console.error('Error processing referral:', error);
-        } finally {
-          setIsProcessingReferral(false);
-        }
-      }
-    };
-
-    processReferral();
+        } catch (e) { /* ignore */ }
+        setIsProcessingReferral(false);
+      })();
+    }
   }, [isProcessingReferral]);
 
   const handleComplete = async () => {
-    // Always mark as completed in localStorage (works for guests too)
     localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
-    
-    // If authenticated, also save to user profile
     try {
       const isAuth = await base44.auth.isAuthenticated();
       if (isAuth) {
         await base44.auth.updateMe({ onboarding_completed: true });
-        
-        const pendingReferral = sessionStorage.getItem('pending_referral_code');
-        if (pendingReferral) {
-          try {
-            const user = await base44.auth.me();
-            await base44.functions.invoke('auth/handleReferralSignup', {
-              userId: user.id,
-              referralCode: pendingReferral
-            });
-            sessionStorage.removeItem('pending_referral_code');
-          } catch (error) {
-            console.error('Error processing pending referral:', error);
-          }
+        const pending = sessionStorage.getItem('pending_referral_code');
+        if (pending) {
+          const user = await base44.auth.me();
+          await base44.functions.invoke('auth/handleReferralSignup', { userId: user.id, referralCode: pending }).catch(() => {});
+          sessionStorage.removeItem('pending_referral_code');
         }
       }
-    } catch (error) {
-      // Ignore errors - localStorage is already set
-    }
-    
+    } catch (e) { /* ignore */ }
     setIsOpen(false);
+  };
+
+  const verifyAge = async () => {
+    if (!birthDay || !birthMonth || !birthYear) {
+      setAgeVerified(true);
+      return true;
+    }
+    setIsVerifyingAge(true);
+    setAgeError('');
+    try {
+      const dob = `${birthYear}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`;
+      const response = await base44.functions.invoke('verifyAge', { date_of_birth: dob });
+      if (response.data?.allowed === false) {
+        setAgeError(response.data.message || 'Du måste vara minst 13 år.');
+        setIsVerifyingAge(false);
+        return false;
+      }
+      if (response.data?.success) {
+        setAgeVerified(true);
+        setIsVerifyingAge(false);
+        return true;
+      }
+    } catch (e) {
+      setAgeError('Kunde inte verifiera ålder.');
+    }
+    setIsVerifyingAge(false);
+    return false;
   };
 
   const handleNext = async () => {
     const slide = SLIDES[currentSlide];
-    
-    // If on age verification screen, verify age before proceeding
-    if (slide.isAgeVerificationScreen && !ageVerified) {
-      const verified = await verifyAge();
-      if (!verified) return;
+    if (slide.isAgeScreen && !ageVerified) {
+      const ok = await verifyAge();
+      if (!ok) return;
     }
-    
     if (currentSlide < SLIDES.length - 1) {
-      setCurrentSlide(prev => prev + 1);
+      setDirection(1);
+      setCurrentSlide(p => p + 1);
     } else {
       handleComplete();
     }
   };
 
-  const requestLocation = async () => {
+  const requestLocation = () => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         () => setPermissions(p => ({ ...p, location: true })),
-        (error) => console.log("Location denied", error)
+        () => {}
       );
     }
   };
 
   const requestNotifications = async () => {
     if ("Notification" in window) {
-      const permission = await Notification.requestPermission();
-      if (permission === "granted") {
-        setPermissions(p => ({ ...p, notifications: true }));
-      }
+      const perm = await Notification.requestPermission();
+      if (perm === "granted") setPermissions(p => ({ ...p, notifications: true }));
     }
-  };
-
-  const verifyAge = async () => {
-    // If no date provided, skip age verification (optional)
-    if (!birthDay || !birthMonth || !birthYear) {
-      setAgeVerified(true);
-      return true;
-    }
-
-    setIsVerifyingAge(true);
-    setAgeError('');
-    
-    try {
-      // Format date as YYYY-MM-DD
-      const dateOfBirth = `${birthYear}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`;
-      
-      const response = await base44.functions.invoke('verifyAge', {
-        date_of_birth: dateOfBirth
-      });
-
-      if (response.data?.allowed === false) {
-        setAgeError(response.data.message || 'Du måste vara minst 13 år för att använda AllPlay.');
-        setIsVerifyingAge(false);
-        return false;
-      }
-
-      if (response.data?.success) {
-        setAgeVerified(true);
-        setIsVerifyingAge(false);
-        return true;
-      }
-    } catch (error) {
-      console.error('Age verification error:', error);
-      setAgeError('Kunde inte verifiera ålder. Försök igen.');
-    }
-    
-    setIsVerifyingAge(false);
-    return false;
   };
 
   if (!isOpen) return null;
 
   const slide = SLIDES[currentSlide];
-  const Icon = slide.icon;
+  const isLast = currentSlide === SLIDES.length - 1;
+  const progress = ((currentSlide + 1) / SLIDES.length) * 100;
+
+  const slideVariants = {
+    enter: (d) => ({ x: d > 0 ? 80 : -80, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (d) => ({ x: d > 0 ? -80 : 80, opacity: 0 }),
+  };
 
   return (
     <AnimatePresence>
@@ -277,299 +192,296 @@ export function OnboardingModal() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-sm"
+          className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-md"
         >
           <motion.div
-            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-[400px] h-[600px] sm:h-[650px] bg-gradient-to-b from-[#040F0F] to-[#2D3A3A] rounded-[32px] border border-[#223029] shadow-2xl overflow-hidden flex flex-col"
+            initial={{ y: 60, opacity: 0, scale: 0.97 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 60, opacity: 0, scale: 0.97 }}
+            transition={{ type: "spring", damping: 28, stiffness: 280 }}
+            className="relative w-full max-w-[440px] h-[92vh] sm:h-[680px] bg-[#0A0E0C] rounded-t-[28px] sm:rounded-[28px] border border-[#1A2420] shadow-[0_-20px_60px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col"
           >
-            {/* Top Bar */}
-            <div className="flex items-center justify-between p-6 flex-shrink-0 z-20">
-              <div className="w-8 h-8" /> {/* Spacer */}
-              <div className="flex gap-1.5">
-                {SLIDES.map((_, idx) => (
-                  <div
-                    key={idx}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      idx === currentSlide 
-                        ? "w-6 bg-[#F4743B]" 
-                        : "w-1.5 bg-[#4B5563]"
-                    }`}
-                  />
-                ))}
+            {/* Ambient gradient */}
+            <div className={`absolute inset-0 bg-gradient-to-br ${slide.gradient} pointer-events-none opacity-60`} />
+
+            {/* Floating orbs */}
+            <motion.div
+              key={`orb-${currentSlide}`}
+              animate={{ x: [0, 15, 0], y: [0, -10, 0], scale: [1, 1.1, 1] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-16 right-8 w-32 h-32 rounded-full blur-3xl opacity-30 pointer-events-none"
+              style={{ backgroundColor: slide.accentColor }}
+            />
+
+            {/* Top bar: progress + skip */}
+            <div className="relative z-10 flex items-center justify-between px-6 pt-5 pb-2 flex-shrink-0">
+              {/* Progress bar */}
+              <div className="flex-1 h-1 bg-[#1A2420] rounded-full overflow-hidden mr-4">
+                <motion.div
+                  className="h-full rounded-full"
+                  style={{ backgroundColor: slide.accentColor }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                />
               </div>
               {currentSlide > 0 && (
-                <button 
+                <button
                   onClick={handleComplete}
-                  className="text-[#9CA3AF] hover:text-white text-sm font-medium px-2 py-1 rounded-lg hover:bg-white/5 transition-colors"
+                  className="text-[#7B8A83] hover:text-white text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors flex-shrink-0"
                 >
                   Hoppa över
                 </button>
               )}
             </div>
 
-            {/* Content Scroll Area - Fixed height with scroll */}
-            <div className="flex-1 overflow-y-auto px-6 py-4 scrollbar-thin scrollbar-thumb-[#223029] scrollbar-track-transparent" style={{ minHeight: 0 }}>
-              <AnimatePresence mode="wait">
+            {/* Slide content */}
+            <div className="flex-1 overflow-y-auto px-6 py-4 relative z-10" style={{ minHeight: 0 }}>
+              <AnimatePresence mode="wait" custom={direction}>
                 <motion.div
                   key={currentSlide}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
-                  className="flex flex-col items-center text-center"
+                  custom={direction}
+                  variants={slideVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                  className="flex flex-col"
                 >
-                  {/* Hero Icon/Illustration */}
-                  <div className="relative w-32 h-32 mb-8">
-                    <div 
-                      className="absolute inset-0 rounded-full opacity-20 blur-2xl"
-                      style={{ backgroundColor: slide.color }}
-                    />
-                    <div className="relative w-full h-full bg-[#121715]/50 border border-white/10 rounded-full flex items-center justify-center shadow-xl ring-1 ring-white/5">
-                      <Icon 
-                        size={48} 
-                        style={{ color: slide.color }}
-                        strokeWidth={1.5}
-                      />
-                      {/* Decorative floating elements based on slide */}
-                      {slide.id === "screen_1" && (
-                        <motion.div 
-                          animate={{ y: [-5, 5, -5] }}
-                          transition={{ duration: 3, repeat: Infinity }}
-                          className="absolute -right-2 top-0 bg-[#2BA84A] p-2 rounded-full border-2 border-[#121715]"
-                        >
-                          <MapPin size={14} className="text-white" />
-                        </motion.div>
-                      )}
-                      {slide.id === "screen_2" && (
-                        <motion.div 
-                          animate={{ scale: [1, 1.1, 1] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                          className="absolute -left-2 bottom-2 bg-[#F59E0B] p-2 rounded-full border-2 border-[#121715]"
-                        >
-                          <Trophy size={14} className="text-white" />
-                        </motion.div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Text Content */}
-                  <h2 className="text-2xl font-bold text-white mb-4 px-2">
+                  {/* Title */}
+                  <h2 className="text-[28px] sm:text-[32px] font-black text-white leading-tight mb-2 whitespace-pre-line">
                     {slide.title}
                   </h2>
-                  <p className="text-[#D1D5DB] text-[15px] leading-relaxed mb-8">
-                    {slide.description}
+                  <p className="text-[15px] text-[#9CA3AF] mb-8 leading-relaxed">
+                    {slide.subtitle}
                   </p>
 
-                  {/* Interactive Elements */}
-                  {slide.isAgeVerificationScreen ? (
-                    <div className="w-full space-y-4">
-                      <div className="bg-[#121715]/50 rounded-2xl p-5 border border-white/5">
-                        <label className="block text-sm font-semibold text-[#F4F7F5] mb-3 text-left">
-                          Födelsedatum (valfritt)
+                  {/* --- WELCOME SLIDE --- */}
+                  {slide.id === "welcome" && (
+                    <div className="space-y-3">
+                      {slide.features.map((f, i) => {
+                        const Icon = f.icon;
+                        return (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, y: 16 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.15 + i * 0.1 }}
+                            className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.05] transition-colors"
+                          >
+                            <div
+                              className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                              style={{ backgroundColor: `${f.color}20` }}
+                            >
+                              <Icon className="w-5 h-5" style={{ color: f.color }} strokeWidth={2} />
+                            </div>
+                            <span className="text-[15px] font-medium text-[#E5E7EB]">{f.text}</span>
+                          </motion.div>
+                        );
+                      })}
+
+                      {/* Social proof */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.6 }}
+                        className="mt-6 flex items-center justify-center gap-3"
+                      >
+                        <div className="flex -space-x-2">
+                          {['#2BA84A', '#F4743B', '#9370DB', '#F59E0B'].map((c, i) => (
+                            <div key={i} className="w-7 h-7 rounded-full border-2 border-[#0A0E0C] flex items-center justify-center text-[9px] font-bold text-white" style={{ backgroundColor: c }}>
+                              {['A', 'M', 'K', 'J'][i]}
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-xs text-[#7B8A83]">Hundratals spelare redan med</p>
+                      </motion.div>
+                    </div>
+                  )}
+
+                  {/* --- HOW IT WORKS SLIDE --- */}
+                  {slide.id === "how-it-works" && (
+                    <div className="space-y-4">
+                      {slide.steps.map((step, i) => {
+                        const Icon = step.icon;
+                        return (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.1 + i * 0.12 }}
+                            className="flex gap-4"
+                          >
+                            {/* Step indicator + line */}
+                            <div className="flex flex-col items-center">
+                              <div
+                                className="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm text-white flex-shrink-0 ring-2"
+                                style={{ backgroundColor: `${step.color}25`, ringColor: `${step.color}40`, color: step.color }}
+                              >
+                                <Icon className="w-4.5 h-4.5" strokeWidth={2.5} />
+                              </div>
+                              {i < slide.steps.length - 1 && (
+                                <div className="w-px flex-1 min-h-[24px] bg-gradient-to-b from-[#223029] to-transparent mt-1" />
+                              )}
+                            </div>
+                            {/* Text */}
+                            <div className="pb-4">
+                              <h3 className="font-bold text-[15px] text-white mb-0.5">{step.title}</h3>
+                              <p className="text-[13px] text-[#9CA3AF] leading-relaxed">{step.desc}</p>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* --- AGE SCREEN --- */}
+                  {slide.isAgeScreen && (
+                    <div className="space-y-5">
+                      <div className="bg-white/[0.03] rounded-2xl p-5 border border-white/[0.06]">
+                        <label className="block text-sm font-semibold text-[#E5E7EB] mb-3">
+                          Födelsedatum <span className="text-[#7B8A83] font-normal">(valfritt)</span>
                         </label>
                         <div className="grid grid-cols-3 gap-3">
-                          <div>
-                            <label className="block text-xs text-[#B6C2BC] mb-1">Dag</label>
-                            <Input
-                              type="number"
-                              min="1"
-                              max="31"
-                              placeholder="DD"
-                              value={birthDay}
-                              onChange={(e) => {
-                                setBirthDay(e.target.value);
-                                setAgeError('');
-                              }}
-                              className="bg-[#18221E] border-[#223029] text-[#F4F7F5] text-center h-14 text-lg font-semibold"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-[#B6C2BC] mb-1">Månad</label>
-                            <Input
-                              type="number"
-                              min="1"
-                              max="12"
-                              placeholder="MM"
-                              value={birthMonth}
-                              onChange={(e) => {
-                                setBirthMonth(e.target.value);
-                                setAgeError('');
-                              }}
-                              className="bg-[#18221E] border-[#223029] text-[#F4F7F5] text-center h-14 text-lg font-semibold"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-[#B6C2BC] mb-1">År</label>
-                            <Input
-                              type="number"
-                              min="1950"
-                              max={new Date().getFullYear()}
-                              placeholder="ÅÅÅÅ"
-                              value={birthYear}
-                              onChange={(e) => {
-                                setBirthYear(e.target.value);
-                                setAgeError('');
-                              }}
-                              className="bg-[#18221E] border-[#223029] text-[#F4F7F5] text-center h-14 text-lg font-semibold"
-                            />
-                          </div>
+                          {[
+                            { label: 'Dag', value: birthDay, set: setBirthDay, ph: 'DD', max: 31 },
+                            { label: 'Månad', value: birthMonth, set: setBirthMonth, ph: 'MM', max: 12 },
+                            { label: 'År', value: birthYear, set: setBirthYear, ph: 'ÅÅÅÅ', max: new Date().getFullYear() },
+                          ].map((f, i) => (
+                            <div key={i}>
+                              <label className="block text-[11px] text-[#7B8A83] mb-1">{f.label}</label>
+                              <Input
+                                type="number"
+                                min="1"
+                                max={f.max}
+                                placeholder={f.ph}
+                                value={f.value}
+                                onChange={e => { f.set(e.target.value); setAgeError(''); }}
+                                className="bg-[#131816] border-[#223029] text-[#F4F7F5] text-center h-12 text-base font-semibold rounded-xl"
+                              />
+                            </div>
+                          ))}
                         </div>
                         {ageError && (
-                          <motion.p 
-                            initial={{ opacity: 0, y: -10 }}
+                          <motion.p
+                            initial={{ opacity: 0, y: -8 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="mt-3 text-sm text-red-400 flex items-center gap-2 bg-red-500/10 p-3 rounded-lg border border-red-500/30"
+                            className="mt-3 text-sm text-red-400 bg-red-500/10 p-3 rounded-xl border border-red-500/20"
                           >
-                            <span className="text-lg">⚠️</span> 
-                            <span>{ageError}</span>
+                            {ageError}
                           </motion.p>
                         )}
                       </div>
-                      
-                      <div className="bg-[#2BA84A]/5 border border-[#2BA84A]/20 rounded-2xl p-4 text-left">
-                        <p className="text-xs font-semibold text-[#2BA84A] mb-2 flex items-center gap-2">
-                          <Shield size={14} />
-                          Om du anger din ålder:
-                        </p>
-                        <ul className="space-y-1.5 text-xs text-[#CFE8D6]">
-                          <li className="flex items-start gap-2">
-                            <span className="text-[#2BA84A] mt-0.5">•</span>
-                            <span>Minst 13 år krävs för att använda AllPlay</span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <span className="text-[#2BA84A] mt-0.5">•</span>
-                            <span>13-17 år: Automatiskt extra skydd (dold plats m.m.)</span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <span className="text-[#2BA84A] mt-0.5">•</span>
-                            <span>Du kan lämna tomt och fylla i senare</span>
-                          </li>
-                        </ul>
+
+                      <div className="flex items-start gap-3 bg-[#2BA84A]/5 border border-[#2BA84A]/15 rounded-xl p-4">
+                        <Shield className="w-5 h-5 text-[#2BA84A] flex-shrink-0 mt-0.5" />
+                        <div className="text-xs text-[#9CA3AF] leading-relaxed space-y-1">
+                          <p><span className="text-[#2BA84A] font-semibold">13+</span> krävs för att använda AllPlay</p>
+                          <p><span className="text-[#2BA84A] font-semibold">13–17</span> får automatiskt extra integritetsskydd</p>
+                        </div>
                       </div>
                     </div>
-                  ) : slide.isPermissionScreen ? (
-                    <div className="w-full space-y-3">
-                      <button
-                        onClick={requestLocation}
-                        className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
-                          permissions.location 
-                            ? "bg-[#2BA84A]/10 border-[#2BA84A] text-[#2BA84A]" 
-                            : "bg-[#121715] border-[#223029] text-[#F4F7F5] hover:border-[#F4743B]/50"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-full ${permissions.location ? "bg-[#2BA84A]/20" : "bg-[#18221E]"}`}>
-                            <Navigation size={18} />
-                          </div>
-                          <div className="text-left">
-                            <div className="font-semibold text-sm">Platstjänster</div>
-                            <div className="text-xs opacity-70">För att hitta planer</div>
-                          </div>
-                        </div>
-                        {permissions.location && <Check size={18} />}
-                      </button>
+                  )}
 
-                      <button
-                        onClick={requestNotifications}
-                        className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
-                          permissions.notifications 
-                            ? "bg-[#2BA84A]/10 border-[#2BA84A] text-[#2BA84A]" 
-                            : "bg-[#121715] border-[#223029] text-[#F4F7F5] hover:border-[#F4743B]/50"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-full ${permissions.notifications ? "bg-[#2BA84A]/20" : "bg-[#18221E]"}`}>
-                            <Bell size={18} />
-                          </div>
-                          <div className="text-left">
-                            <div className="font-semibold text-sm">Notiser</div>
-                            <div className="text-xs opacity-70">För matchinbjudningar</div>
-                          </div>
-                        </div>
-                        {permissions.notifications && <Check size={18} />}
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="w-full space-y-4">
-                      {/* Bullets */}
-                      <div className="bg-[#121715]/50 rounded-2xl p-4 border border-white/5 space-y-3 text-left">
-                        {slide.bullets?.map((bullet, idx) => (
-                          <div key={idx} className="flex items-start gap-3 text-sm text-[#D1D5DB]">
-                            <div className="mt-1 w-1.5 h-1.5 rounded-full bg-[#F4743B] flex-shrink-0" />
-                            <span>{bullet}</span>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Tags */}
-                      {slide.tags && (
-                        <div className="flex flex-wrap justify-center gap-2">
-                          {slide.tags.map((tag, idx) => (
-                            <span 
-                              key={idx} 
-                              className={`px-3 py-1 rounded-full text-xs font-semibold text-white ${tag.color}`}
+                  {/* --- PERMISSIONS SCREEN --- */}
+                  {slide.isPermissionScreen && (
+                    <div className="space-y-3">
+                      {[
+                        {
+                          icon: Navigation, label: "Plats", desc: "Hitta matcher och planer nära dig",
+                          granted: permissions.location, action: requestLocation, color: "#2BA84A"
+                        },
+                        {
+                          icon: Bell, label: "Notiser", desc: "Påminnelser om matcher och inbjudningar",
+                          granted: permissions.notifications, action: requestNotifications, color: "#F59E0B"
+                        }
+                      ].map((p, i) => {
+                        const PIcon = p.icon;
+                        return (
+                          <motion.button
+                            key={i}
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 + i * 0.1 }}
+                            onClick={p.action}
+                            className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all text-left ${
+                              p.granted
+                                ? 'bg-[#2BA84A]/8 border-[#2BA84A]/30'
+                                : 'bg-white/[0.03] border-white/[0.06] hover:border-white/10 active:scale-[0.98]'
+                            }`}
+                          >
+                            <div
+                              className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                              style={{ backgroundColor: p.granted ? '#2BA84A20' : `${p.color}15` }}
                             >
-                              {tag.label}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                              {p.granted ? (
+                                <Check className="w-5 h-5 text-[#2BA84A]" strokeWidth={2.5} />
+                              ) : (
+                                <PIcon className="w-5 h-5" style={{ color: p.color }} strokeWidth={2} />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className={`font-semibold text-sm ${p.granted ? 'text-[#2BA84A]' : 'text-[#E5E7EB]'}`}>{p.label}</div>
+                              <div className="text-xs text-[#7B8A83] mt-0.5">{p.desc}</div>
+                            </div>
+                            {p.granted && <Check className="w-4 h-4 text-[#2BA84A] flex-shrink-0" />}
+                          </motion.button>
+                        );
+                      })}
+
+                      <p className="text-[11px] text-[#4B5563] text-center mt-4 leading-relaxed">
+                        Du kan ändra behörigheter när som helst i enhetens inställningar.
+                      </p>
                     </div>
                   )}
                 </motion.div>
               </AnimatePresence>
             </div>
 
-            {/* Bottom Navigation Area - Fixed */}
-            <div className="flex-shrink-0 p-6 bg-gradient-to-t from-[#040F0F] via-[#040F0F] to-transparent z-20 space-y-3 border-t border-[#223029]/50">
-              <Button
-                onClick={handleNext}
-                disabled={isVerifyingAge}
-                className="w-full h-12 rounded-full bg-[#F4743B] hover:bg-[#E5683A] text-white font-semibold text-lg shadow-lg hover:shadow-[#F4743B]/20 transition-all disabled:opacity-50"
-              >
-                {isVerifyingAge ? (
-                  "Verifierar..."
-                ) : currentSlide === SLIDES.length - 1 ? (
-                  "Kom igång som gäst"
-                ) : slide.isAgeVerificationScreen ? (
-                  (birthDay && birthMonth && birthYear) ? "Verifiera och fortsätt" : "Hoppa över"
-                ) : (
-                  <>
-                    Nästa
-                    <ChevronRight className="w-5 h-5 ml-1" />
-                  </>
-                )}
-              </Button>
-              
-              {/* Login/Register option on last slide */}
-              {currentSlide === SLIDES.length - 1 && (
+            {/* Bottom CTA */}
+            <div className="relative z-10 flex-shrink-0 px-6 pb-6 pt-3 space-y-3">
+              <motion.div whileTap={{ scale: 0.98 }}>
+                <Button
+                  onClick={handleNext}
+                  disabled={isVerifyingAge}
+                  className="w-full h-[52px] rounded-2xl font-bold text-[15px] shadow-lg transition-all disabled:opacity-50"
+                  style={{
+                    backgroundColor: isLast ? '#2BA84A' : '#F4743B',
+                    color: 'white',
+                  }}
+                >
+                  {isVerifyingAge ? (
+                    "Verifierar..."
+                  ) : isLast ? (
+                    "Kom igång som gäst"
+                  ) : slide.isAgeScreen ? (
+                    (birthDay && birthMonth && birthYear) ? "Verifiera & fortsätt" : "Hoppa över"
+                  ) : (
+                    <span className="flex items-center gap-1.5">
+                      Nästa <ChevronRight className="w-5 h-5" />
+                    </span>
+                  )}
+                </Button>
+              </motion.div>
+
+              {isLast && (
                 <Button
                   onClick={() => setShowLoginModal(true)}
-                  variant="outline"
-                  className="w-full h-12 rounded-full border-[#2BA84A] text-[#2BA84A] hover:bg-[#2BA84A]/10 font-semibold text-lg"
+                  variant="ghost"
+                  className="w-full h-[48px] rounded-2xl text-[#2BA84A] hover:bg-[#2BA84A]/8 font-semibold text-[15px] border border-[#2BA84A]/25"
                 >
-                  <LogIn className="w-5 h-5 mr-2" />
+                  <LogIn className="w-4 h-4 mr-2" />
                   Logga in / Skapa konto
                 </Button>
               )}
             </div>
-
           </motion.div>
         </motion.div>
       )}
-      
-      {/* Login Modal */}
-      <LoginModal 
-        isOpen={showLoginModal} 
+
+      <LoginModal
+        isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
-        onSuccess={() => {
-          setShowLoginModal(false);
-          handleComplete();
-        }}
+        onSuccess={() => { setShowLoginModal(false); handleComplete(); }}
       />
     </AnimatePresence>
   );
