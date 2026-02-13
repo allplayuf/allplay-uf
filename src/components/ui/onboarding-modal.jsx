@@ -69,11 +69,15 @@ export function OnboardingModal() {
   const [isProcessingReferral, setIsProcessingReferral] = useState(false);
 
   useEffect(() => {
-    const done = localStorage.getItem(ONBOARDING_STORAGE_KEY);
-    if (!done) {
-      const t = setTimeout(() => setIsOpen(true), 400);
-      return () => clearTimeout(t);
-    }
+    // TEMP: Always show onboarding for preview testing
+    const t = setTimeout(() => setIsOpen(true), 400);
+    return () => clearTimeout(t);
+    // Original logic:
+    // const done = localStorage.getItem(ONBOARDING_STORAGE_KEY);
+    // if (!done) {
+    //   const t = setTimeout(() => setIsOpen(true), 400);
+    //   return () => clearTimeout(t);
+    // }
   }, []);
 
   // Handle referral codes
