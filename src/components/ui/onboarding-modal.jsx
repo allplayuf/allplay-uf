@@ -442,7 +442,10 @@ export function OnboardingModal() {
                   {/* Primary: Login / Create account */}
                   <motion.div whileTap={{ scale: 0.98 }}>
                     <Button
-                      onClick={() => setShowLoginModal(true)}
+                      onClick={() => {
+                        handleComplete();
+                        setTimeout(() => setShowLoginModal(true), 300);
+                      }}
                       className="w-full h-[52px] rounded-2xl font-bold text-[15px] shadow-lg bg-[#2BA84A] hover:bg-[#248232] text-white"
                     >
                       <LogIn className="w-5 h-5 mr-2" />
