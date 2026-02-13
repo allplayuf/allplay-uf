@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   MapPin, Shield, Users, Bell, ChevronRight, Check,
-  Trophy, Navigation, LogIn, Zap, Star, Target
+  Navigation, LogIn, Zap, Star, FileText, Swords
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { base44 } from "@/api/base44Client";
 import { LoginModal } from "@/components/supabase";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 
 const ONBOARDING_STORAGE_KEY = 'allplay_onboarding_completed_v3';
 
@@ -15,11 +17,11 @@ const SLIDES = [
   {
     id: "welcome",
     title: "Välkommen till\nAllPlay",
-    subtitle: "Spontanfotboll, förenklat.",
+    subtitle: "Hitta matcher, bygg lag och spela fotboll.",
     features: [
       { icon: MapPin, text: "Hitta matcher nära dig", color: "#2BA84A" },
       { icon: Users, text: "Bygg lag med vänner", color: "#9370DB" },
-      { icon: Trophy, text: "Samla MVP-röster & badges", color: "#F59E0B" },
+      { icon: Swords, text: "Spela matcher och tävla", color: "#F4743B" },
     ],
     gradient: "from-[#2BA84A]/30 via-transparent to-[#F4743B]/20",
     accentColor: "#2BA84A",
@@ -39,7 +41,7 @@ const SLIDES = [
   {
     id: "age",
     title: "Hur gammal är du?",
-    subtitle: "Valfritt — men under 18 ger extra skydd.",
+    subtitle: "Vi behöver veta att du uppfyller ålderskraven.",
     isAgeScreen: true,
     gradient: "from-[#2BA84A]/20 via-transparent to-[#2BA84A]/10",
     accentColor: "#2BA84A",
@@ -270,7 +272,7 @@ export function OnboardingModal() {
                             initial={{ opacity: 0, y: 16 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.15 + i * 0.1 }}
-                            className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.05] transition-colors"
+                            className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06]"
                           >
                             <div
                               className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -282,23 +284,6 @@ export function OnboardingModal() {
                           </motion.div>
                         );
                       })}
-
-                      {/* Social proof */}
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.6 }}
-                        className="mt-6 flex items-center justify-center gap-3"
-                      >
-                        <div className="flex -space-x-2">
-                          {['#2BA84A', '#F4743B', '#9370DB', '#F59E0B'].map((c, i) => (
-                            <div key={i} className="w-7 h-7 rounded-full border-2 border-[#0A0E0C] flex items-center justify-center text-[9px] font-bold text-white" style={{ backgroundColor: c }}>
-                              {['A', 'M', 'K', 'J'][i]}
-                            </div>
-                          ))}
-                        </div>
-                        <p className="text-xs text-[#7B8A83]">Hundratals spelare redan med</p>
-                      </motion.div>
                     </div>
                   )}
 
@@ -376,13 +361,22 @@ export function OnboardingModal() {
                         )}
                       </div>
 
-                      <div className="flex items-start gap-3 bg-[#2BA84A]/5 border border-[#2BA84A]/15 rounded-xl p-4">
-                        <Shield className="w-5 h-5 text-[#2BA84A] flex-shrink-0 mt-0.5" />
-                        <div className="text-xs text-[#9CA3AF] leading-relaxed space-y-1">
-                          <p><span className="text-[#2BA84A] font-semibold">13+</span> krävs för att använda AllPlay</p>
-                          <p><span className="text-[#2BA84A] font-semibold">13–17</span> får automatiskt extra integritetsskydd</p>
+                      <button
+                        onClick={() => {
+                          handleComplete();
+                          window.open(createPageUrl('LegalPolicy') + '?tab=privacy', '_blank');
+                        }}
+                        className="w-full flex items-center gap-3 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.05] transition-colors text-left"
+                      >
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#9370DB]/15">
+                          <FileText className="w-5 h-5 text-[#9370DB]" strokeWidth={2} />
                         </div>
-                      </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-sm text-[#E5E7EB]">Användarpolicy</div>
+                          <div className="text-xs text-[#7B8A83] mt-0.5">Läs om hur vi hanterar dina uppgifter</div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-[#7B8A83] flex-shrink-0" />
+                      </button>
                     </div>
                   )}
 
@@ -442,40 +436,48 @@ export function OnboardingModal() {
             </div>
 
             {/* Bottom CTA */}
-            <div className="relative z-10 flex-shrink-0 px-6 pb-6 pt-3 space-y-3">
-              <motion.div whileTap={{ scale: 0.98 }}>
-                <Button
-                  onClick={handleNext}
-                  disabled={isVerifyingAge}
-                  className="w-full h-[52px] rounded-2xl font-bold text-[15px] shadow-lg transition-all disabled:opacity-50"
-                  style={{
-                    backgroundColor: isLast ? '#2BA84A' : '#F4743B',
-                    color: 'white',
-                  }}
-                >
-                  {isVerifyingAge ? (
-                    "Verifierar..."
-                  ) : isLast ? (
-                    "Kom igång som gäst"
-                  ) : slide.isAgeScreen ? (
-                    (birthDay && birthMonth && birthYear) ? "Verifiera & fortsätt" : "Hoppa över"
-                  ) : (
-                    <span className="flex items-center gap-1.5">
-                      Nästa <ChevronRight className="w-5 h-5" />
-                    </span>
-                  )}
-                </Button>
-              </motion.div>
-
-              {isLast && (
-                <Button
-                  onClick={() => setShowLoginModal(true)}
-                  variant="ghost"
-                  className="w-full h-[48px] rounded-2xl text-[#2BA84A] hover:bg-[#2BA84A]/8 font-semibold text-[15px] border border-[#2BA84A]/25"
-                >
-                  <LogIn className="w-4 h-4 mr-2" />
-                  Logga in / Skapa konto
-                </Button>
+            <div className="relative z-10 flex-shrink-0 px-6 pt-3 space-y-3" style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}>
+              {isLast ? (
+                <>
+                  {/* Primary: Login / Create account */}
+                  <motion.div whileTap={{ scale: 0.98 }}>
+                    <Button
+                      onClick={() => setShowLoginModal(true)}
+                      className="w-full h-[52px] rounded-2xl font-bold text-[15px] shadow-lg bg-[#2BA84A] hover:bg-[#248232] text-white"
+                    >
+                      <LogIn className="w-5 h-5 mr-2" />
+                      Logga in / Skapa konto
+                    </Button>
+                  </motion.div>
+                  {/* Secondary: Continue as guest */}
+                  <motion.div whileTap={{ scale: 0.98 }}>
+                    <Button
+                      onClick={handleNext}
+                      variant="ghost"
+                      className="w-full h-[48px] rounded-2xl text-[#7B8A83] hover:text-[#E5E7EB] hover:bg-white/5 font-medium text-[14px]"
+                    >
+                      Fortsätt utan konto
+                    </Button>
+                  </motion.div>
+                </>
+              ) : (
+                <motion.div whileTap={{ scale: 0.98 }}>
+                  <Button
+                    onClick={handleNext}
+                    disabled={isVerifyingAge}
+                    className="w-full h-[52px] rounded-2xl font-bold text-[15px] shadow-lg transition-all disabled:opacity-50 bg-[#F4743B] hover:bg-[#E5683A] text-white"
+                  >
+                    {isVerifyingAge ? (
+                      "Verifierar..."
+                    ) : slide.isAgeScreen ? (
+                      (birthDay && birthMonth && birthYear) ? "Verifiera & fortsätt" : "Hoppa över"
+                    ) : (
+                      <span className="flex items-center gap-1.5">
+                        Nästa <ChevronRight className="w-5 h-5" />
+                      </span>
+                    )}
+                  </Button>
+                </motion.div>
               )}
             </div>
           </motion.div>
