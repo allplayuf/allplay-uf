@@ -179,7 +179,8 @@ export function OnboardingModal() {
     }
   };
 
-  if (!isOpen) return null;
+  // If login modal is open, hide onboarding but keep state
+  if (!isOpen && !showLoginModal) return null;
 
   const slide = SLIDES[currentSlide];
   const isLast = currentSlide === SLIDES.length - 1;
@@ -192,8 +193,9 @@ export function OnboardingModal() {
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
+    <>
+      <AnimatePresence>
+      {isOpen && !showLoginModal && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -439,7 +441,6 @@ export function OnboardingModal() {
                     <Button
                       onClick={() => {
                         setIsOpen(false);
-                        localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
                         setShowLoginModal(true);
                       }}
                       className="w-full h-[52px] rounded-2xl font-bold text-[15px] shadow-lg bg-[#2BA84A] hover:bg-[#248232] text-white"
@@ -482,12 +483,17 @@ export function OnboardingModal() {
           </motion.div>
         </motion.div>
       )}
+      </AnimatePresence>
 
       <LoginModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
-        onSuccess={() => { setShowLoginModal(false); handleComplete(); }}
+        onSuccess={() => {
+          setShowLoginModal(false);
+          localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
+          setIsOpen(false);
+        }}
       />
-    </AnimatePresence>
+    </>
   );
 }
