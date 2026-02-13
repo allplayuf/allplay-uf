@@ -66,8 +66,10 @@ function normalizeUser(user) {
     display_name: user.display_name || user.full_name || user.username || 'Spelare',
     avatar_url: user.avatar_url || user.profile_image_url || null,
     profile_image_url: user.profile_image_url || user.avatar_url || null,
+    bio: user.bio || null,
     city: user.city || null,
     skill_level: user.skill_level || null,
+    birth_year: user.birth_year || null,
     matches_played: user.matches_played || 0,
     mvp_count: user.mvp_count || 0,
     elo_rating: user.elo_rating || user.elo || null

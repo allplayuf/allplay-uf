@@ -25,7 +25,7 @@ async function fetchUsersViaRest(ids) {
   if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
   
   const idsParam = `(${ids.join(',')})`;
-  const safeColumns = 'id,full_name,username,display_name,avatar_url,profile_image_url,elo_rating';
+  const safeColumns = 'id,full_name,username,display_name,avatar_url,profile_image_url,bio,city,skill_level,birth_year,elo_rating,matches_played,mvp_count';
   
   // Use known-safe columns (avoids 400 from unknown columns in view)
   let res = await fetch(
@@ -106,8 +106,10 @@ export async function getUsersByIds(ids) {
     display_name: user.display_name || user.full_name || user.username || 'Okänd användare',
     avatar_url: user.avatar_url || user.profile_image_url || null,
     profile_image_url: user.profile_image_url || user.avatar_url || null,
+    bio: user.bio || null,
     city: user.city || null,
     skill_level: user.skill_level || null,
+    birth_year: user.birth_year || null,
     matches_played: user.matches_played || 0,
     mvp_count: user.mvp_count || 0,
     elo_rating: user.elo_rating || user.elo || null
@@ -153,25 +155,30 @@ export async function getUserById(id) {
 
 /**
  * Update current user's profile
- * @param {object} data - Profile data { full_name, username, avatar_url }
+ * Supports all profile fields: full_name, username, avatar_url, bio, skill_level, city, birth_year
+ * @param {object} data - Profile data to update (only include changed fields)
  * @returns {Promise<{ok: boolean, user?: object, error?: object}>}
  */
 export async function updateProfile(data) {
-  const { full_name, username, avatar_url } = data;
+  // Filter out undefined values, keep nulls (explicit removal)
+  const payload = {};
+  const ALLOWED_FIELDS = ['full_name', 'username', 'avatar_url', 'bio', 'skill_level', 'city', 'birth_year'];
   
-  if (!full_name && !username && !avatar_url) {
+  for (const key of ALLOWED_FIELDS) {
+    if (data[key] !== undefined) {
+      payload[key] = data[key];
+    }
+  }
+  
+  if (Object.keys(payload).length === 0) {
     throw new Error('Minst ett fält måste uppdateras');
   }
   
   try {
-    const result = await callEdgeFunction(EDGE.updateProfile, {
-      full_name: full_name || undefined,
-      username: username || undefined,
-      avatar_url: avatar_url || undefined
-    });
+    const result = await callEdgeFunction(EDGE.updateProfile, payload);
     
     // Prime cache with updated user
-    if (result.ok && result.user) {
+    if (result?.ok !== false && result?.user) {
       primeUsers([result.user]);
     }
     
