@@ -11,7 +11,7 @@ css
     --color-border: #223029;
     --color-text-primary: #F4F7F5;
     --color-text-secondary: #B6C2BC;
-    --color-text-muted: #7B8A83;
+    --color-text-muted: #9EAAA4;
     --color-primary: #2BA84A;
     --color-primary-hover: #248232;
     --color-primary-light: #EAF6EE;
@@ -22,6 +22,28 @@ css
     --scrollbar-track: #131816;
     --scrollbar-thumb: #223029;
     --scrollbar-thumb-hover: #2BA84A;
+
+    /* === shadcn/ui semantic tokens (dark theme) === */
+    --background: 156 30% 7%;         /* #131816 */
+    --foreground: 144 14% 96%;        /* #F4F7F5 */
+    --card: 150 18% 8%;               /* #121715 */
+    --card-foreground: 144 14% 96%;   /* #F4F7F5 */
+    --popover: 150 18% 8%;            /* #121715 */
+    --popover-foreground: 144 14% 96%;/* #F4F7F5 */
+    --primary: 138 56% 41%;           /* #2BA84A */
+    --primary-foreground: 0 0% 100%;  /* #FFFFFF */
+    --secondary: 156 18% 11%;         /* #18221E */
+    --secondary-foreground: 144 14% 96%; /* #F4F7F5 */
+    --muted: 156 18% 11%;             /* #18221E */
+    --muted-foreground: 150 8% 64%;   /* #9EAAA4 – bumped from #7B8A83 for AA */
+    --accent: 156 18% 11%;            /* #18221E */
+    --accent-foreground: 144 14% 96%; /* #F4F7F5 */
+    --destructive: 0 72% 51%;         /* #DC2626 */
+    --destructive-foreground: 0 0% 100%; /* #FFFFFF */
+    --border: 155 17% 16%;            /* #223029 */
+    --input: 155 17% 16%;             /* #223029 */
+    --ring: 138 56% 41%;              /* #2BA84A */
+    --radius: 0.75rem;
   }
 
   @media (prefers-color-scheme: light) {
@@ -32,7 +54,7 @@ css
       --color-border: #D1DCD5;
       --color-text-primary: #0F1513;
       --color-text-secondary: #4A5A52;
-      --color-text-muted: #7B8A83;
+      --color-text-muted: #5C6B63;
       --color-primary: #2BA84A;
       --color-primary-hover: #248232;
       --color-primary-light: #EAF6EE;
@@ -42,6 +64,27 @@ css
       --scrollbar-track: #E8EDE9;
       --scrollbar-thumb: #C1CCC5;
       --scrollbar-thumb-hover: #2BA84A;
+
+      /* shadcn/ui semantic tokens (light theme) */
+      --background: 140 14% 97%;
+      --foreground: 156 28% 7%;
+      --card: 0 0% 100%;
+      --card-foreground: 156 28% 7%;
+      --popover: 0 0% 100%;
+      --popover-foreground: 156 28% 7%;
+      --primary: 138 56% 41%;
+      --primary-foreground: 0 0% 100%;
+      --secondary: 140 14% 90%;
+      --secondary-foreground: 156 28% 7%;
+      --muted: 140 14% 90%;
+      --muted-foreground: 150 10% 37%;
+      --accent: 140 14% 90%;
+      --accent-foreground: 156 28% 7%;
+      --destructive: 0 72% 51%;
+      --destructive-foreground: 0 0% 100%;
+      --border: 144 14% 83%;
+      --input: 144 14% 83%;
+      --ring: 138 56% 41%;
     }
   }
 
