@@ -243,15 +243,6 @@ export default function TeamOverviewPage() {
     <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
         
-        {/* Back Button */}
-        <button
-          onClick={() => navigate(createPageUrl("Community"))}
-          className="inline-flex h-10 sm:h-11 items-center gap-2 rounded-xl border border-[#223029] px-3 sm:px-4 text-[13px] sm:text-[14px] text-[#F4F7F5] hover:bg-[#18221E] transition-all duration-150 font-medium"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="hidden sm:inline">Tillbaka</span>
-        </button>
-
         {/* Hero Header Card */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}

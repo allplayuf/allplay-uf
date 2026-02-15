@@ -104,16 +104,10 @@ export default function TeamsList({ teams, user, onRefresh, onCreateTeam }) {
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-[13px] leading-[18px] mb-6 p-4 bg-[#18221E] rounded-xl border border-[#223029]">
-              <div className="space-y-1">
-                <div className="text-[#B6C2BC]">Matcher: <span className="font-semibold text-[#F4F7F5]">{team.matches_played || 0}</span></div>
-                <div className={teamStyle.text}>Vinster: <span className="font-semibold">{team.wins || 0}</span></div>
-              </div>
-              <div className="space-y-1 text-right">
-                <div className="text-[#B6C2BC]">Oavgjort: <span className="font-semibold text-[#F4F7F5]">{team.draws || 0}</span></div>
-                <div className="text-[#EF4444]">Förluster: <span className="font-semibold">{team.losses || 0}</span></div>
-              </div>
-            </div>
+            {/* Description */}
+            {team.description && (
+              <p className="text-xs text-[#9EAAA4] mb-4 line-clamp-2">{team.description}</p>
+            )}
 
             <Link to={`${createPageUrl("TeamOverview")}?id=${team.id}`} className="block">
               <button className="w-full inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#FFFFFF]/5 px-6 text-[#F4F7F5] ring-1 ring-[#FFFFFF]/10 transition-all hover:bg-[#FFFFFF]/10 hover:ring-[#FFFFFF]/20 font-semibold group-hover:text-white">
