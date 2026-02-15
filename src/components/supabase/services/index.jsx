@@ -90,3 +90,10 @@ export {
   getReports,
   handleReport
 } from './reportsService';
+
+// Admin
+export {
+  checkIsAdmin,
+  clearAdminCache,
+  getCachedAdminStatus
+} from './adminService';
