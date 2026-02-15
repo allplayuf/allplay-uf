@@ -25,7 +25,7 @@ async function fetchUsersViaRest(ids) {
   if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
   
   const idsParam = `(${ids.join(',')})`;
-  const safeColumns = 'id,full_name,username,avatar_url,bio,city,skill_level,elo_rating,matches_played,mvp_count,is_admin';
+  const safeColumns = 'id,full_name,username,avatar_url,bio,city,skill_level,elo_rating,matches_played,mvp_count';
   
   // Use known-safe columns (avoids 400 from unknown columns in view)
   let res = await fetch(
@@ -72,8 +72,7 @@ export async function getMyProfile() {
   }
   
   // Only request columns known to exist in the public.users view.
-  // If is_admin doesn't exist yet, the 400-retry with minimal columns handles it.
-  const safeColumns = 'id,full_name,username,avatar_url,bio,city,skill_level,elo_rating,matches_played,mvp_count,is_admin';
+  const safeColumns = 'id,full_name,username,avatar_url,bio,city,skill_level,elo_rating,matches_played,mvp_count';
   
   try {
     let res = await fetch(
