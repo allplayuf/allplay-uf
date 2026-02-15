@@ -41,7 +41,7 @@ import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { AuthGateModal } from "../components/ui/auth-gate-modal";
 import { LoginModal } from "../components/supabase";
 import { LogIn } from "lucide-react";
-import { getMyProfile } from "../components/supabase/services";
+import { getMyProfile, updateProfile } from "../components/supabase/services";
 
 // Lazy load components
 const ProfileStats = lazy(() => import("../components/profile/ProfileStats"));
@@ -103,13 +103,15 @@ export default function ProfilePage() {
   });
 
   // Merge auth user with Supabase profile data (profile has priority)
+  // localStorage fallback ensures avatar always displays even if backend is down
   const user = React.useMemo(() => {
     if (!authUser) return null;
+    const localAvatar = localStorage.getItem('allplay_profile_image');
     return {
       ...authUser,
       ...userProfile,
       id: authUser.id,
-      profile_image_url: userProfile?.profile_image_url || userProfile?.avatar_url || authUser?.profile_image_url || authUser?.avatar_url,
+      profile_image_url: userProfile?.profile_image_url || userProfile?.avatar_url || localAvatar || authUser?.profile_image_url || authUser?.avatar_url,
       display_name: userProfile?.display_name || userProfile?.full_name || authUser?.display_name || authUser?.full_name,
       full_name: userProfile?.full_name || userProfile?.display_name || authUser?.full_name || authUser?.display_name,
       bio: userProfile?.bio || '',
