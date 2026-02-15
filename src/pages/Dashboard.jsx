@@ -762,11 +762,11 @@ export default function Dashboard() {
                   <div className="w-12 h-12 bg-[#2BA84A]/10 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <Calendar className="w-6 h-6 text-[#2BA84A]" />
                   </div>
-                  <p className="text-secondary text-sm mb-4">
+                  <p className="text-[#B6C2BC] text-sm mb-4">
                     {isGuest ? 'Inga matcher just nu' : 'Inga kommande matcher'}
                   </p>
                   <Link to={createPageUrl("Matches")}>
-                    <button className="btn-secondary px-4 h-9 text-sm">
+                    <button className="inline-flex items-center justify-center h-9 px-4 text-sm font-medium rounded-xl bg-[#18221E] text-[#F4F7F5] border border-[#223029] hover:bg-[#223029] transition-colors">
                       {isGuest ? 'Se alla matcher' : 'Hitta matcher'}
                     </button>
                   </Link>

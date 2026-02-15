@@ -293,7 +293,7 @@ export default function MapPage() {
                 className={`flex items-center justify-center gap-1 px-3 h-8 rounded-full text-[12px] font-semibold transition-all ${
                   viewMode === "list"
                     ? 'bg-[#2BA84A]/16 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30'
-                    : 'text-[#7B8A83]'
+                    : 'text-[#9EAAA4]'
                 }`}
               >
                 <List className="w-3.5 h-3.5" />
@@ -304,7 +304,7 @@ export default function MapPage() {
                 className={`flex items-center justify-center gap-1 px-3 h-8 rounded-full text-[12px] font-semibold transition-all ${
                   viewMode === "map"
                     ? 'bg-[#2BA84A]/16 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30'
-                    : 'text-[#7B8A83]'
+                    : 'text-[#9EAAA4]'
                 }`}
               >
                 <MapIcon className="w-3.5 h-3.5" />
@@ -313,12 +313,12 @@ export default function MapPage() {
             </div>
             
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#7B8A83] w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#9EAAA4] w-4 h-4" />
               <Input
                 placeholder="Sök planer..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-10 bg-[#18221E]/80 border border-[#223029]/60 text-[#F4F7F5] placeholder:text-[#7B8A83] focus:border-[#2BA84A]/50 rounded-full text-xs"
+                className="pl-9 h-10 bg-[#18221E]/80 border border-[#223029]/60 text-[#F4F7F5] placeholder:text-[#9EAAA4] focus:border-[#2BA84A]/50 rounded-full text-xs"
               />
             </div>
           </div>
@@ -337,7 +337,7 @@ export default function MapPage() {
               <span className="inline-flex h-7 items-center rounded-full bg-[#2BA84A]/12 px-2.5 text-[11px] font-bold text-[#86EFAC] ring-1 ring-[#2BA84A]/20">
                 ⚽ {totalMatchesInRange}
               </span>
-              <span className="inline-flex h-7 items-center rounded-full bg-[#18221E] px-2.5 text-[11px] font-medium text-[#7B8A83] ring-1 ring-[#223029]/60">
+              <span className="inline-flex h-7 items-center rounded-full bg-[#18221E] px-2.5 text-[11px] font-medium text-[#9EAAA4] ring-1 ring-[#223029]/60">
                 {filters.distance}km
               </span>
             </div>
@@ -429,12 +429,12 @@ export default function MapPage() {
             )}
             
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#7B8A83] w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#9EAAA4] w-4 h-4" />
               <Input
                 placeholder="Sök planer eller områden..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-11 bg-[#18221E]/80 border border-[#223029]/60 text-[#F4F7F5] placeholder:text-[#7B8A83] focus:border-[#2BA84A]/50 rounded-full text-sm"
+                className="pl-10 h-11 bg-[#18221E]/80 border border-[#223029]/60 text-[#F4F7F5] placeholder:text-[#9EAAA4] focus:border-[#2BA84A]/50 rounded-full text-sm"
               />
             </div>
 
@@ -476,7 +476,7 @@ export default function MapPage() {
                 <span className="inline-flex h-6 items-center rounded-full bg-[#2BA84A]/12 px-2.5 font-bold text-[#86EFAC] ring-1 ring-[#2BA84A]/20 text-[11px]">
                   ⚽ {totalMatchesInRange}
                 </span>
-                <span className="inline-flex h-6 items-center rounded-full bg-[#18221E] px-2.5 font-medium text-[#7B8A83] ring-1 ring-[#223029]/60 text-[11px]">
+                <span className="inline-flex h-6 items-center rounded-full bg-[#18221E] px-2.5 font-medium text-[#9EAAA4] ring-1 ring-[#223029]/60 text-[11px]">
                   {filters.distance}km
                 </span>
               </div>

@@ -40,25 +40,25 @@ const QUERY_KEYS = {
 const TAB_COLORS = {
   friends: {
     active: 'bg-[#2BA84A]/16 text-[#2BA84A] ring-1 ring-[#2BA84A]/30',
-    inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]',
+    inactive: 'bg-[#121715] text-[#9EAAA4] hover:bg-[#18221E] hover:text-[#F4F7F5]',
     icon: 'text-[#2BA84A]',
     iconInactive: ''
   },
   teams: {
     active: 'bg-[#9370DB]/16 text-[#DDD6FE] ring-1 ring-[#9370DB]/30',
-    inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]',
+    inactive: 'bg-[#121715] text-[#9EAAA4] hover:bg-[#18221E] hover:text-[#F4F7F5]',
     icon: 'text-[#DDD6FE]',
     iconInactive: ''
   },
   find: {
     active: 'bg-[#2BA84A]/16 text-[#2BA84A] ring-1 ring-[#2BA84A]/30',
-    inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]',
+    inactive: 'bg-[#121715] text-[#9EAAA4] hover:bg-[#18221E] hover:text-[#F4F7F5]',
     icon: 'text-[#2BA84A]',
     iconInactive: ''
   },
   cups: {
     active: 'bg-[#F59E0B]/16 text-[#FCD34D] ring-1 ring-[#F59E0B]/30',
-    inactive: 'bg-[#121715] text-[#7B8A83] hover:bg-[#18221E] hover:text-[#B6C2BC]',
+    inactive: 'bg-[#121715] text-[#9EAAA4] hover:bg-[#18221E] hover:text-[#F4F7F5]',
     icon: 'text-[#FCD34D]',
     iconInactive: ''
   }
