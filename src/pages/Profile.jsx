@@ -7,6 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { TRANSITIONS, triggerHaptic } from "../components/utils/motionTokens";
+import { TabSkeleton, TabSkeletonGrid } from "../components/ui/tab-skeleton";
 import {
   Trophy,
   TrendingUp,
@@ -567,7 +569,7 @@ export default function ProfilePage() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative overflow-hidden rounded-[32px] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7),0_0_40px_0px_rgba(43,168,74,0.1)] border border-[#2BA84A]/20 bg-[#0A0D0B]"
+          className="relative overflow-hidden rounded-3xl shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7),0_0_40px_0px_rgba(43,168,74,0.1)] border border-[#2BA84A]/20 bg-[#0A0D0B]"
         >
           {/* Dark gradient base */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#1A1A1A] via-[#0F1513] to-[#0A0D0B]"></div>
@@ -876,7 +878,7 @@ export default function ProfilePage() {
                   <motion.button
                     whileHover={{ y: -4, scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="h-12 sm:h-12 lg:h-14 w-full bg-gradient-to-r from-[#FFFFFF]/20 to-[#FFFFFF]/10 hover:from-[#FFFFFF]/30 hover:to-[#FFFFFF]/20 backdrop-blur-xl border border-white/30 hover:border-white/50 rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 text-white font-black text-sm sm:text-sm lg:text-base transition-all shadow-xl"
+                    className="h-12 sm:h-12 lg:h-14 w-full bg-gradient-to-r from-[#FFFFFF]/20 to-[#FFFFFF]/10 hover:from-[#FFFFFF]/30 hover:to-[#FFFFFF]/20 backdrop-blur-xl border border-white/30 hover:border-white/50 rounded-2xl flex items-center justify-center gap-1.5 sm:gap-2 text-white font-black text-sm sm:text-sm lg:text-base transition-all shadow-xl"
                   >
                     <Edit className="w-4 h-4 lg:w-5 lg:h-5" strokeWidth={2.5} />
                     <span>Redigera</span>
@@ -885,8 +887,8 @@ export default function ProfilePage() {
                 <motion.button
                   whileHover={{ y: -4, scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => setShowQRModal(true)}
-                  className="h-12 sm:h-12 lg:h-14 bg-gradient-to-r from-[#FFFFFF]/20 to-[#FFFFFF]/10 hover:from-[#FFFFFF]/30 hover:to-[#FFFFFF]/20 backdrop-blur-xl border border-white/30 hover:border-white/50 rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 text-white font-black text-sm sm:text-sm lg:text-base transition-all shadow-xl"
+                  onClick={() => { triggerHaptic('light'); setShowQRModal(true); }}
+                  className="h-12 sm:h-12 lg:h-14 bg-gradient-to-r from-[#FFFFFF]/20 to-[#FFFFFF]/10 hover:from-[#FFFFFF]/30 hover:to-[#FFFFFF]/20 backdrop-blur-xl border border-white/30 hover:border-white/50 rounded-2xl flex items-center justify-center gap-1.5 sm:gap-2 text-white font-black text-sm sm:text-sm lg:text-base transition-all shadow-xl"
                 >
                   <QrCode className="w-4 h-4 lg:w-5 lg:h-5" strokeWidth={2.5} />
                   <span>Bjud in</span>
@@ -979,13 +981,13 @@ export default function ProfilePage() {
                 {activeTab === 'inbox' && (
                   <motion.div
                     key="inbox"
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={TRANSITIONS.tab}
                     className="space-y-6"
                   >
-                    <Suspense fallback={<ProfileSkeleton />}>
+                    <Suspense fallback={<TabSkeleton rows={3} />}>
                       <InboxNotifications
                         friendRequests={friendRequests}
                         teamInvites={teamInvites}
@@ -1074,12 +1076,12 @@ export default function ProfilePage() {
                 {activeTab === 'stats' && (
                   <motion.div
                     key="stats"
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={TRANSITIONS.tab}
                   >
-                    <Suspense fallback={<ProfileSkeleton />}>
+                    <Suspense fallback={<TabSkeleton rows={4} />}>
                       <ProfileStats user={displayUser} isOwnProfile={true} />
                     </Suspense>
                   </motion.div>
@@ -1088,10 +1090,10 @@ export default function ProfilePage() {
                 {activeTab === 'badges' && (
                   <motion.div
                     key="badges"
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={TRANSITIONS.tab}
                   >
                     <h3 className="text-lg font-bold text-[#F4F7F5] mb-4">Lås upp utmärkelser genom att spela</h3>
                     {(displayUser?.matches_played || 0) === 0 ? (
@@ -1107,7 +1109,7 @@ export default function ProfilePage() {
                         </p>
                       </Card>
                     ) : (
-                      <Suspense fallback={<ProfileSkeleton />}>
+                      <Suspense fallback={<TabSkeletonGrid count={6} />}>
                         <BadgeCollection user={displayUser} />
                       </Suspense>
                     )}
@@ -1117,15 +1119,15 @@ export default function ProfilePage() {
                 {activeTab === 'history' && (
                   <motion.div
                     key="history"
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={TRANSITIONS.tab}
                   >
                     {matchHistory.length > 0 ? (
                       <div>
                         <h3 className="text-lg font-bold text-[#F4F7F5] mb-4">Senaste matcher</h3>
-                        <Suspense fallback={<ProfileSkeleton />}>
+                        <Suspense fallback={<TabSkeleton rows={4} />}>
                           <MatchHistory matches={matchHistory} />
                         </Suspense>
                       </div>
