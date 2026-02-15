@@ -84,6 +84,8 @@ export default function ProfilePage() {
   const location = useLocation();
   const { isGuest, isAuthenticated, user: authUser } = useSupabaseAuth();
 
+  // Inbox tab label (computed after data loaded)
+
   const urlParams = new URLSearchParams(location.search);
   const targetUserId = urlParams.get('userId');
 
