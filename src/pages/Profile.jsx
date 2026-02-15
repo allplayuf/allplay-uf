@@ -244,10 +244,27 @@ export default function ProfilePage() {
     }
 
     try {
+      // Upload via Base44 (always works, no backend dependency)
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      await base44.auth.updateMe({ profile_image_url: file_url });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.user });
-      queryClient.invalidateQueries({ queryKey: ['supabase-userProfile'] });
+      
+      // Save to localStorage immediately for instant display
+      localStorage.setItem('allplay_profile_image', file_url);
+      
+      // Optimistic update of query cache
+      queryClient.setQueryData(['supabase-userProfile', authUser?.id], old => ({
+        ...old,
+        profile_image_url: file_url,
+        avatar_url: file_url,
+      }));
+      
+      // Try to persist to Supabase profile (fire-and-forget)
+      updateProfile({ avatar_url: file_url }).catch(err => {
+        console.warn('[Profile] Backend avatar save failed (image still available):', err.message);
+      });
+      
+      // Also try Base44 (fire-and-forget)
+      base44.auth.updateMe({ profile_image_url: file_url }).catch(() => {});
+      
     } catch (error) {
       console.error("Error uploading profile image:", error);
       await alert('Uppladdningsfel', 'Kunde inte ladda upp bild. Försök igen.', { type: 'alert' });
