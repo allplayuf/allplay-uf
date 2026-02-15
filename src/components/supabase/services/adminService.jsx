@@ -57,11 +57,20 @@ export async function checkIsAdmin({ forceRefresh = false } = {}) {
     if (config.anonKey) headers['apikey'] = config.anonKey;
     if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
     
-    // Only select is_admin — minimal query, fast
-    const res = await fetch(
+    // Try selecting just is_admin first (fastest path)
+    let res = await fetch(
       `${SUPABASE_URL}/rest/v1/users?id=eq.${userId}&select=is_admin`,
       { method: 'GET', headers }
     );
+    
+    // If is_admin column doesn't exist in the view, try select=* and parse
+    if (res.status === 400) {
+      console.warn('[adminService] is_admin column not in view, trying select=*');
+      res = await fetch(
+        `${SUPABASE_URL}/rest/v1/users?id=eq.${userId}&select=*`,
+        { method: 'GET', headers }
+      );
+    }
     
     if (!res.ok) {
       const body = await res.text().catch(() => '');
