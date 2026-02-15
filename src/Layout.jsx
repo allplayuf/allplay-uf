@@ -192,7 +192,7 @@ function LayoutInner({ children }) {
           
           <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
             <div className="space-y-1">
-              <p className="text-[11px] leading-[16px] font-semibold text-[#7B8A83] uppercase tracking-wider px-3 py-2">
+              <p className="text-[11px] leading-[16px] font-semibold text-[#9EAAA4] uppercase tracking-wider px-3 py-2">
                 Navigation
               </p>
               {navigationItems.map((item) => {
@@ -204,10 +204,10 @@ function LayoutInner({ children }) {
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl min-h-[44px] w-full text-left ${
                       isActive
                         ? 'bg-[#2BA84A]/16 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30'
-                        : 'text-[#7B8A83] hover:bg-[#18221E] hover:text-[#F4F7F5]'
+                        : 'text-[#9EAAA4] hover:bg-[#18221E] hover:text-[#F4F7F5]'
                     }`}
                   >
-                    <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-[#2BA84A]' : 'text-[#7B8A83]'}`} strokeWidth={2} />
+                    <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-[#2BA84A]' : 'text-[#9EAAA4]'}`} strokeWidth={2} />
                     <span className="font-medium text-[14px] leading-[20px]">{item.title}</span>
                   </button>
                 );
@@ -216,7 +216,7 @@ function LayoutInner({ children }) {
 
             {adminCheckDone && isAdmin && (
               <div className="pt-4 space-y-1">
-                <p className="text-[11px] leading-[16px] font-semibold text-[#7B8A83] uppercase tracking-wider px-3 py-2">
+                <p className="text-[11px] leading-[16px] font-semibold text-[#9EAAA4] uppercase tracking-wider px-3 py-2">
                   Administration
                 </p>
                 <Link
@@ -224,10 +224,10 @@ function LayoutInner({ children }) {
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-xl min-h-[44px] ${
                     location.pathname === createPageUrl("Admin")
                       ? 'bg-[#F4743B]/16 text-[#FDE3D2] ring-1 ring-[#F4743B]/30'
-                      : 'text-[#7B8A83] hover:bg-[#18221E] hover:text-[#F4F7F5]'
+                      : 'text-[#9EAAA4] hover:bg-[#18221E] hover:text-[#F4F7F5]'
                   }`}
                 >
-                  <Shield className={`w-5 h-5 flex-shrink-0 ${location.pathname === createPageUrl("Admin") ? 'text-[#F4743B]' : 'text-[#7B8A83]'}`} strokeWidth={2} />
+                  <Shield className={`w-5 h-5 flex-shrink-0 ${location.pathname === createPageUrl("Admin") ? 'text-[#F4743B]' : 'text-[#9EAAA4]'}`} strokeWidth={2} />
                   <span className="font-medium text-[14px] leading-[20px]">Admin</span>
                 </Link>
               </div>
@@ -241,7 +241,7 @@ function LayoutInner({ children }) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-[#F4F7F5] text-[13px] leading-[18px] truncate">User</p>
-                <p className="text-[11px] leading-[16px] text-[#2BA84A] font-medium truncate">Redo att spela!</p>
+                <p className="text-[11px] leading-[16px] text-[#2BA84A] font-semibold truncate">Redo att spela!</p>
               </div>
             </div>
           </div>
@@ -310,10 +310,10 @@ function LayoutInner({ children }) {
                     className={`flex flex-col items-center justify-center min-w-[60px] min-h-[44px] px-3 py-2 rounded-xl ${
                       isActive
                         ? 'bg-[#2BA84A]/16 text-[#EAF6EE]'
-                        : 'text-[#7B8A83]'
+                        : 'text-[#9EAAA4]'
                     }`}
                   >
-                    <item.icon className={`w-5 h-5 mb-1 ${isActive ? 'text-[#2BA84A]' : 'text-[#7B8A83]'}`} strokeWidth={2} />
+                    <item.icon className={`w-5 h-5 mb-1 ${isActive ? 'text-[#2BA84A]' : 'text-[#9EAAA4]'}`} strokeWidth={2} />
                     <span className="text-[10px] font-medium">{item.title}</span>
                   </button>
                 );
