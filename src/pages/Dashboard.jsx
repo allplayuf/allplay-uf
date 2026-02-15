@@ -25,6 +25,7 @@ import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
 import CreateMatchForm from "../components/matches/CreateMatchForm";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import CupsWidget from "../components/dashboard/CupsWidget";
+import NearbyMatchesWidget from "../components/dashboard/NearbyMatchesWidget";
 import MatchCard from "../components/matches/MatchCard";
 import NotificationsSlider from "../components/dashboard/NotificationsSlider";
 import NextMatchCard from "../components/dashboard/NextMatchCard";
@@ -304,8 +305,8 @@ export default function Dashboard() {
     .slice(0, 5);
 
   // Calculate nearby matches using venue data from matches (embedded in view)
+  // Include ALL matches (both joined and not joined) for the nearby widget
   const nearbyMatches = userLocation ? upcomingMatches
-    .filter(m => !userMatchIds.includes(m.id) && m.organizer_id !== authUser?.id)
     .map(match => {
       // Use embedded venue data from public_matches view
       const venueLat = match._venue_lat || match.venue_lat;
@@ -332,9 +333,9 @@ export default function Dashboard() {
         }
       };
     })
-    .filter(m => m.distance < 10)
+    .filter(m => m.distance < 15)
     .sort((a, b) => a.distance - b.distance)
-    .slice(0, 3) : [];
+    .slice(0, 5) : [];
 
   // Calculate weekly stats
   const weekAgo = new Date();
@@ -753,11 +754,6 @@ export default function Dashboard() {
           </motion.div>
         )}
 
-        {/* Cups Widget */}
-        <motion.div variants={VARIANTS.item}>
-          <CupsWidget />
-        </motion.div>
-
         {/* Main Content */}
         <div className="grid lg:grid-cols-12 gap-8">
           <div className="lg:col-span-8 space-y-8">
@@ -829,71 +825,17 @@ export default function Dashboard() {
               )}
             </motion.div>
 
-            {nearbyMatches.length > 0 && (
-              <motion.div variants={VARIANTS.item}>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
-                      <MapPin className="w-5 h-5 text-[#2BA84A]" strokeWidth={2.5} />
-                    </div>
-                    <h2 className="text-lg sm:text-xl font-bold text-[#F4F7F5]">Nära dig</h2>
-                  </div>
-                  <Link to={createPageUrl("Map")} className="text-sm font-semibold text-[#2BA84A] hover:text-[#CFE8D6] flex items-center gap-1 transition-colors">
-                    Se karta
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
-                <div className="space-y-3">
-                  {nearbyMatches.map((match, index) => {
-                    const venue = match.venue;
-                    const currentPlayersCount = (allParticipants || []).filter(p => p.match_id === match.id).length;
-                    return (
-                      <motion.div
-                        key={match.id}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.4, delay: index * 0.1, ease: "easeOut" }}
-                        whileHover={{ scale: 1.02, y: -2 }}
-                      >
-                        <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`}>
-                          <div className="bg-gradient-to-br from-[#121715] to-[#18221E] rounded-[18px] shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#223029] p-4 hover:shadow-[0_12px_32px_rgba(0,0,0,0.4)] hover:border-[#2BA84A]/30 transition-all min-h-[90px] flex items-center gap-3 group">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                <h4 className="text-base font-bold text-[#F4F7F5] group-hover:text-[#2BA84A] transition-colors">{match.title}</h4>
-                                <span className="inline-flex h-6 items-center rounded-full bg-[#2BA84A]/18 px-3 text-xs font-bold text-[#CFE8D6] ring-1 ring-[#2BA84A]/25">
-                                  {match.format}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-3 text-xs text-[#B6C2BC] flex-wrap">
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="w-3.5 h-3.5" />
-                                  {venue?.name || 'Okänd'} ({match.distance?.toFixed(1)}km)
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <Clock className="w-3.5 h-3.5" />
-                                  {match.date} {match.time}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex-shrink-0">
-                              {match.is_spontaneous ? (
-                                <span className="text-sm font-semibold text-[#B6C2BC]">
-                                  {currentPlayersCount} anmälda
-                                </span>
-                              ) : (
-                                <span className="inline-flex h-8 items-center rounded-full bg-[#18221E] px-4 text-sm font-bold text-[#2BA84A] ring-1 ring-[#2BA84A]/25">
-                                  {currentPlayersCount}/{match.max_players}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </Link>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            )}
+            {/* Nearby Matches Widget */}
+            <motion.div variants={VARIANTS.item}>
+              <NearbyMatchesWidget
+                matches={nearbyMatches}
+                allParticipants={allParticipants}
+                userMatchIds={userMatchIds}
+                userId={authUser?.id}
+                onJoin={handleJoinMatch}
+                isGuest={isGuest}
+              />
+            </motion.div>
           </div>
 
           {/* Right Column */}
@@ -907,8 +849,18 @@ export default function Dashboard() {
               venue={myUpcomingMatches[0]?.venue || venues.find(v => v.id === myUpcomingMatches[0]?.venue_id)}
               participants={myUpcomingMatches[0] ? allParticipants.filter(p => p.match_id === myUpcomingMatches[0].id) : []}
             />
+
+            {/* Cups Widget in sidebar on desktop */}
+            <div className="hidden lg:block">
+              <CupsWidget />
+            </div>
           </motion.div>
         </div>
+
+        {/* Cups Widget on mobile - between matches and about section */}
+        <motion.div variants={VARIANTS.item} className="lg:hidden">
+          <CupsWidget />
+        </motion.div>
 
         {/* About AllPlay Card */}
         <motion.div variants={VARIANTS.item}>
