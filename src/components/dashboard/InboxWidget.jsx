@@ -1,122 +1,132 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
-import { Inbox, UserPlus, Users, ArrowRight, Bell } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Inbox, UserPlus, Users, Shield, ArrowRight, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { CACHE_STRATEGIES } from "../providers/QueryProvider";
+import { useSupabaseAuth } from "../supabase/AuthProvider";
 
 export default function InboxWidget() {
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    queryFn: async () => await base44.auth.me(),
-  });
+  const { user: authUser, isAuthenticated } = useSupabaseAuth();
 
   const { data: friendships = [] } = useQuery({
-    queryKey: ['friendships'],
-    queryFn: async () => await base44.entities.Friendship.list(),
-    enabled: !!user,
+    queryKey: ['friendships-inbox-widget'],
+    queryFn: async () => {
+      const [sent, received] = await Promise.all([
+        base44.entities.Friendship.filter({ requester_id: authUser.id }),
+        base44.entities.Friendship.filter({ addressee_id: authUser.id })
+      ]);
+      const map = new Map();
+      sent.forEach(f => map.set(f.id, f));
+      received.forEach(f => map.set(f.id, f));
+      return Array.from(map.values());
+    },
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+    enabled: isAuthenticated && !!authUser?.id,
   });
 
   const { data: teamInvites = [] } = useQuery({
-    queryKey: ['teamInvites'],
-    queryFn: async () => await base44.entities.TeamInvitation.list(),
-    enabled: !!user,
+    queryKey: ['team-invites-inbox-widget', authUser?.id],
+    queryFn: async () => {
+      return await base44.entities.TeamMember.filter({
+        user_id: authUser.id,
+        status: 'pending'
+      });
+    },
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+    enabled: isAuthenticated && !!authUser?.id,
   });
 
-  const { data: matchInvites = [] } = useQuery({
-    queryKey: ['matchInvites'],
-    queryFn: async () => await base44.entities.MatchInvitation.list(),
-    enabled: !!user,
+  const { data: teamJoinRequests = [] } = useQuery({
+    queryKey: ['team-join-requests-inbox-widget', authUser?.id],
+    queryFn: async () => {
+      const captainTeams = await base44.entities.Team.filter({ captain_id: authUser.id });
+      if (captainTeams.length === 0) return [];
+      const allPending = await base44.entities.TeamMember.list();
+      return allPending.filter(
+        tm => captainTeams.some(t => t.id === tm.team_id) && tm.status === 'pending'
+      );
+    },
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+    enabled: isAuthenticated && !!authUser?.id,
   });
 
   const pendingFriendRequests = friendships.filter(
-    f => f.addressee_id === user?.id && f.status === 'pending'
+    f => f.addressee_id === authUser?.id && f.status === 'pending'
   );
 
-  const pendingTeamInvites = teamInvites.filter(
-    i => i.invited_user_id === user?.id && i.status === 'pending'
-  );
-
-  const pendingMatchInvites = matchInvites.filter(
-    i => i.invited_user_id === user?.id && i.status === 'pending'
-  );
-
-  const totalNotifications = pendingFriendRequests.length + pendingTeamInvites.length + pendingMatchInvites.length;
+  const totalNotifications = pendingFriendRequests.length + teamInvites.length + teamJoinRequests.length;
 
   if (totalNotifications === 0) return null;
 
+  const items = [
+    pendingFriendRequests.length > 0 && {
+      icon: UserPlus,
+      color: '#2BA84A',
+      bg: 'bg-[#2BA84A]/15',
+      count: pendingFriendRequests.length,
+      label: pendingFriendRequests.length === 1 ? 'vänförfrågan' : 'vänförfrågningar'
+    },
+    teamInvites.length > 0 && {
+      icon: Shield,
+      color: '#F4743B',
+      bg: 'bg-[#F4743B]/15',
+      count: teamInvites.length,
+      label: teamInvites.length === 1 ? 'laginbjudan' : 'laginbjudningar'
+    },
+    teamJoinRequests.length > 0 && {
+      icon: Users,
+      color: '#9370DB',
+      bg: 'bg-[#9370DB]/15',
+      count: teamJoinRequests.length,
+      label: teamJoinRequests.length === 1 ? 'lagansökan' : 'lagansökningar'
+    },
+  ].filter(Boolean);
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: 0.35 }}
     >
       <Link to={createPageUrl("Profile")}>
-        <Card className="bg-gradient-to-br from-[#121715] to-[#18221E]/50 rounded-[20px] shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#F4743B]/20 hover:border-[#F4743B]/40 transition-all overflow-hidden cursor-pointer group">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="w-11 h-11 bg-[#F4743B]/20 rounded-xl flex items-center justify-center ring-2 ring-[#F4743B]/30 group-hover:scale-110 transition-transform">
-                    <Inbox className="w-5 h-5 text-[#F4743B]" strokeWidth={2.5} />
-                  </div>
-                  {totalNotifications > 0 && (
-                    <motion.div
-                      animate={{
-                        scale: [1, 1.2, 1]
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                      className="absolute -top-1 -right-1 w-5 h-5 bg-[#F4743B] rounded-full flex items-center justify-center ring-2 ring-[#121715]"
-                    >
-                      <span className="text-[10px] font-black text-white">{totalNotifications}</span>
-                    </motion.div>
-                  )}
+        <Card className="bg-[#121715] rounded-[18px] shadow-[0_4px_16px_rgba(0,0,0,0.25)] border border-[#F4743B]/20 hover:border-[#F4743B]/40 transition-all overflow-hidden cursor-pointer group">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              {/* Icon with badge */}
+              <div className="relative flex-shrink-0">
+                <div className="w-10 h-10 bg-[#F4743B]/15 rounded-xl flex items-center justify-center ring-1 ring-[#F4743B]/25 group-hover:scale-105 transition-transform">
+                  <Inbox className="w-5 h-5 text-[#F4743B]" strokeWidth={2} />
                 </div>
-                <div>
-                  <h3 className="text-base font-bold text-[#F4F7F5] group-hover:text-[#F4743B] transition-colors">
+                <div className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-[#F4743B] rounded-full flex items-center justify-center ring-2 ring-[#121715]">
+                  <span className="text-[10px] font-black text-white px-1">{totalNotifications}</span>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-sm font-bold text-[#F4F7F5] group-hover:text-[#F4743B] transition-colors">
                     Inkorg
                   </h3>
-                  <p className="text-xs text-[#B6C2BC]">
-                    {totalNotifications} {totalNotifications === 1 ? 'notis' : 'notiser'}
-                  </p>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {items.map((item, i) => (
+                    <span key={i} className="flex items-center gap-1 text-[11px] text-[#B6C2BC]">
+                      <item.icon className="w-3 h-3" style={{ color: item.color }} />
+                      <span className="font-semibold" style={{ color: item.color }}>{item.count}</span>
+                      <span>{item.label}</span>
+                    </span>
+                  ))}
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="hidden sm:flex items-center gap-2">
-                  {pendingFriendRequests.length > 0 && (
-                    <div className="flex items-center gap-1.5 px-3 h-7 bg-[#18221E] rounded-lg border border-[#223029]">
-                      <UserPlus className="w-3.5 h-3.5 text-[#9370DB]" />
-                      <span className="text-xs font-bold text-[#9370DB]">{pendingFriendRequests.length}</span>
-                    </div>
-                  )}
-                  {pendingTeamInvites.length > 0 && (
-                    <div className="flex items-center gap-1.5 px-3 h-7 bg-[#18221E] rounded-lg border border-[#223029]">
-                      <Users className="w-3.5 h-3.5 text-[#2BA84A]" />
-                      <span className="text-xs font-bold text-[#2BA84A]">{pendingTeamInvites.length}</span>
-                    </div>
-                  )}
-                  {pendingMatchInvites.length > 0 && (
-                    <div className="flex items-center gap-1.5 px-3 h-7 bg-[#18221E] rounded-lg border border-[#223029]">
-                      <Bell className="w-3.5 h-3.5 text-[#F4743B]" />
-                      <span className="text-xs font-bold text-[#F4743B]">{pendingMatchInvites.length}</span>
-                    </div>
-                  )}
-                </div>
-
-                <motion.div
-                  animate={{ x: [0, 4, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                >
-                  <ArrowRight className="w-5 h-5 text-[#F4743B]" />
-                </motion.div>
-              </div>
+              {/* Arrow */}
+              <ChevronRight className="w-5 h-5 text-[#9EAAA4] group-hover:text-[#F4743B] transition-colors flex-shrink-0" />
             </div>
           </CardContent>
         </Card>

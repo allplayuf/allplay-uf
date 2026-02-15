@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,126 +11,208 @@ import {
   CheckCircle, 
   X, 
   Clock,
-  ChevronRight,
-  Inbox
+  Inbox,
+  UserCheck,
+  Loader2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { getUsersByIds } from "../supabase/services/usersService";
 import { base44 } from "@/api/base44Client";
+import { CACHE_STRATEGIES } from "../providers/QueryProvider";
+import { formatDistanceToNow } from "date-fns";
+import { sv } from "date-fns/locale";
+
+function timeAgo(dateStr) {
+  if (!dateStr) return '';
+  try {
+    return formatDistanceToNow(new Date(dateStr), { addSuffix: true, locale: sv });
+  } catch { return ''; }
+}
+
+function NotificationCard({ 
+  icon: Icon, 
+  iconBg, 
+  iconColor, 
+  borderHover, 
+  title, 
+  subtitle, 
+  timestamp, 
+  profileUrl,
+  onAccept, 
+  onDecline, 
+  acceptLabel = 'Acceptera',
+  acceptBg,
+  isProcessing,
+  index 
+}) {
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -80, scale: 0.95 }}
+      transition={{ duration: 0.25, delay: index * 0.04 }}
+    >
+      <Card className={`bg-[#121715] border border-[#223029] ${borderHover} transition-all shadow-sm rounded-[16px] overflow-hidden`}>
+        <CardContent className="p-3.5 sm:p-4">
+          <div className="flex items-center gap-3">
+            {/* Avatar / Icon */}
+            <div className={`w-11 h-11 ${iconBg} rounded-xl flex items-center justify-center flex-shrink-0`}>
+              <Icon className={`w-5 h-5 ${iconColor}`} strokeWidth={2} />
+            </div>
+
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              {profileUrl ? (
+                <Link to={profileUrl}>
+                  <h4 className="font-semibold text-[#F4F7F5] hover:text-[#2BA84A] transition-colors text-sm truncate">
+                    {title}
+                  </h4>
+                </Link>
+              ) : (
+                <h4 className="font-semibold text-[#F4F7F5] text-sm truncate">{title}</h4>
+              )}
+              <p className="text-xs text-[#9EAAA4] mt-0.5 truncate">{subtitle}</p>
+              {timestamp && (
+                <p className="text-[10px] text-[#6B7C74] mt-0.5 flex items-center gap-1">
+                  <Clock className="w-2.5 h-2.5" />
+                  {timestamp}
+                </p>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-1.5 flex-shrink-0">
+              <Button
+                onClick={onAccept}
+                disabled={isProcessing}
+                size="sm"
+                className={`${acceptBg} text-white h-8 px-3 rounded-xl text-xs font-semibold`}
+              >
+                {isProcessing ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <>
+                    <CheckCircle className="w-3.5 h-3.5 mr-1" />
+                    {acceptLabel}
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={onDecline}
+                disabled={isProcessing}
+                size="sm"
+                variant="ghost"
+                className="text-[#9EAAA4] hover:bg-[#18221E] hover:text-[#F4F7F5] h-8 w-8 p-0 rounded-xl"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
 
 export default function InboxNotifications({ 
-  friendRequests, 
-  teamInvites,
-  teamJoinRequests = [], // NEW: Accept team join requests
+  friendRequests = [], 
+  teamInvites = [],
+  teamJoinRequests = [],
   onAcceptFriend, 
   onDeclineFriend,
   onAcceptTeam,
   onDeclineTeam,
-  onAcceptJoinRequest, // NEW: Handler for accepting join requests
-  onDeclineJoinRequest // NEW: Handler for declining join requests
+  onAcceptJoinRequest,
+  onDeclineJoinRequest
 }) {
-  const [requestersData, setRequestersData] = useState({});
-  const [teamsData, setTeamsData] = useState({});
-  const [joinRequestUsersData, setJoinRequestUsersData] = useState({}); // NEW: Store user data for join requests
-  const [isLoading, setIsLoading] = useState(true);
+  const [processingIds, setProcessingIds] = useState(new Set());
 
-  useEffect(() => {
-    loadRequestersAndTeams();
-  }, [friendRequests, teamInvites, teamJoinRequests]);
+  // Collect all user IDs we need
+  const allUserIds = useMemo(() => {
+    const ids = new Set();
+    friendRequests.forEach(fr => ids.add(fr.requester_id));
+    teamJoinRequests.forEach(jr => ids.add(jr.user_id));
+    return [...ids].filter(Boolean);
+  }, [friendRequests, teamJoinRequests]);
 
-  const loadRequestersAndTeams = async () => {
+  // Collect all team IDs we need
+  const allTeamIds = useMemo(() => {
+    const ids = new Set();
+    teamInvites.forEach(ti => ids.add(ti.team_id));
+    teamJoinRequests.forEach(jr => ids.add(jr.team_id));
+    return [...ids].filter(Boolean);
+  }, [teamInvites, teamJoinRequests]);
+
+  // Fetch users via Supabase service (consistent with rest of app)
+  const { data: usersMap = {}, isLoading: usersLoading } = useQuery({
+    queryKey: ['inbox-users', allUserIds],
+    queryFn: async () => {
+      if (allUserIds.length === 0) return {};
+      const users = await getUsersByIds(allUserIds);
+      const map = {};
+      users.forEach(u => { map[u.id] = u; });
+      return map;
+    },
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+    enabled: allUserIds.length > 0,
+  });
+
+  // Fetch teams via Base44 (TeamMember still uses Base44)
+  const { data: teamsMap = {}, isLoading: teamsLoading } = useQuery({
+    queryKey: ['inbox-teams', allTeamIds],
+    queryFn: async () => {
+      if (allTeamIds.length === 0) return {};
+      const teams = await Promise.all(
+        allTeamIds.map(id => base44.entities.Team.get(id).catch(() => null))
+      );
+      const map = {};
+      teams.forEach(t => { if (t) map[t.id] = t; });
+      return map;
+    },
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+    enabled: allTeamIds.length > 0,
+  });
+
+  const totalNotifications = friendRequests.length + teamInvites.length + teamJoinRequests.length;
+  const isLoading = (allUserIds.length > 0 && usersLoading) || (allTeamIds.length > 0 && teamsLoading);
+
+  const wrapAction = async (id, action) => {
+    setProcessingIds(prev => new Set(prev).add(id));
     try {
-      // Load friend requesters
-      const requesterIds = friendRequests.map(fr => fr.requester_id);
-      const requestersPromises = requesterIds.map(id => 
-        base44.entities.User.get(id).catch(err => {
-          console.error(`Failed to load user ${id}:`, err);
-          return null;
-        })
-      );
-      const requestersArray = await Promise.all(requestersPromises);
-      const requestersMap = {};
-      requestersArray.forEach((user, idx) => {
-        if (user) requestersMap[requesterIds[idx]] = user;
-      });
-      setRequestersData(requestersMap);
-
-      // Load teams for team invites
-      const teamIds = teamInvites.map(ti => ti.team_id);
-      const teamsPromises = teamIds.map(id => 
-        base44.entities.Team.get(id).catch(err => {
-          console.error(`Failed to load team ${id}:`, err);
-          return null;
-        })
-      );
-      const teamsArray = await Promise.all(teamsPromises);
-      const teamsMap = {};
-      teamsArray.forEach((team, idx) => {
-        if (team) teamsMap[teamIds[idx]] = team;
-      });
-      setTeamsData(teamsMap);
-
-      // NEW: Load users for team join requests
-      const joinRequestUserIds = teamJoinRequests.map(jr => jr.user_id);
-      const joinRequestUsersPromises = joinRequestUserIds.map(id => 
-        base44.entities.User.get(id).catch(err => {
-          console.error(`Failed to load user ${id}:`, err);
-          return null;
-        })
-      );
-      const joinRequestUsersArray = await Promise.all(joinRequestUsersPromises);
-      const joinRequestUsersMap = {};
-      joinRequestUsersArray.forEach((user, idx) => {
-        if (user) joinRequestUsersMap[joinRequestUserIds[idx]] = user;
-      });
-      setJoinRequestUsersData(joinRequestUsersMap);
-
-      // Also load teams for join requests
-      const joinRequestTeamIds = teamJoinRequests.map(jr => jr.team_id);
-      const joinRequestTeamsPromises = joinRequestTeamIds.map(id => 
-        base44.entities.Team.get(id).catch(err => {
-          console.error(`Failed to load team ${id}:`, err);
-          return null;
-        })
-      );
-      const joinRequestTeamsArray = await Promise.all(joinRequestTeamsPromises);
-      joinRequestTeamsArray.forEach((team, idx) => {
-        if (team) teamsMap[joinRequestTeamIds[idx]] = team;
-      });
-      setTeamsData(teamsMap);
-
-    } catch (error) {
-      console.error("Error loading requesters and teams:", error);
+      await action(id);
     } finally {
-      setIsLoading(false);
+      setProcessingIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
   };
 
-  const totalNotifications = friendRequests.length + teamInvites.length + teamJoinRequests.length;
-
   if (isLoading) {
     return (
-      <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[20px]">
-        <CardContent className="p-12 text-center">
-          <div className="w-12 h-12 border-4 border-[#2BA84A] border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-[#B6C2BC] mt-4">Laddar notiser...</p>
-        </CardContent>
-      </Card>
+      <div className="space-y-3">
+        {[1, 2].map(i => (
+          <div key={i} className="animate-pulse bg-[#121715] border border-[#223029] rounded-[16px] p-4 h-[72px]" />
+        ))}
+      </div>
     );
   }
 
   if (totalNotifications === 0) {
     return (
-      <Card className="bg-gradient-to-br from-[#121715] to-[#0F2917]/20 border border-[#223029] shadow-[0_4px_12px_rgba(0,0,0,0.15)] rounded-[16px]">
-        <CardContent className="p-6 text-center">
-          <div className="w-12 h-12 bg-[#2BA84A]/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-            <Inbox className="w-6 h-6 text-[#2BA84A]" />
+      <Card className="bg-[#121715] border border-[#223029] rounded-[16px]">
+        <CardContent className="p-8 text-center">
+          <div className="w-14 h-14 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-4 ring-1 ring-[#2BA84A]/20">
+            <Inbox className="w-7 h-7 text-[#2BA84A]" />
           </div>
           <h3 className="text-base font-bold text-[#F4F7F5] mb-1">
-            Inga nya notiser
+            Allt ikapp!
           </h3>
-          <p className="text-xs text-[#B6C2BC]">
-            Nya notiser visas här
+          <p className="text-sm text-[#9EAAA4]">
+            Du har inga väntande förfrågningar just nu
           </p>
         </CardContent>
       </Card>
@@ -137,170 +220,108 @@ export default function InboxNotifications({
   }
 
   return (
-    <div className="space-y-4">
-      {/* Header with count */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold text-[#F4F7F5]">
-          Inbox ({totalNotifications})
+    <div className="space-y-5">
+      {/* Section header */}
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 bg-[#F4743B]/15 rounded-lg flex items-center justify-center">
+          <Inbox className="w-4 h-4 text-[#F4743B]" />
+        </div>
+        <h3 className="text-base font-bold text-[#F4F7F5]">
+          Förfrågningar
         </h3>
-        <Badge className="bg-[#2BA84A]/20 text-[#2BA84A] border-0">
-          {totalNotifications} nya
+        <Badge className="bg-[#F4743B]/15 text-[#F4743B] border-0 text-xs font-bold ml-auto">
+          {totalNotifications}
         </Badge>
       </div>
 
       {/* Friend Requests */}
       {friendRequests.length > 0 && (
-        <div className="space-y-3">
-          <h4 className="text-sm font-semibold text-[#B6C2BC] uppercase tracking-wide">
-            Vänförfrågningar ({friendRequests.length})
-          </h4>
-          <AnimatePresence>
+        <div className="space-y-2">
+          <p className="text-[11px] font-semibold text-[#9EAAA4] uppercase tracking-wider px-1">
+            Vänförfrågningar
+          </p>
+          <AnimatePresence mode="popLayout">
             {friendRequests.map((request, index) => {
-              const requester = requestersData[request.requester_id];
+              const requester = usersMap[request.requester_id];
               if (!requester) return null;
 
               return (
-                <motion.div
+                <NotificationCard
                   key={request.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -100 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                >
-                  <Card className="bg-[#121715] border border-[#223029] hover:border-[#2BA84A]/30 transition-all shadow-[0_4px_12px_rgba(0,0,0,0.15)] rounded-[16px]">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        {/* Avatar */}
-                        <div className="w-12 h-12 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0">
-                          {requester.profile_image_url ? (
-                            <img
-                              src={requester.profile_image_url}
-                              alt={requester.full_name}
-                              className="w-full h-full object-cover rounded-xl"
-                            />
-                          ) : (
-                            <span className="text-[#FFFFFF] font-semibold text-lg">
-                              {requester.full_name?.[0] || 'U'}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Info */}
-                        <div className="flex-1 min-w-0">
-                          <Link to={`${createPageUrl("Profile")}?userId=${requester.id}`}>
-                            <h4 className="font-semibold text-[#F4F7F5] hover:text-[#2BA84A] transition-colors truncate">
-                              {requester.full_name}
-                            </h4>
-                          </Link>
-                          <p className="text-sm text-[#B6C2BC] flex items-center gap-1">
-                            <UserPlus className="w-3 h-3" />
-                            Vill bli vän
-                          </p>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex gap-2 flex-shrink-0">
-                          <Button
-                            onClick={() => onAcceptFriend(request.id)}
-                            size="sm"
-                            className="bg-[#2BA84A] hover:bg-[#248232] text-[#FFFFFF] h-9 px-3 rounded-xl"
-                          >
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            Acceptera
-                          </Button>
-                          <Button
-                            onClick={() => onDeclineFriend(request.id)}
-                            size="sm"
-                            variant="outline"
-                            className="border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] hover:text-[#F4F7F5] h-9 px-3 rounded-xl"
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+                  icon={({ className }) => (
+                    requester.profile_image_url || requester.avatar_url ? (
+                      <img
+                        src={requester.profile_image_url || requester.avatar_url}
+                        alt={requester.full_name}
+                        className="w-full h-full object-cover rounded-xl"
+                      />
+                    ) : (
+                      <span className="text-white font-semibold text-sm">
+                        {requester.full_name?.[0] || 'U'}
+                      </span>
+                    )
+                  )}
+                  iconBg="bg-gradient-to-br from-[#2BA84A] to-[#248232]"
+                  iconColor="text-white"
+                  borderHover="hover:border-[#2BA84A]/30"
+                  title={requester.display_name || requester.full_name}
+                  subtitle="Vill bli din vän"
+                  timestamp={timeAgo(request.created_date)}
+                  profileUrl={`${createPageUrl("Profile")}?userId=${requester.id}`}
+                  onAccept={() => wrapAction(request.id, onAcceptFriend)}
+                  onDecline={() => wrapAction(request.id, onDeclineFriend)}
+                  acceptBg="bg-[#2BA84A] hover:bg-[#248232]"
+                  isProcessing={processingIds.has(request.id)}
+                  index={index}
+                />
               );
             })}
           </AnimatePresence>
         </div>
       )}
 
-      {/* NEW: Team Join Requests */}
+      {/* Team Join Requests (for captains) */}
       {teamJoinRequests.length > 0 && (
-        <div className="space-y-3">
-          <h4 className="text-sm font-semibold text-[#B6C2BC] uppercase tracking-wide">
-            Ansökningar till dina lag ({teamJoinRequests.length})
-          </h4>
-          <AnimatePresence>
+        <div className="space-y-2">
+          <p className="text-[11px] font-semibold text-[#9EAAA4] uppercase tracking-wider px-1">
+            Ansökningar till dina lag
+          </p>
+          <AnimatePresence mode="popLayout">
             {teamJoinRequests.map((request, index) => {
-              const applicant = joinRequestUsersData[request.user_id];
-              const team = teamsData[request.team_id];
+              const applicant = usersMap[request.user_id];
+              const team = teamsMap[request.team_id];
               if (!applicant || !team) return null;
 
               return (
-                <motion.div
+                <NotificationCard
                   key={request.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -100 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                >
-                  <Card className="bg-[#121715] border border-[#223029] hover:border-[#9B59B6]/30 transition-all shadow-[0_4px_12px_rgba(0,0,0,0.15)] rounded-[16px]">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        {/* Avatar */}
-                        <div className="w-12 h-12 bg-gradient-to-br from-[#9B59B6] to-[#8E44AD] rounded-xl flex items-center justify-center flex-shrink-0">
-                          {applicant.profile_image_url ? (
-                            <img
-                              src={applicant.profile_image_url}
-                              alt={applicant.full_name}
-                              className="w-full h-full object-cover rounded-xl"
-                            />
-                          ) : (
-                            <span className="text-[#FFFFFF] font-semibold text-lg">
-                              {applicant.full_name?.[0] || 'U'}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Info */}
-                        <div className="flex-1 min-w-0">
-                          <Link to={`${createPageUrl("Profile")}?userId=${applicant.id}`}>
-                            <h4 className="font-semibold text-[#F4F7F5] hover:text-[#9B59B6] transition-colors truncate">
-                              {applicant.full_name}
-                            </h4>
-                          </Link>
-                          <p className="text-sm text-[#B6C2BC] flex items-center gap-1">
-                            <Shield className="w-3 h-3" />
-                            Vill gå med i <span className="text-[#9B59B6] font-medium">{team.name}</span>
-                          </p>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex gap-2 flex-shrink-0">
-                          <Button
-                            onClick={() => onAcceptJoinRequest(request.id)}
-                            size="sm"
-                            className="bg-[#9B59B6] hover:bg-[#8E44AD] text-[#FFFFFF] h-9 px-3 rounded-xl"
-                          >
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            Acceptera
-                          </Button>
-                          <Button
-                            onClick={() => onDeclineJoinRequest(request.id)}
-                            size="sm"
-                            variant="outline"
-                            className="border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] hover:text-[#F4F7F5] h-9 px-3 rounded-xl"
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+                  icon={({ className }) => (
+                    applicant.profile_image_url || applicant.avatar_url ? (
+                      <img
+                        src={applicant.profile_image_url || applicant.avatar_url}
+                        alt={applicant.full_name}
+                        className="w-full h-full object-cover rounded-xl"
+                      />
+                    ) : (
+                      <span className="text-white font-semibold text-sm">
+                        {applicant.full_name?.[0] || 'U'}
+                      </span>
+                    )
+                  )}
+                  iconBg="bg-gradient-to-br from-[#9370DB] to-[#7C3AED]"
+                  iconColor="text-white"
+                  borderHover="hover:border-[#9370DB]/30"
+                  title={applicant.display_name || applicant.full_name}
+                  subtitle={`Vill gå med i ${team.name}`}
+                  timestamp={timeAgo(request.created_date)}
+                  profileUrl={`${createPageUrl("Profile")}?userId=${applicant.id}`}
+                  onAccept={() => wrapAction(request.id, onAcceptJoinRequest)}
+                  onDecline={() => wrapAction(request.id, onDeclineJoinRequest)}
+                  acceptLabel="Godkänn"
+                  acceptBg="bg-[#9370DB] hover:bg-[#7C3AED]"
+                  isProcessing={processingIds.has(request.id)}
+                  index={index}
+                />
               );
             })}
           </AnimatePresence>
@@ -309,75 +330,43 @@ export default function InboxNotifications({
 
       {/* Team Invites */}
       {teamInvites.length > 0 && (
-        <div className="space-y-3">
-          <h4 className="text-sm font-semibold text-[#B6C2BC] uppercase tracking-wide">
-            Laginbjudningar ({teamInvites.length})
-          </h4>
-          <AnimatePresence>
+        <div className="space-y-2">
+          <p className="text-[11px] font-semibold text-[#9EAAA4] uppercase tracking-wider px-1">
+            Laginbjudningar
+          </p>
+          <AnimatePresence mode="popLayout">
             {teamInvites.map((invite, index) => {
-              const team = teamsData[invite.team_id];
+              const team = teamsMap[invite.team_id];
               if (!team) return null;
 
               return (
-                <motion.div
+                <NotificationCard
                   key={invite.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -100 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                >
-                  <Card className="bg-[#121715] border border-[#223029] hover:border-[#F4743B]/30 transition-all shadow-[0_4px_12px_rgba(0,0,0,0.15)] rounded-[16px]">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        {/* Team Logo */}
-                        <div className="w-12 h-12 bg-gradient-to-br from-[#F4743B] to-[#E5683A] rounded-xl flex items-center justify-center flex-shrink-0">
-                          {team.logo_url ? (
-                            <img
-                              src={team.logo_url}
-                              alt={team.name}
-                              className="w-full h-full object-cover rounded-xl"
-                            />
-                          ) : (
-                            <Shield className="w-6 h-6 text-[#FFFFFF]" />
-                          )}
-                        </div>
-
-                        {/* Info */}
-                        <div className="flex-1 min-w-0">
-                          <Link to={`${createPageUrl("TeamOverview")}?id=${team.id}`}>
-                            <h4 className="font-semibold text-[#F4F7F5] hover:text-[#F4743B] transition-colors truncate">
-                              {team.name}
-                            </h4>
-                          </Link>
-                          <p className="text-sm text-[#B6C2BC] flex items-center gap-1">
-                            <Users className="w-3 h-3" />
-                            Inbjudan till lag
-                          </p>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex gap-2 flex-shrink-0">
-                          <Button
-                            onClick={() => onAcceptTeam(invite.id)}
-                            size="sm"
-                            className="bg-[#F4743B] hover:bg-[#E5683A] text-[#FFFFFF] h-9 px-3 rounded-xl"
-                          >
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            Acceptera
-                          </Button>
-                          <Button
-                            onClick={() => onDeclineTeam(invite.id)}
-                            size="sm"
-                            variant="outline"
-                            className="border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] hover:text-[#F4F7F5] h-9 px-3 rounded-xl"
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+                  icon={({ className }) => (
+                    team.logo_url ? (
+                      <img
+                        src={team.logo_url}
+                        alt={team.name}
+                        className="w-full h-full object-cover rounded-xl"
+                      />
+                    ) : (
+                      <Shield className="w-5 h-5 text-white" />
+                    )
+                  )}
+                  iconBg="bg-gradient-to-br from-[#F4743B] to-[#E5683A]"
+                  iconColor="text-white"
+                  borderHover="hover:border-[#F4743B]/30"
+                  title={team.name}
+                  subtitle="Du har blivit inbjuden till laget"
+                  timestamp={timeAgo(invite.created_date)}
+                  profileUrl={`${createPageUrl("TeamOverview")}?id=${team.id}`}
+                  onAccept={() => wrapAction(invite.id, onAcceptTeam)}
+                  onDecline={() => wrapAction(invite.id, onDeclineTeam)}
+                  acceptLabel="Gå med"
+                  acceptBg="bg-[#F4743B] hover:bg-[#E5683A]"
+                  isProcessing={processingIds.has(invite.id)}
+                  index={index}
+                />
               );
             })}
           </AnimatePresence>
