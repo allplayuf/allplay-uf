@@ -87,7 +87,7 @@ export default function TeamOverviewPage() {
   const [teamMatches, setTeamMatches] = useState([]);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('members');
+  const [activeTab, setActiveTab] = useState('stats');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showCreateTeamMatch, setShowCreateTeamMatch] = useState(false);
 
