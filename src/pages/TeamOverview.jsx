@@ -32,6 +32,7 @@ import InviteFriendsToTeamModal from "../components/teams/InviteFriendsToTeamMod
 import CreateTeamMatchForm from "../components/teams/CreateTeamMatchForm";
 import TeamCalendar from "../components/teams/TeamCalendar";
 import TeamLeaderboard from "../components/teams/TeamLeaderboard";
+import TeamStatsCard from "../components/teams/TeamStatsCard";
 
 const SKILL_LEVEL_CONFIG = {
   beginner: { 
@@ -486,39 +487,14 @@ export default function TeamOverviewPage() {
             {activeTab === 'stats' && (
               <motion.div
                 key="stats"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
                 className="space-y-6"
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-2xl">
-                    <CardHeader className="border-b border-[#223029]">
-                      <CardTitle className="text-lg text-[#F4F7F5] flex items-center gap-2">
-                        <Trophy className="w-5 h-5 text-[#2BA84A]" />
-                        Matcher & Resultat
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6 space-y-4">
-                      <div className="flex justify-between items-center p-3 bg-[#0F1513] rounded-xl">
-                        <span className="text-sm text-[#B6C2BC] font-medium">Totalt matcher</span>
-                        <span className="text-2xl font-bold text-[#F4F7F5]">{team.matches_played || 0}</span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-[#0F1513] rounded-xl">
-                        <span className="text-sm text-[#B6C2BC] font-medium">Vinster</span>
-                        <span className="text-2xl font-bold text-[#2BA84A]">{team.wins || 0}</span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-[#0F1513] rounded-xl">
-                        <span className="text-sm text-[#B6C2BC] font-medium">Oavgjort</span>
-                        <span className="text-2xl font-bold text-[#F4F7F5]">{team.draws || 0}</span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-[#0F1513] rounded-xl">
-                        <span className="text-sm text-[#B6C2BC] font-medium">Förluster</span>
-                        <span className="text-2xl font-bold text-[#DC2626]">{team.losses || 0}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <TeamStatsCard team={team} />
 
                   {isCaptain && !isCupTeam && (
                     <TeamColorPicker 
