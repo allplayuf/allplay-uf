@@ -549,10 +549,10 @@ export default function MatchesPage() {
           {activeTab === 'browse' && (
             <motion.div
               key="browse"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.25 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
             >
               {allMatches.length === 0 ? (
                 <NoMatchesFound onCreateMatch={() => setShowCreateForm(true)} />
@@ -579,10 +579,10 @@ export default function MatchesPage() {
           {activeTab === 'my-matches' && (
             <motion.div
               key="my-matches"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.25 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
             >
               <MyMatches 
                 matches={myMatches}
@@ -598,10 +598,10 @@ export default function MatchesPage() {
           {activeTab === 'completed' && (
             <motion.div
               key="completed"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.25 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
             >
               <CompletedMatches 
                 matches={completedMatchesData}
