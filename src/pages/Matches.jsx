@@ -372,29 +372,39 @@ export default function MatchesPage() {
       <DialogContainer />
       
       {/* Create Match Form Modal */}
-      {showCreateForm && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-end lg:items-center justify-center z-50 p-0 overflow-hidden">
-          <motion.div 
-            initial={{ opacity: 0, y: 100, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 100, scale: 0.95 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="bg-[#121715] rounded-t-[20px] lg:rounded-[20px] w-full lg:max-w-2xl border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] 
-            h-[80vh] lg:h-auto lg:max-h-[85vh] mb-16 lg:mb-0 lg:my-8 overflow-hidden flex flex-col"
-          >
-            <CreateMatchForm
-              venues={venues}
-              user={user}
-              preselectedVenueId={preselectedVenueId}
-              onSubmit={handleMatchCreated}
-              onCancel={() => {
-                setShowCreateForm(false);
-                setPreselectedVenueId(null);
-              }}
+      <AnimatePresence>
+        {showCreateForm && (
+          <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              onClick={() => { setShowCreateForm(false); setPreselectedVenueId(null); }}
+              className="absolute inset-0 bg-black/70 backdrop-blur-[2px]"
             />
-          </motion.div>
-        </div>
-      )}
+            <motion.div 
+              initial={{ opacity: 0, y: 60, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 40, scale: 0.97 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="relative z-10 bg-[#121715] rounded-t-[20px] lg:rounded-[20px] w-full lg:max-w-2xl border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] 
+              h-[80vh] lg:h-auto lg:max-h-[85vh] mb-16 lg:mb-0 lg:my-8 overflow-hidden flex flex-col"
+            >
+              <CreateMatchForm
+                venues={venues}
+                user={user}
+                preselectedVenueId={preselectedVenueId}
+                onSubmit={handleMatchCreated}
+                onCancel={() => {
+                  setShowCreateForm(false);
+                  setPreselectedVenueId(null);
+                }}
+              />
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         

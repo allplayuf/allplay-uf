@@ -100,11 +100,8 @@ function LayoutInner({ children }) {
     }
   }, [location.pathname]);
 
-  useEffect(() => {
-    if (mainContentRef.current) {
-      mainContentRef.current.scrollTop = 0;
-    }
-  }, [location.pathname]);
+  // Scroll restoration is now handled by NavigationProvider.
+  // No manual scrollTop = 0 here — that would fight scroll-position persistence.
   
   // Handle tab click - navigate to root if already active, else to last path
   const handleTabClick = (item) => {
