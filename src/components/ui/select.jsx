@@ -64,7 +64,7 @@ const SelectTrigger = React.forwardRef(({ className, children, ...props }, ref) 
       {...props}
     >
       {children}
-      <ChevronDown className={`h-4 w-4 opacity-50 transition-transform ${open ? 'rotate-180' : ''}`} />
+      <ChevronDown className={`h-4 w-4 text-[#9EAAA4] transition-transform ${open ? 'rotate-180' : ''}`} />
     </button>
   )
 })
