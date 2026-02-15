@@ -17,6 +17,11 @@ css
     --color-primary-light: #EAF6EE;
     --color-accent: #F4743B;
     --color-accent-hover: #E5683A;
+
+    /* Scrollbar tokens */
+    --scrollbar-track: #131816;
+    --scrollbar-thumb: #223029;
+    --scrollbar-thumb-hover: #2BA84A;
   }
 
   @media (prefers-color-scheme: light) {
