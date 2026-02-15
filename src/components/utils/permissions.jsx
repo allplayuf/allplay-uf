@@ -153,7 +153,8 @@ export function isAuthenticated(user) {
 
 /**
  * Check if user is full admin
- * Reads is_admin from Supabase profile (DB source of truth)
+ * Source of truth: public.users.is_admin (set via SQL only, never by client)
+ * Falls back to role === 'admin' for backward compatibility with session store
  */
 export function isAdmin(user) {
   return user?.is_admin === true || user?.role === 'admin';
