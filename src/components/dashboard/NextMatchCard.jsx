@@ -5,17 +5,20 @@ import { Calendar, MapPin, Users, Clock, Share2, ArrowRight } from "lucide-react
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { getUsersByIds } from "@/components/supabase/services";
 import ShareMatchModal from "./ShareMatchModal";
 
 export default function NextMatchCard({ match, venue, participants = [] }) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0 });
   const [showShareModal, setShowShareModal] = useState(false);
 
-  const { data: allUsers = [] } = useQuery({
-    queryKey: ['allUsers'],
-    queryFn: async () => await base44.entities.User.list(),
-    enabled: participants.length > 0,
+  const participantUserIds = participants.slice(0, 6).map(p => p.user_id).filter(Boolean);
+
+  const { data: participantUsers = [] } = useQuery({
+    queryKey: ['nextMatchParticipantUsers', ...participantUserIds],
+    queryFn: () => getUsersByIds(participantUserIds),
+    enabled: participantUserIds.length > 0,
+    staleTime: 60000,
   });
 
   useEffect(() => {
@@ -146,19 +149,21 @@ export default function NextMatchCard({ match, venue, participants = [] }) {
               <p className="text-[10px] sm:text-xs font-semibold text-[#B6C2BC] mb-2">Anmälda spelare</p>
               <div className="flex -space-x-2">
                 {participants.slice(0, 5).map((participant, index) => {
-                  const user = allUsers.find(u => u.id === participant.user_id);
+                  const pUser = participantUsers.find(u => u.id === participant.user_id);
+                  const avatarSrc = pUser?.avatar_url || pUser?.profile_image_url;
+                  const name = pUser?.display_name || pUser?.full_name || 'Spelare';
                   return (
                     <motion.div
-                      key={participant.id}
+                      key={participant.id || index}
                       initial={{ scale: 0, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ delay: index * 0.1 }}
                       className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-[#2BA84A] to-[#248232] flex items-center justify-center ring-2 ring-[#121715] text-white text-xs font-semibold overflow-hidden"
                     >
-                      {user?.profile_image_url ? (
-                        <img src={user.profile_image_url} alt={user.full_name} className="w-full h-full object-cover" />
+                      {avatarSrc ? (
+                        <img src={avatarSrc} alt={name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
                       ) : (
-                        <span>{user?.full_name?.[0] || 'U'}</span>
+                        <span>{name[0] || 'U'}</span>
                       )}
                     </motion.div>
                   );
