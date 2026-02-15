@@ -937,7 +937,12 @@ export default function ProfilePage() {
             <div className="sticky top-0 z-30 bg-[#0F1513]/95 backdrop-blur-md border-b border-[#223029] -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
               <div className="max-w-7xl mx-auto">
                 <div className="flex items-center justify-around sm:justify-start sm:gap-6 overflow-x-auto scrollbar-hide">
-                  {TABS.map((tab) => {
+                  {[
+                    { id: 'inbox', label: 'Inbox', icon: Users, badge: friendRequests.length + teamInvites.length + teamJoinRequests.length },
+                    { id: 'stats', label: 'Statistik', icon: TrendingUp },
+                    { id: 'badges', label: 'Badges', icon: Award },
+                    { id: 'history', label: 'Historik', icon: Calendar }
+                  ].map((tab) => {
                     const Icon = tab.icon;
                     return (
                       <button
@@ -949,7 +954,14 @@ export default function ProfilePage() {
                             : 'text-[#B6C2BC] hover:text-[#F4F7F5]'
                         }`}
                       >
-                        <Icon className="w-4 h-4" />
+                        <div className="relative">
+                          <Icon className="w-4 h-4" />
+                          {tab.badge > 0 && (
+                            <div className="absolute -top-1.5 -right-2 min-w-[14px] h-[14px] bg-[#F4743B] rounded-full flex items-center justify-center">
+                              <span className="text-[8px] font-black text-white px-0.5">{tab.badge}</span>
+                            </div>
+                          )}
+                        </div>
                         <span className="hidden sm:inline">{tab.label}</span>
                         {activeTab === tab.id && (
                           <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#F4743B] rounded-full" />
