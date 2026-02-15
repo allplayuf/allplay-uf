@@ -368,24 +368,24 @@ export default function TeamOverviewPage() {
               )}
 
               {/* Stats Grid */}
-              <div className={`grid ${isCupTeam ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'} gap-3 mt-6`}>
+              <div className="grid grid-cols-4 gap-2 sm:gap-3 mt-6">
                 {!isCupTeam && (
-                  <div className="bg-[#FFFFFF]/15 backdrop-blur-md rounded-xl p-3 border border-[#FFFFFF]/20 text-center">
-                    <div className="text-2xl font-bold text-[#FFFFFF] mb-1">{team.elo_rating || 1200}</div>
-                    <div className="text-xs text-[#FFFFFF]/80 font-medium">ELO Rating</div>
+                  <div className="bg-[#FFFFFF]/15 backdrop-blur-md rounded-xl p-2.5 sm:p-3 border border-[#FFFFFF]/20 text-center">
+                    <div className="text-lg sm:text-2xl font-black text-[#FFFFFF] mb-0.5">{team.elo_rating || 1000}</div>
+                    <div className="text-[9px] sm:text-xs text-[#FFFFFF]/80 font-semibold">ELO</div>
                   </div>
                 )}
-                <div className="bg-[#FFFFFF]/15 backdrop-blur-md rounded-xl p-3 border border-[#FFFFFF]/20 text-center">
-                  <div className="text-2xl font-bold text-[#FFFFFF] mb-1">{team.matches_played || 0}</div>
-                  <div className="text-xs text-[#FFFFFF]/80 font-medium">Matcher</div>
+                <div className="bg-[#FFFFFF]/15 backdrop-blur-md rounded-xl p-2.5 sm:p-3 border border-[#FFFFFF]/20 text-center">
+                  <div className="text-lg sm:text-2xl font-black text-[#FFFFFF] mb-0.5">{team.matches_played || 0}</div>
+                  <div className="text-[9px] sm:text-xs text-[#FFFFFF]/80 font-semibold">Spelade</div>
                 </div>
-                <div className="bg-[#FFFFFF]/15 backdrop-blur-md rounded-xl p-3 border border-[#FFFFFF]/20 text-center">
-                  <div className="text-2xl font-bold text-[#FFFFFF] mb-1">{team.wins || 0}</div>
-                  <div className="text-xs text-[#FFFFFF]/80 font-medium">Vinster</div>
+                <div className="bg-[#FFFFFF]/15 backdrop-blur-md rounded-xl p-2.5 sm:p-3 border border-[#FFFFFF]/20 text-center">
+                  <div className="text-lg sm:text-2xl font-black text-[#2BA84A] mb-0.5">{team.wins || 0}</div>
+                  <div className="text-[9px] sm:text-xs text-[#FFFFFF]/80 font-semibold">Vinster</div>
                 </div>
-                <div className="bg-[#FFFFFF]/15 backdrop-blur-md rounded-xl p-3 border border-[#FFFFFF]/20 text-center">
-                  <div className="text-2xl font-bold text-[#FFFFFF] mb-1">{((team.wins || 0) / Math.max(team.matches_played || 1, 1) * 100).toFixed(0)}%</div>
-                  <div className="text-xs text-[#FFFFFF]/80 font-medium">Vinst %</div>
+                <div className="bg-[#FFFFFF]/15 backdrop-blur-md rounded-xl p-2.5 sm:p-3 border border-[#FFFFFF]/20 text-center">
+                  <div className="text-lg sm:text-2xl font-black text-[#FFFFFF] mb-0.5">{((team.wins || 0) / Math.max(team.matches_played || 1, 1) * 100).toFixed(0)}%</div>
+                  <div className="text-[9px] sm:text-xs text-[#FFFFFF]/80 font-semibold">Vinst %</div>
                 </div>
               </div>
             </div>
@@ -423,10 +423,10 @@ export default function TeamOverviewPage() {
             {activeTab === 'members' && (
               <motion.div
                 key="members"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
                 className="space-y-6"
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -510,10 +510,10 @@ export default function TeamOverviewPage() {
             {activeTab === 'calendar' && (
               <motion.div
                 key="calendar"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
               >
                 <TeamCalendar team={team} />
               </motion.div>
@@ -522,10 +522,10 @@ export default function TeamOverviewPage() {
             {!isCupTeam && activeTab === 'ranking' && (
               <motion.div
                 key="ranking"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
               >
                 <TeamLeaderboard currentTeamId={team.id} />
               </motion.div>
@@ -534,10 +534,10 @@ export default function TeamOverviewPage() {
             {!isCupTeam && activeTab === 'chat' && (
               <motion.div
                 key="chat"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
               >
                 <TeamChat team={team} currentUser={user} isMember={isUserMember} />
               </motion.div>
@@ -546,10 +546,10 @@ export default function TeamOverviewPage() {
             {!isCupTeam && activeTab === 'polls' && (
               <motion.div
                 key="polls"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
               >
                 <TeamPolls team={team} currentUser={user} isMember={isUserMember} isCaptainOrVice={isCaptainOrVice} />
               </motion.div>
@@ -558,10 +558,10 @@ export default function TeamOverviewPage() {
             {!isCupTeam && activeTab === 'highlights' && (
               <motion.div
                 key="highlights"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
               >
                 <TeamHighlights team={team} currentUser={user} isMember={isUserMember} />
               </motion.div>
@@ -570,10 +570,10 @@ export default function TeamOverviewPage() {
             {!isCupTeam && activeTab === 'challenges' && (
               <motion.div
                 key="challenges"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
               >
                 <TeamChallenges team={team} currentUser={user} isCaptainOrVice={isCaptainOrVice} />
               </motion.div>
