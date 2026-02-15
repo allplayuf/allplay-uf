@@ -86,7 +86,7 @@ export function PullToRefresh({ onRefresh, children, threshold = 80 }) {
   const scale = Math.min(pullDistance / threshold, 1);
 
   return (
-    <div ref={containerRef} className="relative h-full overflow-auto">
+    <div ref={containerRef} className="relative h-full">
       {/* Pull indicator */}
       <AnimatePresence>
         {(pullDistance > 10 || isRefreshing) && (
