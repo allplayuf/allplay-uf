@@ -38,6 +38,10 @@ css
       --color-primary-light: #EAF6EE;
       --color-accent: #F4743B;
       --color-accent-hover: #E5683A;
+
+      --scrollbar-track: #E8EDE9;
+      --scrollbar-thumb: #C1CCC5;
+      --scrollbar-thumb-hover: #2BA84A;
     }
   }
 
