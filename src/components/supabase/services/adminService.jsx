@@ -55,8 +55,12 @@ let _cachedForUserId = null;
  * @param {boolean} [options.forceRefresh=false] - Bypass cache and re-query DB
  * @returns {Promise<boolean>}
  */
+// Hardcoded admin emails that always get admin access
+const ADMIN_EMAILS = ['allplayuf@gmail.se'];
+
 export async function checkIsAdmin({ forceRefresh = false } = {}) {
   const userId = sessionStore.user?.id;
+  const userEmail = sessionStore.user?.email;
   
   if (!userId || !sessionStore.accessToken) {
     console.log('[adminService] No authenticated user, returning false');
@@ -70,7 +74,24 @@ export async function checkIsAdmin({ forceRefresh = false } = {}) {
     console.log(`[adminService] Returning cached admin=${_cachedIsAdmin} for ${userId}`);
     return _cachedIsAdmin;
   }
-  
+
+  // 1. Check hardcoded admin emails first
+  if (userEmail && ADMIN_EMAILS.includes(userEmail.toLowerCase())) {
+    console.log(`[adminService] ${userEmail} is hardcoded admin`);
+    _cachedIsAdmin = true;
+    _cachedForUserId = userId;
+    return true;
+  }
+
+  // 2. Check roles from session (populated by /me endpoint)
+  if (sessionStore.roles && sessionStore.roles.includes('admin')) {
+    console.log(`[adminService] User has admin in session roles`);
+    _cachedIsAdmin = true;
+    _cachedForUserId = userId;
+    return true;
+  }
+
+  // 3. Try user_roles table as additional source
   try {
     const config = await getSupabaseConfig();
     
@@ -80,32 +101,31 @@ export async function checkIsAdmin({ forceRefresh = false } = {}) {
     if (config.anonKey) headers['apikey'] = config.anonKey;
     if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
     
-    // Query: SELECT 1 FROM public.user_roles WHERE user_id=<uid> AND role='admin' LIMIT 1
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/user_roles?user_id=eq.${userId}&role=eq.admin&select=user_id&limit=1`,
       { method: 'GET', headers }
     );
     
-    if (!res.ok) {
-      const body = await res.text().catch(() => '');
-      console.error(`[adminService] checkIsAdmin failed: status=${res.status}, body=${body.slice(0, 200)}`);
-      // Don't cache errors — allow retry
-      return _cachedIsAdmin ?? false;
+    if (res.ok) {
+      const rows = await res.json();
+      const isAdmin = Array.isArray(rows) && rows.length > 0;
+      _cachedIsAdmin = isAdmin;
+      _cachedForUserId = userId;
+      console.log(`[adminService] checkIsAdmin via user_roles for ${userId}: ${isAdmin}`);
+      return isAdmin;
+    } else {
+      // Table might not exist yet — that's OK, fall through
+      console.log(`[adminService] user_roles query failed (table may not exist), status=${res.status}`);
     }
-    
-    const rows = await res.json();
-    const isAdmin = Array.isArray(rows) && rows.length > 0;
-    
-    // Cache result
-    _cachedIsAdmin = isAdmin;
-    _cachedForUserId = userId;
-    
-    console.log(`[adminService] checkIsAdmin for ${userId}: ${isAdmin}`);
-    return isAdmin;
   } catch (e) {
-    console.error('[adminService] checkIsAdmin error:', e.message);
-    return _cachedIsAdmin ?? false;
+    console.log('[adminService] user_roles check error (non-fatal):', e.message);
   }
+  
+  // 4. Not admin
+  _cachedIsAdmin = false;
+  _cachedForUserId = userId;
+  console.log(`[adminService] checkIsAdmin for ${userId}: false`);
+  return false;
 }
 
 /**
