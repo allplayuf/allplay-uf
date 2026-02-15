@@ -12,6 +12,7 @@ import { OnboardingModal } from "@/components/ui/onboarding-modal";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import OfflineDetector from "@/components/ui/offline-detector";
 import { canAccessAdminPanel } from "./components/utils/permissions";
+import { checkIsAdmin, clearAdminCache } from "./components/supabase/services/adminService";
 import { GuestBanner } from "@/components/ui/guest-banner";
 import { SupabaseAuthProvider, useSupabaseAuth, initSupabase } from "@/components/supabase";
 import { triggerHaptic } from "@/components/utils/motionTokens";
@@ -120,36 +121,25 @@ function LayoutInner({ children }) {
   // Use Supabase auth state for admin check
   const { user: supabaseUser, isAuthenticated: isSupabaseAuth, isLoading: isSupabaseLoading, roles: supabaseRoles, hasRole: supabaseHasRole } = useSupabaseAuth();
 
-  // Fetch profile to get is_admin from DB
-  const [userProfile, setUserProfile] = useState(null);
-  
+  // Admin check: single source of truth from public.users.is_admin via adminService
   useEffect(() => {
     if (isSupabaseLoading) return;
     
     if (isSupabaseAuth && supabaseUser) {
-      // Fetch profile from Supabase to get is_admin flag
-      import("../components/supabase/services/usersService").then(({ getMyProfile }) => {
-        getMyProfile().then(profile => {
-          setUserProfile(profile);
-          const userForCheck = {
-            ...supabaseUser,
-            ...profile,
-            is_admin: profile?.is_admin === true,
-            role: profile?.is_admin === true ? 'admin' : (supabaseHasRole('admin') ? 'admin' : 'user'),
-            custom_roles: supabaseRoles.filter(r => r !== 'admin').map(r => r.toUpperCase())
-          };
-          setIsAdmin(canAccessAdminPanel(userForCheck));
-          setAdminCheckDone(true);
-        }).catch(() => {
-          setIsAdmin(false);
-          setAdminCheckDone(true);
-        });
+      checkIsAdmin({ forceRefresh: true }).then(result => {
+        console.log('[Layout] Admin check result:', result, 'for user:', supabaseUser.id);
+        setIsAdmin(result);
+        setAdminCheckDone(true);
+      }).catch(() => {
+        setIsAdmin(false);
+        setAdminCheckDone(true);
       });
     } else {
+      clearAdminCache();
       setIsAdmin(false);
       setAdminCheckDone(true);
     }
-  }, [isSupabaseLoading, isSupabaseAuth, supabaseUser, supabaseRoles]);
+  }, [isSupabaseLoading, isSupabaseAuth, supabaseUser?.id]);
 
   // Determine if current page is a root page or sub-page
   const isRootPage = navigationItems.some(item => location.pathname === item.url);
