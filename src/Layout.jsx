@@ -18,6 +18,7 @@ import { SupabaseAuthProvider, useSupabaseAuth, initSupabase } from "@/component
 import { triggerHaptic } from "@/components/utils/motionTokens";
 import { ArrowLeft } from "lucide-react";
 import ConsentChecker from "@/components/legal/ConsentChecker";
+import { NavigationProvider } from "@/components/navigation/NavigationProvider";
 
 // Guest banner wrapper that uses Supabase auth state
 function GuestBannerWrapper() {
@@ -290,13 +291,15 @@ function LayoutInner({ children }) {
               scrollPaddingTop: '120px'
             }}
           >
-            <RouteGuard currentRoute={location.pathname}>
-              <PageTransition pageKey={location.pathname}>
-                <Suspense fallback={<PageLoadingSkeleton />}>
-                  {children}
-                </Suspense>
-              </PageTransition>
-            </RouteGuard>
+            <NavigationProvider mainContentRef={mainContentRef}>
+              <RouteGuard currentRoute={location.pathname}>
+                <PageTransition pageKey={location.pathname}>
+                  <Suspense fallback={<PageLoadingSkeleton />}>
+                    {children}
+                  </Suspense>
+                </PageTransition>
+              </RouteGuard>
+            </NavigationProvider>
           </div>
 
           <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] bg-[#121715] border-t border-[#223029]">
