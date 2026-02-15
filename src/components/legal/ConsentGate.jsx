@@ -100,7 +100,7 @@ export default function ConsentGate({ onAccept, onCancel, isSignup = false }) {
 
           {/* Open as webpage link */}
           <a
-            href={createPageUrl("LegalPolicy")}
+            href="https://allplayuf.se/aboutallplay/anvandarpolicy"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-xs text-[#2BA84A] hover:text-[#248232] transition-colors"
