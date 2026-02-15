@@ -102,6 +102,14 @@ export default function ProfilePage() {
     enabled: isAuthenticated && !!authUser?.id,
   });
 
+  // Sync localStorage avatar cache when profile loads
+  useEffect(() => {
+    const serverAvatar = userProfile?.profile_image_url || userProfile?.avatar_url;
+    if (serverAvatar) {
+      localStorage.setItem('allplay_profile_image', serverAvatar);
+    }
+  }, [userProfile]);
+
   // Merge auth user with Supabase profile data (profile has priority)
   // localStorage fallback ensures avatar always displays even if backend is down
   const user = React.useMemo(() => {
