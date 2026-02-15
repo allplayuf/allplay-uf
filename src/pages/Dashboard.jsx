@@ -214,6 +214,22 @@ export default function Dashboard() {
     return `${days} ${days === 1 ? 'dag' : 'dagar'} sedan`;
   };
 
+  const handleJoinMatch = async (matchId) => {
+    try {
+      if (isGuest) {
+        setShowAuthGate(true);
+        return;
+      }
+      triggerHaptic('success');
+      await supabaseJoinMatch(matchId);
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.matches });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myParticipantMatchIds });
+    } catch (error) {
+      console.error("Error joining match:", error);
+      displayError(error.message || 'Kunde inte gå med i matchen.');
+    }
+  };
+
   const handleMatchCreated = async ({ match: matchData, venue: selectedVenue }) => {
     try {
       // Check if guest
@@ -804,6 +820,7 @@ export default function Dashboard() {
                             venues={venues} 
                             user={user} 
                             participants={allParticipants.filter(p => p.match_id === match.id)}
+                            onJoin={handleJoinMatch}
                             index={index}
                         />
                     </div>

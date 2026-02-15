@@ -5,6 +5,7 @@ import { MapPin, Clock, Users, Trophy, Target, ChevronRight, Shield, Zap, Trendi
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
+import { TRANSITIONS, triggerHaptic } from "@/components/utils/motionTokens";
 import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
 import { getUsersByIds } from "@/components/supabase/services";
 import { AuthGateModal } from '@/components/ui/auth-gate-modal';
@@ -128,6 +129,8 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
       return;
     }
     
+    triggerHaptic('success');
+    
     // Let backend handle auth - onJoin will show error if guest
     if (onJoin) {
       await onJoin(match.id);
@@ -166,7 +169,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, delay: index * 0.05 }}
     >
-      <Card className={`bg-[#121715] border border-[#223029] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_0_30px_rgba(43,168,74,0.2)] hover:border-[#2BA84A]/50 transition-all duration-300 group h-full flex flex-col ${
+      <Card className={`bg-[#121715] border border-[#223029] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_0_24px_rgba(43,168,74,0.15)] hover:border-[#2BA84A]/40 transition-all duration-200 group h-full flex flex-col ${
         match.status === 'completed' ? 'opacity-75' : ''
       }`}>
         <CardContent className="p-4 flex flex-col h-full">
@@ -293,7 +296,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
                     ease: "easeInOut"
                   }}
                   onClick={handleJoinClick}
-                  className="flex-1 bg-[#F4743B] hover:bg-[#E5683A] text-white text-base font-extrabold uppercase tracking-wide h-12 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(244,116,59,0.4)] hover:shadow-[0_0_25px_rgba(244,116,59,0.6)] border border-[#F4743B]/50 relative overflow-hidden group/btn"
+                  className="flex-1 bg-[#F4743B] hover:bg-[#E5683A] text-white text-base font-extrabold uppercase tracking-wide h-12 rounded-2xl transition-all flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(244,116,59,0.4)] hover:shadow-[0_0_25px_rgba(244,116,59,0.6)] border border-[#F4743B]/50 relative overflow-hidden group/btn"
                 >
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12"
@@ -327,7 +330,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
 
               {/* Info button - ALWAYS visible */}
               <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`} className={canJoin ? "flex-shrink-0" : "flex-1"}>
-                <button className={`h-12 border-2 border-[#223029] hover:bg-[#18221E] hover:border-[#2BA84A]/50 text-[#F4F7F5] text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1 ${canJoin ? 'px-5' : 'w-full'}`}>
+                <button className={`h-12 border-2 border-[#223029] hover:bg-[#18221E] hover:border-[#2BA84A]/50 text-[#F4F7F5] text-sm font-bold rounded-2xl transition-all flex items-center justify-center gap-1 ${canJoin ? 'px-5' : 'w-full'}`}>
                   Info
                   <ChevronRight className="w-4 h-4" />
                 </button>
