@@ -58,11 +58,13 @@ const SKILL_LEVEL_CONFIG = {
   elite: { label: 'Elit', icon: Crown, color: 'from-[#F59E0B] to-[#D97706]', textColor: 'text-[#FDE68A]' }
 };
 
+const totalInboxCount = friendRequests.length + teamInvites.length + teamJoinRequests.length;
+
 const TABS = [
-  { id: 'inbox', label: 'Inbox', icon: Users },
-  { id: 'stats', label: 'Statistik', icon: TrendingUp },
-  { id: 'badges', label: 'Badges', icon: Award },
-  { id: 'history', label: 'Historik', icon: Calendar }
+{ id: 'inbox', label: 'Inbox', icon: Users, badge: totalInboxCount > 0 ? totalInboxCount : null },
+{ id: 'stats', label: 'Statistik', icon: TrendingUp },
+{ id: 'badges', label: 'Badges', icon: Award },
+{ id: 'history', label: 'Historik', icon: Calendar }
 ];
 
 // Query keys
