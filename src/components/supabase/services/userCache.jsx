@@ -177,7 +177,7 @@ export async function fetchUsersMissing(userIds) {
           if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
           
           const idsParam = `(${missingIds.join(',')})`;
-          const safeColumns = 'id,full_name,username,display_name,avatar_url,profile_image_url,bio,city,skill_level,birth_year,elo_rating,matches_played,mvp_count';
+          const safeColumns = 'id,full_name,username,avatar_url,bio,city,skill_level,elo_rating,matches_played,mvp_count';
           
           // Try with known-safe columns first (avoids 400 from missing columns)
           let res = await fetch(
