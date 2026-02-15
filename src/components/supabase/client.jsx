@@ -456,6 +456,8 @@ class SupabaseClient {
 
   // Logout
   logout() {
+    // Clear admin cache (lazy import to avoid circular deps)
+    import('./services/adminService').then(m => m.clearAdminCache()).catch(() => {});
     sessionStore.clear();
     return { data: { ok: true } };
   }
