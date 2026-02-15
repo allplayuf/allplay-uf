@@ -239,7 +239,7 @@ export default function EditProfile() {
                   onBlur={() => handleBlur('display_name')}
                   placeholder="Ditt namn"
                   maxLength={FIELD_LIMITS.display_name.max}
-                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#7B8A83]"
+                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#9EAAA4]"
                   disabled={isSubmitting}
                 />
                 <div className="flex justify-between">
@@ -249,7 +249,7 @@ export default function EditProfile() {
                       {errors.display_name}
                     </p>
                   ) : <span />}
-                  <span className="text-xs text-[#7B8A83]">{formData.display_name.length}/{FIELD_LIMITS.display_name.max}</span>
+                  <span className="text-xs text-[#9EAAA4]">{formData.display_name.length}/{FIELD_LIMITS.display_name.max}</span>
                 </div>
               </div>
 
@@ -265,7 +265,7 @@ export default function EditProfile() {
                   onBlur={() => handleBlur('username')}
                   placeholder="dittanvandarnamn"
                   maxLength={FIELD_LIMITS.username.max}
-                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#7B8A83]"
+                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#9EAAA4]"
                   disabled={isSubmitting}
                 />
                 {errors.username ? (
@@ -274,7 +274,7 @@ export default function EditProfile() {
                     {errors.username}
                   </p>
                 ) : (
-                  <p className="text-[#7B8A83] text-xs">
+                  <p className="text-[#9EAAA4] text-xs">
                     3–30 tecken: små bokstäver, siffror, punkt och understreck
                   </p>
                 )}
@@ -291,7 +291,7 @@ export default function EditProfile() {
                   placeholder="Berätta lite om dig själv..."
                   maxLength={FIELD_LIMITS.bio.max}
                   rows={3}
-                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#7B8A83] resize-none"
+                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#9EAAA4] resize-none"
                   disabled={isSubmitting}
                 />
                 <div className="flex justify-between">
@@ -301,7 +301,7 @@ export default function EditProfile() {
                       {errors.bio}
                     </p>
                   ) : <span />}
-                  <span className="text-xs text-[#7B8A83]">{formData.bio.length}/{FIELD_LIMITS.bio.max}</span>
+                  <span className="text-xs text-[#9EAAA4]">{formData.bio.length}/{FIELD_LIMITS.bio.max}</span>
                 </div>
               </div>
             </CardContent>
@@ -350,7 +350,7 @@ export default function EditProfile() {
                   onBlur={() => handleBlur('city')}
                   placeholder="T.ex. Stockholm"
                   maxLength={FIELD_LIMITS.city.max}
-                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#7B8A83]"
+                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#9EAAA4]"
                   disabled={isSubmitting}
                 />
                 {errors.city && (
@@ -364,7 +364,7 @@ export default function EditProfile() {
               {/* Birth Year */}
               <div className="space-y-2">
                 <Label htmlFor="birth_year" className="text-[#F4F7F5]">
-                  Födelseår <span className="text-[#7B8A83] text-xs font-normal">(frivilligt)</span>
+                  Födelseår <span className="text-[#9EAAA4] text-xs font-normal">(frivilligt)</span>
                 </Label>
                 <Input
                   id="birth_year"
@@ -375,7 +375,7 @@ export default function EditProfile() {
                   placeholder="T.ex. 2000"
                   min={1930}
                   max={new Date().getFullYear() - 5}
-                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#7B8A83]"
+                  className="bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#9EAAA4]"
                   disabled={isSubmitting}
                 />
                 {errors.birth_year && (

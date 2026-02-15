@@ -652,7 +652,7 @@ export default function MatchDetailPage() {
                 {(match.final_score || match.home_score !== undefined) && (
                   <div className="mb-8">
                     <div className="inline-block px-8 py-4 bg-[#18221E] rounded-2xl border border-[#223029] shadow-inner">
-                      <div className="text-xs text-[#7B8A83] font-bold uppercase tracking-widest mb-1">Resultat</div>
+                      <div className="text-xs text-[#9EAAA4] font-bold uppercase tracking-widest mb-1">Resultat</div>
                       <div className="text-5xl font-black text-white tracking-tight">
                         {match.final_score || `${match.home_score ?? '?'}-${match.away_score ?? '?'}`}
                       </div>
@@ -661,7 +661,7 @@ export default function MatchDetailPage() {
                 )}
                 {!match.final_score && match.home_score === undefined && (
                   <div className="mb-8 px-4 py-3 bg-[#18221E]/50 rounded-xl border border-[#223029]">
-                    <p className="text-sm text-[#7B8A83]">Inget resultat inlagt</p>
+                    <p className="text-sm text-[#9EAAA4]">Inget resultat inlagt</p>
                   </div>
                 )}
 
@@ -721,7 +721,7 @@ export default function MatchDetailPage() {
                 {match.final_score && (
                   <div className="mb-8">
                     <div className="inline-block px-8 py-4 bg-[#18221E] rounded-2xl border border-[#223029] shadow-inner">
-                      <div className="text-xs text-[#7B8A83] font-bold uppercase tracking-widest mb-1">Slutresultat</div>
+                      <div className="text-xs text-[#9EAAA4] font-bold uppercase tracking-widest mb-1">Slutresultat</div>
                       <div className="text-5xl font-black text-white tracking-tight">{match.final_score}</div>
                     </div>
                   </div>

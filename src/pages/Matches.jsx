@@ -350,7 +350,7 @@ export default function MatchesPage() {
   const matchSortLabels = {
     nearest: 'Närmast',
     earliest: 'Tidigast',
-    fullest: 'Fylldast'
+    fullest: 'Mest fyllda'
   };
 
   // Wait for critical data before rendering

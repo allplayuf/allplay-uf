@@ -326,13 +326,13 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
                 <div className="space-y-2">
                   <Label className="text-[#F4F7F5] font-medium">Namn</Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7B8A83]" />
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9EAAA4]" />
                     <Input
                       type="text"
                       placeholder="Ditt namn"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="pl-10 h-12 bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#7B8A83] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/30 rounded-xl"
+                      className="pl-10 h-12 bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#9EAAA4] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/30 rounded-xl"
                     />
                   </div>
                 </div>
@@ -342,13 +342,13 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
               <div className="space-y-2">
                 <Label className="text-[#F4F7F5] font-medium">E-postadress</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7B8A83]" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9EAAA4]" />
                   <Input
                     type="email"
                     placeholder="din@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 h-12 bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#7B8A83] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/30 rounded-xl"
+                    className="pl-10 h-12 bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#9EAAA4] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/30 rounded-xl"
                   />
                 </div>
               </div>
@@ -357,18 +357,18 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
               <div className="space-y-2">
                 <Label className="text-[#F4F7F5] font-medium">Lösenord</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7B8A83]" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9EAAA4]" />
                   <Input
                     type={showPassword ? 'text' : 'password'}
                     placeholder={mode === 'register' ? 'Minst 6 tecken' : '••••••••'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 h-12 bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#7B8A83] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/30 rounded-xl"
+                    className="pl-10 pr-10 h-12 bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#9EAAA4] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/30 rounded-xl"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7B8A83] hover:text-[#F4F7F5] transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9EAAA4] hover:text-[#F4F7F5] transition-colors"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -380,13 +380,13 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
                 <div className="space-y-2">
                   <Label className="text-[#F4F7F5] font-medium">Bekräfta lösenord</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7B8A83]" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9EAAA4]" />
                     <Input
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Upprepa lösenordet"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="pl-10 h-12 bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#7B8A83] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/30 rounded-xl"
+                      className="pl-10 h-12 bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#9EAAA4] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/30 rounded-xl"
                     />
                   </div>
                 </div>
@@ -428,7 +428,7 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
               </div>
 
               {/* Guest info */}
-              <p className="text-center text-xs text-[#7B8A83]">
+              <p className="text-center text-xs text-[#9EAAA4]">
                 Du kan fortsätta utan konto för att bläddra bland matcher
               </p>
             </form>

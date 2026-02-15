@@ -26,9 +26,8 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
     skill_bracket: 'intermediate', // Default to valid DB value
     is_ranked: false,
     is_open: true,
-    is_private: false,
     notes: ''
-    // Removed: organizer_id, current_players, status - backend sets these
+    // Removed: organizer_id, current_players, status, is_private - backend sets these
   });
   const [venueSearch, setVenueSearch] = useState('');
   const [showVenueDropdown, setShowVenueDropdown] = useState(false);
@@ -52,19 +51,19 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
     
     // Check if guest - let backend handle, but show early warning
     if (isGuest) {
-      alert("Du måste vara inloggad för att skapa en match!");
+      window.alert("Du måste vara inloggad för att skapa en match!");
       return;
     }
 
     if (!formData.title || !formData.venue_id || !formData.date || !formData.time) {
-      alert("Fyll i alla obligatoriska fält!");
+      window.alert("Fyll i alla obligatoriska fält!");
       return;
     }
 
     // Validate skill_bracket is a valid DB value
     const validLevels = ['beginner', 'intermediate', 'advanced', 'pro'];
     if (!formData.skill_bracket || !validLevels.includes(formData.skill_bracket)) {
-      alert("Välj en giltig matchnivå!");
+      window.alert("Välj en giltig matchnivå!");
       return;
     }
 
@@ -84,8 +83,7 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
       max_players: formData.is_spontaneous ? null : formData.max_players,
       is_spontaneous: formData.is_spontaneous,
       skill_bracket: formData.skill_bracket,
-      is_private: formData.is_private,
-      is_open: formData.is_open,
+      is_open: true,
       notes: formData.notes
       // Backend sets: organizer_id, current_players, status
     };
@@ -104,9 +102,9 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
   };
 
   const formatMaxPlayers = {
-    '5v5': 16,
-    '7v7': 20,
-    '11v11': 32
+    '5v5': 14,
+    '7v7': 18,
+    '11v11': 26
   };
 
   const handleFormatChange = (format) => {
@@ -119,10 +117,10 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
 
   // Valid levels matching Supabase constraint: beginner, intermediate, advanced, pro
   const skillBracketOptions = [
-    { value: 'beginner', label: 'Nybörjare', desc: 'Lär dig fortfarande grunderna' },
+    { value: 'beginner', label: 'Nybörjare', desc: 'Lär sig fortfarande grunderna' },
     { value: 'intermediate', label: 'Medel', desc: 'Spelar regelbundet, god förståelse' },
     { value: 'advanced', label: 'Avancerad', desc: 'Hög teknisk nivå och spelförståelse' },
-    { value: 'pro', label: 'Elit', desc: 'Tävlingsinriktad, högsta nivån' },
+    { value: 'pro', label: 'Elit', desc: 'Tävlingsinriktad, högsta nivån i appen' },
   ];
 
   const handleVenueSelect = (venue) => {
@@ -180,7 +178,7 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
                   setShowVenueDropdown(true);
                 }}
                 onBlur={() => setTimeout(() => setShowVenueDropdown(false), 200)}
-                className="w-full h-11 sm:h-12 px-4 bg-[#18221E] border border-[#223029] text-[#F4F7F5] placeholder:text-[#7B8A83] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/30 rounded-[14px] text-base outline-none transition-all"
+                className="w-full h-11 sm:h-12 px-4 bg-[#18221E] border border-[#223029] text-[#F4F7F5] placeholder:text-[#9EAAA4] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/30 rounded-[14px] text-base outline-none transition-all"
               />
 
               {showVenueDropdown && !selectedVenue && (
@@ -210,14 +208,14 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
                       </button>
                     ))
                   ) : (
-                    <div className="px-4 py-6 text-center text-[13px] leading-[18px] text-[#7B8A83]">
+                    <div className="px-4 py-6 text-center text-[13px] leading-[18px] text-[#9EAAA4]">
                       Inga planer hittades
                     </div>
                   )}
                 </div>
               )}
             </div>
-            <p className="text-[11px] leading-[16px] text-[#7B8A83]">
+            <p className="text-[11px] leading-[16px] text-[#9EAAA4]">
               Sök efter planens namn, stad eller adress
             </p>
           </div>
@@ -279,7 +277,7 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
               value={formData.title}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
               onFocus={(e) => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-              className="bg-[#18221E] border border-[#223029] text-[#F4F7F5] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/30 placeholder:text-[#7B8A83] text-base h-11 sm:h-12 rounded-[14px]"
+              className="bg-[#18221E] border border-[#223029] text-[#F4F7F5] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/30 placeholder:text-[#9EAAA4] text-base h-11 sm:h-12 rounded-[14px]"
               />
           </div>
 
@@ -326,8 +324,8 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
               ))}
             </div>
             {!formData.is_spontaneous && (
-              <p className="text-[11px] leading-[16px] text-[#7B8A83]">
-                Inkluderar avbytare
+              <p className="text-[11px] leading-[16px] text-[#9EAAA4]">
+                Rekommenderat antal inkl. avbytare
               </p>
             )}
           </div>
@@ -358,7 +356,7 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
                 >
                   <span>{option.label}</span>
                   <span className={`text-[9px] sm:text-[10px] font-normal leading-tight ${
-                    formData.skill_bracket === option.value ? 'text-white/80' : 'text-[#7B8A83]'
+                    formData.skill_bracket === option.value ? 'text-white/80' : 'text-[#9EAAA4]'
                   }`}>{option.desc}</span>
                 </Button>
               ))}
@@ -375,7 +373,7 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
               value={formData.notes}
               onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
               onFocus={(e) => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-              className="bg-[#18221E] border border-[#223029] text-[#F4F7F5] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/30 placeholder:text-[#7B8A83] h-20 text-base rounded-[14px]"
+              className="bg-[#18221E] border border-[#223029] text-[#F4F7F5] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/30 placeholder:text-[#9EAAA4] h-20 text-base rounded-[14px]"
               />
           </div>
         </form>
@@ -394,7 +392,7 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
           <button
             onClick={handleSubmit}
             disabled={!formData.title || !selectedVenue || !formData.date || !formData.time || isSubmitting}
-            className="flex-1 h-12 rounded-[14px] bg-[#2BA84A] text-white hover:bg-[#248232] disabled:bg-[#18221E] disabled:text-[#7B8A83] disabled:cursor-not-allowed transition-all font-bold"
+            className="flex-1 h-12 rounded-[14px] bg-[#2BA84A] text-white hover:bg-[#248232] disabled:bg-[#18221E] disabled:text-[#9EAAA4] disabled:cursor-not-allowed transition-all font-bold"
           >
             {isSubmitting ? 'Skapar...' : 'Skapa match'}
           </button>

@@ -205,7 +205,7 @@ export default function AccountSettingsPage() {
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <Label className="text-[#F4F7F5] font-semibold">Offentlig profil</Label>
-                  <p className="text-sm text-[#7B8A83]">
+                  <p className="text-sm text-[#9EAAA4]">
                     Låt andra spelare se din profil och statistik
                   </p>
                   {!settings.is_public && (
@@ -225,7 +225,7 @@ export default function AccountSettingsPage() {
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <Label className="text-[#F4F7F5] font-semibold">Dölj exakt position</Label>
-                  <p className="text-sm text-[#7B8A83]">
+                  <p className="text-sm text-[#9EAAA4]">
                     Visa endast ungefärlig position (obligatoriskt för minderåriga)
                   </p>
                   {user?.is_minor && (
@@ -258,7 +258,7 @@ export default function AccountSettingsPage() {
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <Label className="text-[#F4F7F5] font-semibold">Produktnyheter & erbjudanden</Label>
-                  <p className="text-sm text-[#7B8A83]">
+                  <p className="text-sm text-[#9EAAA4]">
                     Få tips, nyheter och erbjudanden via e-post
                   </p>
                 </div>
@@ -269,7 +269,7 @@ export default function AccountSettingsPage() {
               </div>
 
               <div className="pt-2 border-t border-[#223029]">
-                <p className="text-xs text-[#7B8A83]">
+                <p className="text-xs text-[#9EAAA4]">
                   Servicerelaterade notiser (matchpåminnelser, laghändelser) skickas alltid.
                 </p>
               </div>
@@ -285,7 +285,7 @@ export default function AccountSettingsPage() {
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-[#F4F7F5]">Användarvillkor & Integritetspolicy</h2>
-                  <p className="text-sm text-[#7B8A83]">Läs våra villkor och policy</p>
+                  <p className="text-sm text-[#9EAAA4]">Läs våra villkor och policy</p>
                 </div>
               </div>
 
@@ -295,7 +295,7 @@ export default function AccountSettingsPage() {
                     <span className="text-[#2BA84A] font-medium">Senast godkänd:</span>{' '}
                     {user.tos_version_accepted}
                     {user.tos_accepted_at && (
-                      <span className="text-[#7B8A83]">
+                      <span className="text-[#9EAAA4]">
                         {' '}({new Date(user.tos_accepted_at).toLocaleDateString('sv-SE')})
                       </span>
                     )}
@@ -324,7 +324,7 @@ export default function AccountSettingsPage() {
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-[#F4F7F5]">Ta bort konto</h2>
-                  <p className="text-sm text-[#7B8A83]">Permanent radera ditt konto och all data</p>
+                  <p className="text-sm text-[#9EAAA4]">Permanent radera ditt konto och all data</p>
                 </div>
               </div>
 
@@ -364,15 +364,15 @@ export default function AccountSettingsPage() {
                         Bekräfta med din e-postadress
                       </Label>
                       <div className="flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-[#7B8A83]" />
-                        <span className="text-sm text-[#7B8A83]">{user?.email}</span>
+                        <Mail className="w-4 h-4 text-[#9EAAA4]" />
+                        <span className="text-sm text-[#9EAAA4]">{user?.email}</span>
                       </div>
                       <Input
                         type="email"
                         placeholder="Skriv din e-postadress"
                         value={deleteConfirmEmail}
                         onChange={(e) => setDeleteConfirmEmail(e.target.value)}
-                        className="mt-2 bg-[#18221E] border-red-500/30 text-[#F4F7F5] placeholder:text-[#7B8A83] focus:border-red-500 rounded-xl h-11"
+                        className="mt-2 bg-[#18221E] border-red-500/30 text-[#F4F7F5] placeholder:text-[#9EAAA4] focus:border-red-500 rounded-xl h-11"
                       />
                     </div>
                     
