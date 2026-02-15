@@ -573,27 +573,44 @@ export default function TeamOverviewPage() {
         </div>
       </div>
 
-      {/* Create Team Match Modal - Only for regular teams */}
-      {!isCupTeam && showCreateTeamMatch && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="max-w-2xl w-full my-8">
-            <CreateTeamMatchForm
-              currentTeam={team}
-              onSubmit={handleCreateTeamMatch}
-              onCancel={() => setShowCreateTeamMatch(false)}
+      {/* Create Team Match Modal */}
+      <AnimatePresence>
+        {!isCupTeam && showCreateTeamMatch && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowCreateTeamMatch(false)}
+              className="absolute inset-0 bg-black/70 backdrop-blur-[2px]"
             />
+            <motion.div
+              initial={{ opacity: 0, y: 60, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 40, scale: 0.97 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="relative z-10 max-w-2xl w-full mx-4 my-8"
+            >
+              <CreateTeamMatchForm
+                currentTeam={team}
+                onSubmit={handleCreateTeamMatch}
+                onCancel={() => setShowCreateTeamMatch(false)}
+              />
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
       {/* Invite Modal */}
-      {showInviteModal && (
-        <InviteFriendsToTeamModal
-          team={team}
-          currentUser={user}
-          onClose={() => setShowInviteModal(false)}
-        />
-      )}
+      <AnimatePresence>
+        {showInviteModal && (
+          <InviteFriendsToTeamModal
+            team={team}
+            currentUser={user}
+            onClose={() => setShowInviteModal(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
