@@ -82,12 +82,14 @@ export default function Dashboard() {
     if (!authUser) return null;
     
     // Merge: userProfile (Supabase users table) > authUser (enriched from AuthProvider)
+    // localStorage fallback ensures avatar always displays even if backend is down
+    const localAvatar = localStorage.getItem('allplay_profile_image');
     return {
       ...authUser,
       ...userProfile,
       id: authUser.id,
       // Profile from users table takes priority, then enriched authUser fields
-      profile_image_url: userProfile?.profile_image_url || userProfile?.avatar_url || authUser?.profile_image_url || authUser?.avatar_url,
+      profile_image_url: userProfile?.profile_image_url || userProfile?.avatar_url || localAvatar || authUser?.profile_image_url || authUser?.avatar_url,
       display_name: userProfile?.display_name || userProfile?.full_name || authUser?.display_name || authUser?.full_name,
       full_name: userProfile?.full_name || userProfile?.display_name || authUser?.full_name || authUser?.display_name,
     };
