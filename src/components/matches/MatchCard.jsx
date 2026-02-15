@@ -41,7 +41,7 @@ const getStatusBadge = (status) => {
   const statusConfig = {
     upcoming: { label: 'Kommande', color: 'bg-[#4169E1]/20 text-[#A8C5F5]' },
     ongoing: { label: 'Pågår nu', color: 'bg-[#2BA84A]/20 text-[#CFE8D6] animate-pulse' },
-    completed: { label: 'Avslutad', color: 'bg-[#18221E] text-[#7B8A83]' },
+    completed: { label: 'Avslutad', color: 'bg-[#18221E] text-[#9EAAA4]' },
     cancelled: { label: 'Inställd', color: 'bg-[#F4743B]/20 text-[#FDE3D2]' }
   };
   return statusConfig[status] || statusConfig.upcoming;
@@ -184,7 +184,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
                 )}
               </div>
               
-              <div className="flex items-center gap-3 text-secondary text-xs sm:text-sm mt-1">
+              <div className="flex items-center gap-3 text-[#B6C2BC] text-xs sm:text-sm mt-1">
                  <span className="flex items-center gap-1.5 min-w-0 flex-1">
                     <MapPin className="w-4 h-4 flex-shrink-0 text-[#2BA84A]" />
                     <span className="truncate">{venue?.name || 'Okänd'}</span>
@@ -202,7 +202,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
                   {statusBadge.label}
                 </span>
 
-                <span className="inline-flex h-6 items-center rounded-md px-2 text-[11px] font-medium bg-[#18221E] border border-[#223029] text-secondary">
+                <span className="inline-flex h-6 items-center rounded-md px-2 text-[11px] font-medium bg-[#18221E] border border-[#223029] text-[#B6C2BC]">
                   {match.format || '5v5'}
                 </span>
                 
@@ -222,7 +222,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
             {/* Progress Bar - SYNCED WITH PARTICIPANTS */}
             {!match.is_spontaneous && (
               <div className="space-y-2 mt-auto">
-                <div className="flex items-center justify-between text-xs text-secondary">
+                <div className="flex items-center justify-between text-xs text-[#B6C2BC]">
                   <span>Spelare</span>
                   <span className="text-white font-medium">
                     {actualParticipantCount}/{match.max_players}
@@ -313,7 +313,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
               {/* Status badges for non-joinable states */}
               {match.status === 'completed' && (
                 <div className="flex-1 h-12 flex items-center justify-center border border-[#223029] rounded-xl bg-[#18221E]">
-                  <span className="text-sm font-bold text-[#7B8A83]">Avslutad</span>
+                  <span className="text-sm font-bold text-[#9EAAA4]">Avslutad</span>
                 </div>
               )}
               
