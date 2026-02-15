@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { canAccessAdminPanel } from "../utils/permissions";
 import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
+import { checkIsAdmin } from "@/components/supabase/services/adminService";
 
 /**
  * RouteGuard: Protects routes based on authentication and permissions
@@ -13,36 +13,47 @@ import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
  * 3. Being logged out is NOT an error state
  * 4. Only redirect to login when explicitly required (admin routes)
  * 
- * Uses Supabase auth state (source of truth) instead of base44.auth
+ * Admin check uses public.users.is_admin (DB source of truth)
  */
 export function RouteGuard({ children, currentRoute }) {
   const navigate = useNavigate();
-  const { user, isLoading, isAuthenticated, roles, hasRole } = useSupabaseAuth();
+  const { user, isLoading, isAuthenticated } = useSupabaseAuth();
+  const [adminChecked, setAdminChecked] = useState(false);
 
   useEffect(() => {
     if (isLoading) return;
 
-    // ONLY admin routes are blocked for non-admins
     const adminRoutes = [
       createPageUrl('Admin'),
       createPageUrl('AdminCleanup')
     ];
-
     const isAdminRoute = adminRoutes.some(route => currentRoute.includes(route));
 
-    // Build a user-like object for canAccessAdminPanel check
-    const userForCheck = isAuthenticated && user ? {
-      ...user,
-      role: hasRole('admin') ? 'admin' : 'user',
-      custom_roles: roles.filter(r => r !== 'admin').map(r => r.toUpperCase())
-    } : { is_guest: true };
+    if (!isAdminRoute) {
+      // Not an admin route — allow immediately
+      setAdminChecked(true);
+      return;
+    }
 
-    // Block non-admins from admin routes - redirect to Dashboard
-    if (isAdminRoute && !canAccessAdminPanel(userForCheck)) {
+    // Admin route: verify via DB
+    if (!isAuthenticated || !user) {
       navigate(createPageUrl('Dashboard'));
       return;
     }
-  }, [user, isLoading, isAuthenticated, currentRoute, navigate, roles, hasRole]);
+
+    checkIsAdmin().then(isAdmin => {
+      console.log('[RouteGuard] Admin route check:', isAdmin);
+      if (!isAdmin) {
+        navigate(createPageUrl('Dashboard'));
+      }
+      setAdminChecked(true);
+    });
+  }, [user, isLoading, isAuthenticated, currentRoute, navigate]);
+
+  // Don't render admin routes until check completes
+  const adminRoutes = [createPageUrl('Admin'), createPageUrl('AdminCleanup')];
+  const isAdminRoute = adminRoutes.some(route => currentRoute.includes(route));
+  if (isAdminRoute && !adminChecked) return null;
 
   return <>{children}</>;
 }
