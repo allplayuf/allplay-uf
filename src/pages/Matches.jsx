@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, SlidersHorizontal, ChevronDown, ChevronUp, Loader2, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { TRANSITIONS, triggerHaptic } from "../components/utils/motionTokens";
 import { createPageUrl } from "@/utils";
 
 import CreateMatchForm from "../components/matches/CreateMatchForm";
@@ -425,16 +426,16 @@ export default function MatchesPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
         >
-          <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[16px] p-3 sm:p-4">
+          <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-2xl p-3 sm:p-4">
             {/* Segmented Control */}
             <div className="flex gap-2 mb-4">
               <motion.button
-                onClick={() => setActiveTab('browse')}
+                onClick={() => { triggerHaptic('light'); setActiveTab('browse'); }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`flex-1 h-14 sm:h-16 rounded-[14px] font-semibold text-sm sm:text-base transition-all ${
+                className={`flex-1 h-14 sm:h-16 rounded-2xl font-semibold text-sm sm:text-base transition-all ${
                   activeTab === 'browse'
-                    ? 'bg-[#2BA84A]/16 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30 shadow-[0_0_12px_rgba(43,168,74,0.2)]'
+                    ? 'bg-[#2BA84A]/16 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30'
                     : 'bg-[#18221E] text-[#B6C2BC] hover:bg-[#2BA84A]/8'
                 }`}
               >
@@ -445,12 +446,12 @@ export default function MatchesPage() {
               </motion.button>
 
               <motion.button
-                onClick={() => setActiveTab('my-matches')}
+                onClick={() => { triggerHaptic('light'); setActiveTab('my-matches'); }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`flex-1 h-14 sm:h-16 rounded-[14px] font-semibold text-sm sm:text-base transition-all ${
+                className={`flex-1 h-14 sm:h-16 rounded-2xl font-semibold text-sm sm:text-base transition-all ${
                   activeTab === 'my-matches'
-                    ? 'bg-[#2BA84A]/16 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30 shadow-[0_0_12px_rgba(43,168,74,0.2)]'
+                    ? 'bg-[#2BA84A]/16 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30'
                     : 'bg-[#18221E] text-[#B6C2BC] hover:bg-[#2BA84A]/8'
                 }`}
               >
@@ -461,12 +462,12 @@ export default function MatchesPage() {
               </motion.button>
 
               <motion.button
-                onClick={() => setActiveTab('completed')}
+                onClick={() => { triggerHaptic('light'); setActiveTab('completed'); }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`flex-1 h-14 sm:h-16 rounded-[14px] font-semibold text-sm sm:text-base transition-all ${
+                className={`flex-1 h-14 sm:h-16 rounded-2xl font-semibold text-sm sm:text-base transition-all ${
                   activeTab === 'completed'
-                    ? 'bg-[#2BA84A]/16 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30 shadow-[0_0_12px_rgba(43,168,74,0.2)]'
+                    ? 'bg-[#2BA84A]/16 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30'
                     : 'bg-[#18221E] text-[#B6C2BC] hover:bg-[#2BA84A]/8'
                 }`}
               >
@@ -483,7 +484,7 @@ export default function MatchesPage() {
                 onClick={() => setShowFilters(!showFilters)}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
-                className="w-full flex items-center justify-between p-3 bg-[#18221E] border border-[#223029] rounded-[12px] text-[#F4F7F5] hover:border-[#2BA84A]/30 transition-all"
+                className="w-full flex items-center justify-between p-3 bg-[#18221E] border border-[#223029] rounded-xl text-[#F4F7F5] hover:border-[#2BA84A]/30 transition-all"
               >
                 <div className="flex items-center gap-2">
                   <SlidersHorizontal className="w-4 h-4 text-[#9FC9AC]" />
@@ -621,7 +622,7 @@ export default function MatchesPage() {
         transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.3 }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        onClick={() => setShowCreateForm(true)}
+        onClick={() => { triggerHaptic('medium'); setShowCreateForm(true); }}
         className="fixed bottom-20 lg:bottom-8 right-4 lg:right-8 w-14 h-14 lg:w-16 lg:h-16 bg-[#F4743B] hover:bg-[#E5683A] text-white rounded-full shadow-[0_8px_24px_rgba(244,116,59,0.4)] flex items-center justify-center z-40 transition-all"
       >
         <Plus className="w-6 h-6 lg:w-7 lg:h-7" strokeWidth={2.5} />
