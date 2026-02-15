@@ -758,7 +758,7 @@ export default function Dashboard() {
               </div>
 
               {myUpcomingMatches.length === 0 ? (
-                <div className="card-base p-8 text-center bg-[#121715]">
+                <div className="p-8 text-center bg-[#121715] border border-[#223029] rounded-2xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
                   <div className="w-12 h-12 bg-[#2BA84A]/10 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <Calendar className="w-6 h-6 text-[#2BA84A]" />
                   </div>
