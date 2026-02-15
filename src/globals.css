@@ -77,33 +77,32 @@ css
   }
 }
 
-/* AllPlay themed scrollbars */
-*,
-*::-webkit-scrollbar {
+/* AllPlay themed scrollbars – dark theme */
+* {
   scrollbar-width: thin;
-  scrollbar-color: #2a3b31 #121715;
+  scrollbar-color: var(--scrollbar-thumb, #2a3b31) var(--scrollbar-track, #121715);
 }
 
 *::-webkit-scrollbar {
-  width: 6px !important;
-  height: 6px !important;
+  width: 6px;
+  height: 6px;
 }
 
 *::-webkit-scrollbar-track {
-  background: #121715 !important;
+  background: var(--scrollbar-track, #121715);
 }
 
 *::-webkit-scrollbar-thumb {
-  background: #2a3b31 !important;
-  border-radius: 3px !important;
+  background: var(--scrollbar-thumb, #2a3b31);
+  border-radius: 999px;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: #2BA84A !important;
+  background: var(--scrollbar-thumb-hover, #2BA84A);
 }
 
 *::-webkit-scrollbar-corner {
-  background: #121715 !important;
+  background: var(--scrollbar-track, #121715);
 }
 
 @media (prefers-reduced-motion: reduce) {
