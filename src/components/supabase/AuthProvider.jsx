@@ -10,6 +10,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { sessionStore, supabaseClient, AUTH_STATES } from './client';
 import { primeUsers } from './services/userCache';
+import { checkIsAdmin, clearAdminCache } from './services/adminService';
 
 // Auth context
 const AuthContext = createContext(null);
@@ -100,6 +101,7 @@ export function SupabaseAuthProvider({ children }) {
 
   // Logout function
   const logout = useCallback(() => {
+    clearAdminCache();
     supabaseClient.logout();
     setError(null);
   }, []);
@@ -109,8 +111,9 @@ export function SupabaseAuthProvider({ children }) {
     return roles.includes(role);
   }, [roles]);
 
+  // Synchronous admin check from cached auth state.
+  // For authoritative check, use checkIsAdmin() from adminService.
   const isAdmin = useCallback(() => {
-    // Check DB-sourced is_admin flag first, then fall back to role
     return user?.is_admin === true || hasRole('admin');
   }, [hasRole, user]);
 
