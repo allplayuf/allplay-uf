@@ -71,13 +71,26 @@ export async function getMyProfile() {
     headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
   }
   
+  const safeColumns = 'id,full_name,username,display_name,avatar_url,profile_image_url,bio,city,skill_level,birth_year,elo_rating,matches_played,mvp_count,is_admin,current_streak';
+  
   try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/users?id=eq.${sessionStore.user.id}&select=*`,
+    let res = await fetch(
+      `${SUPABASE_URL}/rest/v1/users?id=eq.${sessionStore.user.id}&select=${safeColumns}`,
       { method: 'GET', headers }
     );
     
+    // Retry with minimal columns if safe set fails (column doesn't exist in view)
+    if (res.status === 400) {
+      console.warn('[usersService] getMyProfile safe columns failed, retrying with minimal');
+      res = await fetch(
+        `${SUPABASE_URL}/rest/v1/users?id=eq.${sessionStore.user.id}&select=id,full_name,username,avatar_url`,
+        { method: 'GET', headers }
+      );
+    }
+    
     if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      console.error('[usersService] getMyProfile failed:', res.status, body.slice(0, 200));
       throw new Error(`Failed to fetch profile: ${res.status}`);
     }
     

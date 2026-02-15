@@ -88,8 +88,9 @@ export async function callEdgeFunction(name, body = {}, options = {}) {
     console.log(`[EdgeFunction] ${name} response:`, res.status, res.ok ? 'OK' : 'ERROR');
   }
     
-  // Handle errors
+  // Log non-OK response for debugging (status + body)
   if (!res.ok) {
+    console.error(`[EdgeFunction] ${name} failed: status=${res.status}, body=${rawText.slice(0, 500)}`);
     const errorMessage = data?.message || data?.error || `EdgeFunction ${name} failed: ${res.status}`;
       
     // Create standardised error object
