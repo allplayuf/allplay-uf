@@ -13,7 +13,7 @@ import { checkIsAdmin } from "@/components/supabase/services/adminService";
  * 3. Being logged out is NOT an error state
  * 4. Only redirect to login when explicitly required (admin routes)
  * 
- * Admin check uses public.users.is_admin (DB source of truth)
+ * Admin check uses public.user_roles table (DB source of truth)
  */
 export function RouteGuard({ children, currentRoute }) {
   const navigate = useNavigate();
