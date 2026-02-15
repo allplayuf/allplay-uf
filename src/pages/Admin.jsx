@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { User, Report, Venue, Match, Team } from "@/entities/User";
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,9 @@ import { Shield, Users, Flag, MapPin, BarChart, AlertTriangle, RefreshCw, Trophy
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useCustomDialog } from "../components/ui/custom-dialog";
-import { canAccessAdminPanel, getAvailableAdminTabs, isCupAdmin } from "../components/utils/permissions";
+import { getAvailableAdminTabs } from "../components/utils/permissions";
+import { checkIsAdmin } from "../components/supabase/services/adminService";
+import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 
 import ModerationQueue from "../components/admin/ModerationQueue";
 import UserManagement from "../components/admin/UserManagement";
@@ -32,34 +34,41 @@ export default function AdminPage() {
 
   const { confirm, alert, DialogContainer } = useCustomDialog();
 
+  const { user: authUser, isAuthenticated } = useSupabaseAuth();
+
   useEffect(() => {
-    loadAdminData();
-  }, []);
+    if (isAuthenticated && authUser) {
+      loadAdminData();
+    }
+  }, [isAuthenticated, authUser?.id]);
 
   const loadAdminData = async () => {
     try {
-      const user = await User.me();
+      const isAdminUser = await checkIsAdmin({ forceRefresh: true });
+      console.log('[Admin] checkIsAdmin result:', isAdminUser, 'for user:', authUser?.id);
       
-      if (!canAccessAdminPanel(user)) {
+      if (!isAdminUser) {
         await alert('Behörighet saknas', 'Du har inte behörighet att se denna sida.', { type: 'alert' });
         window.location.href = createPageUrl('Dashboard');
         return;
       }
       
-      setCurrentUser(user);
-
-      // If CUP_ADMIN, show cup-only interface
-      if (isCupAdmin(user) && user.role !== 'admin') {
-        setIsLoading(false);
-        return;
-      }
+      // Build a user object for downstream components
+      const adminUser = {
+        id: authUser.id,
+        email: authUser.email,
+        full_name: authUser.full_name || authUser.display_name,
+        is_admin: true,
+        role: 'admin'
+      };
+      setCurrentUser(adminUser);
 
       const [reportsData, usersData, venuesData, matchesData, teamsData] = await Promise.all([
-        Report.list('-created_date'),
-        User.list('-created_date'),
-        Venue.list(),
-        Match.list('-created_date'),
-        Team.list('-created_date')
+        base44.entities.Report.list('-created_date'),
+        base44.entities.User.list('-created_date'),
+        base44.entities.Venue.list(),
+        base44.entities.Match.list('-created_date'),
+        base44.entities.Team.list('-created_date')
       ]);
 
       setReports(reportsData);
@@ -97,7 +106,7 @@ export default function AdminPage() {
         }
       }
       
-      await Report.update(reportId, {
+      await base44.entities.Report.update(reportId, {
         status: status,
         moderator_notes: notes,
         resolved_date: new Date().toISOString(),
@@ -131,7 +140,7 @@ export default function AdminPage() {
         blocked = false;
       }
 
-      await User.update(userId, { status, blocked });
+      await base44.entities.User.update(userId, { status, blocked });
       loadAdminData();
       await alert('Uppdaterat!', 'Användarstatus uppdaterad!', { type: 'success' });
     } catch (error) {
@@ -154,7 +163,7 @@ export default function AdminPage() {
     if (!shouldDelete) return;
 
     try {
-      await Match.update(matchId, {
+      await base44.entities.Match.update(matchId, {
         status: 'cancelled',
         deleted_at: new Date().toISOString(),
         deleted_by: currentUser.id
@@ -193,7 +202,7 @@ export default function AdminPage() {
     if (!shouldDelete) return;
 
     try {
-      await Team.update(teamId, {
+      await base44.entities.Team.update(teamId, {
         is_active: false,
         deleted_at: new Date().toISOString(),
         deleted_by: currentUser.id
@@ -295,10 +304,7 @@ export default function AdminPage() {
     );
   }
 
-  // Show CUP_ADMIN interface if user is only CUP_ADMIN
-  if (currentUser && isCupAdmin(currentUser) && currentUser.role !== 'admin') {
-    return <CupAdminTabs user={currentUser} />;
-  }
+  // CUP_ADMIN-only interface removed — admin page now only for full admins
 
   const pendingReports = reports.filter(r => r.status === 'pending').length;
   const activeUsers = users.filter(u => u.status === 'active').length;
