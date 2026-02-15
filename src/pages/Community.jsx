@@ -7,9 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Users, UserPlus, Trophy, Plus, Search, Target, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { TRANSITIONS } from "../components/utils/motionTokens";
+import { triggerHaptic } from "../components/utils/motionTokens";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
+import { TabSkeleton, TabSkeletonGrid } from "../components/ui/tab-skeleton";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import { NoPlayersFound, NoTeamsFound } from "../components/ui/empty-state";
 import { CUPS_QUERY_KEY } from "../components/dashboard/CupsWidget";
@@ -455,7 +458,7 @@ export default function CommunityPage() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative overflow-hidden rounded-[32px] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7),0_0_40px_0px_rgba(43,168,74,0.1)] border border-[#2BA84A]/20 bg-[#0A0D0B]"
+          className="relative overflow-hidden rounded-3xl shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7),0_0_40px_0px_rgba(43,168,74,0.1)] border border-[#2BA84A]/20 bg-[#0A0D0B]"
         >
           {/* Dark gradient base */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#1A1A1A] via-[#0F1513] to-[#0A0D0B]"></div>
@@ -606,8 +609,8 @@ export default function CommunityPage() {
               <motion.button
                 whileHover={{ y: -4, scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => setActiveTab('find')}
-                className="h-12 sm:h-12 lg:h-14 w-full bg-gradient-to-r from-[#FFFFFF]/20 to-[#FFFFFF]/10 hover:from-[#FFFFFF]/30 hover:to-[#FFFFFF]/20 backdrop-blur-xl border border-white/30 hover:border-white/50 rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 text-white font-black text-sm sm:text-sm lg:text-base transition-all shadow-xl"
+                onClick={() => { triggerHaptic('light'); setActiveTab('find'); }}
+                className="h-12 sm:h-12 lg:h-14 w-full bg-gradient-to-r from-[#FFFFFF]/20 to-[#FFFFFF]/10 hover:from-[#FFFFFF]/30 hover:to-[#FFFFFF]/20 backdrop-blur-xl border border-white/30 hover:border-white/50 rounded-2xl flex items-center justify-center gap-1.5 sm:gap-2 text-white font-black text-sm sm:text-sm lg:text-base transition-all shadow-xl"
               >
                 <UserPlus className="w-4 h-4 lg:w-5 lg:h-5" strokeWidth={2.5} />
                 <span>Hitta spelare</span>
@@ -615,8 +618,8 @@ export default function CommunityPage() {
               <motion.button
                 whileHover={{ y: -4, scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => setActiveTab('teams')}
-                className="h-12 sm:h-12 lg:h-14 w-full bg-gradient-to-r from-[#FFFFFF]/20 to-[#FFFFFF]/10 hover:from-[#FFFFFF]/30 hover:to-[#FFFFFF]/20 backdrop-blur-xl border border-white/30 hover:border-white/50 rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 text-white font-black text-sm sm:text-sm lg:text-base transition-all shadow-xl"
+                onClick={() => { triggerHaptic('light'); setActiveTab('teams'); }}
+                className="h-12 sm:h-12 lg:h-14 w-full bg-gradient-to-r from-[#FFFFFF]/20 to-[#FFFFFF]/10 hover:from-[#FFFFFF]/30 hover:to-[#FFFFFF]/20 backdrop-blur-xl border border-white/30 hover:border-white/50 rounded-2xl flex items-center justify-center gap-1.5 sm:gap-2 text-white font-black text-sm sm:text-sm lg:text-base transition-all shadow-xl"
               >
                 <Target className="w-4 h-4 lg:w-5 lg:h-5" strokeWidth={2.5} />
                 <span>Mina Lag</span>
@@ -630,39 +633,39 @@ export default function CommunityPage() {
           <TabsList className="grid grid-cols-4 gap-2 bg-transparent border-0 p-0">
             <TabsTrigger 
               value="friends" 
-              className={`gap-2 h-12 rounded-xl transition-all duration-200 font-semibold ${
+              className={`gap-1.5 h-12 rounded-2xl transition-all duration-200 font-semibold text-xs sm:text-sm ${
                 activeTab === 'friends' ? TAB_COLORS.friends.active : TAB_COLORS.friends.inactive
               }`}
             >
               <Users className={`w-4 h-4 ${activeTab === 'friends' ? TAB_COLORS.friends.icon : ''}`} />
-              <span className="hidden sm:inline">Vänner</span>
+              <span>Vänner</span>
             </TabsTrigger>
             <TabsTrigger 
               value="teams" 
-              className={`gap-2 h-12 rounded-xl transition-all duration-200 font-semibold ${
+              className={`gap-1.5 h-12 rounded-2xl transition-all duration-200 font-semibold text-xs sm:text-sm ${
                 activeTab === 'teams' ? TAB_COLORS.teams.active : TAB_COLORS.teams.inactive
               }`}
             >
               <Target className={`w-4 h-4 ${activeTab === 'teams' ? TAB_COLORS.teams.icon : ''}`} />
-              <span className="hidden sm:inline">Lag</span>
+              <span>Lag</span>
             </TabsTrigger>
             <TabsTrigger 
               value="find" 
-              className={`gap-2 h-12 rounded-xl transition-all duration-200 font-semibold ${
+              className={`gap-1.5 h-12 rounded-2xl transition-all duration-200 font-semibold text-xs sm:text-sm ${
                 activeTab === 'find' ? TAB_COLORS.find.active : TAB_COLORS.find.inactive
               }`}
             >
               <Search className={`w-4 h-4 ${activeTab === 'find' ? TAB_COLORS.find.icon : ''}`} />
-              <span className="hidden sm:inline">Hitta</span>
+              <span>Hitta</span>
             </TabsTrigger>
             <TabsTrigger 
               value="cups" 
-              className={`gap-2 h-12 rounded-xl transition-all duration-200 font-semibold ${
+              className={`gap-1.5 h-12 rounded-2xl transition-all duration-200 font-semibold text-xs sm:text-sm ${
                 activeTab === 'cups' ? TAB_COLORS.cups.active : TAB_COLORS.cups.inactive
               }`}
             >
               <Trophy className={`w-4 h-4 ${activeTab === 'cups' ? TAB_COLORS.cups.icon : ''}`} />
-              <span className="hidden sm:inline">Cuper</span>
+              <span>Cuper</span>
             </TabsTrigger>
           </TabsList>
 
@@ -671,9 +674,9 @@ export default function CommunityPage() {
               key="friends-content"
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
+              transition={TRANSITIONS.tab}
             >
-              <Suspense fallback={<PageLoadingSkeleton />}>
+              <Suspense fallback={<TabSkeletonGrid count={4} />}>
                 <FriendsList
                   friends={friendsAccepted}
                   incomingRequests={incomingRequests}
@@ -689,9 +692,9 @@ export default function CommunityPage() {
               key="teams-content"
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
+              transition={TRANSITIONS.tab}
             >
-              <Suspense fallback={<PageLoadingSkeleton />}>
+              <Suspense fallback={<TabSkeleton rows={3} />}>
                 <TeamsList
                   teams={allTeams}
                   myTeams={myTeams}
@@ -709,9 +712,9 @@ export default function CommunityPage() {
               key="find-content"
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
+              transition={TRANSITIONS.tab}
             >
-              <Suspense fallback={<PageLoadingSkeleton />}>
+              <Suspense fallback={<TabSkeletonGrid count={6} />}>
                 <FindPlayers
                   friendships={friendships}
                   currentUser={user}
@@ -726,9 +729,9 @@ export default function CommunityPage() {
               key="cups-content"
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
+              transition={TRANSITIONS.tab}
             >
-              <Suspense fallback={<PageLoadingSkeleton />}>
+              <Suspense fallback={<TabSkeleton rows={3} />}>
                 <CupsOverview user={user} />
               </Suspense>
             </motion.div>
