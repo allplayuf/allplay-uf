@@ -16,9 +16,8 @@ import {
   Shield,
   Crown
 } from 'lucide-react';
-import { Friendship } from '@/entities/Friendship';
-import { MatchInvitation } from '@/entities/MatchInvitation';
-import { User } from '@/entities/User';
+import { base44 } from '@/api/base44Client';
+import { getUsersByIds } from '@/components/supabase/services/usersService';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SKILL_LEVEL_CONFIG = {
@@ -42,26 +41,27 @@ export default function InviteFriendsModal({ match, currentUser, onClose, onInvi
 
   const loadFriends = async () => {
     try {
-      // Get all friendships
-      const allFriendships = await Friendship.list();
-      const myFriendships = allFriendships.filter(
-        f => (f.requester_id === currentUser.id || f.addressee_id === currentUser.id) && f.status === 'accepted'
-      );
+      // Get all friendships via Base44 (Friendship entity not yet migrated)
+      const [sent, received] = await Promise.all([
+        base44.entities.Friendship.filter({ requester_id: currentUser.id }),
+        base44.entities.Friendship.filter({ addressee_id: currentUser.id })
+      ]);
+      const allFriendships = [...sent, ...received];
+      const myFriendships = allFriendships.filter(f => f.status === 'accepted');
 
       // Get friend IDs
       const friendIds = myFriendships.map(f => 
         f.requester_id === currentUser.id ? f.addressee_id : f.requester_id
       );
 
-      // Get all users and filter friends
-      const allUsers = await User.list();
-      const friendUsers = allUsers.filter(u => friendIds.includes(u.id));
+      // Get friend user data from Supabase
+      const friendUsers = friendIds.length > 0 ? await getUsersByIds(friendIds) : [];
 
       // Get existing invitations for this match
-      const invitations = await MatchInvitation.filter({ match_id: match.id });
+      const invitations = await base44.entities.MatchInvitation.filter({ match_id: match.id });
       setExistingInvitations(invitations);
 
-      // Filter out friends who already have invitations or are already in the match
+      // Filter out friends who already have invitations
       const availableFriends = friendUsers.filter(friend => {
         const hasInvitation = invitations.some(inv => inv.invited_user_id === friend.id);
         return !hasInvitation;
@@ -94,7 +94,7 @@ export default function InviteFriendsModal({ match, currentUser, onClose, onInvi
     try {
       // Create invitations for each selected friend
       const invitationPromises = selectedFriends.map(friendId =>
-        MatchInvitation.create({
+        base44.entities.MatchInvitation.create({
           match_id: match.id,
           invited_user_id: friendId,
           inviter_id: currentUser.id,
