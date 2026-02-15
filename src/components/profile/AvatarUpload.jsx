@@ -40,6 +40,10 @@ export default function AvatarUpload({ currentImageUrl, onUploaded }) {
     setIsUploading(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      // Save to localStorage for instant display everywhere
+      if (file_url) {
+        localStorage.setItem('allplay_profile_image', file_url);
+      }
       onUploaded(file_url);
     } catch (err) {
       console.error('[AvatarUpload] Upload failed:', err);
