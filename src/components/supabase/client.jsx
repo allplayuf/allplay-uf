@@ -359,6 +359,7 @@ class SupabaseClient {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
+        console.error(`[SupabaseClient] _fetch ${endpoint} failed: status=${response.status}, body=${JSON.stringify(data).slice(0, 300)}`);
         // Handle specific error codes
         if (response.status === 401) {
           sessionStore.clear();
@@ -375,8 +376,8 @@ class SupabaseClient {
 
       return { data };
     } catch (e) {
-      console.error('Fetch error:', e);
-      return { error: { code: 500, message: 'Network error. Please check your connection.' } };
+      console.error(`[SupabaseClient] _fetch ${endpoint} network/CORS error:`, e.message || e);
+      return { error: { code: 0, message: `Network error: ${e.message || 'CORS/fetch blocked'}` } };
     }
   }
 
