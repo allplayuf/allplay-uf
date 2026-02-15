@@ -43,7 +43,7 @@ export default function ConsentGate({ onAccept, onCancel, isSignup = false }) {
           </div>
           <div>
             <h1 className="text-lg font-bold text-[#F4F7F5]">Läs igenom och godkänn</h1>
-            <p className="text-xs text-[#7B8A83]">
+            <p className="text-xs text-[#9EAAA4]">
               {isSignup
                 ? "För att skapa konto måste du läsa och godkänna."
                 : "Godkänn villkoren för att fortsätta använda AllPlay."}
@@ -66,7 +66,7 @@ export default function ConsentGate({ onAccept, onCancel, isSignup = false }) {
             {hasScrolledToBottom ? (
               <p className="text-sm text-[#2BA84A] font-medium">✓ Du har läst hela dokumentet</p>
             ) : (
-              <p className="text-sm text-[#7B8A83] animate-pulse">↓ Scrolla ner för att läsa hela dokumentet</p>
+              <p className="text-sm text-[#9EAAA4] animate-pulse">↓ Scrolla ner för att läsa hela dokumentet</p>
             )}
           </div>
         </div>
@@ -91,7 +91,7 @@ export default function ConsentGate({ onAccept, onCancel, isSignup = false }) {
             {checkboxChecked ? (
               <CheckSquare className="w-5 h-5 text-[#2BA84A] flex-shrink-0 mt-0.5" />
             ) : (
-              <Square className="w-5 h-5 text-[#7B8A83] flex-shrink-0 mt-0.5" />
+              <Square className="w-5 h-5 text-[#9EAAA4] flex-shrink-0 mt-0.5" />
             )}
             <span className="text-sm text-[#F4F7F5] leading-snug">
               Jag har läst och accepterar AllPlays Användarvillkor & Integritetspolicy ({CONSENT_VERSION}).
@@ -129,7 +129,7 @@ export default function ConsentGate({ onAccept, onCancel, isSignup = false }) {
 
           {/* Disclaimer */}
           {isSignup && (
-            <p className="text-center text-xs text-[#7B8A83]">
+            <p className="text-center text-xs text-[#9EAAA4]">
               Du kan inte skapa konto utan att godkänna.
             </p>
           )}
