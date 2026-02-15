@@ -37,7 +37,7 @@ export function EmptyState({
   const config = variants[variant] || variants.default;
 
   return (
-    <Card className="bg-gradient-to-br from-[#121715] to-[#0F2917]/20 border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[20px]">
+    <Card className="bg-gradient-to-br from-[#121715] to-[#0F2917]/20 border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-2xl">
       <CardContent className={config.container}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -59,7 +59,7 @@ export function EmptyState({
               {actionLabel && (
                 <Button
                   onClick={onAction}
-                  className="bg-[#2BA84A] hover:bg-[#248232] text-[#FFFFFF] h-11 px-6 rounded-[14px] font-semibold"
+                  className="bg-[#2BA84A] hover:bg-[#248232] text-[#FFFFFF] h-11 px-6 rounded-2xl font-semibold"
                 >
                   {actionLabel}
                 </Button>
@@ -68,7 +68,7 @@ export function EmptyState({
                 <Button
                   onClick={onSecondaryAction}
                   variant="outline"
-                  className="border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] hover:text-[#F4F7F5] h-11 px-6 rounded-[14px] font-semibold"
+                  className="border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] hover:text-[#F4F7F5] h-11 px-6 rounded-2xl font-semibold"
                 >
                   {secondaryActionLabel}
                 </Button>

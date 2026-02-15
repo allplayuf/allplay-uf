@@ -914,8 +914,8 @@ export default function Dashboard() {
         <motion.div variants={VARIANTS.item}>
           <Link to={createPageUrl("AboutAllPlay")}>
             <motion.div
-              whileHover={{ scale: 1.02, y: -4 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.01, y: -2 }}
+              whileTap={{ scale: 0.99 }}
               className="relative overflow-hidden rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#223029] bg-gradient-to-br from-[#121715] to-[#0F1513] hover:border-[#2BA84A]/30 transition-all cursor-pointer"
             >
               <div className="flex flex-col sm:flex-row items-center sm:items-stretch gap-4 p-5 sm:p-6">

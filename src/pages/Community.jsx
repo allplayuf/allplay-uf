@@ -747,7 +747,7 @@ export default function CommunityPage() {
           transition={{ type: "spring", stiffness: 260, damping: 20 }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => setShowCreateTeamForm(true)}
+          onClick={() => { triggerHaptic('medium'); setShowCreateTeamForm(true); }}
           className="fixed bottom-20 lg:bottom-8 right-4 lg:right-8 w-14 h-14 lg:w-16 lg:h-16 bg-[#9370DB] hover:bg-[#7C3AED] text-white rounded-full shadow-[0_4px_16px_rgba(147,112,219,0.4)] ring-2 ring-[#9370DB]/20 hover:ring-[#9370DB]/40 flex items-center justify-center z-40 transition-all duration-200"
         >
           <Plus className="w-6 h-6 lg:w-7 lg:h-7" strokeWidth={2.5} />
