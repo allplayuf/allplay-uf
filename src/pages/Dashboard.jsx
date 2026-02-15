@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
-import { VARIANTS } from "../components/utils/motionTokens";
+import { VARIANTS, TRANSITIONS, triggerHaptic } from "../components/utils/motionTokens";
 import {
   Trophy,
   MapPin,
@@ -31,6 +31,7 @@ import NextMatchCard from "../components/dashboard/NextMatchCard";
 import InboxWidget from "../components/dashboard/InboxWidget";
 import { 
   createMatch as supabaseCreateMatch, 
+  joinMatch as supabaseJoinMatch,
   upsertVenue,
   getVenues,
   getMyProfile,
@@ -465,7 +466,7 @@ export default function Dashboard() {
         {/* Premium Hero Card */}
         <motion.div
           variants={VARIANTS.item}
-          className="relative overflow-hidden rounded-[32px] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7),0_0_40px_0px_rgba(43,168,74,0.1)] border border-[#2BA84A]/20 bg-[#0A0D0B]"
+          className="relative overflow-hidden rounded-3xl shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7),0_0_40px_0px_rgba(43,168,74,0.1)] border border-[#2BA84A]/20 bg-[#0A0D0B]"
         >
           {/* Dark gradient base */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#1A1A1A] via-[#0F1513] to-[#0A0D0B]"></div>
@@ -616,6 +617,7 @@ export default function Dashboard() {
                 whileHover={{ y: -6, scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => {
+                  triggerHaptic('medium');
                   if (isGuest) {
                     setShowAuthGate(true);
                   } else {
@@ -766,18 +768,32 @@ export default function Dashboard() {
               </div>
 
               {myUpcomingMatches.length === 0 ? (
-                <div className="p-8 text-center bg-[#121715] border border-[#223029] rounded-2xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
-                  <div className="w-12 h-12 bg-[#2BA84A]/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <Calendar className="w-6 h-6 text-[#2BA84A]" />
+                <div className="p-8 sm:p-10 text-center bg-gradient-to-br from-[#121715] to-[#0F2917]/20 border border-[#223029] rounded-2xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
+                  <div className="w-16 h-16 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-4 ring-1 ring-[#2BA84A]/20">
+                    <Calendar className="w-8 h-8 text-[#2BA84A]" />
                   </div>
-                  <p className="text-[#B6C2BC] text-sm mb-4">
-                    {isGuest ? 'Inga matcher just nu' : 'Inga kommande matcher'}
+                  <h3 className="text-lg font-bold text-[#F4F7F5] mb-2">
+                    {isGuest ? 'Inga matcher just nu' : 'Du har inga kommande matcher'}
+                  </h3>
+                  <p className="text-[#B6C2BC] text-sm mb-5 max-w-xs mx-auto">
+                    {isGuest ? 'Logga in för att hitta och gå med i matcher nära dig.' : 'Hitta en match att gå med i eller skapa en egen på 10 sekunder!'}
                   </p>
-                  <Link to={createPageUrl("Matches")}>
-                    <button className="inline-flex items-center justify-center h-9 px-4 text-sm font-medium rounded-xl bg-[#18221E] text-[#F4F7F5] border border-[#223029] hover:bg-[#223029] transition-colors">
-                      {isGuest ? 'Se alla matcher' : 'Hitta matcher'}
-                    </button>
-                  </Link>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Link to={createPageUrl("Matches")}>
+                      <button className="inline-flex items-center justify-center h-11 px-6 text-sm font-semibold rounded-2xl bg-[#2BA84A] hover:bg-[#248232] text-white transition-colors">
+                        {isGuest ? 'Se alla matcher' : 'Hitta matcher'}
+                      </button>
+                    </Link>
+                    {!isGuest && (
+                      <button
+                        onClick={() => { triggerHaptic('medium'); setShowCreateMatchModal(true); }}
+                        className="inline-flex items-center justify-center h-11 px-6 text-sm font-semibold rounded-2xl border border-[#223029] text-[#F4F7F5] hover:bg-[#18221E] transition-colors"
+                      >
+                        <Plus className="w-4 h-4 mr-1.5" />
+                        Skapa match
+                      </button>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2">
