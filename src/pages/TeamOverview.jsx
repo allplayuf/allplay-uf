@@ -67,8 +67,8 @@ const SKILL_LEVEL_CONFIG = {
 
 // Tabs - will be filtered based on team type
 const ALL_TABS = [
-  { id: 'members', label: 'Medlemmar', icon: Users, showForCupTeam: true },
   { id: 'stats', label: 'Statistik', icon: Trophy, showForCupTeam: true },
+  { id: 'members', label: 'Medlemmar', icon: Users, showForCupTeam: true },
   { id: 'calendar', label: 'Kalender', icon: Calendar, showForCupTeam: true },
   { id: 'ranking', label: 'Ranking', icon: TrendingUp, showForCupTeam: false },
   { id: 'chat', label: 'Chatt', icon: MessageCircle, showForCupTeam: false },
