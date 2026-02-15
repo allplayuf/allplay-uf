@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { User } from "@/entities/User";
+import { supabaseClient } from "@/components/supabase/client";
 import { Edit, QrCode, X } from "lucide-react";
 
 export default function SettingsSheet({ onClose, onShowQR }) {
@@ -57,9 +57,9 @@ export default function SettingsSheet({ onClose, onShowQR }) {
             </button>
 
             <button 
-              onClick={async () => {
+              onClick={() => {
                 if (confirm('Vill du logga ut?')) {
-                  await User.logout();
+                  supabaseClient.logout();
                   window.location.reload();
                 }
               }}
