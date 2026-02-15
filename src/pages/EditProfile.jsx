@@ -135,6 +135,12 @@ export default function EditProfile() {
     }
     if (formData.avatar_url !== initialData.avatar_url) {
       payload.avatar_url = formData.avatar_url || null;
+      // Sync to localStorage for offline/instant display
+      if (formData.avatar_url) {
+        localStorage.setItem('allplay_profile_image', formData.avatar_url);
+      } else {
+        localStorage.removeItem('allplay_profile_image');
+      }
     }
 
     // Optimistic update — snapshot for rollback
