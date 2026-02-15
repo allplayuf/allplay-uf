@@ -12,6 +12,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigation } from '../navigation/NavigationProvider';
+import { createPageUrl } from '@/utils';
 import {
   TAB_VARIANTS,
   PUSH_VARIANTS,
@@ -27,8 +28,23 @@ const DIRECTION_CONFIG = {
   pop: { variants: POP_VARIANTS, transition: TRANSITIONS.pop },
 };
 
+// Map page should never animate — it contains a Leaflet map that loses state on remount
+const MAP_PATH = createPageUrl('Map');
+
 export function PageTransition({ children, pageKey }) {
   const { direction } = useNavigation();
+
+  // Skip animation entirely for the Map page so the map stays mounted in place
+  const isMapPage = pageKey === MAP_PATH;
+
+  if (isMapPage) {
+    return (
+      <div key={pageKey} className="w-full h-full">
+        {children}
+      </div>
+    );
+  }
+
   const config = DIRECTION_CONFIG[direction] || DIRECTION_CONFIG.tab;
   const variants = safeVariants(config.variants);
   const transition = safeTransition(config.transition);
