@@ -1,8 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Friendship } from "@/entities/Friendship";
-import { TeamMember, Team } from "@/entities/Team";
+import { getUsersByIds, getUserById } from "../components/supabase/services/usersService";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +41,7 @@ import { AuthGateModal } from "../components/ui/auth-gate-modal";
 import { LoginModal } from "../components/supabase";
 import { LogIn } from "lucide-react";
 import { getMyProfile, updateProfile } from "../components/supabase/services";
+import { supabaseClient } from "../components/supabase/client";
 
 // Lazy load components
 const ProfileStats = lazy(() => import("../components/profile/ProfileStats"));
@@ -136,12 +136,9 @@ export default function ProfilePage() {
     queryFn: async () => {
       if (!targetUserId || targetUserId === user?.id) return null;
       
-      const allUsers = await base44.entities.User.list();
-      const foundUser = allUsers.find(u => u.id === targetUserId);
+      const foundUser = await getUserById(targetUserId);
       
-      if (!foundUser) throw new Error('User not found');
-      if (foundUser.blocked === true) throw new Error('User blocked');
-      if (foundUser.publicProfile === false) throw new Error('Private profile');
+      if (!foundUser || foundUser.full_name === 'Spelare') throw new Error('Användaren hittades inte');
       
       return foundUser;
     },
@@ -156,7 +153,16 @@ export default function ProfilePage() {
   // Fetch all friendships
   const { data: friendships = [] } = useQuery({
     queryKey: QUERY_KEYS.friendships,
-    queryFn: async () => await Friendship.list(),
+    queryFn: async () => {
+      const [sent, received] = await Promise.all([
+        base44.entities.Friendship.filter({ requester_id: user.id }),
+        base44.entities.Friendship.filter({ addressee_id: user.id })
+      ]);
+      const map = new Map();
+      sent.forEach(f => map.set(f.id, f));
+      received.forEach(f => map.set(f.id, f));
+      return Array.from(map.values());
+    },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
     enabled: !!user && !isGuest,
   });
@@ -183,14 +189,14 @@ export default function ProfilePage() {
       const friendIds = acceptedFriendships.map(f => 
         f.requester_id === user.id ? f.addressee_id : f.requester_id
       );
-      const allUsers = await base44.entities.User.list();
-      return allUsers.filter(u => friendIds.includes(u.id));
+      if (friendIds.length === 0) return [];
+      return await getUsersByIds(friendIds);
     },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
     enabled: !!user && !targetUserId && !isGuest && friendships.length > 0,
   });
 
-  // Fetch team invites (only for own profile)
+  // Fetch team invites (only for own profile) - still using Base44 for TeamMember entity
   const { data: teamInvites = [] } = useQuery({
     queryKey: QUERY_KEYS.teamInvites(user?.id),
     queryFn: async () => {
@@ -203,17 +209,15 @@ export default function ProfilePage() {
     enabled: !!user && !targetUserId && !isGuest,
   });
 
-  // NEW: Fetch team join requests where user is captain
+  // Fetch team join requests where user is captain - still using Base44 for Team/TeamMember entities
   const { data: teamJoinRequests = [] } = useQuery({
     queryKey: QUERY_KEYS.teamJoinRequests(user?.id),
     queryFn: async () => {
-      // Get all teams where user is captain
       const captainTeams = await base44.entities.Team.filter({ captain_id: user.id });
       const captainTeamIds = captainTeams.map(t => t.id);
       
       if (captainTeamIds.length === 0) return [];
       
-      // Get all pending join requests for these teams
       const allPendingMembers = await base44.entities.TeamMember.list();
       const joinRequests = allPendingMembers.filter(
         tm => captainTeamIds.includes(tm.team_id) && tm.status === 'pending'
@@ -271,9 +275,6 @@ export default function ProfilePage() {
       updateProfile({ avatar_url: file_url }).catch(err => {
         console.warn('[Profile] Backend avatar save failed (image still available):', err.message);
       });
-      
-      // Also try Base44 (fire-and-forget)
-      base44.auth.updateMe({ profile_image_url: file_url }).catch(() => {});
       
     } catch (error) {
       console.error("Error uploading profile image:", error);
@@ -342,7 +343,7 @@ export default function ProfilePage() {
     }
   };
 
-  // NEW: Handle team join requests with confirmation dialogs
+  // Handle team join requests with confirmation dialogs
   const handleAcceptJoinRequest = async (requestId) => {
     const joinRequest = teamJoinRequests.find(jr => jr.id === requestId);
     if (!joinRequest) return;
@@ -352,12 +353,12 @@ export default function ProfilePage() {
     let teamName = 'laget';
     
     try {
-      const [applicant, team] = await Promise.all([
-        base44.entities.User.get(joinRequest.user_id).catch(() => null),
+      const [applicantData, team] = await Promise.all([
+        getUserById(joinRequest.user_id).catch(() => null),
         base44.entities.Team.get(joinRequest.team_id).catch(() => null)
       ]);
       
-      if (applicant) applicantName = applicant.full_name;
+      if (applicantData) applicantName = applicantData.display_name || applicantData.full_name;
       if (team) teamName = team.name;
     } catch (err) {
       console.error('Error fetching details:', err);
@@ -429,7 +430,10 @@ export default function ProfilePage() {
     );
 
     if (shouldLogout) {
-      await base44.auth.logout();
+      // Use Supabase logout (clears session store)
+      supabaseClient.logout();
+      // Reload to reset app state
+      window.location.reload();
     }
   };
 
