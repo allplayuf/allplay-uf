@@ -175,7 +175,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
             <div>
               <div className="flex items-center justify-between mb-1">
                 <h3 className="text-base font-semibold text-white truncate pr-2">
-                  {match.title || 'Untitled Match'}
+                  {match.title || 'Namnlös match'}
                 </h3>
                 {isOrganizer && match.status === 'upcoming' && (
                   <Badge variant="outline" className="text-[10px] border-[#F4743B]/30 text-[#FDE3D2] h-5 px-2">

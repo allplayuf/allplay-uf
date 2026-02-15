@@ -522,7 +522,7 @@ export default function MatchesPage() {
                           options={[
                             { value: 'nearest', label: 'Närmast' },
                             { value: 'earliest', label: 'Tidigast' },
-                            { value: 'fullest', label: 'Fylldast' }
+                            { value: 'fullest', label: 'Mest fyllda' }
                           ]}
                         />
                       </div>
