@@ -28,6 +28,7 @@ import CupsWidget from "../components/dashboard/CupsWidget";
 import MatchCard from "../components/matches/MatchCard";
 import NotificationsSlider from "../components/dashboard/NotificationsSlider";
 import NextMatchCard from "../components/dashboard/NextMatchCard";
+import InboxWidget from "../components/dashboard/InboxWidget";
 import { 
   createMatch as supabaseCreateMatch, 
   upsertVenue,
@@ -719,6 +720,13 @@ export default function Dashboard() {
             </motion.div>
           </div>
         </motion.div>
+
+        {/* Inbox Widget */}
+        {isAuthenticated && (
+          <motion.div variants={VARIANTS.item}>
+            <InboxWidget />
+          </motion.div>
+        )}
 
         {/* Notifications Slider */}
         {notifications.length > 0 && (
