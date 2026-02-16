@@ -72,21 +72,10 @@ function generatePlanMarkerSVG({ state = 'empty', selected = false, count = 0 })
   const tipY = h - 4;
   const strokeW = selected ? 3 : 2.2;
 
-  // Outer glow (only for active/busy/live/joined states)
-  const glowFilter = c.glow !== 'none' ? `
-    <defs>
-      <filter id="glow-${state}" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur stdDeviation="${selected ? 6 : 4}" result="blur"/>
-        <feFlood flood-color="${c.glow}" flood-opacity="1" result="color"/>
-        <feComposite in="color" in2="blur" operator="in" result="glow"/>
-        <feMerge>
-          <feMergeNode in="glow"/>
-          <feMergeNode in="SourceGraphic"/>
-        </feMerge>
-      </filter>
-    </defs>` : '';
-
-  const filterAttr = c.glow !== 'none' ? ` filter="url(#glow-${state})"` : '';
+  // Glow is handled via CSS box-shadow on the wrapper div (not SVG filters)
+  // SVG filters in Leaflet divIcon can cause rendering issues
+  const glowFilter = '';
+  const filterAttr = '';
 
   // Ground shadow
   const shadow = `<ellipse cx="${cx}" cy="${tipY + 1}" rx="${r * 0.38}" ry="3" fill="rgba(0,0,0,0.5)"/>`;
