@@ -7,7 +7,7 @@
  */
 
 import { getSupabaseConfig, SUPABASE_URL } from '../config';
-import { sessionStore } from '../client';
+import { sessionStore, waitForAuth } from '../client';
 
 /**
  * Columns guaranteed to exist in the public.users view.
@@ -60,6 +60,7 @@ function normalizePlayer(row) {
  * @returns {Promise<{players: object[], total: number, hasMore: boolean}>}
  */
 export async function searchPlayers({ search = '', limit = 50, offset = 0 } = {}) {
+  await waitForAuth();
   const headers = await buildHeaders();
 
   // Try extended select first (after SQL migration), fall back to safe select

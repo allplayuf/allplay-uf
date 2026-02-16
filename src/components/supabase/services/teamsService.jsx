@@ -8,7 +8,7 @@
 
 import { callEdgeFunction } from '../callEdgeFunction';
 import { getSupabaseConfig, SUPABASE_URL } from '../config';
-import { sessionStore } from '../client';
+import { sessionStore, waitForAuth } from '../client';
 import { EDGE } from '../edgeNames';
 
 const IS_DEV = typeof window !== 'undefined' &&
@@ -19,6 +19,7 @@ const IS_DEV = typeof window !== 'undefined' &&
  * RLS determines what the user can see
  */
 export async function getTeams() {
+  await waitForAuth();
   const config = await getSupabaseConfig();
 
   const headers = { 'Content-Type': 'application/json' };
@@ -45,6 +46,7 @@ export async function getTeams() {
  * Get team members for a specific team
  */
 export async function getTeamMembers(teamId) {
+  await waitForAuth();
   const config = await getSupabaseConfig();
 
   const headers = { 'Content-Type': 'application/json' };
@@ -67,6 +69,7 @@ export async function getTeamMembers(teamId) {
  * Get current user's team memberships
  */
 export async function getMyTeamMemberships() {
+  await waitForAuth();
   const config = await getSupabaseConfig();
 
   const headers = { 'Content-Type': 'application/json' };
