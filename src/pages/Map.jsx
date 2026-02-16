@@ -200,6 +200,8 @@ export default function MapPage() {
     }
   };
 
+  const [dataLoaded, setDataLoaded] = useState(false);
+
   const loadMapData = async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
@@ -213,8 +215,10 @@ export default function MapPage() {
 
       setVenues(venuesData);
       setMatches(upcomingMatches);
+      setDataLoaded(true);
     } catch (error) {
       console.error("Error loading map data:", error);
+      setDataLoaded(true); // show page even on error
     }
   };
 
