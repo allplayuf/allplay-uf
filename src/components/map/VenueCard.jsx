@@ -3,7 +3,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Calendar, Users } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import AvatarImage from "@/components/ui/avatar-image";
 
 import { motion } from "framer-motion";
 
@@ -137,17 +136,20 @@ export default function VenueCard({ venue, matches, isSelected, onClick, onMatch
                     />
                   </div>
 
-                  {/* Users Avatars — always reserve space via fixed-size AvatarImage */}
-                  {currentPlayers > 0 && (
+                  {/* Users Avatars */}
+                  {users.length > 0 && (
                     <div className="flex -space-x-2 overflow-x-auto py-1 scrollbar-hide">
-                      {(users.length > 0 ? users : Array.from({ length: Math.min(currentPlayers, 5) })).map((user, i) => (
-                        <div key={user?.id || `placeholder-${i}`} className="border border-[#121715] rounded-full flex-shrink-0">
-                          <AvatarImage
-                            src={user?.profile_image_url}
-                            name={user?.full_name || 'S'}
-                            className="w-6 h-6"
-                            textClassName="text-[9px]"
-                          />
+                      {users.map((user, i) => (
+                        <div 
+                          key={user?.id || i}
+                          className="w-6 h-6 flex-shrink-0 rounded-full bg-gradient-to-br from-[#2BA84A] to-[#248232] border border-[#121715] flex items-center justify-center overflow-hidden"
+                          title={user?.full_name || 'User'}
+                        >
+                          {user?.profile_image_url ? (
+                            <img src={user.profile_image_url} alt={user.full_name || 'User'} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-[9px] font-semibold text-white">{user?.full_name?.[0] || '?'}</span>
+                          )}
                         </div>
                       ))}
                     </div>

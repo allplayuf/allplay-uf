@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,16 +14,15 @@ import MapView from "../components/map/MapView";
 import VenueCard from "../components/map/VenueCard";
 import VenueDetailModal from "../components/map/VenueDetailModal";
 import FilterSheet from "../components/map/FilterSheet";
-import MapLoadingOverlay from "../components/map/MapLoadingOverlay";
 
 const QUERY_KEYS = {
-  participants: ['participants'],
-  venues: ['map-venues'],
-  matches: ['map-matches'],
+  participants: ['participants']
 };
 
 export default function MapPage() {
   const navigate = useNavigate();
+  const [venues, setVenues] = useState([]);
+  const [matches, setMatches] = useState([]);
   const [filteredVenues, setFilteredVenues] = useState([]);
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -41,37 +40,12 @@ export default function MapPage() {
   const [user, setUser] = useState(null);
   const [userMatchIds, setUserMatchIds] = useState([]);
 
-  /**
-   * Strategy B+C (Gate + Cache-first) for pins:
-   * - Venues and matches fetched via react-query with STATIC/SEMI_DYNAMIC cache.
-   * - On first visit: map skeleton shown until data arrives.
-   * - On revisit: cached data renders pins instantly (stale-while-revalidate).
-   * - No empty map -> pins pop-in ever.
-   */
-  const { data: venues = [], isLoading: venuesLoading } = useQuery({
-    queryKey: QUERY_KEYS.venues,
-    queryFn: () => base44.entities.Venue.list(),
-    ...CACHE_STRATEGIES.STATIC,
-  });
-
-  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
-
-  const { data: matches = [], isLoading: matchesLoading } = useQuery({
-    queryKey: QUERY_KEYS.matches,
-    queryFn: async () => {
-      const data = await base44.entities.Match.filter({ status: 'upcoming' }, '-date', 100);
-      return data.filter(m => m.date >= today);
-    },
-    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
-  });
-
-  // Pins are ready when both venues and matches are loaded (or cached)
-  const pinsReady = !venuesLoading && !matchesLoading;
-
-  // Fetch all participants for sync (non-blocking, secondary data)
+  // Fetch all participants for sync
   const { data: allParticipants = [] } = useQuery({
     queryKey: QUERY_KEYS.participants,
-    queryFn: () => base44.entities.MatchParticipant.list(),
+    queryFn: async () => {
+      return await base44.entities.MatchParticipant.list();
+    },
     ...CACHE_STRATEGIES.REALTIME,
     enabled: !!user,
   });
@@ -201,6 +175,7 @@ export default function MapPage() {
   }, [venues, matches, filters, searchQuery, userLocation, calculateDistance]);
 
   useEffect(() => {
+    loadMapData();
     getUserLocation();
     loadUser();
   }, []);
@@ -221,6 +196,24 @@ export default function MapPage() {
       console.error("Error loading user:", error);
       setUser(null);
       setUserMatchIds([]);
+    }
+  };
+
+  const loadMapData = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      const [venuesData, matchesData] = await Promise.all([
+        base44.entities.Venue.list(),
+        base44.entities.Match.filter({ status: 'upcoming' }, '-date', 100)
+      ]);
+
+      const upcomingMatches = matchesData.filter(m => m.date >= today);
+
+      setVenues(venuesData);
+      setMatches(upcomingMatches);
+    } catch (error) {
+      console.error("Error loading map data:", error);
     }
   };
 
@@ -352,9 +345,7 @@ export default function MapPage() {
         </div>
 
         <div className="flex-1 overflow-hidden relative" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-          {!pinsReady ? (
-            <MapLoadingOverlay />
-          ) : viewMode === "list" ? (
+          {viewMode === "list" ? (
             <div className="h-full overflow-y-auto p-3 space-y-3" style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}>
               <AnimatePresence mode="popLayout">
                 {filteredVenues.map((venue, index) => (
@@ -523,8 +514,7 @@ export default function MapPage() {
         </div>
 
         <div className="flex-1 relative z-0">
-          {!pinsReady && <MapLoadingOverlay />}
-          {pinsReady && <MapView
+          <MapView
             venues={filteredVenues}
             matches={matches}
             allParticipants={allParticipants}
@@ -534,7 +524,7 @@ export default function MapPage() {
             onShowDetails={handleShowDetails}
             onMatchClick={handleMatchClick}
             userMatchIds={userMatchIds}
-          />}
+          />
         </div>
       </div>
 
