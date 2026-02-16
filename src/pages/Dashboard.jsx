@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
+import { DashboardSkeleton } from "../components/ui/skeletons";
 import CreateMatchForm from "../components/matches/CreateMatchForm";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import CupsWidget from "../components/dashboard/CupsWidget";
@@ -394,8 +394,10 @@ export default function Dashboard() {
 
   const isLoading = (isAuthenticated && userLoading) || matchesLoading || venuesLoading || participantsLoading;
 
+  // Critical data: user + matches + venues. Show skeleton until ready.
+  // Secondary data: participants, notifications -- loads after, replaces placeholders.
   if (isLoading) {
-    return <PageLoadingSkeleton />;
+    return <DashboardSkeleton />;
   }
 
   const handleRefresh = async () => {

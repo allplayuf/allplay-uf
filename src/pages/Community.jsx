@@ -11,7 +11,7 @@ import { TRANSITIONS } from "../components/utils/motionTokens";
 import { triggerHaptic } from "../components/utils/motionTokens";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
+import { CommunitySkeleton } from "../components/ui/skeletons";
 import { TabSkeleton, TabSkeletonGrid } from "../components/ui/tab-skeleton";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import { NoPlayersFound, NoTeamsFound } from "../components/ui/empty-state";
@@ -371,8 +371,9 @@ export default function CommunityPage() {
     ]);
   };
 
+  // Critical data: auth user object. Secondary: friends, teams, cups (load in background).
   if (isLoading) {
-    return <PageLoadingSkeleton />;
+    return <CommunitySkeleton />;
   }
 
   // Guest users see a prompt to login
