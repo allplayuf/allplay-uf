@@ -27,6 +27,7 @@ import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import CupsWidget from "../components/dashboard/CupsWidget";
 import NearbyMatchesWidget from "../components/dashboard/NearbyMatchesWidget";
 import MatchCard from "../components/matches/MatchCard";
+import SmoothAvatar from "../components/ui/smooth-avatar";
 import NotificationsSlider from "../components/dashboard/NotificationsSlider";
 import NextMatchCard from "../components/dashboard/NextMatchCard";
 import InboxWidget from "../components/dashboard/InboxWidget";
@@ -580,13 +581,15 @@ export default function Dashboard() {
                 }}
                 className="relative flex-shrink-0"
               >
-                <div className="relative w-16 h-16 sm:w-24 sm:h-24 lg:w-32 lg:h-32 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-[#2BA84A]/60 shadow-[0_20px_60px_rgba(43,168,74,0.4)] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm flex items-center justify-center">
-                  {user?.profile_image_url ? (
-                  <img src={user.profile_image_url} alt="Profile" className="w-full h-full object-cover" />
-                  ) : (
-                  <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#FFFFFF]">{(user?.display_name || user?.full_name)?.[0] || 'U'}</span>
-                  )}
-                  </div>
+                <SmoothAvatar
+                  src={user?.profile_image_url}
+                  alt="Profile"
+                  fallbackText={(user?.display_name || user?.full_name) || 'U'}
+                  size={64}
+                  rounded="rounded-2xl sm:rounded-3xl"
+                  className="sm:!w-24 sm:!h-24 lg:!w-32 lg:!h-32 border-2 border-[#2BA84A]/60 shadow-[0_20px_60px_rgba(43,168,74,0.4)]"
+                  fallbackBg="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm"
+                />
                   </motion.div>
 
                   {/* Info */}
