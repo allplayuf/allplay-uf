@@ -276,6 +276,11 @@ export default function MapPage() {
   const totalMatchesInRange = filteredVenues.reduce((sum, venue) => sum + (venue.upcoming_matches?.length || 0), 0);
   const nearbyActiveMatches = filteredVenues.filter(v => (v.upcoming_matches?.length || 0) > 0).length;
 
+  // Page-ready gate: show skeleton until venues + matches loaded
+  if (!dataLoaded) {
+    return <MapSkeleton />;
+  }
+
   return (
     <div className="min-h-screen bg-[#0F1513]">
       <div className="lg:hidden flex flex-col pb-16" style={{ height: 'calc(100vh - env(safe-area-inset-top))' }}>
