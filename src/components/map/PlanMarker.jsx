@@ -72,10 +72,12 @@ function generatePlanMarkerSVG({ state = 'empty', selected = false, count = 0 })
   const tipY = h - 4;
   const strokeW = selected ? 3 : 2.2;
 
-  // Glow is handled via CSS box-shadow on the wrapper div (not SVG filters)
-  // SVG filters in Leaflet divIcon can cause rendering issues
+  // Glow is handled via CSS drop-shadow on the wrapper div (not SVG filters)
   const glowFilter = '';
   const filterAttr = '';
+
+  // Export glow value for use by createPlanIcon
+  generatePlanMarkerSVG._lastGlow = c.glow;
 
   // Ground shadow
   const shadow = `<ellipse cx="${cx}" cy="${tipY + 1}" rx="${r * 0.38}" ry="3" fill="rgba(0,0,0,0.5)"/>`;
