@@ -4,119 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { AnimatePresence } from 'framer-motion';
 import MapVenuePreview from './MapVenuePreview';
-
-/* ─── STATUS HELPERS ─── */
-function getMatchStatus(match) {
-  if (match.status === 'ongoing') return 'live';
-  const now = new Date();
-  const matchTime = new Date(`${match.date}T${match.time}`);
-  const diffH = (matchTime - now) / 3600000;
-  const isFull = !match.is_spontaneous && match.max_players && match.current_players >= match.max_players;
-  if (isFull) return 'full';
-  if (diffH <= 3 && diffH > 0) return 'soon';
-  return 'later';
-}
-
-/* ─── PIN COLOR TOKENS ─── */
-const PIN_COLORS = {
-  venue:  { fill: '#0D2818', stroke: '#2BA84A', icon: '#4ADE80' },
-  match:  { fill: '#2A1208', stroke: '#F4743B', icon: '#FDBA74' },
-  joined: { fill: '#0E1B3D', stroke: '#4169E1', icon: '#93B4F5' },
-  live:   { fill: '#2A1F08', stroke: '#F59E0B', icon: '#FDE68A' },
-};
-
-function getPinColors(hasMatch, hasUserMatch, status) {
-  if (!hasMatch) return PIN_COLORS.venue;
-  if (status === 'live') return PIN_COLORS.live;
-  if (hasUserMatch) return PIN_COLORS.joined;
-  return PIN_COLORS.match;
-}
-
-/* ─── VENUE PIN (green teardrop — no match) ─── */
-function createVenuePin(isSelected) {
-  const s = isSelected ? 38 : 30;
-  const w = s + 8;       // extra for shadow room
-  const h = s + 16;
-  const cx = w / 2;
-  const r = s / 2 - 1;
-  const cy = r + 4;      // body center
-  const tipY = h - 3;
-  const c = PIN_COLORS.venue;
-
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
-    <ellipse cx="${cx}" cy="${tipY}" rx="${r*0.35}" ry="2.5" fill="rgba(0,0,0,0.35)"/>
-    <path d="M${cx},${tipY - 1}
-             C${cx},${tipY - 1} ${cx - r*0.5},${cy + r*0.65} ${cx - r},${cy}
-             A${r},${r} 0 1,1 ${cx + r},${cy}
-             C${cx + r*0.5},${cy + r*0.65} ${cx},${tipY - 1} ${cx},${tipY - 1}Z"
-          fill="${c.fill}" stroke="${c.stroke}" stroke-width="${isSelected ? 2.5 : 1.8}"/>
-    <circle cx="${cx}" cy="${cy}" r="4.5" fill="none" stroke="${c.icon}" stroke-width="1.4" opacity="0.85"/>
-    <circle cx="${cx}" cy="${cy}" r="1.8" fill="${c.icon}" opacity="0.9"/>
-  </svg>`;
-
-  return L.divIcon({
-    html: `<div class="ap-pin${isSelected ? ' ap-sel' : ''}">${svg}</div>`,
-    className: '',
-    iconSize: [w, h],
-    iconAnchor: [cx, tipY],
-    popupAnchor: [0, -h + 6],
-  });
-}
-
-/* ─── MATCH PIN (orange/blue/gold teardrop) ─── */
-function createMatchPin(matchCount, status, isSelected, hasUserMatch) {
-  const s = isSelected ? 44 : 36;
-  const w = s + 10;
-  const h = s + 18;
-  const cx = w / 2;
-  const r = s / 2 - 1;
-  const cy = r + 5;
-  const tipY = h - 3;
-  const c = getPinColors(true, hasUserMatch, status);
-
-  // Pulse ring for live matches
-  const pulse = status === 'live' ? `
-    <circle cx="${cx}" cy="${cy}" r="${r + 6}" fill="none" stroke="${c.stroke}" stroke-width="1.5" opacity="0.3">
-      <animate attributeName="r" values="${r+4};${r+10};${r+4}" dur="1.6s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.4;0.08;0.4" dur="1.6s" repeatCount="indefinite"/>
-    </circle>` : '';
-
-  // Badge for multiple matches
-  const badge = matchCount > 1 ? `
-    <circle cx="${cx + r - 4}" cy="${cy - r + 4}" r="8" fill="#FFFFFF" stroke="${c.stroke}" stroke-width="1.4"/>
-    <text x="${cx + r - 4}" y="${cy - r + 4}" text-anchor="middle" dominant-baseline="central"
-          fill="#111" font-size="9" font-weight="800" font-family="system-ui">${matchCount > 9 ? '9+' : matchCount}</text>` : '';
-
-  // Football icon in center
-  const icon = `
-    <circle cx="${cx}" cy="${cy}" r="6" fill="none" stroke="${c.icon}" stroke-width="1.4" opacity="0.9"/>
-    <circle cx="${cx}" cy="${cy}" r="2.2" fill="${c.icon}" opacity="0.9"/>
-    <line x1="${cx}" y1="${cy - 6}" x2="${cx}" y2="${cy - 2.2}" stroke="${c.icon}" stroke-width="0.8" opacity="0.55"/>
-    <line x1="${cx}" y1="${cy + 2.2}" x2="${cx}" y2="${cy + 6}" stroke="${c.icon}" stroke-width="0.8" opacity="0.55"/>
-    <line x1="${cx - 6}" y1="${cy}" x2="${cx - 2.2}" y2="${cy}" stroke="${c.icon}" stroke-width="0.8" opacity="0.55"/>
-    <line x1="${cx + 2.2}" y1="${cy}" x2="${cx + 6}" y2="${cy}" stroke="${c.icon}" stroke-width="0.8" opacity="0.55"/>`;
-
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
-    ${pulse}
-    <ellipse cx="${cx}" cy="${tipY}" rx="${r*0.4}" ry="3" fill="rgba(0,0,0,0.4)"/>
-    <path d="M${cx},${tipY - 1}
-             C${cx},${tipY - 1} ${cx - r*0.5},${cy + r*0.65} ${cx - r},${cy}
-             A${r},${r} 0 1,1 ${cx + r},${cy}
-             C${cx + r*0.5},${cy + r*0.65} ${cx},${tipY - 1} ${cx},${tipY - 1}Z"
-          fill="${c.fill}" stroke="${c.stroke}" stroke-width="${isSelected ? 2.8 : 2.2}"/>
-    ${icon}
-    ${badge}
-  </svg>`;
-
-  const cls = `ap-pin ap-pin-match${isSelected ? ' ap-sel' : ''}${status === 'live' ? ' ap-live' : ''}`;
-  return L.divIcon({
-    html: `<div class="${cls}">${svg}</div>`,
-    className: '',
-    iconSize: [w, h],
-    iconAnchor: [cx, tipY],
-    popupAnchor: [0, -h + 6],
-  });
-}
+import { createPlanIcon, getMarkerState, PLAN_MARKER_CSS } from './PlanMarker';
 
 /* ─── TOOLTIP ─── */
 function createSelectedTooltip(match, spotsLeft) {
@@ -135,20 +23,22 @@ function createSelectedTooltip(match, spotsLeft) {
 
 /* ─── CLUSTER ICON ─── */
 function createClusterIcon(count, hasAnyMatch) {
-  const s = 44;
+  const s = 48;
   const half = s / 2;
-  const stroke = hasAnyMatch ? '#F4743B' : '#2BA84A';
-  const textColor = hasAnyMatch ? '#FDBA74' : '#86EFAC';
+  const stroke = hasAnyMatch ? '#2BA84A' : '#3A4A42';
+  const textColor = hasAnyMatch ? '#86EFAC' : '#9EAAA4';
+  const glowColor = hasAnyMatch ? 'rgba(43,168,74,0.3)' : 'none';
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}" viewBox="0 0 ${s} ${s}">
-    <circle cx="${half}" cy="${half}" r="${half - 4}" fill="#121715" stroke="${stroke}" stroke-width="2.2"/>
-    <circle cx="${half}" cy="${half}" r="${half - 4}" fill="${stroke}" fill-opacity="0.12"/>
+    ${hasAnyMatch ? `<circle cx="${half}" cy="${half}" r="${half - 2}" fill="${glowColor}" opacity="0.4"/>` : ''}
+    <circle cx="${half}" cy="${half}" r="${half - 5}" fill="#121715" stroke="${stroke}" stroke-width="2.2"/>
+    <circle cx="${half}" cy="${half}" r="${half - 5}" fill="${stroke}" fill-opacity="0.12"/>
     <text x="${half}" y="${half}" text-anchor="middle" dominant-baseline="central"
           fill="${textColor}" font-size="15" font-weight="800" font-family="system-ui">${count}</text>
   </svg>`;
 
   return L.divIcon({
-    html: `<div class="ap-pin ap-cluster">${svg}</div>`,
+    html: `<div class="ap-plan ap-cluster">${svg}</div>`,
     className: '',
     iconSize: [s, s],
     iconAnchor: [half, half],
@@ -195,24 +85,26 @@ function ClusteredMarkers({ venues, venueStatuses, selectedVenue, onMarkerClick,
 
     if (zoom >= 14) {
       venues.forEach(venue => {
-        const st = venueStatuses[venue.id] || { isActive: false, hasUserMatch: false, matchCount: 0 };
+        const st = venueStatuses[venue.id] || { isActive: false, hasUserMatch: false, matchCount: 0, hasLiveMatch: false };
         const isSelected = selectedVenue?.id === venue.id;
-        const hasMatches = st.matchCount > 0;
 
-        let icon;
-        if (hasMatches) {
-          const venueMatches = matches.filter(m => m.venue_id === venue.id && (m.status === 'upcoming' || m.status === 'ongoing'));
-          const bestMatch = venueMatches[0];
-          const status = bestMatch ? getMatchStatus(bestMatch) : 'later';
-          icon = createMatchPin(st.matchCount, status, isSelected, st.hasUserMatch);
-        } else {
-          icon = createVenuePin(isSelected);
-        }
+        const markerState = getMarkerState({
+          matchCount: st.matchCount,
+          hasUserMatch: st.hasUserMatch,
+          hasLiveMatch: st.isActive, // isActive means ongoing match
+        });
+
+        const icon = createPlanIcon({
+          state: markerState,
+          selected: isSelected,
+          count: st.matchCount,
+        });
 
         const marker = L.marker([venue.latitude, venue.longitude], { icon });
         marker.on('click', () => onMarkerClick(venue));
 
-        if (isSelected && hasMatches) {
+        // Tooltip for selected venue with match
+        if (isSelected && st.matchCount > 0) {
           const venueMatches = matches.filter(m => m.venue_id === venue.id && (m.status === 'upcoming' || m.status === 'ongoing'));
           const bestMatch = venueMatches[0];
           if (bestMatch) {
@@ -241,10 +133,12 @@ function ClusteredMarkers({ venues, venueStatuses, selectedVenue, onMarkerClick,
         if (clusterVenues.length === 1) {
           const venue = clusterVenues[0];
           const st = venueStatuses[venue.id] || { matchCount: 0 };
-          const hasMatches = st.matchCount > 0;
-          const icon = hasMatches
-            ? createMatchPin(st.matchCount, 'later', false, st.hasUserMatch)
-            : createVenuePin(false);
+          const markerState = getMarkerState({
+            matchCount: st.matchCount,
+            hasUserMatch: st.hasUserMatch,
+            hasLiveMatch: st.isActive,
+          });
+          const icon = createPlanIcon({ state: markerState, selected: false, count: st.matchCount });
           const marker = L.marker([venue.latitude, venue.longitude], { icon });
           marker.on('click', () => onMarkerClick(venue));
           group.addLayer(marker);
@@ -375,41 +269,28 @@ export default function MapView({
       {/* Legend */}
       <div className="absolute bottom-3 left-3 z-[2] flex items-center gap-3 bg-[#121715]/92 backdrop-blur-md rounded-xl px-3 py-2 border border-[#223029] shadow-lg">
         <div className="flex items-center gap-1.5">
-          <svg width="10" height="14" viewBox="0 0 10 14" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 13C5 13 1 8 1 5a4 4 0 118 0c0 3-4 8-4 8z" fill="#0D2818" stroke="#2BA84A" strokeWidth="1.2"/>
-          </svg>
+          <div className="w-3 h-3 rounded-full bg-[#3A4A42] border border-[#6B7B73]" />
           <span className="text-[10px] font-medium text-[#9EAAA4]">Plan</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <svg width="10" height="14" viewBox="0 0 10 14" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 13C5 13 1 8 1 5a4 4 0 118 0c0 3-4 8-4 8z" fill="#2A1208" stroke="#F4743B" strokeWidth="1.2"/>
-          </svg>
+          <div className="w-3 h-3 rounded-full bg-[#2BA84A] shadow-[0_0_6px_rgba(43,168,74,0.5)]" />
           <span className="text-[10px] font-medium text-[#9EAAA4]">Match</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <svg width="10" height="14" viewBox="0 0 10 14" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 13C5 13 1 8 1 5a4 4 0 118 0c0 3-4 8-4 8z" fill="#0E1B3D" stroke="#4169E1" strokeWidth="1.2"/>
-          </svg>
+          <div className="w-3 h-3 rounded-full bg-[#4169E1] shadow-[0_0_6px_rgba(65,105,225,0.5)]" />
           <span className="text-[10px] font-medium text-[#9EAAA4]">Anmäld</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-full bg-[#F59E0B] shadow-[0_0_6px_rgba(245,158,11,0.5)]" />
+          <span className="text-[10px] font-medium text-[#9EAAA4]">Live</span>
         </div>
       </div>
 
       <style>{`
-        /* Pin base */
-        .ap-pin {
-          transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
-          cursor: pointer;
-        }
-        .ap-pin:hover {
-          transform: scale(1.15) translateY(-3px);
-        }
-        .ap-pin:active {
-          transform: scale(0.93);
-        }
-        .ap-sel {
-          transform: scale(1.18) translateY(-4px);
-          z-index: 1000 !important;
-        }
+        /* PlanMarker styles */
+        ${PLAN_MARKER_CSS}
+
+        /* Cluster hover */
         .ap-cluster:hover {
           transform: scale(1.2);
         }
