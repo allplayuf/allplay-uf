@@ -11,7 +11,7 @@ import { TRANSITIONS } from "../components/utils/motionTokens";
 import { triggerHaptic } from "../components/utils/motionTokens";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
+import { HeroSkeleton } from "../components/ui/section-skeleton";
 import { TabSkeleton, TabSkeletonGrid } from "../components/ui/tab-skeleton";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import { NoPlayersFound, NoTeamsFound } from "../components/ui/empty-state";
@@ -221,9 +221,7 @@ export default function CommunityPage() {
     f && f.status === 'pending' && f.addressee_id === user?.id
   );
 
-  // Only block on user loading - other data loads in background
-  const isLoading = userLoading;
-
+  // Don't block full page — hero skeleton handles user loading
   const handleAddFriend = async (targetId) => {
     if (isSubmitting) return;
     setIsSubmitting(true);
@@ -371,10 +369,6 @@ export default function CommunityPage() {
     ]);
   };
 
-  if (isLoading) {
-    return <PageLoadingSkeleton />;
-  }
-
   // Guest users see a prompt to login
   if (isGuestUser || user?.is_guest) {
     return (
@@ -453,7 +447,10 @@ export default function CommunityPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Premium Hero Card - Improved UI */}
+        {/* Premium Hero Card - show skeleton while auth loads */}
+        {userLoading ? (
+          <HeroSkeleton />
+        ) : (
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -627,6 +624,7 @@ export default function CommunityPage() {
             </motion.div>
           </div>
         </motion.div>
+        )}
 
         {/* Tabs - Dynamic colors based on active tab */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

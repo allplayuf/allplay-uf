@@ -354,8 +354,8 @@ export default function MatchesPage() {
     fullest: 'Mest fyllda'
   };
 
-  // Wait for critical data before rendering
-  const isLoading = isVenuesLoading || matchesLoading || (isAuthenticated && isUserLoading);
+  // Only gate on venues (layout-critical). Matches stream in via infinite scroll.
+  const isLoading = isVenuesLoading;
 
   if (isLoading) {
     return (

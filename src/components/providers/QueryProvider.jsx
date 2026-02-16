@@ -32,8 +32,10 @@ const queryClient = new QueryClient({
         return Math.min(1000 * 2 ** attemptIndex, 10000);
       },
       
-      // Keep old data while fetching new
+      // Keep old data while fetching new — eliminates flash on re-navigation
       keepPreviousData: true,
+      // Placeholder data keeps layout stable during initial fetch
+      placeholderData: (previousData) => previousData,
     },
   },
 });
@@ -66,10 +68,10 @@ export const CACHE_STRATEGIES = {
 
   // Semi-dynamic data (matches, teams) - Moderate freshness
   SEMI_DYNAMIC: {
-    staleTime: 3 * 60 * 1000, // 3 minutes (increased from 2)
-    cacheTime: 15 * 60 * 1000, // 15 minutes (increased from 10)
+    staleTime: 3 * 60 * 1000, // 3 minutes
+    cacheTime: 15 * 60 * 1000, // 15 minutes
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: false, // Cached data renders instantly on tab-switch
   },
 
   // Highly dynamic data (chat, notifications) - Fresh data needed

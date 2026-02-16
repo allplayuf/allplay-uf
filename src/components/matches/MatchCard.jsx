@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { TRANSITIONS, triggerHaptic } from "@/components/utils/motionTokens";
 import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
 import { getUsersByIds } from "@/components/supabase/services";
+import AvatarImage from "@/components/ui/avatar-image";
 import { AuthGateModal } from '@/components/ui/auth-gate-modal';
 import { LoginModal } from '@/components/supabase';
 
@@ -246,20 +247,19 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
                 {participantUsers.length > 0 && (
                   <div className="flex items-center gap-2 pt-1">
                     <div className="flex -space-x-2">
-                      {participantUsers.slice(0, 5).map((participant, i) => {
-                        const avatarSrc = participant?.avatar_url || participant?.profile_image_url;
-                        const name = participant?.display_name || participant?.full_name || 'Spelare';
+                      {/* Always render placeholder circles for expected count, fill with real data progressively */}
+                      {(participantUsers.length > 0 ? participantUsers : participants.slice(0, 5)).slice(0, 5).map((participant, i) => {
+                        const pUser = participantUsers[i];
+                        const avatarSrc = pUser?.avatar_url || pUser?.profile_image_url;
+                        const name = pUser?.display_name || pUser?.full_name || 'S';
                         return (
-                          <div 
-                            key={participant?.id || i}
-                            className="w-6 h-6 rounded-full bg-gradient-to-br from-[#2BA84A] to-[#248232] border border-[#121715] flex items-center justify-center overflow-hidden"
-                            title={name}
-                          >
-                            {avatarSrc ? (
-                              <img src={avatarSrc} alt={name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
-                            ) : (
-                              <span className="text-[9px] font-semibold text-white">{name[0] || '?'}</span>
-                            )}
+                          <div key={participant?.id || participant?.user_id || i} className="border border-[#121715] rounded-full">
+                            <AvatarImage 
+                              src={avatarSrc}
+                              name={name}
+                              className="w-6 h-6"
+                              textClassName="text-[9px]"
+                            />
                           </div>
                         );
                       })}
