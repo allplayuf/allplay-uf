@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
+import AvatarImage from "@/components/ui/avatar-image";
 import { 
   User, 
   MessageCircle, 
@@ -66,15 +67,14 @@ export default function FriendsList({ friends, incomingRequests, onAcceptRequest
           >
             <Card className="bg-[#121715] border border-[#223029] hover:border-[#2BA84A] transition-all shadow-[0_6px_18px_rgba(0,0,0,0.22)] hover:scale-[1.02] rounded-[16px]">
               <CardContent className="p-6">
+                {/* Strategy A: fixed-size AvatarImage with placeholder-first, no layout shift */}
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center flex-shrink-0">
-                    {friend.profile_image_url ? 
-                      <img src={friend.profile_image_url} alt={friend.display_name || friend.full_name} className="w-full h-full object-cover rounded-2xl" /> :
-                      <span className="text-[#EAF6EE] font-semibold text-xl">
-                        {(friend.display_name || friend.full_name)?.[0] || 'U'}
-                      </span>
-                    }
-                  </div>
+                  <AvatarImage
+                    src={friend.profile_image_url || friend.avatar_url}
+                    name={friend.display_name || friend.full_name || 'U'}
+                    className="w-14 h-14 !rounded-2xl"
+                    textClassName="text-xl"
+                  />
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-[#F4F7F5] text-[16px] leading-[24px] truncate">{friend.display_name || friend.full_name}</h3>
                     <div className="flex items-center gap-1 text-[13px] leading-[18px] text-[#B6C2BC]">
