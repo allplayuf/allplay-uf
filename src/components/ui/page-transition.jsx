@@ -2,15 +2,16 @@
  * PageTransition
  * 
  * Wraps page content with direction-aware animations:
- *  - tab:  subtle crossfade
+ *  - tab:  subtle crossfade + tiny slide
  *  - push: slide from right
  *  - pop:  slide from left (mirror of push)
  * 
+ * Holds previous page briefly for smooth crossfade (no white flash).
  * Respects prefers-reduced-motion.
  */
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigation } from '../navigation/NavigationProvider';
 import {
   TAB_VARIANTS,
@@ -34,15 +35,17 @@ export function PageTransition({ children, pageKey }) {
   const transition = safeTransition(config.transition);
 
   return (
-    <motion.div
-      key={pageKey}
-      initial={variants.initial}
-      animate={variants.animate}
-      exit={variants.exit}
-      transition={transition}
-      className="w-full h-full will-change-transform"
-    >
-      {children}
-    </motion.div>
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={pageKey}
+        initial={variants.initial}
+        animate={variants.animate}
+        exit={variants.exit}
+        transition={transition}
+        className="w-full h-full will-change-transform"
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
   );
 }
