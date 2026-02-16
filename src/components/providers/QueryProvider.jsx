@@ -32,10 +32,8 @@ const queryClient = new QueryClient({
         return Math.min(1000 * 2 ** attemptIndex, 10000);
       },
       
-      // Keep old data while fetching new -- prevents flash of empty state on refetch
+      // Keep old data while fetching new
       keepPreviousData: true,
-      // Structural sharing keeps referential identity for unchanged subtrees
-      structuralSharing: true,
     },
   },
 });

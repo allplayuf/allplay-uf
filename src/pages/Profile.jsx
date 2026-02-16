@@ -43,7 +43,6 @@ import { AuthGateModal } from "../components/ui/auth-gate-modal";
 import { LoginModal } from "../components/supabase";
 import { LogIn } from "lucide-react";
 import { getMyProfile, updateProfile } from "../components/supabase/services";
-import SmoothAvatar from "../components/ui/smooth-avatar";
 import { supabaseClient } from "../components/supabase/client";
 
 // Lazy load components
@@ -55,10 +54,10 @@ const QRModal = lazy(() => import("../components/profile/QRModal"));
 const SettingsSheet = lazy(() => import("../components/profile/SettingsSheet"));
 
 const SKILL_LEVEL_CONFIG = {
-  beginner: { label: 'Nybörjare', icon: Target, color: 'from-[#10B981] to-[#059669]', textColor: 'text-[#A7F3D0]', emoji: '🌱' },
-  intermediate: { label: 'Medel', icon: TrendingUp, color: 'from-[#14B8A6] to-[#0D9488]', textColor: 'text-[#99F6E4]', emoji: '⚡' },
-  advanced: { label: 'Avancerad', icon: Shield, color: 'from-[#8B5CF6] to-[#7C3AED]', textColor: 'text-[#DDD6FE]', emoji: '🔥' },
-  elite: { label: 'Elit', icon: Crown, color: 'from-[#F59E0B] to-[#D97706]', textColor: 'text-[#FDE68A]', emoji: '👑' }
+  beginner: { label: 'Nybörjare', icon: Target, color: 'from-[#10B981] to-[#059669]', textColor: 'text-[#A7F3D0]' },
+  intermediate: { label: 'Medel', icon: TrendingUp, color: 'from-[#14B8A6] to-[#0D9488]', textColor: 'text-[#99F6E4]' },
+  advanced: { label: 'Avancerad', icon: Shield, color: 'from-[#8B5CF6] to-[#7C3AED]', textColor: 'text-[#DDD6FE]' },
+  elite: { label: 'Elit', icon: Crown, color: 'from-[#F59E0B] to-[#D97706]', textColor: 'text-[#FDE68A]' }
 };
 
 // Query keys
@@ -687,15 +686,21 @@ export default function ProfilePage() {
                 }}
                 className="relative flex-shrink-0"
               >
-                <SmoothAvatar
-                  src={displayUser?.profile_image_url}
-                  alt="Profile"
-                  fallbackText={displayUser?.full_name || 'U'}
-                  size={80}
-                  rounded="rounded-2xl sm:rounded-3xl"
-                  className="sm:!w-28 sm:!h-28 lg:!w-32 lg:!h-32 border-2 border-[#FFFFFF]/30 shadow-[0_20px_60px_rgba(43,168,74,0.4)]"
-                  fallbackBg="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm"
-                />
+                <div className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-[#FFFFFF]/30 shadow-[0_20px_60px_rgba(43,168,74,0.4)] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm flex items-center justify-center">
+                  {displayUser?.profile_image_url ? (
+                    <img
+                      src={displayUser.profile_image_url}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                      loading="eager"
+                      fetchpriority="high"
+                    />
+                  ) : (
+                    <span className="text-4xl font-bold text-[#FFFFFF]">
+                      {displayUser?.full_name?.[0] || 'U'}
+                    </span>
+                  )}
+                </div>
                 {!isViewingOtherProfile && (
                   <>
                     <input
@@ -737,15 +742,15 @@ export default function ProfilePage() {
                   {displayUser?.bio || (isViewingOtherProfile ? '' : 'Tryck på Redigera för att lägga till en bio')}
                 </motion.p>
 
-                {/* Chips -- city and skill on same row */}
-                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                  <Badge className="h-7 px-2.5 sm:px-3 bg-white/8 border border-white/15 text-[#FFFFFF] text-[10px] sm:text-xs font-medium">
-                    <MapPin className="w-3 h-3 mr-1 opacity-70" />
+                {/* Chips */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2">
+                  <Badge className="h-7 px-2.5 sm:px-3 bg-transparent border border-[#FFFFFF]/30 text-[#FFFFFF] text-[10px] sm:text-xs">
+                    <MapPin className="w-3 h-3 mr-1" />
                     {displayUser?.city || 'Stockholm'}
                   </Badge>
                   
-                  <Badge className={`h-7 px-2.5 sm:px-3 bg-gradient-to-r ${skillLevel.color} border-0 ${skillLevel.textColor} text-[10px] sm:text-xs font-bold`}>
-                    <span className="mr-1">{skillLevel.emoji}</span>
+                  <Badge className={`h-7 px-2.5 sm:px-3 bg-gradient-to-r ${skillLevel.color} border-0 ${skillLevel.textColor} text-[10px] sm:text-xs font-semibold`}>
+                    <SkillIcon className="w-3 h-3 mr-1" />
                     {skillLevel.label}
                   </Badge>
                 </div>
@@ -946,13 +951,12 @@ export default function ProfilePage() {
                                       <div className={`h-1 bg-gradient-to-r ${friendSkill.color}`} />
                                       <div className="p-4">
                                         <div className="flex items-center gap-3 mb-3">
-                                          <SmoothAvatar
-                                            src={friend.profile_image_url || friend.avatar_url}
-                                            alt={friend.full_name}
-                                            fallbackText={friend.full_name || 'U'}
-                                            size={44}
-                                            rounded="rounded-xl"
-                                          />
+                                          <div className="w-11 h-11 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                            {friend.profile_image_url ? 
+                                              <img src={friend.profile_image_url} alt={friend.full_name} className="w-full h-full object-cover" loading="lazy" /> :
+                                              <span className="text-[#FFFFFF] font-semibold text-base">{friend.full_name?.[0] || 'U'}</span>
+                                            }
+                                          </div>
                                           <div className="flex-1 min-w-0">
                                             <h4 className="font-bold text-[#F4F7F5] text-sm truncate">{friend.display_name || friend.full_name}</h4>
                                             <div className="flex items-center gap-1.5 text-xs text-[#9EAAA4]">
@@ -961,7 +965,7 @@ export default function ProfilePage() {
                                             </div>
                                           </div>
                                           <Badge className={`bg-gradient-to-r ${friendSkill.color} ${friendSkill.textColor} text-[10px] font-bold border-0 px-2 h-6`}>
-                                            <span className="mr-1">{friendSkill.emoji}</span>
+                                            <FriendSkillIcon className="w-3 h-3 mr-1" />
                                             {friendSkill.label}
                                           </Badge>
                                         </div>
