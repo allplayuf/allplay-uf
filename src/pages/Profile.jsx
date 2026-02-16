@@ -43,6 +43,7 @@ import { AuthGateModal } from "../components/ui/auth-gate-modal";
 import { LoginModal } from "../components/supabase";
 import { LogIn } from "lucide-react";
 import { getMyProfile, updateProfile } from "../components/supabase/services";
+import SmoothAvatar from "../components/ui/smooth-avatar";
 import { supabaseClient } from "../components/supabase/client";
 
 // Lazy load components
@@ -686,21 +687,15 @@ export default function ProfilePage() {
                 }}
                 className="relative flex-shrink-0"
               >
-                <div className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-[#FFFFFF]/30 shadow-[0_20px_60px_rgba(43,168,74,0.4)] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm flex items-center justify-center">
-                  {displayUser?.profile_image_url ? (
-                    <img
-                      src={displayUser.profile_image_url}
-                      alt="Profile"
-                      className="w-full h-full object-cover"
-                      loading="eager"
-                      fetchpriority="high"
-                    />
-                  ) : (
-                    <span className="text-4xl font-bold text-[#FFFFFF]">
-                      {displayUser?.full_name?.[0] || 'U'}
-                    </span>
-                  )}
-                </div>
+                <SmoothAvatar
+                  src={displayUser?.profile_image_url}
+                  alt="Profile"
+                  fallbackText={displayUser?.full_name || 'U'}
+                  size={80}
+                  rounded="rounded-2xl sm:rounded-3xl"
+                  className="sm:!w-28 sm:!h-28 lg:!w-32 lg:!h-32 border-2 border-[#FFFFFF]/30 shadow-[0_20px_60px_rgba(43,168,74,0.4)]"
+                  fallbackBg="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm"
+                />
                 {!isViewingOtherProfile && (
                   <>
                     <input
@@ -951,12 +946,13 @@ export default function ProfilePage() {
                                       <div className={`h-1 bg-gradient-to-r ${friendSkill.color}`} />
                                       <div className="p-4">
                                         <div className="flex items-center gap-3 mb-3">
-                                          <div className="w-11 h-11 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                            {friend.profile_image_url ? 
-                                              <img src={friend.profile_image_url} alt={friend.full_name} className="w-full h-full object-cover" loading="lazy" /> :
-                                              <span className="text-[#FFFFFF] font-semibold text-base">{friend.full_name?.[0] || 'U'}</span>
-                                            }
-                                          </div>
+                                          <SmoothAvatar
+                                            src={friend.profile_image_url || friend.avatar_url}
+                                            alt={friend.full_name}
+                                            fallbackText={friend.full_name || 'U'}
+                                            size={44}
+                                            rounded="rounded-xl"
+                                          />
                                           <div className="flex-1 min-w-0">
                                             <h4 className="font-bold text-[#F4F7F5] text-sm truncate">{friend.display_name || friend.full_name}</h4>
                                             <div className="flex items-center gap-1.5 text-xs text-[#9EAAA4]">
@@ -965,7 +961,7 @@ export default function ProfilePage() {
                                             </div>
                                           </div>
                                           <Badge className={`bg-gradient-to-r ${friendSkill.color} ${friendSkill.textColor} text-[10px] font-bold border-0 px-2 h-6`}>
-                                            <FriendSkillIcon className="w-3 h-3 mr-1" />
+                                            <span className="mr-1">{friendSkill.emoji}</span>
                                             {friendSkill.label}
                                           </Badge>
                                         </div>

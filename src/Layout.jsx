@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { MapPin, Calendar, Users, Trophy, User, Shield, AlertCircle } from "lucide-react";
 import { Toaster } from "sonner";
-import { QueryProvider, queryClient } from "@/components/providers/QueryProvider";
+import { QueryProvider, queryClient, CACHE_STRATEGIES } from "@/components/providers/QueryProvider";
 import { PageLoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { PageTransition } from "@/components/ui/page-transition";
 import { RouteProgress } from "@/components/ui/route-progress";
@@ -103,6 +103,20 @@ function LayoutInner({ children }) {
   // Scroll restoration is now handled by NavigationProvider.
   // No manual scrollTop = 0 here — that would fight scroll-position persistence.
   
+  // Prefetch data for a tab on hover/touchstart intent
+  const prefetchTab = (tabTitle) => {
+    // Warm the query cache so navigation feels instant
+    if (tabTitle === 'Matcher') {
+      queryClient.prefetchQuery({ queryKey: ['supabase-matches'], ...CACHE_STRATEGIES.SEMI_DYNAMIC });
+      queryClient.prefetchQuery({ queryKey: ['supabase-venues'], ...CACHE_STRATEGIES.STATIC });
+    } else if (tabTitle === 'Community') {
+      queryClient.prefetchQuery({ queryKey: ['publicUsers'], ...CACHE_STRATEGIES.STATIC });
+      queryClient.prefetchQuery({ queryKey: ['publicTeams'], ...CACHE_STRATEGIES.SEMI_DYNAMIC });
+    } else if (tabTitle === 'Profil') {
+      queryClient.prefetchQuery({ queryKey: ['supabase-userProfile', authUser?.id], ...CACHE_STRATEGIES.AUTH });
+    }
+  };
+
   // Handle tab click - navigate to root if already active, else to last path
   const handleTabClick = (item) => {
     triggerHaptic('light');
@@ -116,8 +130,8 @@ function LayoutInner({ children }) {
     }
   };
 
-  // Use Supabase auth state for admin check
   const { user: supabaseUser, isAuthenticated: isSupabaseAuth, isLoading: isSupabaseLoading, roles: supabaseRoles, hasRole: supabaseHasRole } = useSupabaseAuth();
+  const authUser = supabaseUser;
 
   // Admin check: single source of truth from public.users.is_admin via adminService
   useEffect(() => {
@@ -199,6 +213,7 @@ function LayoutInner({ children }) {
                   <button
                     key={item.title}
                     onClick={() => handleTabClick(item)}
+                    onMouseEnter={() => prefetchTab(item.title)}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl min-h-[44px] w-full text-left ${
                       isActive
                         ? 'bg-[#2BA84A]/16 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30'
@@ -307,6 +322,8 @@ function LayoutInner({ children }) {
                   <button
                     key={item.title}
                     onClick={() => handleTabClick(item)}
+                    onTouchStart={() => prefetchTab(item.title)}
+                    onMouseEnter={() => prefetchTab(item.title)}
                     className={`flex flex-col items-center justify-center min-w-[60px] min-h-[44px] px-3 py-2 rounded-xl ${
                       isActive
                         ? 'bg-[#2BA84A]/16 text-[#EAF6EE]'

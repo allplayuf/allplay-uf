@@ -9,6 +9,7 @@ const skillLevelConfig = {
   beginner: {
     label: 'Nybörjare',
     icon: Target,
+    emoji: '🌱',
     color: 'from-[#10B981] to-[#059669]',
     textColor: 'text-[#A7F3D0]',
     ringColor: 'ring-[#10B981]/30',
@@ -17,6 +18,7 @@ const skillLevelConfig = {
   intermediate: {
     label: 'Medel',
     icon: TrendingUp,
+    emoji: '⚡',
     color: 'from-[#14B8A6] to-[#0D9488]',
     textColor: 'text-[#99F6E4]',
     ringColor: 'ring-[#14B8A6]/30',
@@ -25,14 +27,16 @@ const skillLevelConfig = {
   advanced: {
     label: 'Avancerad',
     icon: Shield,
+    emoji: '🔥',
     color: 'from-[#8B5CF6] to-[#7C3AED]',
     textColor: 'text-[#DDD6FE]',
     ringColor: 'ring-[#8B5CF6]/30',
     bgColor: 'bg-[#8B5CF6]/10'
   },
   elite: {
-    label: 'Elite',
+    label: 'Elit',
     icon: Crown,
+    emoji: '👑',
     color: 'from-[#F59E0B] to-[#D97706]',
     textColor: 'text-[#FDE68A]',
     ringColor: 'ring-[#F59E0B]/30',
@@ -114,11 +118,11 @@ export default function ProfileStats({ user, isOwnProfile = true }) {
             <>
               <div className="relative mb-6">
                 <div className={`w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br ${currentSkill.color} flex items-center justify-center shadow-[0_6px_18px_rgba(0,0,0,0.22)] ring-2 ${currentSkill.ringColor}`}>
-                  <SkillIcon className="w-12 h-12 text-[#EAF6EE]" />
+                  <span className="text-4xl">{currentSkill.emoji}</span>
                 </div>
               </div>
               <div className="text-center mb-4">
-                <div className={`text-[20px] leading-[28px] font-semibold ${currentSkill.textColor} mb-1`}>
+                <div className={`text-[20px] leading-[28px] font-bold ${currentSkill.textColor} mb-1`}>
                   {currentSkill.label}
                 </div>
                 <p className="text-[13px] leading-[18px] text-[#B6C2BC]">
