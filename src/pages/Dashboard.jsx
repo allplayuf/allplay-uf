@@ -475,7 +475,7 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-5 sm:space-y-8">
 
         {/* Premium Hero Card — show skeleton while user data loads */}
         {(isAuthenticated && userLoading) ? (
@@ -756,16 +756,16 @@ export default function Dashboard() {
         )}
 
         {/* Main Content */}
-        <div className="grid lg:grid-cols-12 gap-8">
-          <div className="lg:col-span-8 space-y-8">
+        <div className="grid lg:grid-cols-12 gap-5 sm:gap-8">
+          <div className="lg:col-span-8 space-y-5 sm:space-y-8">
             {/* Upcoming Matches */}
             <motion.div variants={VARIANTS.item}>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
-                    <Calendar className="w-5 h-5 text-[#2BA84A]" strokeWidth={2.5} />
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
+                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-[#2BA84A]" strokeWidth={2.5} />
                   </div>
-                  <h2 className="text-lg sm:text-xl font-bold text-[#F4F7F5]">
+                  <h2 className="text-base sm:text-xl font-bold text-[#F4F7F5]">
                     {isGuest ? 'Kommande matcher' : 'Dina kommande matcher'}
                   </h2>
                 </div>
@@ -811,7 +811,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               ) : (
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
                   {myUpcomingMatches.map((match, index) => (
                     <div key={match.id} className="h-full">
                         <MatchCard 
@@ -845,14 +845,16 @@ export default function Dashboard() {
           {/* Right Column */}
           <motion.div
             variants={VARIANTS.item}
-            className="lg:col-span-4 space-y-8 sticky top-24 self-start"
+            className="lg:col-span-4 space-y-5 sm:space-y-8 sticky top-24 self-start"
           >
-            {/* Next Match Card */}
-            <NextMatchCard 
-              match={myUpcomingMatches[0]} 
-              venue={myUpcomingMatches[0]?.venue || venues.find(v => v.id === myUpcomingMatches[0]?.venue_id)}
-              participants={myUpcomingMatches[0] ? allParticipants.filter(p => p.match_id === myUpcomingMatches[0].id) : []}
-            />
+            {/* Next Match Card — only show if user is actually signed up */}
+            {!isGuest && myUpcomingMatches.length > 0 && (
+              <NextMatchCard 
+                match={myUpcomingMatches[0]} 
+                venue={myUpcomingMatches[0]?.venue || venues.find(v => v.id === myUpcomingMatches[0]?.venue_id)}
+                participants={myUpcomingMatches[0] ? allParticipants.filter(p => p.match_id === myUpcomingMatches[0].id) : []}
+              />
+            )}
 
             {/* Cups Widget in sidebar on desktop */}
             <div className="hidden lg:block">

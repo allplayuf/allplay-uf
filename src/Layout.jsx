@@ -285,7 +285,9 @@ function LayoutInner({ children }) {
             className="flex-1 overflow-auto lg:pb-0"
             style={{ 
               paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))',
-              scrollPaddingTop: '120px'
+              scrollPaddingTop: '120px',
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehaviorY: 'contain',
             }}
           >
             <NavigationProvider mainContentRef={mainContentRef}>

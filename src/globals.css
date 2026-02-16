@@ -93,11 +93,12 @@ css
     color: var(--color-text-primary);
     margin: 0;
     padding: 0;
-    overscroll-behavior: none;
+    overscroll-behavior-y: none;
     -webkit-overflow-scrolling: touch;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
   }
   
   /* Disable text selection and touch callouts on interactive elements */
@@ -192,4 +193,18 @@ css
 
 .will-change-opacity {
   will-change: opacity;
+}
+
+/* Native-feel scroll on mobile */
+.overflow-auto,
+.overflow-y-auto,
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* GPU-accelerate scrollable containers */
+[style*="overflow"] {
+  -webkit-overflow-scrolling: touch;
+  transform: translateZ(0);
 }
