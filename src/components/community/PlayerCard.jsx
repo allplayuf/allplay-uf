@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, UserPlus, CheckCircle, Clock, Target, TrendingUp, Shield, Crown, EyeOff } from "lucide-react";
@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import { getAvatarUrl } from "@/components/utils/privacyMask";
+import AvatarImage from "@/components/ui/avatar-image";
 
 const SKILL_LEVEL_CONFIG = {
   beginner: { label: 'Nybörjare', icon: Target, color: 'bg-[#10B981]/20 text-[#A7F3D0]' },
@@ -14,8 +15,11 @@ const SKILL_LEVEL_CONFIG = {
   elite: { label: 'Elit', icon: Crown, color: 'bg-[#F59E0B]/20 text-[#FDE68A]' }
 };
 
+/**
+ * Strategy A: Fixed-size AvatarImage with placeholder-first, no layout shift.
+ * Avatar renders an initial+gradient immediately; image fades in when loaded.
+ */
 export default function PlayerCard({ player, friendshipStatus = 'none', onAddFriend, index = 0 }) {
-  const [imgError, setImgError] = useState(false);
   const isPrivate = player._isPrivate;
   const avatarUrl = getAvatarUrl(player);
   const skillConfig = SKILL_LEVEL_CONFIG[player.skill_level || 'intermediate'];
@@ -33,20 +37,13 @@ export default function PlayerCard({ player, friendshipStatus = 'none', onAddFri
         <CardContent className="p-4">
           <Link to={isPrivate ? '#' : `${createPageUrl("Profile")}?userId=${player.id}`} className="block mb-3">
             <div className="flex items-center gap-3 mb-3">
-              {/* Avatar */}
-              <div className="w-12 h-12 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
-                {avatarUrl && !imgError ? (
-                  <img 
-                    src={avatarUrl}
-                    alt={displayName}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                    onError={() => setImgError(true)}
-                  />
-                ) : (
-                  <span className="text-white font-semibold text-lg">{initials}</span>
-                )}
-              </div>
+              {/* Avatar — placeholder-first, no pop-in */}
+              <AvatarImage
+                src={avatarUrl}
+                name={displayName}
+                className="w-12 h-12 !rounded-xl"
+                textClassName="text-lg"
+              />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <h4 className="font-semibold text-[#F4F7F5] text-sm truncate">
