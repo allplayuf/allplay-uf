@@ -405,6 +405,10 @@ export default function Dashboard() {
     ]);
   };
 
+  if (!isPageReady) {
+    return <DashboardSkeleton />;
+  }
+
   return (
     <PullToRefresh onRefresh={handleRefresh}>
     <>
