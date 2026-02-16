@@ -26,6 +26,7 @@ export {
   supabaseClient,
   sessionStore,
   AUTH_STATES,
+  waitForAuth,
   initSupabase,
   login,
   logout
