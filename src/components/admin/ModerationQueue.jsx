@@ -1,59 +1,36 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Flag, User, Calendar, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
-import { useState } from 'react';
+import { Flag, User, Calendar, AlertTriangle, CheckCircle, XCircle, RefreshCw } from "lucide-react";
 
-export default function ModerationQueue({ reports, onAction }) {
-  const [selectedReport, setSelectedReport] = useState(null);
+const REASON_TEXT = {
+  harassment: 'Trakasserier', threats: 'Hot', sexual_content: 'Sexuellt innehåll',
+  hate_speech: 'Hatretorik', spam: 'Spam', cheating: 'Fusk', underage: 'Minderårig',
+  impersonation: 'Utger sig för annan', other: 'Annat',
+  inappropriate_behavior: 'Olämpligt beteende', no_show: 'Kom inte till match'
+};
+
+export default function ModerationQueue({ reports = [], isLoading, lastUpdated, onAction, onRefresh }) {
+  const [selectedId, setSelectedId] = useState(null);
   const [notes, setNotes] = useState('');
+
+  const pending = reports.filter(r => r.status === 'pending');
+  const updatedStr = lastUpdated ? new Date(lastUpdated).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' }) : null;
 
   const handleAction = (reportId, action) => {
     onAction(reportId, action, notes);
-    setSelectedReport(null);
+    setSelectedId(null);
     setNotes('');
   };
 
-  const getReasonText = (reason) => {
-    const reasons = {
-      inappropriate_behavior: 'Olämpligt beteende',
-      harassment: 'Trakasserier',
-      threats: 'Hot',
-      sexual_content: 'Sexuellt innehåll',
-      hate_speech: 'Hatretorik',
-      cheating: 'Fusk/manipulation',
-      no_show: 'Kom inte till match',
-      spam: 'Spam eller reklam',
-      underage: 'Misstänkt minderårig',
-      impersonation: 'Utger sig för annan',
-      other: 'Annat'
-    };
-    return reasons[reason] || reasons[reason?.toLowerCase()] || reason;
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'pending': return 'bg-[#F4743B]/20 text-[#FDE3D2] ring-1 ring-[#F4743B]/30';
-      case 'investigating': return 'bg-[#4169E1]/20 text-[#B0C4DE] ring-1 ring-[#4169E1]/30';
-      case 'resolved': return 'bg-[#2BA84A]/20 text-[#CFE8D6] ring-1 ring-[#2BA84A]/30';
-      case 'dismissed': return 'bg-[#18221E] text-[#B6C2BC] ring-1 ring-[#223029]';
-      default: return 'bg-[#18221E] text-[#B6C2BC] ring-1 ring-[#223029]';
-    }
-  };
-
-  const pendingReports = reports.filter(r => r.status === 'pending');
-
-  if (pendingReports.length === 0) {
+  if (isLoading) {
     return (
-      <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-2xl">
-        <CardContent className="p-12 text-center">
-          <div className="w-20 h-20 bg-[#2BA84A]/20 rounded-2xl flex items-center justify-center mx-auto mb-4 ring-1 ring-[#2BA84A]/30">
-            <CheckCircle className="w-10 h-10 text-[#2BA84A]" />
-          </div>
-          <h3 className="text-xl font-semibold text-[#F4F7F5] mb-2">Inga väntande rapporter</h3>
-          <p className="text-[#B6C2BC]">Bra jobbat! Alla rapporter har hanterats.</p>
+      <Card className="bg-[#121715] border border-[#223029] rounded-[16px]">
+        <CardContent className="p-8 text-center">
+          <div className="w-8 h-8 border-2 border-[#F4743B] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm text-[#B6C2BC]">Laddar rapporter...</p>
         </CardContent>
       </Card>
     );
@@ -61,141 +38,81 @@ export default function ModerationQueue({ reports, onAction }) {
 
   return (
     <div className="space-y-4">
-      <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-2xl">
-        <CardHeader className="border-b border-[#223029]">
-          <CardTitle className="text-lg text-[#F4F7F5] flex items-center gap-2">
-            <Flag className="w-5 h-5 text-[#F4743B]" />
-            Modereringskö ({pendingReports.length} väntande)
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="space-y-4">
-            {pendingReports.map((report) => (
-              <div
-                key={report.id}
-                className={`p-4 border-2 rounded-xl transition-all cursor-pointer ${
-                  selectedReport?.id === report.id 
-                    ? 'border-[#F4743B] bg-[#F4743B]/10' 
-                    : 'border-[#223029] bg-[#18221E] hover:border-[#2BA84A]/50'
-                }`}
-                onClick={() => setSelectedReport(report)}
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3 flex-wrap">
-                      <div className="w-10 h-10 bg-[#F4743B]/20 rounded-xl flex items-center justify-center ring-1 ring-[#F4743B]/30">
-                        <AlertTriangle className="w-5 h-5 text-[#F4743B]" />
-                      </div>
-                      <h3 className="font-semibold text-[#F4F7F5] flex-1">
-                        {getReasonText(report.reason)}
-                      </h3>
-                      <Badge className={getStatusColor(report.status)}>
-                        {report.status}
-                      </Badge>
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold text-[#F4F7F5] flex items-center gap-2">
+          <Flag className="w-5 h-5 text-[#F4743B]" />
+          Rapporter ({pending.length} väntande)
+        </h3>
+        <div className="flex items-center gap-3">
+          {updatedStr && <span className="text-xs text-[#7B8A83]">Uppdaterad {updatedStr}</span>}
+          <Button onClick={onRefresh} variant="outline" size="sm" className="h-8 border-[#223029] text-[#F4F7F5] hover:bg-[#18221E] gap-1">
+            <RefreshCw className="w-3.5 h-3.5" />
+          </Button>
+        </div>
+      </div>
+
+      {pending.length === 0 ? (
+        <Card className="bg-[#121715] border border-[#223029] rounded-[16px]">
+          <CardContent className="p-12 text-center">
+            <CheckCircle className="w-12 h-12 text-[#2BA84A]/40 mx-auto mb-3" />
+            <h3 className="font-semibold text-[#F4F7F5] mb-1">Inga väntande rapporter</h3>
+            <p className="text-sm text-[#B6C2BC]">Alla rapporter har hanterats.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {pending.map(report => (
+            <Card
+              key={report.id}
+              className={`bg-[#121715] border rounded-[16px] transition-colors cursor-pointer ${
+                selectedId === report.id ? 'border-[#F4743B]' : 'border-[#223029] hover:border-[#F4743B]/30'
+              }`}
+              onClick={() => setSelectedId(selectedId === report.id ? null : report.id)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3 mb-2">
+                  <AlertTriangle className="w-5 h-5 text-[#F4743B] flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className="font-semibold text-[#F4F7F5] text-sm">{REASON_TEXT[report.category || report.reason] || report.category || 'Rapport'}</span>
+                      <Badge className="text-[10px] bg-[#F4743B]/15 text-[#F4743B]">Väntande</Badge>
                     </div>
-                    <div className="text-sm text-[#B6C2BC] space-y-2 ml-13">
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-[#9FC9AC]" />
-                        <span>Rapporterat av: {report.reporter_id}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-[#9FC9AC]" />
-                        <span>Rapporterad användare: {report.reported_user_id}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-[#9FC9AC]" />
-                        <span>{new Date(report.created_date).toLocaleDateString('sv-SE')}</span>
-                      </div>
-                      {report.match_id && (
-                        <div className="text-[#4169E1]">
-                          Match-ID: {report.match_id}
-                        </div>
-                      )}
+                    <div className="text-xs text-[#7B8A83] space-y-0.5">
+                      <div className="flex items-center gap-1"><User className="w-3 h-3" />Från: {report.reporter_id?.substring(0, 8)}...</div>
+                      {report.reported_user_id && <div className="flex items-center gap-1"><User className="w-3 h-3" />Om: {report.reported_user_id?.substring(0, 8)}...</div>}
+                      <div className="flex items-center gap-1"><Calendar className="w-3 h-3" />{new Date(report.created_date).toLocaleDateString('sv-SE')}</div>
                     </div>
+                    {report.description && (
+                      <p className="text-xs text-[#B6C2BC] mt-2 bg-[#0F1513] p-2 rounded-lg">{report.description}</p>
+                    )}
                   </div>
                 </div>
 
-                <div className="bg-[#0F1513] p-4 rounded-xl mb-3 ring-1 ring-[#223029]">
-                  <h4 className="font-medium text-[#F4F7F5] mb-2 text-sm">Beskrivning:</h4>
-                  <p className="text-sm text-[#B6C2BC]">{report.description}</p>
-                </div>
-
-                {selectedReport?.id === report.id && (
-                  <div className="border-t border-[#223029] pt-4 space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-[#F4F7F5] mb-2">
-                        Moderatoranteckningar
-                      </label>
-                      <Textarea
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Lägg till dina anteckningar om denna rapport..."
-                        rows={3}
-                        className="bg-[#18221E] border-[#223029] text-[#F4F7F5] rounded-xl"
-                      />
+                {selectedId === report.id && (
+                  <div className="border-t border-[#223029] pt-3 mt-3 space-y-3" onClick={e => e.stopPropagation()}>
+                    <Textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Moderatoranteckningar..."
+                      rows={2}
+                      className="bg-[#18221E] border-[#223029] text-[#F4F7F5] rounded-xl text-sm"
+                    />
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <button onClick={() => handleAction(report.id, 'warning')} className="p-2 text-xs bg-[#F59E0B]/10 text-[#F59E0B] rounded-lg border border-[#F59E0B]/20 hover:bg-[#F59E0B]/20">⚠️ Varning</button>
+                      <button onClick={() => handleAction(report.id, 'timeout_7_days')} className="p-2 text-xs bg-[#F4743B]/10 text-[#F4743B] rounded-lg border border-[#F4743B]/20 hover:bg-[#F4743B]/20">⏸️ 7 dagar</button>
+                      <button onClick={() => handleAction(report.id, 'permanent_ban')} className="p-2 text-xs bg-red-500/10 text-red-400 rounded-lg border border-red-500/20 hover:bg-red-500/20">🚫 Ban</button>
+                      <button onClick={() => handleAction(report.id, 'dismiss')} className="p-2 text-xs bg-[#223029] text-[#B6C2BC] rounded-lg border border-[#223029] hover:bg-[#18221E]">Avfärda</button>
                     </div>
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-[#F4F7F5] mb-2">
-                        Åtgärd
-                      </label>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        <button
-                          onClick={() => onAction(report.id, 'warning', notes)}
-                          className="p-2 text-xs bg-[#F59E0B]/10 text-[#F59E0B] rounded-lg border border-[#F59E0B]/20 hover:bg-[#F59E0B]/20 transition-all"
-                        >
-                          ⚠️ Varning
-                        </button>
-                        <button
-                          onClick={() => onAction(report.id, 'content_removed', notes)}
-                          className="p-2 text-xs bg-[#9370DB]/10 text-[#9370DB] rounded-lg border border-[#9370DB]/20 hover:bg-[#9370DB]/20 transition-all"
-                        >
-                          🗑️ Ta bort
-                        </button>
-                        <button
-                          onClick={() => onAction(report.id, 'timeout_7_days', notes)}
-                          className="p-2 text-xs bg-[#F4743B]/10 text-[#F4743B] rounded-lg border border-[#F4743B]/20 hover:bg-[#F4743B]/20 transition-all"
-                        >
-                          ⏸️ 7 dagar
-                        </button>
-                        <button
-                          onClick={() => onAction(report.id, 'permanent_ban', notes)}
-                          className="p-2 text-xs bg-red-500/10 text-red-400 rounded-lg border border-red-500/20 hover:bg-red-500/20 transition-all"
-                        >
-                          🚫 Permanent
-                        </button>
-                      </div>
-                    </div>
-                    <div className="flex gap-3">
-                      <Button
-                        onClick={() => handleAction(report.id, 'resolve')}
-                        className="flex-1 bg-[#2BA84A] hover:bg-[#248232] text-white h-11 rounded-xl"
-                      >
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Löst
-                      </Button>
-                      <Button
-                        onClick={() => handleAction(report.id, 'dismiss')}
-                        variant="outline"
-                        className="flex-1 border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] h-11 rounded-xl"
-                      >
-                        <XCircle className="w-4 h-4 mr-2" />
-                        Avfärda
-                      </Button>
-                      <Button
-                        onClick={() => setSelectedReport(null)}
-                        variant="outline"
-                        className="border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] h-11 rounded-xl"
-                      >
-                        Avbryt
-                      </Button>
-                    </div>
+                    <Button onClick={() => handleAction(report.id, 'resolve')} className="w-full h-9 bg-[#2BA84A] hover:bg-[#248232] text-white rounded-xl text-sm">
+                      <CheckCircle className="w-4 h-4 mr-1" /> Löst
+                    </Button>
                   </div>
                 )}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

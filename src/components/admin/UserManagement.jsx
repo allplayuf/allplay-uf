@@ -1,310 +1,135 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import React, { useState, useMemo } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  Users,
-  Search,
-  Ban,
-  CheckCircle,
-  XCircle,
-  Shield,
-  UserX,
-  AlertTriangle,
-  TrendingUp,
-  MapPin,
-  Trophy,
-  Filter,
-  Edit
-} from "lucide-react";
-import UserRoleEditor from "./UserRoleEditor";
+import { Users, MapPin, Trophy, TrendingUp, Filter } from "lucide-react";
+import AdminSectionHeader from "./AdminSectionHeader";
 
-export default function UserManagement({ users, onAction }) {
+const PAGE_SIZE = 30;
+
+export default function UserManagement({ users = [], isLoading, lastUpdated, onRefresh }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [cityFilter, setCityFilter] = useState('all');
-  const [editingUser, setEditingUser] = useState(null);
-  const [showRoleEditor, setShowRoleEditor] = useState(false);
+  const [sortBy, setSortBy] = useState('newest');
+  const [page, setPage] = useState(0);
 
-  const cities = [...new Set(users.map(u => u.city).filter(Boolean))].sort();
+  const filtered = useMemo(() => {
+    let list = [...users];
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = !searchTerm || 
-      user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.city?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
-    const matchesCity = cityFilter === 'all' || user.city === cityFilter;
-
-    return matchesSearch && matchesStatus && matchesCity;
-  });
-
-  const stats = {
-    total: users.length,
-    active: users.filter(u => u.status === 'active').length,
-    suspended: users.filter(u => u.status === 'suspended').length,
-    banned: users.filter(u => u.status === 'banned').length
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'active': return 'bg-[#2BA84A]/20 text-[#CFE8D6] ring-1 ring-[#2BA84A]/30';
-      case 'suspended': return 'bg-[#F4743B]/20 text-[#FDE3D2] ring-1 ring-[#F4743B]/30';
-      case 'banned': return 'bg-red-500/20 text-red-200 ring-1 ring-red-500/30';
-      default: return 'bg-gray-500/20 text-gray-200 ring-1 ring-gray-500/30';
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      list = list.filter(u =>
+        u.full_name?.toLowerCase().includes(q) ||
+        u.display_name?.toLowerCase().includes(q) ||
+        u.username?.toLowerCase().includes(q) ||
+        u.city?.toLowerCase().includes(q)
+      );
     }
-  };
 
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'active': return 'Aktiv';
-      case 'suspended': return 'Avstängd';
-      case 'banned': return 'Bannlyst';
-      default: return status;
-    }
-  };
+    list.sort((a, b) => {
+      if (sortBy === 'newest') return (b.id || '').localeCompare(a.id || '');
+      if (sortBy === 'name') return (a.full_name || '').localeCompare(b.full_name || '');
+      if (sortBy === 'city') return (a.city || '').localeCompare(b.city || '');
+      if (sortBy === 'elo') return (b.elo_rating || 0) - (a.elo_rating || 0);
+      return 0;
+    });
+
+    return list;
+  }, [users, searchTerm, sortBy]);
+
+  const paginated = filtered.slice(0, (page + 1) * PAGE_SIZE);
+  const hasMore = paginated.length < filtered.length;
 
   return (
-    <div className="space-y-6">
-      {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[16px]">
-          <CardContent className="p-4 sm:p-6 text-center">
-            <div className="w-12 h-12 bg-[#2BA84A]/16 rounded-2xl flex items-center justify-center mx-auto mb-3 ring-1 ring-[#2BA84A]/30">
-              <Users className="w-6 h-6 text-[#9FC9AC]" />
-            </div>
-            <div className="text-3xl font-bold text-[#F4F7F5] mb-1">{stats.total}</div>
-            <div className="text-sm text-[#B6C2BC]">Totalt användare</div>
+    <div className="space-y-4">
+      <AdminSectionHeader
+        title="Användare"
+        icon={Users}
+        iconColor="#2BA84A"
+        totalCount={users.length}
+        filteredCount={filtered.length}
+        searchTerm={searchTerm}
+        onSearchChange={(v) => { setSearchTerm(v); setPage(0); }}
+        searchPlaceholder="Sök namn, användarnamn, stad..."
+        isLoading={isLoading}
+        lastUpdated={lastUpdated}
+        onRefresh={onRefresh}
+      >
+        <Select value={sortBy} onValueChange={(v) => { setSortBy(v); setPage(0); }}>
+          <SelectTrigger className="w-36 h-10 bg-[#18221E] border-[#223029] text-[#F4F7F5] rounded-xl text-sm">
+            <Filter className="w-3.5 h-3.5 mr-1" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-[#121715] border-[#223029]">
+            <SelectItem value="newest" className="text-[#F4F7F5]">Nyast</SelectItem>
+            <SelectItem value="name" className="text-[#F4F7F5]">Namn</SelectItem>
+            <SelectItem value="city" className="text-[#F4F7F5]">Stad</SelectItem>
+            <SelectItem value="elo" className="text-[#F4F7F5]">ELO</SelectItem>
+          </SelectContent>
+        </Select>
+      </AdminSectionHeader>
+
+      {isLoading ? (
+        <Card className="bg-[#121715] border border-[#223029] rounded-[16px]">
+          <CardContent className="p-8 text-center">
+            <div className="w-8 h-8 border-2 border-[#2BA84A] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-sm text-[#B6C2BC]">Laddar användare från Supabase...</p>
           </CardContent>
         </Card>
-
-        <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[16px]">
-          <CardContent className="p-4 sm:p-6 text-center">
-            <div className="w-12 h-12 bg-[#2BA84A]/16 rounded-2xl flex items-center justify-center mx-auto mb-3 ring-1 ring-[#2BA84A]/30">
-              <CheckCircle className="w-6 h-6 text-[#2BA84A]" />
-            </div>
-            <div className="text-3xl font-bold text-[#2BA84A] mb-1">{stats.active}</div>
-            <div className="text-sm text-[#B6C2BC]">Aktiva</div>
+      ) : filtered.length === 0 ? (
+        <Card className="bg-[#121715] border border-[#223029] rounded-[16px]">
+          <CardContent className="p-12 text-center">
+            <Users className="w-12 h-12 text-[#2BA84A]/40 mx-auto mb-3" />
+            <h3 className="font-semibold text-[#F4F7F5] mb-1">Inga användare hittade</h3>
+            <p className="text-sm text-[#B6C2BC]">
+              {searchTerm ? 'Prova att ändra din sökning.' : 'Inga användare finns i Supabase ännu.'}
+            </p>
           </CardContent>
         </Card>
-
-        <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[16px]">
-          <CardContent className="p-4 sm:p-6 text-center">
-            <div className="w-12 h-12 bg-[#F4743B]/16 rounded-2xl flex items-center justify-center mx-auto mb-3 ring-1 ring-[#F4743B]/30">
-              <AlertTriangle className="w-6 h-6 text-[#F4743B]" />
-            </div>
-            <div className="text-3xl font-bold text-[#F4743B] mb-1">{stats.suspended}</div>
-            <div className="text-sm text-[#B6C2BC]">Avstängda</div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[16px]">
-          <CardContent className="p-4 sm:p-6 text-center">
-            <div className="w-12 h-12 bg-red-500/16 rounded-2xl flex items-center justify-center mx-auto mb-3 ring-1 ring-red-500/30">
-              <Ban className="w-6 h-6 text-red-400" />
-            </div>
-            <div className="text-3xl font-bold text-red-400 mb-1">{stats.banned}</div>
-            <div className="text-sm text-[#B6C2BC]">Bannlysta</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[16px]">
-        <CardContent className="p-4 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Search */}
-            <div className="relative md:col-span-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B6C2BC] w-5 h-5" />
-              <Input
-                placeholder="Sök användare..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 h-11 bg-[#18221E] border border-[#223029] text-[#F4F7F5] focus:border-[#2BA84A] rounded-[12px]"
-              />
-            </div>
-
-            {/* Status Filter */}
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-11 bg-[#18221E] border border-[#223029] text-[#F4F7F5] rounded-[12px]">
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent className="bg-[#121715] border border-[#223029] rounded-[14px]">
-                <SelectItem value="all" className="text-[#F4F7F5]">Alla statusar</SelectItem>
-                <SelectItem value="active" className="text-[#F4F7F5]">Aktiva</SelectItem>
-                <SelectItem value="suspended" className="text-[#F4F7F5]">Avstängda</SelectItem>
-                <SelectItem value="banned" className="text-[#F4F7F5]">Bannlysta</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* City Filter */}
-            <Select value={cityFilter} onValueChange={setCityFilter}>
-              <SelectTrigger className="h-11 bg-[#18221E] border border-[#223029] text-[#F4F7F5] rounded-[12px]">
-                <MapPin className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Stad" />
-              </SelectTrigger>
-              <SelectContent className="bg-[#121715] border border-[#223029] rounded-[14px]">
-                <SelectItem value="all" className="text-[#F4F7F5]">Alla städer</SelectItem>
-                {cities.map(city => (
-                  <SelectItem key={city} value={city} className="text-[#F4F7F5]">{city}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Users List */}
-      <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[16px]">
-        <CardHeader className="border-b border-[#223029] p-4 sm:p-6">
-          <CardTitle className="text-lg text-[#F4F7F5]">
-            Användare ({filteredUsers.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="divide-y divide-[#223029]">
-            {filteredUsers.map((user) => (
+      ) : (
+        <Card className="bg-[#121715] border border-[#223029] rounded-[16px]">
+          <CardContent className="p-0 divide-y divide-[#223029]">
+            {paginated.map(user => (
               <div key={user.id} className="p-4 hover:bg-[#18221E] transition-colors">
-                <div className="flex items-start gap-4">
-                  {/* Avatar */}
-                  <div className="w-12 h-12 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0">
-                    {user.profile_image_url ? (
-                      <img src={user.profile_image_url} alt={user.full_name} className="w-full h-full object-cover rounded-xl" />
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {user.avatar_url || user.profile_image_url ? (
+                      <img src={user.avatar_url || user.profile_image_url} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-white font-semibold">{user.full_name?.[0] || 'U'}</span>
+                      <span className="text-white font-semibold text-sm">{(user.display_name || user.full_name || '?')[0]}</span>
                     )}
                   </div>
-
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-4 mb-2">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-[#F4F7F5] flex items-center gap-2 flex-wrap">
-                          <span className="truncate">{user.full_name}</span>
-                          {user.role === 'admin' && (
-                            <Badge className="bg-[#F4743B]/20 text-[#FDE3D2] ring-1 ring-[#F4743B]/30 text-xs">
-                              <Shield className="w-3 h-3 mr-1" />
-                              Admin
-                            </Badge>
-                          )}
-                          {user.custom_roles?.includes('CUP_ADMIN') && (
-                            <Badge className="bg-[#F59E0B]/20 text-[#FDE68A] ring-1 ring-[#F59E0B]/30 text-xs">
-                              Cup Admin
-                            </Badge>
-                          )}
-                          {user.custom_roles?.includes('MODERATOR') && (
-                            <Badge className="bg-[#9370DB]/20 text-[#DDD6FE] ring-1 ring-[#9370DB]/30 text-xs">
-                              Moderator
-                            </Badge>
-                          )}
-                          <Badge className={getStatusColor(user.status)}>
-                            {getStatusText(user.status)}
-                          </Badge>
-                        </h3>
-                        <p className="text-sm text-[#B6C2BC] truncate">{user.email}</p>
-                      </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-[#F4F7F5] text-sm truncate">{user.display_name || user.full_name}</span>
+                      {user.username && <span className="text-xs text-[#7B8A83]">@{user.username}</span>}
                     </div>
-
-                    {/* Stats */}
-                    <div className="flex items-center gap-4 text-xs text-[#B6C2BC] mb-3 flex-wrap">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {user.city || 'Okänd'}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Trophy className="w-3 h-3" />
-                        {user.matches_played || 0} matcher
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <TrendingUp className="w-3 h-3" />
-                        {user.mvp_count || 0} MVPs
-                      </span>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-2 flex-wrap">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setEditingUser(user);
-                          setShowRoleEditor(true);
-                        }}
-                        className="h-8 text-xs border-[#2BA84A]/30 text-[#2BA84A] hover:bg-[#2BA84A]/10"
-                      >
-                        <Edit className="w-3 h-3 mr-1" />
-                        Redigera roller
-                      </Button>
-                      
-                      {user.role !== 'admin' && (
-                        <>
-                          {user.status === 'active' && (
-                            <>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => onAction(user.id, 'suspend')}
-                                className="h-8 text-xs border-[#223029] text-[#F4F7F5] hover:bg-[#223029]"
-                              >
-                                <UserX className="w-3 h-3 mr-1" />
-                                Stäng av
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => onAction(user.id, 'ban')}
-                                className="h-8 text-xs border-red-500/30 text-red-400 hover:bg-red-500/10"
-                              >
-                                <Ban className="w-3 h-3 mr-1" />
-                                Bannlys
-                              </Button>
-                            </>
-                          )}
-                          {(user.status === 'suspended' || user.status === 'banned') && (
-                            <Button
-                              size="sm"
-                              onClick={() => onAction(user.id, 'activate')}
-                              className="h-8 text-xs bg-[#2BA84A] hover:bg-[#248232] text-white"
-                            >
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              Aktivera
-                            </Button>
-                          )}
-                        </>
-                      )}
+                    <div className="flex items-center gap-3 text-xs text-[#7B8A83] mt-0.5">
+                      {user.city && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{user.city}</span>}
+                      <span className="flex items-center gap-1"><Trophy className="w-3 h-3" />{user.matches_played || 0} matcher</span>
+                      {user.elo_rating && <span className="flex items-center gap-1"><TrendingUp className="w-3 h-3" />{user.elo_rating} ELO</span>}
                     </div>
                   </div>
+                  {user.skill_level && (
+                    <Badge className="text-[10px] bg-[#2BA84A]/15 text-[#9FC9AC] ring-1 ring-[#2BA84A]/20">
+                      {user.skill_level}
+                    </Badge>
+                  )}
                 </div>
               </div>
             ))}
-          </div>
+          </CardContent>
+        </Card>
+      )}
 
-          {filteredUsers.length === 0 && (
-            <div className="text-center py-12">
-              <Users className="w-12 h-12 text-[#248232] mx-auto mb-4 opacity-50" />
-              <p className="text-[#B6C2BC]">Inga användare hittade</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Role Editor Modal */}
-      {editingUser && (
-        <UserRoleEditor
-          user={editingUser}
-          isOpen={showRoleEditor}
-          onClose={() => {
-            setShowRoleEditor(false);
-            setEditingUser(null);
-          }}
-          onSuccess={() => {
-            window.location.reload(); // Reload to refresh user data
-          }}
-        />
+      {hasMore && (
+        <div className="text-center">
+          <button
+            onClick={() => setPage(p => p + 1)}
+            className="text-sm text-[#2BA84A] hover:text-[#248232] font-semibold px-6 py-2"
+          >
+            Visa fler ({filtered.length - paginated.length} kvar)
+          </button>
+        </div>
       )}
     </div>
   );

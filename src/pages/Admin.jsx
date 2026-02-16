@@ -1,546 +1,280 @@
-import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import React, { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Users, Flag, MapPin, BarChart, AlertTriangle, RefreshCw, Trophy, Sparkles, Bell } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Shield, Users, Flag, MapPin, Trophy, AlertTriangle, RefreshCw, Bell } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useCustomDialog } from "../components/ui/custom-dialog";
-import { getAvailableAdminTabs } from "../components/utils/permissions";
 import { checkIsAdmin } from "../components/supabase/services/adminService";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
+import { getVenues } from "../components/supabase/services/venuesService";
+import { getPublicMatches } from "../components/supabase/services/matchesService";
+import { getTeams } from "../components/supabase/services/teamsService";
+import { searchPlayers } from "../components/supabase/services/playersService";
+import { base44 } from "@/api/base44Client";
+import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
 
 import ModerationQueue from "../components/admin/ModerationQueue";
 import UserManagement from "../components/admin/UserManagement";
 import VenueManagement from "../components/admin/VenueManagement";
-import Analytics from "../components/admin/Analytics";
 import MatchManagement from "../components/admin/MatchManagement";
 import TeamManagement from "../components/admin/TeamManagement";
 import NotificationManagement from "../components/admin/NotificationManagement";
-import CupAdminTabs from "../components/admin/CupAdminTabs";
 
 export default function AdminPage() {
-  const [reports, setReports] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [venues, setVenues] = useState([]);
-  const [matches, setMatches] = useState([]);
-  const [teams, setTeams] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isCleaningUp, setIsCleaningUp] = useState(false);
-  const [isRemovingDuplicates, setIsRemovingDuplicates] = useState(false);
-
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { confirm, alert, DialogContainer } = useCustomDialog();
+  const { user: authUser, isAuthenticated, isLoading: authLoading } = useSupabaseAuth();
 
-  const { user: authUser, isAuthenticated } = useSupabaseAuth();
+  // Admin check
+  const { data: isAdmin, isLoading: adminLoading } = useQuery({
+    queryKey: ['admin-check', authUser?.id],
+    queryFn: () => checkIsAdmin({ forceRefresh: true }),
+    enabled: isAuthenticated && !!authUser?.id,
+    staleTime: 60000,
+  });
 
-  useEffect(() => {
-    if (isAuthenticated && authUser) {
-      loadAdminData();
-    }
-  }, [isAuthenticated, authUser?.id]);
+  // Supabase data fetching
+  const { data: users = [], isLoading: usersLoading, dataUpdatedAt: usersUpdatedAt } = useQuery({
+    queryKey: ['admin-users'],
+    queryFn: async () => {
+      const result = await searchPlayers({ limit: 500, offset: 0 });
+      return result.players || [];
+    },
+    enabled: !!isAdmin,
+    staleTime: 30000,
+  });
 
-  const loadAdminData = async () => {
-    try {
-      const isAdminUser = await checkIsAdmin({ forceRefresh: true });
-      console.log('[Admin] checkIsAdmin result:', isAdminUser, 'for user:', authUser?.id);
-      
-      if (!isAdminUser) {
-        await alert('Behörighet saknas', 'Du har inte behörighet att se denna sida.', { type: 'alert' });
-        window.location.href = createPageUrl('Dashboard');
-        return;
-      }
-      
-      // Build a user object for downstream components
-      const adminUser = {
-        id: authUser.id,
-        email: authUser.email,
-        full_name: authUser.full_name || authUser.display_name,
-        is_admin: true,
-        role: 'admin'
-      };
-      setCurrentUser(adminUser);
+  const { data: venues = [], isLoading: venuesLoading, dataUpdatedAt: venuesUpdatedAt } = useQuery({
+    queryKey: ['admin-venues'],
+    queryFn: () => getVenues(),
+    enabled: !!isAdmin,
+    staleTime: 30000,
+  });
 
-      const [reportsData, usersData, venuesData, matchesData, teamsData] = await Promise.all([
-        base44.entities.Report.list('-created_date'),
-        base44.entities.User.list('-created_date'),
-        base44.entities.Venue.list(),
-        base44.entities.Match.list('-created_date'),
-        base44.entities.Team.list('-created_date')
-      ]);
+  const { data: matches = [], isLoading: matchesLoading, dataUpdatedAt: matchesUpdatedAt } = useQuery({
+    queryKey: ['admin-matches'],
+    queryFn: () => getPublicMatches(),
+    enabled: !!isAdmin,
+    staleTime: 30000,
+  });
 
-      setReports(reportsData);
-      setUsers(usersData);
-      setVenues(venuesData);
-      setMatches(matchesData);
-      setTeams(teamsData);
+  const { data: teams = [], isLoading: teamsLoading, dataUpdatedAt: teamsUpdatedAt } = useQuery({
+    queryKey: ['admin-teams'],
+    queryFn: () => getTeams(),
+    enabled: !!isAdmin,
+    staleTime: 30000,
+  });
 
-    } catch (error) {
-      console.error("Error loading admin data:", error);
-      await alert('Fel vid laddning', 'Kunde inte ladda admin-data. Kontrollera dina behörigheter.', { type: 'alert' });
-      window.location.href = createPageUrl('Dashboard');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { data: reports = [], isLoading: reportsLoading, dataUpdatedAt: reportsUpdatedAt } = useQuery({
+    queryKey: ['admin-reports'],
+    queryFn: () => base44.entities.Report.list('-created_date'),
+    enabled: !!isAdmin,
+    staleTime: 30000,
+  });
+
+  const refreshAll = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    queryClient.invalidateQueries({ queryKey: ['admin-venues'] });
+    queryClient.invalidateQueries({ queryKey: ['admin-matches'] });
+    queryClient.invalidateQueries({ queryKey: ['admin-teams'] });
+    queryClient.invalidateQueries({ queryKey: ['admin-reports'] });
+  }, [queryClient]);
 
   const handleReportAction = async (reportId, action, notes) => {
     try {
-      const report = reports.find(r => r.id === reportId);
-      
-      // Determine status based on action
       let status = 'resolved';
-      if (action === 'dismiss' || action === 'dismissed') {
-        status = 'dismissed';
-      }
-      
-      // Apply user action if needed
-      if (report?.reported_user_id && ['warning', 'timeout_7_days', 'timeout_30_days', 'permanent_ban'].includes(action)) {
-        const userAction = action === 'permanent_ban' ? 'ban' : 
-                          action.startsWith('timeout') ? 'suspend' : null;
-        
-        if (userAction) {
-          await handleUserAction(report.reported_user_id, userAction);
-        }
-      }
-      
+      if (action === 'dismiss' || action === 'dismissed') status = 'dismissed';
+
       await base44.entities.Report.update(reportId, {
-        status: status,
+        status,
         moderator_notes: notes,
         resolved_date: new Date().toISOString(),
         action_taken: action,
-        resolved_by: currentUser?.id
+        resolved_by: authUser?.id
       });
-      
+
       await alert('Rapport uppdaterad', `Åtgärd: ${action}`, { type: 'success' });
-      loadAdminData();
+      queryClient.invalidateQueries({ queryKey: ['admin-reports'] });
     } catch (error) {
-      console.error("Error updating report:", error);
-      await alert('Ett fel uppstod', 'Kunde inte uppdatera rapport. Försök igen.', { type: 'alert' });
-    }
-  };
-
-  const handleUserAction = async (userId, action) => {
-    try {
-      let status = 'active';
-      let blocked = false;
-      
-      if (action === 'suspend') {
-        status = 'suspended';
-        blocked = false;
-      }
-      if (action === 'ban') {
-        status = 'banned';
-        blocked = true;
-      }
-      if (action === 'activate') {
-        status = 'active';
-        blocked = false;
-      }
-
-      await base44.entities.User.update(userId, { status, blocked });
-      loadAdminData();
-      await alert('Uppdaterat!', 'Användarstatus uppdaterad!', { type: 'success' });
-    } catch (error) {
-      console.error("Error updating user:", error);
-      await alert('Ett fel uppstod', 'Kunde inte uppdatera användare. Försök igen.', { type: 'alert' });
+      await alert('Fel', error.message || 'Kunde inte uppdatera rapport.', { type: 'alert' });
     }
   };
 
   const handleDeleteMatch = async (matchId, matchTitle) => {
-    const shouldDelete = await confirm(
-      'Radera match',
-      `Är du säker på att du vill radera matchen "${matchTitle}"? Detta går inte att ångra.`,
-      {
-        type: 'warning',
-        confirmText: 'Ja, radera',
-        cancelText: 'Avbryt'
-      }
-    );
-
+    const shouldDelete = await confirm('Radera match', `Radera "${matchTitle}"? Kan inte ångras.`, {
+      type: 'warning', confirmText: 'Ja, radera', cancelText: 'Avbryt'
+    });
     if (!shouldDelete) return;
-
     try {
       await base44.entities.Match.update(matchId, {
-        status: 'cancelled',
-        deleted_at: new Date().toISOString(),
-        deleted_by: currentUser.id
+        status: 'cancelled', deleted_at: new Date().toISOString(), deleted_by: authUser?.id
       });
-
-      console.log('AUDIT LOG:', {
-        action: 'DELETE_MATCH',
-        admin_id: currentUser.id,
-        admin_email: currentUser.email,
-        match_id: matchId,
-        match_title: matchTitle,
-        timestamp: new Date().toISOString(),
-        previous_state: { status: 'active' },
-        new_state: { status: 'deleted' }
-      });
-
-      await alert('Match raderad!', 'Matchen har tagits bort från systemet.', { type: 'success' });
-      loadAdminData();
+      await alert('Raderad', 'Matchen har raderats.', { type: 'success' });
+      queryClient.invalidateQueries({ queryKey: ['admin-matches'] });
     } catch (error) {
-      console.error("Error deleting match:", error);
-      await alert('Ett fel uppstod', 'Kunde inte radera match. Försök igen.', { type: 'alert' });
+      await alert('Fel', error.message || 'Kunde inte radera matchen.', { type: 'alert' });
     }
   };
 
   const handleDeleteTeam = async (teamId, teamName) => {
-    const shouldDelete = await confirm(
-      'Radera lag',
-      `Är du säker på att du vill radera laget "${teamName}"? Detta går inte att ångra.`,
-      {
-        type: 'warning',
-        confirmText: 'Ja, radera',
-        cancelText: 'Avbryt'
-      }
-    );
-
+    const shouldDelete = await confirm('Radera lag', `Radera "${teamName}"? Kan inte ångras.`, {
+      type: 'warning', confirmText: 'Ja, radera', cancelText: 'Avbryt'
+    });
     if (!shouldDelete) return;
-
     try {
       await base44.entities.Team.update(teamId, {
-        is_active: false,
-        deleted_at: new Date().toISOString(),
-        deleted_by: currentUser.id
+        is_active: false, deleted_at: new Date().toISOString(), deleted_by: authUser?.id
       });
-
-      console.log('AUDIT LOG:', {
-        action: 'DELETE_TEAM',
-        admin_id: currentUser.id,
-        admin_email: currentUser.email,
-        team_id: teamId,
-        team_name: teamName,
-        timestamp: new Date().toISOString(),
-        previous_state: { is_active: true },
-        new_state: { is_active: false }
-      });
-
-      await alert('Lag raderat!', 'Laget har tagits bort från systemet.', { type: 'success' });
-      loadAdminData();
+      await alert('Raderat', 'Laget har raderats.', { type: 'success' });
+      queryClient.invalidateQueries({ queryKey: ['admin-teams'] });
     } catch (error) {
-      console.error("Error deleting team:", error);
-      await alert('Ett fel uppstod', 'Kunde inte radera lag. Försök igen.', { type: 'alert' });
+      await alert('Fel', error.message || 'Kunde inte radera laget.', { type: 'alert' });
     }
   };
 
-  const handleCleanupPendingRequests = async () => {
-    const shouldCleanup = await confirm(
-      'Rensa väntande förfrågningar',
-      'Detta kommer att ta bort alla väntande vänförfrågningar och lag-ansökningar. Fortsätt?',
-      {
-        type: 'warning',
-        confirmText: 'Ja, rensa',
-        cancelText: 'Avbryt'
-      }
-    );
+  // Loading states
+  if (authLoading || adminLoading) return <PageLoadingSkeleton />;
 
-    if (!shouldCleanup) return;
-
-    setIsCleaningUp(true);
-    try {
-      const { base44 } = await import("@/api/base44Client");
-      const response = await base44.functions.invoke('cleanupPendingRequests', {});
-      
-      await alert(
-        'Cleanup klart!',
-        `Raderade vänförfrågningar: ${response.data.stats.deletedFriendships}\nRaderade lag-ansökningar: ${response.data.stats.deletedTeamMembers}\n\nBehöll accepterade vänskap och aktiva medlemmar.`,
-        { type: 'success' }
-      );
-      
-    } catch (error) {
-      console.error("Error cleaning up:", error);
-      await alert('Ett fel uppstod', 'Kunde inte köra cleanup. Försök igen.', { type: 'alert' });
-    } finally {
-      setIsCleaningUp(false);
-    }
-  };
-
-  const handleRemoveDuplicateVenues = async () => {
-    const shouldRemove = await confirm(
-      'Ta bort dubblett-planer',
-      'Detta kommer att ta bort alla dubblett-planer (planer med samma namn och stad). Fortsätt?',
-      {
-        type: 'warning',
-        confirmText: 'Ja, ta bort',
-        cancelText: 'Avbryt'
-      }
-    );
-
-    if (!shouldRemove) return;
-
-    setIsRemovingDuplicates(true);
-    try {
-      const { base44 } = await import("@/api/base44Client");
-      const response = await base44.functions.invoke('removeDuplicateVenues', {});
-      
-      await alert(
-        'Cleanup klart!',
-        `${response.data.message}\n\nTotalt: ${response.data.stats.totalVenues}\nDubbletter borttagna: ${response.data.stats.duplicatesRemoved}\nKvar: ${response.data.stats.remainingVenues}`,
-        { type: 'success' }
-      );
-      
-      loadAdminData();
-      
-    } catch (error) {
-      console.error("Error removing duplicates:", error);
-      await alert('Ett fel uppstod', 'Kunde inte ta bort dubbletter. Försök igen.', { type: 'alert' });
-    } finally {
-      setIsRemovingDuplicates(false);
-    }
-  };
-
-  if (isLoading) {
+  if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-[#0F1513] flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="w-12 h-12 border-4 border-[#2BA84A] border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-[#FFFFFF]">Laddar admin-panel...</p>
-        </div>
+      <div className="min-h-screen bg-[#0F1513] flex items-center justify-center p-4">
+        <DialogContainer />
+        <Card className="bg-[#121715] border border-[#223029] rounded-[20px] max-w-md w-full">
+          <CardContent className="p-8 text-center">
+            <Shield className="w-16 h-16 text-[#DC2626] mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-[#F4F7F5] mb-2">Åtkomst nekad</h2>
+            <p className="text-[#B6C2BC] mb-6">Du har inte behörighet att se denna sida.</p>
+            <Button onClick={() => navigate(createPageUrl('Dashboard'))} className="bg-[#2BA84A] hover:bg-[#248232] text-white">
+              Tillbaka till Dashboard
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  // CUP_ADMIN-only interface removed — admin page now only for full admins
-
   const pendingReports = reports.filter(r => r.status === 'pending').length;
-  const activeUsers = users.filter(u => u.status === 'active').length;
-  const availableTabs = getAvailableAdminTabs(currentUser);
+  const dataLoading = usersLoading || venuesLoading || matchesLoading || teamsLoading || reportsLoading;
 
   return (
     <div className="min-h-screen bg-[#0F1513] p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
       <DialogContainer />
-      
-      {/* Header */}
+
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Shield className="w-8 h-8 text-[#2BA84A]" />
-            <h1 className="text-3xl lg:text-4xl font-bold text-[#FFFFFF]">Admin Panel</h1>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <Shield className="w-8 h-8 text-[#2BA84A]" />
+              <h1 className="text-3xl font-bold text-[#F4F7F5]">Admin Panel</h1>
+            </div>
+            <p className="text-[#B6C2BC]">Alla data kommer direkt från Supabase</p>
           </div>
-          <p className="text-[#FFFFFF]/70 text-lg">Hantera användare, rapporter och systemöversikt</p>
-          
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-            <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[16px]">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-[#F4743B]">{pendingReports}</div>
-                <div className="text-sm text-[#FFFFFF]/70">Väntande rapporter</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[16px]">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-[#2BA84A]">{activeUsers}</div>
-                <div className="text-sm text-[#FFFFFF]/70">Aktiva användare</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[16px]">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-[#F4743B]">{matches.length}</div>
-                <div className="text-sm text-[#FFFFFF]/70">Totalt matcher</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[16px]">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-[#9B59B6]">{teams.length}</div>
-                <div className="text-sm text-[#FFFFFF]/70">Totalt lag</div>
-              </CardContent>
-            </Card>
-          </div>
+          <Button onClick={refreshAll} variant="outline" className="border-[#223029] text-[#F4F7F5] hover:bg-[#18221E] gap-2">
+            <RefreshCw className={`w-4 h-4 ${dataLoading ? 'animate-spin' : ''}`} />
+            Uppdatera allt
+          </Button>
         </div>
 
-        {/* Alert for pending reports */}
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {[
+            { label: 'Användare', count: users.length, color: '#2BA84A', loading: usersLoading },
+            { label: 'Planer', count: venues.length, color: '#9370DB', loading: venuesLoading },
+            { label: 'Matcher', count: matches.length, color: '#F4743B', loading: matchesLoading },
+            { label: 'Lag', count: teams.length, color: '#4169E1', loading: teamsLoading },
+            { label: 'Rapporter', count: pendingReports, color: '#DC2626', loading: reportsLoading },
+          ].map(s => (
+            <Card key={s.label} className="bg-[#121715] border border-[#223029] rounded-[16px]">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold mb-1" style={{ color: s.color }}>
+                  {s.loading ? '…' : s.count}
+                </div>
+                <div className="text-xs text-[#B6C2BC]">{s.label}</div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Alert */}
         {pendingReports > 0 && (
-          <div className="mb-6 p-4 bg-[#F4743B]/20 border border-[#F4743B] rounded-[16px] flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-[#F4743B]" />
-            <div>
-              <h4 className="font-semibold text-[#FFFFFF]">Åtgärd krävs</h4>
-              <p className="text-[#FFFFFF]/80">Du har {pendingReports} väntande rapporter som behöver granskas.</p>
-            </div>
+          <div className="p-4 bg-[#F4743B]/15 border border-[#F4743B]/40 rounded-[16px] flex items-center gap-3">
+            <AlertTriangle className="w-5 h-5 text-[#F4743B] flex-shrink-0" />
+            <p className="text-sm text-[#F4F7F5]">{pendingReports} väntande rapporter kräver åtgärd.</p>
           </div>
         )}
 
-        {/* Admin Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Card className="bg-[#121715] border border-[#223029] hover:border-[#F4743B] transition-all shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-2xl">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-[#F4743B]/20 rounded-xl flex items-center justify-center ring-1 ring-[#F4743B]/30">
-                  <RefreshCw className="w-6 h-6 text-[#F4743B]" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-[#F4F7F5]">Rensa väntande</h3>
-                  <p className="text-xs text-[#B6C2BC]">Ta bort alla pending-inbjudningar</p>
-                </div>
-              </div>
-              <Button
-                onClick={handleCleanupPendingRequests}
-                disabled={isCleaningUp}
-                className="w-full bg-[#F4743B] hover:bg-[#E5683A] text-white rounded-xl h-11"
-              >
-                {isCleaningUp ? 'Rensar...' : 'Kör cleanup'}
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-[#121715] border border-[#223029] hover:border-[#9370DB] transition-all shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-2xl">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-[#9370DB]/20 rounded-xl flex items-center justify-center ring-1 ring-[#9370DB]/30">
-                  <MapPin className="w-6 h-6 text-[#9370DB]" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-[#F4F7F5]">Ta bort dubbletter</h3>
-                  <p className="text-xs text-[#B6C2BC]">Rensa dubblett-planer</p>
-                </div>
-              </div>
-              <Button
-                onClick={handleRemoveDuplicateVenues}
-                disabled={isRemovingDuplicates}
-                className="w-full bg-[#9370DB] hover:bg-[#8B008B] text-white rounded-xl h-11"
-              >
-                {isRemovingDuplicates ? 'Rensar...' : 'Kör cleanup'}
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-[#121715] border border-[#223029] hover:border-[#F59E0B] transition-all shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-2xl">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-[#F59E0B]/20 rounded-xl flex items-center justify-center ring-1 ring-[#F59E0B]/30">
-                  <Trophy className="w-6 h-6 text-[#F59E0B]" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-[#F4F7F5]">Rensa cuper</h3>
-                  <p className="text-xs text-[#B6C2BC]">Hantera och rensa cuper</p>
-                </div>
-              </div>
-              <Link to={createPageUrl("AdminCleanup")}>
-                <Button className="w-full bg-[#F59E0B] hover:bg-[#D97706] text-white rounded-xl h-11 gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  Öppna cleanup
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Tabs */}
-        <Tabs defaultValue={availableTabs[0] || "reports"} className="space-y-6">
-          <TabsList className="bg-[#121715] shadow-[0_6px_18px_rgba(0,0,0,0.22)] p-1 border border-[#223029] rounded-[16px] flex-wrap h-auto">
-            {availableTabs.includes('reports') && (
-              <TabsTrigger value="reports" className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-[#FFFFFF] text-[#FFFFFF]/70">
-                <Flag className="w-4 h-4" />
-                Rapporter ({pendingReports})
+        <Tabs defaultValue="users" className="space-y-6">
+          <TabsList className="bg-[#121715] p-1 border border-[#223029] rounded-[16px] flex-wrap h-auto gap-1">
+            {[
+              { value: 'users', icon: Users, label: 'Användare' },
+              { value: 'matches', icon: Trophy, label: 'Matcher' },
+              { value: 'teams', icon: Shield, label: 'Lag' },
+              { value: 'venues', icon: MapPin, label: 'Planer' },
+              { value: 'reports', icon: Flag, label: `Rapporter (${pendingReports})` },
+              { value: 'notifications', icon: Bell, label: 'Notiser' },
+            ].map(tab => (
+              <TabsTrigger key={tab.value} value={tab.value} className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-white text-[#B6C2BC]">
+                <tab.icon className="w-4 h-4" />
+                <span className="hidden sm:inline">{tab.label}</span>
               </TabsTrigger>
-            )}
-            {availableTabs.includes('users') && (
-              <TabsTrigger value="users" className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-[#FFFFFF] text-[#FFFFFF]/70">
-                <Users className="w-4 h-4" />
-                Användare
-              </TabsTrigger>
-            )}
-            {availableTabs.includes('matches') && (
-              <TabsTrigger value="matches" className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-[#FFFFFF] text-[#FFFFFF]/70">
-                <Trophy className="w-4 h-4" />
-                Matcher
-              </TabsTrigger>
-            )}
-            {availableTabs.includes('teams') && (
-              <TabsTrigger value="teams" className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-[#FFFFFF] text-[#FFFFFF]/70">
-                <Shield className="w-4 h-4" />
-                Lag
-              </TabsTrigger>
-            )}
-            {availableTabs.includes('venues') && (
-              <TabsTrigger value="venues" className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-[#FFFFFF] text-[#FFFFFF]/70">
-                <MapPin className="w-4 h-4" />
-                Planer
-              </TabsTrigger>
-            )}
-            {availableTabs.includes('analytics') && (
-              <TabsTrigger value="analytics" className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-[#FFFFFF] text-[#FFFFFF]/70">
-                <BarChart className="w-4 h-4" />
-                Statistik
-              </TabsTrigger>
-            )}
-            {availableTabs.includes('notifications') && (
-              <TabsTrigger value="notifications" className="flex items-center gap-2 data-[state=active]:bg-[#2BA84A] data-[state=active]:text-[#FFFFFF] text-[#FFFFFF]/70">
-                <Bell className="w-4 h-4" />
-                Notiser
-              </TabsTrigger>
-            )}
+            ))}
           </TabsList>
 
-          {availableTabs.includes('reports') && (
-            <TabsContent value="reports">
-              <ModerationQueue 
-                reports={reports}
-                onAction={handleReportAction}
-              />
-            </TabsContent>
-          )}
-
-          {availableTabs.includes('users') && (
-            <TabsContent value="users">
-              <UserManagement 
-                users={users}
-                onAction={handleUserAction}
-              />
-            </TabsContent>
-          )}
-
-          {availableTabs.includes('matches') && (
-            <TabsContent value="matches">
-              <MatchManagement 
-                matches={matches}
-                venues={venues}
-                onDelete={handleDeleteMatch}
-                onRefresh={loadAdminData}
-              />
-            </TabsContent>
-          )}
-
-          {availableTabs.includes('teams') && (
-            <TabsContent value="teams">
-              <TeamManagement 
-                teams={teams}
-                onDelete={handleDeleteTeam}
-                onRefresh={loadAdminData}
-              />
-            </TabsContent>
-          )}
-
-          {availableTabs.includes('venues') && (
-            <TabsContent value="venues">
-              <VenueManagement 
-                venues={venues}
-                onRefresh={loadAdminData}
-              />
-            </TabsContent>
-          )}
-
-          {availableTabs.includes('analytics') && (
-            <TabsContent value="analytics">
-              <Analytics 
-                users={users}
-                matches={matches}
-                venues={venues}
-                reports={reports}
-                onDeleteMatch={handleDeleteMatch}
-                onDeleteTeam={handleDeleteTeam}
-              />
-            </TabsContent>
-          )}
-
-          {availableTabs.includes('notifications') && (
-            <TabsContent value="notifications">
-              <NotificationManagement />
-            </TabsContent>
-          )}
+          <TabsContent value="users">
+            <UserManagement
+              users={users}
+              isLoading={usersLoading}
+              lastUpdated={usersUpdatedAt}
+              onRefresh={() => queryClient.invalidateQueries({ queryKey: ['admin-users'] })}
+            />
+          </TabsContent>
+          <TabsContent value="matches">
+            <MatchManagement
+              matches={matches}
+              venues={venues}
+              isLoading={matchesLoading}
+              lastUpdated={matchesUpdatedAt}
+              onDelete={handleDeleteMatch}
+              onRefresh={() => queryClient.invalidateQueries({ queryKey: ['admin-matches'] })}
+            />
+          </TabsContent>
+          <TabsContent value="teams">
+            <TeamManagement
+              teams={teams}
+              isLoading={teamsLoading}
+              lastUpdated={teamsUpdatedAt}
+              onDelete={handleDeleteTeam}
+              onRefresh={() => queryClient.invalidateQueries({ queryKey: ['admin-teams'] })}
+            />
+          </TabsContent>
+          <TabsContent value="venues">
+            <VenueManagement
+              venues={venues}
+              isLoading={venuesLoading}
+              lastUpdated={venuesUpdatedAt}
+              onRefresh={() => queryClient.invalidateQueries({ queryKey: ['admin-venues'] })}
+            />
+          </TabsContent>
+          <TabsContent value="reports">
+            <ModerationQueue
+              reports={reports}
+              isLoading={reportsLoading}
+              lastUpdated={reportsUpdatedAt}
+              onAction={handleReportAction}
+              onRefresh={() => queryClient.invalidateQueries({ queryKey: ['admin-reports'] })}
+            />
+          </TabsContent>
+          <TabsContent value="notifications">
+            <NotificationManagement />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
