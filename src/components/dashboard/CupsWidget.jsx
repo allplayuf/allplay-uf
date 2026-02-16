@@ -42,8 +42,6 @@ export default function CupsWidget() {
       const allCups = await base44.entities.Cup.list('-created_date');
       const today = new Date().toISOString().split('T')[0];
       
-      const today = new Date().toISOString().split('T')[0];
-      
       return allCups
         .filter(cup => {
           if (cup.is_public === false) return false;
