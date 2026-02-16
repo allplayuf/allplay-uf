@@ -27,7 +27,7 @@ export default function NearbyMatchesWidget({
 
   return (
     <div className="space-y-4">
-      {/* Section Header */}
+      {/* Section Header — aligned with Dashboard token scale */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="w-10 h-10 bg-gradient-to-br from-[#F4743B]/20 to-[#F4743B]/10 rounded-xl flex items-center justify-center ring-1 ring-[#F4743B]/20">
@@ -47,8 +47,8 @@ export default function NearbyMatchesWidget({
         </Link>
       </div>
 
-      {/* Match List */}
-      <div className="space-y-2.5">
+      {/* Match List — 12px gap */}
+      <div className="space-y-3">
         {matches.slice(0, 5).map((match, index) => {
           const venue = match.venue;
           const matchParticipants = (allParticipants || []).filter(p => p.match_id === match.id);
@@ -73,7 +73,7 @@ export default function NearbyMatchesWidget({
                       isJoined ? 'bg-[#2BA84A]' : isFull ? 'bg-[#9EAAA4]' : 'bg-[#F4743B]'
                     }`} />
 
-                    <div className="flex-1 p-3.5">
+                    <div className="flex-1 p-3">
                       <div className="flex items-start justify-between gap-3">
                         {/* Match info */}
                         <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`} className="flex-1 min-w-0">

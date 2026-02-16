@@ -475,7 +475,15 @@ export default function Dashboard() {
         )}
       </AnimatePresence>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-5 sm:space-y-8">
+      {/*
+        ── SPACING TOKEN SYSTEM (8px base) ──
+        Container side-padding:  mobile 16px (px-4), tablet 24px (sm:px-6), desktop 32px (lg:px-8)
+        Section gap:             mobile 24px (gap-6), desktop 32px (sm:gap-8)
+        Card inner padding:      16px (p-4) everywhere
+        Card gap in lists:       12px (gap-3)
+        safe-area handled by Layout
+      */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 sm:space-y-8">
 
         {/* Premium Hero Card — show skeleton while user data loads */}
         {(isAuthenticated && userLoading) ? (
@@ -562,8 +570,8 @@ export default function Dashboard() {
             />
           ))}
 
-          <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-14">
-            <div className="flex items-center gap-3 sm:gap-5 lg:gap-8 mb-[20px] sm:mb-6 lg:mb-8">
+          <div className="relative z-10 px-5 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-10">
+            <div className="flex items-center gap-3 sm:gap-4 lg:gap-6 mb-5 sm:mb-6 lg:mb-8">
               
               {/* Profile Image */}
               <motion.div
@@ -612,7 +620,7 @@ export default function Dashboard() {
             {/* Action Buttons Grid */}
             <motion.div
               variants={VARIANTS.item}
-              className="grid grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-[24px] sm:mb-8 lg:mb-10"
+              className="grid grid-cols-3 gap-3 sm:gap-4 lg:gap-4 mb-6 sm:mb-8"
             >
               <Link to={createPageUrl('Map')}>
                 <motion.div 
@@ -756,16 +764,16 @@ export default function Dashboard() {
         )}
 
         {/* Main Content */}
-        <div className="grid lg:grid-cols-12 gap-5 sm:gap-8">
-          <div className="lg:col-span-8 space-y-5 sm:space-y-8">
+        <div className="grid lg:grid-cols-12 gap-6 sm:gap-8">
+          <div className="lg:col-span-8 space-y-6 sm:space-y-8">
             {/* Upcoming Matches */}
             <motion.div variants={VARIANTS.item}>
-              <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
-                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-[#2BA84A]" strokeWidth={2.5} />
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center ring-1 ring-[#2BA84A]/20">
+                    <Calendar className="w-5 h-5 text-[#2BA84A]" strokeWidth={2.5} />
                   </div>
-                  <h2 className="text-base sm:text-xl font-bold text-[#F4F7F5]">
+                  <h2 className="text-base font-bold text-[#F4F7F5]">
                     {isGuest ? 'Kommande matcher' : 'Dina kommande matcher'}
                   </h2>
                 </div>
@@ -783,7 +791,7 @@ export default function Dashboard() {
               {matchesLoading || venuesLoading ? (
                 <MatchGridSkeleton count={2} />
               ) : myUpcomingMatches.length === 0 ? (
-                <div className="p-8 sm:p-10 text-center bg-gradient-to-br from-[#121715] to-[#0F2917]/20 border border-[#223029] rounded-2xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
+                <div className="p-6 sm:p-8 text-center bg-gradient-to-br from-[#121715] to-[#0F2917]/20 border border-[#223029] rounded-2xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
                   <div className="w-16 h-16 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-4 ring-1 ring-[#2BA84A]/20">
                     <Calendar className="w-8 h-8 text-[#2BA84A]" />
                   </div>
@@ -845,7 +853,7 @@ export default function Dashboard() {
           {/* Right Column */}
           <motion.div
             variants={VARIANTS.item}
-            className="lg:col-span-4 space-y-5 sm:space-y-8 sticky top-24 self-start"
+            className="lg:col-span-4 space-y-6 sm:space-y-8 sticky top-24 self-start"
           >
             {/* Next Match Card — only show if user is actually signed up */}
             {!isGuest && myUpcomingMatches.length > 0 && (
@@ -876,7 +884,7 @@ export default function Dashboard() {
               whileTap={{ scale: 0.99 }}
               className="relative overflow-hidden rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#223029] bg-gradient-to-br from-[#121715] to-[#0F1513] hover:border-[#2BA84A]/30 transition-all cursor-pointer"
             >
-              <div className="flex flex-col sm:flex-row items-center sm:items-stretch gap-4 p-5 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-center sm:items-stretch gap-4 p-4 sm:p-5">
                 <div className="w-full sm:w-40 h-40 sm:h-auto rounded-xl overflow-hidden flex-shrink-0">
                   <img 
                     src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/afd97d702_P10905801.jpg"

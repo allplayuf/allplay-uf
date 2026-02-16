@@ -26,18 +26,22 @@ const STATUS_RING = {
 
 /* ─── VENUE PIN (drop-shape, green — no active matches) ─── */
 function createVenuePin(isSelected) {
-  const s = isSelected ? 34 : 28;
-  const w = s;
-  const h = s + 8;
+  const s = isSelected ? 36 : 28;
+  const w = s + 4; // extra space for shadow filter
+  const h = s + 14;
   const cx = w / 2;
   const bodyR = s / 2 - 2;
-  const cy = bodyR + 2;
+  const cy = bodyR + 4;
   const fillColor = '#0F2917';
   const strokeColor = '#2BA84A';
+  const shadowOp = isSelected ? 0.5 : 0.3;
 
   const svg = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <path d="M${cx},${h - 1} L${cx - 4},${cy + bodyR - 3} Q${cx},${cy + bodyR + 2} ${cx + 4},${cy + bodyR - 3} Z" fill="${fillColor}" stroke="${strokeColor}" stroke-width="1"/>
-    <circle cx="${cx}" cy="${cy}" r="${bodyR}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="1.5"/>
+    <defs><filter id="vs${s}"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="${shadowOp}"/></filter></defs>
+    <g filter="url(#vs${s})">
+      <path d="M${cx},${h - 3} L${cx - 5},${cy + bodyR - 2} Q${cx},${cy + bodyR + 3} ${cx + 5},${cy + bodyR - 2} Z" fill="${fillColor}" stroke="${strokeColor}" stroke-width="1.2"/>
+      <circle cx="${cx}" cy="${cy}" r="${bodyR}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${isSelected ? 2 : 1.5}"/>
+    </g>
     <circle cx="${cx}" cy="${cy}" r="4.5" fill="none" stroke="${strokeColor}" stroke-width="1.2" opacity="0.8"/>
     <circle cx="${cx}" cy="${cy}" r="1.8" fill="${strokeColor}" opacity="0.8"/>
   </svg>`;
@@ -45,41 +49,45 @@ function createVenuePin(isSelected) {
     html: svg,
     className: 'allplay-venue-puck',
     iconSize: [w, h],
-    iconAnchor: [cx, h],
-    popupAnchor: [0, -h],
+    iconAnchor: [cx, h - 2],
+    popupAnchor: [0, -(h - 2)],
   });
 }
 
 /* ─── MATCH PIN (drop shape — orange for match, blue if user joined) ─── */
 function createMatchPin(matchCount, status, isSelected, hasUserMatch) {
-  const s = isSelected ? 40 : 32;
-  const w = s;
-  const h = s + 10;
+  const s = isSelected ? 42 : 34;
+  const w = s + 6; // extra space for shadow + pulse
+  const h = s + 16;
   const cx = w / 2;
   const bodyR = s / 2 - 3;
-  const cy = bodyR + 2;
+  const cy = bodyR + 4;
 
   // Color scheme: blue = user joined, orange = has match
   const ringColor = hasUserMatch ? '#4169E1' : '#F4743B';
   const bodyFill = hasUserMatch ? '#142244' : '#2A1208';
   const iconColor = hasUserMatch ? '#93B4F5' : '#FDE3D2';
   const cfg = STATUS_RING[status] || STATUS_RING.later;
+  const shadowOp = isSelected ? 0.55 : 0.35;
 
   const pulse = (cfg.pulse || status === 'live') ? `
-    <circle cx="${cx}" cy="${cy}" r="${bodyR + 5}" fill="none" stroke="${ringColor}" stroke-width="1.5" opacity="0.4">
-      <animate attributeName="r" values="${bodyR + 3};${bodyR + 9};${bodyR + 3}" dur="1.8s" repeatCount="indefinite"/>
+    <circle cx="${cx}" cy="${cy}" r="${bodyR + 6}" fill="none" stroke="${ringColor}" stroke-width="1.5" opacity="0.4">
+      <animate attributeName="r" values="${bodyR + 4};${bodyR + 10};${bodyR + 4}" dur="1.8s" repeatCount="indefinite"/>
       <animate attributeName="opacity" values="0.5;0.1;0.5" dur="1.8s" repeatCount="indefinite"/>
     </circle>` : '';
 
   const badge = matchCount > 1 ? `
-    <circle cx="${cx + bodyR - 2}" cy="${cy - bodyR + 2}" r="7" fill="white" stroke="${ringColor}" stroke-width="1.2"/>
-    <text x="${cx + bodyR - 2}" y="${cy - bodyR + 2}" text-anchor="middle" dominant-baseline="central"
+    <circle cx="${cx + bodyR - 1}" cy="${cy - bodyR + 1}" r="7" fill="white" stroke="${ringColor}" stroke-width="1.2"/>
+    <text x="${cx + bodyR - 1}" y="${cy - bodyR + 1}" text-anchor="middle" dominant-baseline="central"
       fill="${hasUserMatch ? '#142244' : '#2A1208'}" font-size="8" font-weight="800" font-family="system-ui">${matchCount > 9 ? '9+' : matchCount}</text>` : '';
 
   const svg = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="ms${s}"><feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#000" flood-opacity="${shadowOp}"/></filter></defs>
     ${pulse}
-    <path d="M${cx},${h - 2} L${cx - 5},${cy + bodyR - 4} Q${cx},${cy + bodyR + 2} ${cx + 5},${cy + bodyR - 4} Z" fill="${bodyFill}" stroke="${ringColor}" stroke-width="1.2"/>
-    <circle cx="${cx}" cy="${cy}" r="${bodyR}" fill="${bodyFill}" stroke="${ringColor}" stroke-width="2"/>
+    <g filter="url(#ms${s})">
+      <path d="M${cx},${h - 3} L${cx - 5},${cy + bodyR - 3} Q${cx},${cy + bodyR + 3} ${cx + 5},${cy + bodyR - 3} Z" fill="${bodyFill}" stroke="${ringColor}" stroke-width="1.2"/>
+      <circle cx="${cx}" cy="${cy}" r="${bodyR}" fill="${bodyFill}" stroke="${ringColor}" stroke-width="${isSelected ? 2.5 : 2}"/>
+    </g>
     <circle cx="${cx}" cy="${cy}" r="5" fill="none" stroke="${iconColor}" stroke-width="1.2" opacity="0.85"/>
     <circle cx="${cx}" cy="${cy}" r="1.8" fill="${iconColor}" opacity="0.85"/>
     <line x1="${cx}" y1="${cy - 5}" x2="${cx}" y2="${cy - 1.8}" stroke="${iconColor}" stroke-width="0.8" opacity="0.6"/>
@@ -93,8 +101,8 @@ function createMatchPin(matchCount, status, isSelected, hasUserMatch) {
     html: svg,
     className: 'allplay-match-pin',
     iconSize: [w, h],
-    iconAnchor: [cx, h],
-    popupAnchor: [0, -h],
+    iconAnchor: [cx, h - 2],
+    popupAnchor: [0, -(h - 2)],
   });
 }
 
@@ -116,17 +124,18 @@ function createSelectedTooltip(match, spotsLeft) {
 
 /* ─── CLUSTER ICON ─── */
 function createClusterIcon(count) {
-  const s = 36;
-  const h = s / 2;
+  const s = 40;
+  const r = s / 2;
   const svg = `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="${h}" cy="${h}" r="${h - 2}" fill="#18221E" stroke="#2BA84A" stroke-width="2" opacity="0.95"/>
-    <text x="${h}" y="${h}" text-anchor="middle" dominant-baseline="central" fill="#2BA84A" font-size="13" font-weight="800" font-family="system-ui">${count}</text>
+    <defs><filter id="cs"><feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000" flood-opacity="0.35"/></filter></defs>
+    <circle cx="${r}" cy="${r}" r="${r - 3}" fill="#18221E" stroke="#2BA84A" stroke-width="2" filter="url(#cs)"/>
+    <text x="${r}" y="${r}" text-anchor="middle" dominant-baseline="central" fill="#2BA84A" font-size="13" font-weight="800" font-family="system-ui">${count}</text>
   </svg>`;
   return L.divIcon({
     html: svg,
     className: 'allplay-cluster',
     iconSize: [s, s],
-    iconAnchor: [h, h],
+    iconAnchor: [r, r],
   });
 }
 

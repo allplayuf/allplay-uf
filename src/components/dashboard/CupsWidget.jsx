@@ -63,10 +63,12 @@ export default function CupsWidget() {
   if (isLoading) {
     return (
       <Card className="bg-[#121715] rounded-[16px] sm:rounded-[20px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029]">
-        <CardContent className="p-5 sm:p-6">
-          <div className="flex items-center gap-2 mb-5">
-            <Trophy className="w-5 h-5 text-[#F59E0B]" />
-            <h3 className="text-[16px] leading-[24px] font-semibold text-[#F4F7F5]">Cuper</h3>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="w-10 h-10 bg-[#F59E0B]/10 rounded-xl flex items-center justify-center ring-1 ring-[#F59E0B]/20">
+              <Trophy className="w-5 h-5 text-[#F59E0B]" />
+            </div>
+            <h3 className="text-base font-bold text-[#F4F7F5]">Cuper</h3>
           </div>
           <div className="space-y-3">
             {[...Array(2)].map((_, i) => (
@@ -85,12 +87,14 @@ export default function CupsWidget() {
 
   return (
     <Card className="bg-[#121715] rounded-[16px] sm:rounded-[20px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029]">
-      <CardContent className="p-5 sm:p-6">
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-2">
+      <CardContent className="p-4">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="w-10 h-10 bg-[#F59E0B]/10 rounded-xl flex items-center justify-center ring-1 ring-[#F59E0B]/20">
             <Trophy className="w-5 h-5 text-[#F59E0B]" />
-            <h3 className="text-[16px] leading-[24px] font-semibold text-[#F4F7F5]">Aktiva Cuper</h3>
           </div>
+          <h3 className="text-base font-bold text-[#F4F7F5]">Aktiva Cuper</h3>
+        </div>
           <Link 
             to={createPageUrl("Community") + "?tab=cups"} 
             className="text-[12px] leading-[18px] font-medium text-[#F59E0B] hover:text-[#FCD34D] flex items-center gap-1 transition-colors"
@@ -196,8 +200,7 @@ export default function CupsWidget() {
 
         {/* View All Link */}
         <Link to={createPageUrl("Community") + "?tab=cups"}>
-          <button className="w-full mt-4 inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-[#F59E0B]/16 px-4 text-xs font-semibold text-[#FCD34D] ring-1 ring-[#F59E0B]/30 transition-all hover:bg-[#F59E0B]/24 hover:ring-[#F59E0B]/45">
-            <Trophy className="w-3.5 h-3.5" />
+          <button className="w-full mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-2xl bg-[#F59E0B]/12 px-4 text-xs font-bold text-[#FCD34D] ring-1 ring-[#F59E0B]/25 transition-all hover:bg-[#F59E0B]/20">
             Se alla turneringar
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
