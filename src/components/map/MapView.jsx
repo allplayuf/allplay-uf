@@ -360,19 +360,22 @@ export default function MapView({
       <div className="absolute bottom-3 left-3 z-[2] flex items-center gap-3 bg-[#121715]/92 backdrop-blur-md rounded-xl px-3 py-2 border border-[#223029] shadow-lg">
         <div className="flex items-center gap-1.5">
           <svg width="10" height="14" viewBox="0 0 10 14" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 13C5 13 1 8 1 5a4 4 0 118 0c0 3-4 8-4 8z" fill="#0D2818" stroke="#2BA84A" strokeWidth="1.2"/>
+            <path d="M5 13C5 13 2.5 8.5 1.5 5.5a4 4 0 117 0C7.5 8.5 5 13 5 13z" fill="#0D2818" stroke="#2BA84A" strokeWidth="1.2" strokeLinejoin="round"/>
+            <circle cx="5" cy="5" r="1.5" fill="#4ADE80"/>
           </svg>
           <span className="text-[10px] font-medium text-[#9EAAA4]">Plan</span>
         </div>
         <div className="flex items-center gap-1.5">
           <svg width="10" height="14" viewBox="0 0 10 14" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 13C5 13 1 8 1 5a4 4 0 118 0c0 3-4 8-4 8z" fill="#2A1208" stroke="#F4743B" strokeWidth="1.2"/>
+            <path d="M5 13C5 13 2.5 8.5 1.5 5.5a4 4 0 117 0C7.5 8.5 5 13 5 13z" fill="#2A1208" stroke="#F4743B" strokeWidth="1.2" strokeLinejoin="round"/>
+            <circle cx="5" cy="5" r="1.5" fill="#FDBA74"/>
           </svg>
           <span className="text-[10px] font-medium text-[#9EAAA4]">Match</span>
         </div>
         <div className="flex items-center gap-1.5">
           <svg width="10" height="14" viewBox="0 0 10 14" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 13C5 13 1 8 1 5a4 4 0 118 0c0 3-4 8-4 8z" fill="#0E1B3D" stroke="#4169E1" strokeWidth="1.2"/>
+            <path d="M5 13C5 13 2.5 8.5 1.5 5.5a4 4 0 117 0C7.5 8.5 5 13 5 13z" fill="#0E1B3D" stroke="#4169E1" strokeWidth="1.2" strokeLinejoin="round"/>
+            <circle cx="5" cy="5" r="1.5" fill="#93B4F5"/>
           </svg>
           <span className="text-[10px] font-medium text-[#9EAAA4]">Anmäld</span>
         </div>
