@@ -89,7 +89,7 @@ export default function NextMatchCard({ match, venue, participants = [] }) {
 
         <CardContent className="p-0">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 pt-4 pb-2">
+          <div className="flex items-center justify-between px-4 pt-4 pb-3">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 bg-[#2BA84A]/15 rounded-xl flex items-center justify-center ring-1 ring-[#2BA84A]/25">
                 <Zap className="w-4.5 h-4.5 text-[#2BA84A]" strokeWidth={2.5} />
@@ -105,7 +105,7 @@ export default function NextMatchCard({ match, venue, participants = [] }) {
           </div>
 
           {/* Countdown */}
-          <div className="mx-4 mb-3 bg-[#18221E] rounded-xl p-3 border border-[#223029] mt-1">
+          <div className="mx-4 mb-3 bg-[#18221E] rounded-xl p-3 border border-[#223029]">
             <p className="text-[10px] font-bold text-[#9EAAA4] uppercase tracking-wider mb-2 text-center">Startar om</p>
             <div className="grid grid-cols-3 gap-2">
               {[
@@ -122,7 +122,7 @@ export default function NextMatchCard({ match, venue, participants = [] }) {
           </div>
 
           {/* Match Info */}
-          <div className="px-4 pb-3 space-y-2">
+          <div className="px-4 pb-3 space-y-2.5">
             <h4 className="text-base font-bold text-[#F4F7F5] truncate">{match.title}</h4>
             
             <div className="space-y-1.5">

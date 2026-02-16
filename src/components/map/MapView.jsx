@@ -26,23 +26,18 @@ const STATUS_RING = {
 
 /* ─── VENUE PIN (drop-shape, green — no active matches) ─── */
 function createVenuePin(isSelected) {
-  const s = isSelected ? 36 : 28;
-  const w = s + 4;
-  const h = s + 12;
+  const s = isSelected ? 34 : 28;
+  const w = s;
+  const h = s + 8;
   const cx = w / 2;
   const bodyR = s / 2 - 2;
-  const cy = bodyR + 4;
+  const cy = bodyR + 2;
   const fillColor = '#0F2917';
   const strokeColor = '#2BA84A';
 
-  const shadow = `<ellipse cx="${cx}" cy="${h - 2}" rx="${bodyR * 0.5}" ry="2" fill="black" opacity="0.3"/>`;
-  const selectedRing = isSelected ? `<circle cx="${cx}" cy="${cy}" r="${bodyR + 3}" fill="none" stroke="${strokeColor}" stroke-width="1.5" opacity="0.35"/>` : '';
-
   const svg = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    ${shadow}
-    ${selectedRing}
-    <path d="M${cx},${h - 3} L${cx - 4},${cy + bodyR - 3} Q${cx},${cy + bodyR + 2} ${cx + 4},${cy + bodyR - 3} Z" fill="${fillColor}" stroke="${strokeColor}" stroke-width="1"/>
-    <circle cx="${cx}" cy="${cy}" r="${bodyR}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${isSelected ? 2 : 1.5}"/>
+    <path d="M${cx},${h - 1} L${cx - 4},${cy + bodyR - 3} Q${cx},${cy + bodyR + 2} ${cx + 4},${cy + bodyR - 3} Z" fill="${fillColor}" stroke="${strokeColor}" stroke-width="1"/>
+    <circle cx="${cx}" cy="${cy}" r="${bodyR}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="1.5"/>
     <circle cx="${cx}" cy="${cy}" r="4.5" fill="none" stroke="${strokeColor}" stroke-width="1.2" opacity="0.8"/>
     <circle cx="${cx}" cy="${cy}" r="1.8" fill="${strokeColor}" opacity="0.8"/>
   </svg>`;
@@ -57,40 +52,34 @@ function createVenuePin(isSelected) {
 
 /* ─── MATCH PIN (drop shape — orange for match, blue if user joined) ─── */
 function createMatchPin(matchCount, status, isSelected, hasUserMatch) {
-  const s = isSelected ? 42 : 34;
-  const w = s + 8;
-  const h = s + 14;
+  const s = isSelected ? 40 : 32;
+  const w = s;
+  const h = s + 10;
   const cx = w / 2;
   const bodyR = s / 2 - 3;
-  const cy = bodyR + 4;
+  const cy = bodyR + 2;
 
-  // Color scheme: blue = user joined, orange = has match, amber = live
-  const isLive = status === 'live';
-  const ringColor = hasUserMatch ? '#4169E1' : isLive ? '#F59E0B' : '#F4743B';
-  const bodyFill = hasUserMatch ? '#142244' : isLive ? '#3A2A08' : '#2A1208';
-  const iconColor = hasUserMatch ? '#93B4F5' : isLive ? '#FDE68A' : '#FDE3D2';
+  // Color scheme: blue = user joined, orange = has match
+  const ringColor = hasUserMatch ? '#4169E1' : '#F4743B';
+  const bodyFill = hasUserMatch ? '#142244' : '#2A1208';
+  const iconColor = hasUserMatch ? '#93B4F5' : '#FDE3D2';
   const cfg = STATUS_RING[status] || STATUS_RING.later;
 
-  const shadow = `<ellipse cx="${cx}" cy="${h - 2}" rx="${bodyR * 0.6}" ry="2.5" fill="black" opacity="0.3"/>`;
-  const selectedRing = isSelected ? `<circle cx="${cx}" cy="${cy}" r="${bodyR + 4}" fill="none" stroke="${ringColor}" stroke-width="1.5" opacity="0.35"/>` : '';
-
-  const pulse = (cfg.pulse || isLive) ? `
-    <circle cx="${cx}" cy="${cy}" r="${bodyR + 6}" fill="none" stroke="${ringColor}" stroke-width="1.5" opacity="0.4">
-      <animate attributeName="r" values="${bodyR + 4};${bodyR + 10};${bodyR + 4}" dur="1.8s" repeatCount="indefinite"/>
+  const pulse = (cfg.pulse || status === 'live') ? `
+    <circle cx="${cx}" cy="${cy}" r="${bodyR + 5}" fill="none" stroke="${ringColor}" stroke-width="1.5" opacity="0.4">
+      <animate attributeName="r" values="${bodyR + 3};${bodyR + 9};${bodyR + 3}" dur="1.8s" repeatCount="indefinite"/>
       <animate attributeName="opacity" values="0.5;0.1;0.5" dur="1.8s" repeatCount="indefinite"/>
     </circle>` : '';
 
   const badge = matchCount > 1 ? `
-    <circle cx="${cx + bodyR - 1}" cy="${cy - bodyR + 1}" r="7" fill="white" stroke="${ringColor}" stroke-width="1.2"/>
-    <text x="${cx + bodyR - 1}" y="${cy - bodyR + 1}" text-anchor="middle" dominant-baseline="central"
+    <circle cx="${cx + bodyR - 2}" cy="${cy - bodyR + 2}" r="7" fill="white" stroke="${ringColor}" stroke-width="1.2"/>
+    <text x="${cx + bodyR - 2}" y="${cy - bodyR + 2}" text-anchor="middle" dominant-baseline="central"
       fill="${hasUserMatch ? '#142244' : '#2A1208'}" font-size="8" font-weight="800" font-family="system-ui">${matchCount > 9 ? '9+' : matchCount}</text>` : '';
 
   const svg = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    ${shadow}
     ${pulse}
-    ${selectedRing}
-    <path d="M${cx},${h - 4} L${cx - 5},${cy + bodyR - 4} Q${cx},${cy + bodyR + 2} ${cx + 5},${cy + bodyR - 4} Z" fill="${bodyFill}" stroke="${ringColor}" stroke-width="1.2"/>
-    <circle cx="${cx}" cy="${cy}" r="${bodyR}" fill="${bodyFill}" stroke="${ringColor}" stroke-width="${isSelected ? 2.5 : 2}"/>
+    <path d="M${cx},${h - 2} L${cx - 5},${cy + bodyR - 4} Q${cx},${cy + bodyR + 2} ${cx + 5},${cy + bodyR - 4} Z" fill="${bodyFill}" stroke="${ringColor}" stroke-width="1.2"/>
+    <circle cx="${cx}" cy="${cy}" r="${bodyR}" fill="${bodyFill}" stroke="${ringColor}" stroke-width="2"/>
     <circle cx="${cx}" cy="${cy}" r="5" fill="none" stroke="${iconColor}" stroke-width="1.2" opacity="0.85"/>
     <circle cx="${cx}" cy="${cy}" r="1.8" fill="${iconColor}" opacity="0.85"/>
     <line x1="${cx}" y1="${cy - 5}" x2="${cx}" y2="${cy - 1.8}" stroke="${iconColor}" stroke-width="0.8" opacity="0.6"/>
@@ -127,18 +116,17 @@ function createSelectedTooltip(match, spotsLeft) {
 
 /* ─── CLUSTER ICON ─── */
 function createClusterIcon(count) {
-  const s = 40;
-  const r = s / 2;
+  const s = 36;
+  const h = s / 2;
   const svg = `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="${r}" cy="${r}" r="${r - 4}" fill="#18221E" stroke="#2BA84A" stroke-width="2" opacity="0.95"/>
-    <circle cx="${r}" cy="${r}" r="${r - 1}" fill="none" stroke="#2BA84A" stroke-width="1" opacity="0.2"/>
-    <text x="${r}" y="${r}" text-anchor="middle" dominant-baseline="central" fill="#2BA84A" font-size="13" font-weight="800" font-family="system-ui">${count}</text>
+    <circle cx="${h}" cy="${h}" r="${h - 2}" fill="#18221E" stroke="#2BA84A" stroke-width="2" opacity="0.95"/>
+    <text x="${h}" y="${h}" text-anchor="middle" dominant-baseline="central" fill="#2BA84A" font-size="13" font-weight="800" font-family="system-ui">${count}</text>
   </svg>`;
   return L.divIcon({
     html: svg,
     className: 'allplay-cluster',
     iconSize: [s, s],
-    iconAnchor: [r, r],
+    iconAnchor: [h, h],
   });
 }
 
