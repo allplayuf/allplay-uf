@@ -159,12 +159,13 @@ export function createPlanIcon({ state = 'empty', selected = false, count = 0 } 
   const tipY = h - 4;
 
   const svg = generatePlanMarkerSVG({ state, selected, count });
+  const glowValue = generatePlanMarkerSVG._lastGlow || 'none';
 
   const stateClass = `ap-plan ap-plan-${state}${selected ? ' ap-plan-sel' : ''}`;
 
   // Apply glow via inline style (more reliable than SVG filters in Leaflet)
-  const glowStyle = c.glow !== 'none' 
-    ? `filter:drop-shadow(0 0 ${selected ? 8 : 5}px ${c.glow});` 
+  const glowStyle = glowValue !== 'none' 
+    ? `filter:drop-shadow(0 0 ${selected ? 8 : 5}px ${glowValue});` 
     : '';
 
   return L.divIcon({
