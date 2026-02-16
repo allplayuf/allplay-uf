@@ -5,7 +5,9 @@ import 'leaflet/dist/leaflet.css';
 import { AnimatePresence } from 'framer-motion';
 import MapVenuePreview from './MapVenuePreview';
 
-/* ─── STATUS HELPERS ─── */
+/* ─────────────────────────────────────
+   STATUS HELPERS
+   ───────────────────────────────────── */
 function getMatchStatus(match) {
   if (match.status === 'ongoing') return 'live';
   const now = new Date();
@@ -17,120 +19,198 @@ function getMatchStatus(match) {
   return 'later';
 }
 
-const STATUS_RING = {
-  live:  { color: '#F59E0B', pulse: true  },
-  soon:  { color: '#2BA84A', pulse: false },
-  later: { color: '#4169E1', pulse: false },
-  full:  { color: '#9EAAA4', pulse: false },
+/* ─────────────────────────────────────
+   PIN TOKENS
+   ───────────────────────────────────── */
+const PIN = {
+  venue: {
+    fill: '#0D2818',
+    stroke: '#2BA84A',
+    glow: 'rgba(43,168,74,0.25)',
+    iconFill: '#2BA84A',
+  },
+  match: {
+    fill: '#2A1208',
+    stroke: '#F4743B',
+    glow: 'rgba(244,116,59,0.30)',
+    iconFill: '#FDE3D2',
+  },
+  joined: {
+    fill: '#0E1B3D',
+    stroke: '#4169E1',
+    glow: 'rgba(65,105,225,0.30)',
+    iconFill: '#93B4F5',
+  },
+  live: {
+    fill: '#2A1F08',
+    stroke: '#F59E0B',
+    glow: 'rgba(245,158,11,0.35)',
+    iconFill: '#FDE68A',
+  },
 };
 
-/* ─── VENUE PIN (drop-shape, green — no active matches) ─── */
-function createVenuePin(isSelected) {
-  const s = isSelected ? 34 : 28;
-  const w = s;
-  const h = s + 8;
-  const cx = w / 2;
-  const bodyR = s / 2 - 2;
-  const cy = bodyR + 2;
-  const fillColor = '#0F2917';
-  const strokeColor = '#2BA84A';
+function getTokens(hasMatch, hasUserMatch, status) {
+  if (!hasMatch) return PIN.venue;
+  if (status === 'live') return PIN.live;
+  if (hasUserMatch) return PIN.joined;
+  return PIN.match;
+}
 
-  const svg = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <path d="M${cx},${h - 1} L${cx - 4},${cy + bodyR - 3} Q${cx},${cy + bodyR + 2} ${cx + 4},${cy + bodyR - 3} Z" fill="${fillColor}" stroke="${strokeColor}" stroke-width="1"/>
-    <circle cx="${cx}" cy="${cy}" r="${bodyR}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="1.5"/>
-    <circle cx="${cx}" cy="${cy}" r="4.5" fill="none" stroke="${strokeColor}" stroke-width="1.2" opacity="0.8"/>
-    <circle cx="${cx}" cy="${cy}" r="1.8" fill="${strokeColor}" opacity="0.8"/>
+/* ─────────────────────────────────────
+   VENUE PIN  (green, smaller teardrop)
+   ───────────────────────────────────── */
+function createVenuePin(isSelected) {
+  const scale = isSelected ? 1.25 : 1;
+  const W = Math.round(32 * scale);
+  const H = Math.round(44 * scale);
+  const cx = W / 2;
+  const r = W / 2 - 3;
+  const cy = r + 2;
+  const t = PIN.venue;
+
+  const svg = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="vs${isSelected?1:0}" x="-30%" y="-20%" width="160%" height="160%">
+        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="${t.glow}" flood-opacity="0.7"/>
+      </filter>
+      <radialGradient id="vg${isSelected?1:0}" cx="40%" cy="35%">
+        <stop offset="0%" stop-color="${t.fill}" stop-opacity="1"/>
+        <stop offset="100%" stop-color="#060E0A" stop-opacity="1"/>
+      </radialGradient>
+    </defs>
+    <g filter="url(#vs${isSelected?1:0})">
+      <path d="M${cx} ${H-2} C${cx} ${H-2} ${cx-r*0.45} ${cy+r*0.7} ${cx-r} ${cy}
+               A${r} ${r} 0 1 1 ${cx+r} ${cy}
+               C${cx+r*0.45} ${cy+r*0.7} ${cx} ${H-2} ${cx} ${H-2}Z"
+            fill="url(#vg${isSelected?1:0})" stroke="${t.stroke}" stroke-width="${isSelected?2.2:1.6}"/>
+      <circle cx="${cx}" cy="${cy}" r="4" fill="none" stroke="${t.iconFill}" stroke-width="1.3" opacity="0.8"/>
+      <circle cx="${cx}" cy="${cy}" r="1.5" fill="${t.iconFill}" opacity="0.9"/>
+    </g>
   </svg>`;
+
   return L.divIcon({
-    html: svg,
-    className: 'allplay-venue-puck',
-    iconSize: [w, h],
-    iconAnchor: [cx, h],
-    popupAnchor: [0, -h],
+    html: `<div class="allplay-pin allplay-pin-venue${isSelected?' allplay-pin-selected':''}">${svg}</div>`,
+    className: '',
+    iconSize: [W, H],
+    iconAnchor: [cx, H],
+    popupAnchor: [0, -H],
   });
 }
 
-/* ─── MATCH PIN (drop shape — orange for match, blue if user joined) ─── */
+/* ─────────────────────────────────────
+   MATCH PIN  (orange / blue / gold teardrop)
+   ───────────────────────────────────── */
 function createMatchPin(matchCount, status, isSelected, hasUserMatch) {
-  const s = isSelected ? 40 : 32;
-  const w = s;
-  const h = s + 10;
-  const cx = w / 2;
-  const bodyR = s / 2 - 3;
-  const cy = bodyR + 2;
+  const scale = isSelected ? 1.3 : 1;
+  const W = Math.round(36 * scale);
+  const H = Math.round(50 * scale);
+  const cx = W / 2;
+  const r = W / 2 - 3;
+  const cy = r + 2;
+  const t = getTokens(true, hasUserMatch, status);
+  const uid = `m${status}${hasUserMatch?1:0}${isSelected?1:0}`;
 
-  // Color scheme: blue = user joined, orange = has match
-  const ringColor = hasUserMatch ? '#4169E1' : '#F4743B';
-  const bodyFill = hasUserMatch ? '#142244' : '#2A1208';
-  const iconColor = hasUserMatch ? '#93B4F5' : '#FDE3D2';
-  const cfg = STATUS_RING[status] || STATUS_RING.later;
-
-  const pulse = (cfg.pulse || status === 'live') ? `
-    <circle cx="${cx}" cy="${cy}" r="${bodyR + 5}" fill="none" stroke="${ringColor}" stroke-width="1.5" opacity="0.4">
-      <animate attributeName="r" values="${bodyR + 3};${bodyR + 9};${bodyR + 3}" dur="1.8s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.5;0.1;0.5" dur="1.8s" repeatCount="indefinite"/>
+  const pulse = status === 'live' ? `
+    <circle cx="${cx}" cy="${cy}" r="${r+6}" fill="none" stroke="${t.stroke}" stroke-width="1.5" opacity="0.3">
+      <animate attributeName="r" values="${r+4};${r+10};${r+4}" dur="1.6s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.4;0.08;0.4" dur="1.6s" repeatCount="indefinite"/>
     </circle>` : '';
 
   const badge = matchCount > 1 ? `
-    <circle cx="${cx + bodyR - 2}" cy="${cy - bodyR + 2}" r="7" fill="white" stroke="${ringColor}" stroke-width="1.2"/>
-    <text x="${cx + bodyR - 2}" y="${cy - bodyR + 2}" text-anchor="middle" dominant-baseline="central"
-      fill="${hasUserMatch ? '#142244' : '#2A1208'}" font-size="8" font-weight="800" font-family="system-ui">${matchCount > 9 ? '9+' : matchCount}</text>` : '';
+    <circle cx="${cx+r-3}" cy="${cy-r+3}" r="7.5" fill="#FFFFFF" stroke="${t.stroke}" stroke-width="1.2"/>
+    <text x="${cx+r-3}" y="${cy-r+3}" text-anchor="middle" dominant-baseline="central"
+          fill="${t.fill}" font-size="8.5" font-weight="800" font-family="system-ui">${matchCount>9?'9+':matchCount}</text>` : '';
 
-  const svg = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
+  // Football icon
+  const icon = `
+    <circle cx="${cx}" cy="${cy}" r="5.5" fill="none" stroke="${t.iconFill}" stroke-width="1.3" opacity="0.9"/>
+    <circle cx="${cx}" cy="${cy}" r="2" fill="${t.iconFill}" opacity="0.9"/>
+    <line x1="${cx}" y1="${cy-5.5}" x2="${cx}" y2="${cy-2}" stroke="${t.iconFill}" stroke-width="0.7" opacity="0.5"/>
+    <line x1="${cx}" y1="${cy+2}" x2="${cx}" y2="${cy+5.5}" stroke="${t.iconFill}" stroke-width="0.7" opacity="0.5"/>
+    <line x1="${cx-5.5}" y1="${cy}" x2="${cx-2}" y2="${cy}" stroke="${t.iconFill}" stroke-width="0.7" opacity="0.5"/>
+    <line x1="${cx+2}" y1="${cy}" x2="${cx+5.5}" y2="${cy}" stroke="${t.iconFill}" stroke-width="0.7" opacity="0.5"/>`;
+
+  const svg = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="ms${uid}" x="-30%" y="-20%" width="160%" height="160%">
+        <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="${t.glow}" flood-opacity="0.8"/>
+      </filter>
+      <radialGradient id="mg${uid}" cx="40%" cy="35%">
+        <stop offset="0%" stop-color="${t.fill}" stop-opacity="1"/>
+        <stop offset="100%" stop-color="#050505" stop-opacity="1"/>
+      </radialGradient>
+    </defs>
     ${pulse}
-    <path d="M${cx},${h - 2} L${cx - 5},${cy + bodyR - 4} Q${cx},${cy + bodyR + 2} ${cx + 5},${cy + bodyR - 4} Z" fill="${bodyFill}" stroke="${ringColor}" stroke-width="1.2"/>
-    <circle cx="${cx}" cy="${cy}" r="${bodyR}" fill="${bodyFill}" stroke="${ringColor}" stroke-width="2"/>
-    <circle cx="${cx}" cy="${cy}" r="5" fill="none" stroke="${iconColor}" stroke-width="1.2" opacity="0.85"/>
-    <circle cx="${cx}" cy="${cy}" r="1.8" fill="${iconColor}" opacity="0.85"/>
-    <line x1="${cx}" y1="${cy - 5}" x2="${cx}" y2="${cy - 1.8}" stroke="${iconColor}" stroke-width="0.8" opacity="0.6"/>
-    <line x1="${cx}" y1="${cy + 1.8}" x2="${cx}" y2="${cy + 5}" stroke="${iconColor}" stroke-width="0.8" opacity="0.6"/>
-    <line x1="${cx - 5}" y1="${cy}" x2="${cx - 1.8}" y2="${cy}" stroke="${iconColor}" stroke-width="0.8" opacity="0.6"/>
-    <line x1="${cx + 1.8}" y1="${cy}" x2="${cx + 5}" y2="${cy}" stroke="${iconColor}" stroke-width="0.8" opacity="0.6"/>
+    <g filter="url(#ms${uid})">
+      <path d="M${cx} ${H-2} C${cx} ${H-2} ${cx-r*0.45} ${cy+r*0.7} ${cx-r} ${cy}
+               A${r} ${r} 0 1 1 ${cx+r} ${cy}
+               C${cx+r*0.45} ${cy+r*0.7} ${cx} ${H-2} ${cx} ${H-2}Z"
+            fill="url(#mg${uid})" stroke="${t.stroke}" stroke-width="${isSelected?2.5:2}"/>
+      ${icon}
+    </g>
     ${badge}
   </svg>`;
 
+  const cls = `allplay-pin allplay-pin-match${isSelected?' allplay-pin-selected':''}${status==='live'?' allplay-pin-live':''}`;
   return L.divIcon({
-    html: svg,
-    className: 'allplay-match-pin',
-    iconSize: [w, h],
-    iconAnchor: [cx, h],
-    popupAnchor: [0, -h],
+    html: `<div class="${cls}">${svg}</div>`,
+    className: '',
+    iconSize: [W, H],
+    iconAnchor: [cx, H],
+    popupAnchor: [0, -H],
   });
 }
 
-/* ─── SELECTED TOOLTIP ─── */
+/* ─────────────────────────────────────
+   SELECTED TOOLTIP
+   ───────────────────────────────────── */
 function createSelectedTooltip(match, spotsLeft) {
   const timeStr = match.time || '';
   const spotsText = match.is_spontaneous ? 'Spontan' : (spotsLeft !== null && spotsLeft > 0 ? `${spotsLeft} platser kvar` : 'Full');
-  const html = `<div style="
+  return `<div style="
     background:#121715;border:1px solid #223029;border-radius:10px;padding:5px 10px;
-    font-family:system-ui;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.5);
+    font-family:system-ui;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.6);
     display:flex;align-items:center;gap:6px;pointer-events:none;
   ">
     <span style="color:#2BA84A;font-weight:700;font-size:11px;">${timeStr}</span>
     <span style="color:#9EAAA4;font-size:10px;">·</span>
     <span style="color:#B6C2BC;font-size:10px;font-weight:600;">${spotsText}</span>
   </div>`;
-  return html;
 }
 
-/* ─── CLUSTER ICON ─── */
-function createClusterIcon(count) {
-  const s = 36;
+/* ─────────────────────────────────────
+   CLUSTER ICON
+   ───────────────────────────────────── */
+function createClusterIcon(count, hasAnyMatch) {
+  const s = 42;
   const h = s / 2;
+  const stroke = hasAnyMatch ? '#F4743B' : '#2BA84A';
+  const glow = hasAnyMatch ? 'rgba(244,116,59,0.3)' : 'rgba(43,168,74,0.25)';
+  const textColor = hasAnyMatch ? '#FDE3D2' : '#86EFAC';
+
   const svg = `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="${h}" cy="${h}" r="${h - 2}" fill="#18221E" stroke="#2BA84A" stroke-width="2" opacity="0.95"/>
-    <text x="${h}" y="${h}" text-anchor="middle" dominant-baseline="central" fill="#2BA84A" font-size="13" font-weight="800" font-family="system-ui">${count}</text>
+    <defs>
+      <filter id="cs" x="-30%" y="-30%" width="160%" height="160%">
+        <feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="${glow}" flood-opacity="0.7"/>
+      </filter>
+    </defs>
+    <g filter="url(#cs)">
+      <circle cx="${h}" cy="${h}" r="${h-3}" fill="#121715" stroke="${stroke}" stroke-width="2" opacity="0.95"/>
+      <text x="${h}" y="${h}" text-anchor="middle" dominant-baseline="central" fill="${textColor}" font-size="14" font-weight="800" font-family="system-ui">${count}</text>
+    </g>
   </svg>`;
+
   return L.divIcon({
-    html: svg,
-    className: 'allplay-cluster',
+    html: `<div class="allplay-pin allplay-pin-cluster">${svg}</div>`,
+    className: '',
     iconSize: [s, s],
     iconAnchor: [h, h],
   });
 }
 
-/* ─── USER LOCATION DOT ─── */
+/* ─────────────────────────────────────
+   USER LOCATION DOT
+   ───────────────────────────────────── */
 function createUserLocationIcon() {
   return L.divIcon({
     html: `<div class="allplay-user-dot">
@@ -143,7 +223,9 @@ function createUserLocationIcon() {
   });
 }
 
-/* ─── MAP CENTER CONTROLLER ─── */
+/* ─────────────────────────────────────
+   MAP CENTER CONTROLLER
+   ───────────────────────────────────── */
 function MapCenterController({ center, zoom, selectedVenue }) {
   const map = useMap();
   useEffect(() => {
@@ -156,7 +238,9 @@ function MapCenterController({ center, zoom, selectedVenue }) {
   return null;
 }
 
-/* ─── CLUSTERING LAYER ─── */
+/* ─────────────────────────────────────
+   CLUSTERING LAYER
+   ───────────────────────────────────── */
 function ClusteredMarkers({ venues, venueStatuses, selectedVenue, onMarkerClick, matches }) {
   const map = useMap();
   const layerRef = useRef(null);
@@ -167,14 +251,11 @@ function ClusteredMarkers({ venues, venueStatuses, selectedVenue, onMarkerClick,
   });
 
   useEffect(() => {
-    if (layerRef.current) {
-      map.removeLayer(layerRef.current);
-    }
+    if (layerRef.current) map.removeLayer(layerRef.current);
 
     const group = L.layerGroup();
 
     if (zoom >= 14) {
-      // No clustering at close zoom — render individually
       venues.forEach(venue => {
         const st = venueStatuses[venue.id] || { isActive: false, hasUserMatch: false, matchCount: 0 };
         const isSelected = selectedVenue?.id === venue.id;
@@ -193,7 +274,6 @@ function ClusteredMarkers({ venues, venueStatuses, selectedVenue, onMarkerClick,
         const marker = L.marker([venue.latitude, venue.longitude], { icon });
         marker.on('click', () => onMarkerClick(venue));
 
-        // Selected tooltip
         if (isSelected && hasMatches) {
           const venueMatches = matches.filter(m => m.venue_id === venue.id && (m.status === 'upcoming' || m.status === 'ongoing'));
           const bestMatch = venueMatches[0];
@@ -208,7 +288,6 @@ function ClusteredMarkers({ venues, venueStatuses, selectedVenue, onMarkerClick,
         group.addLayer(marker);
       });
     } else {
-      // Cluster nearby venues using a simple grid
       const gridSize = zoom <= 10 ? 0.05 : zoom <= 12 ? 0.02 : 0.01;
       const clusters = {};
 
@@ -234,8 +313,8 @@ function ClusteredMarkers({ venues, venueStatuses, selectedVenue, onMarkerClick,
         } else {
           const avgLat = clusterVenues.reduce((s, v) => s + v.latitude, 0) / clusterVenues.length;
           const avgLng = clusterVenues.reduce((s, v) => s + v.longitude, 0) / clusterVenues.length;
-          const totalMatches = clusterVenues.reduce((s, v) => s + (venueStatuses[v.id]?.matchCount || 0), 0);
-          const icon = createClusterIcon(clusterVenues.length);
+          const hasAnyMatch = clusterVenues.some(v => (venueStatuses[v.id]?.matchCount || 0) > 0);
+          const icon = createClusterIcon(clusterVenues.length, hasAnyMatch);
           const marker = L.marker([avgLat, avgLng], { icon });
           marker.on('click', () => {
             map.setView([avgLat, avgLng], zoom + 2, { animate: true });
@@ -256,7 +335,9 @@ function ClusteredMarkers({ venues, venueStatuses, selectedVenue, onMarkerClick,
   return null;
 }
 
-/* ─── MAIN COMPONENT ─── */
+/* ─────────────────────────────────────
+   MAIN COMPONENT
+   ───────────────────────────────────── */
 export default function MapView({
   venues = [],
   matches = [],
@@ -363,26 +444,54 @@ export default function MapView({
       </AnimatePresence>
 
       {/* Legend */}
-      <div className="absolute bottom-3 left-3 z-[2] flex items-center gap-2.5 bg-[#121715]/90 backdrop-blur-sm rounded-lg px-2.5 py-1.5 border border-[#223029]">
-        <div className="flex items-center gap-1">
-          <div className="w-2.5 h-2.5 rounded-full bg-[#0F2917] border border-[#2BA84A]" />
-          <span className="text-[9px] text-[#9EAAA4]">Plan</span>
+      <div className="absolute bottom-3 left-3 z-[2] flex items-center gap-3 bg-[#121715]/92 backdrop-blur-md rounded-xl px-3 py-2 border border-[#223029] shadow-lg">
+        <div className="flex items-center gap-1.5">
+          <svg width="10" height="14" viewBox="0 0 10 14"><path d="M5 13C5 13 1 8 1 5a4 4 0 118 0c0 3-4 8-4 8z" fill="#0D2818" stroke="#2BA84A" strokeWidth="1.2"/></svg>
+          <span className="text-[10px] font-medium text-[#9EAAA4]">Plan</span>
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-2.5 h-2.5 rounded-full bg-[#F4743B]" />
-          <span className="text-[9px] text-[#9EAAA4]">Match</span>
+        <div className="flex items-center gap-1.5">
+          <svg width="10" height="14" viewBox="0 0 10 14"><path d="M5 13C5 13 1 8 1 5a4 4 0 118 0c0 3-4 8-4 8z" fill="#2A1208" stroke="#F4743B" strokeWidth="1.2"/></svg>
+          <span className="text-[10px] font-medium text-[#9EAAA4]">Match</span>
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-2.5 h-2.5 rounded-full bg-[#4169E1]" />
-          <span className="text-[9px] text-[#9EAAA4]">Anmäld</span>
+        <div className="flex items-center gap-1.5">
+          <svg width="10" height="14" viewBox="0 0 10 14"><path d="M5 13C5 13 1 8 1 5a4 4 0 118 0c0 3-4 8-4 8z" fill="#0E1B3D" stroke="#4169E1" strokeWidth="1.2"/></svg>
+          <span className="text-[10px] font-medium text-[#9EAAA4]">Anmäld</span>
         </div>
       </div>
 
       <style>{`
-        .allplay-venue-puck, .allplay-match-pin, .allplay-cluster {
+        /* ─── PIN BASE STYLES ─── */
+        .allplay-pin {
+          transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1), filter 0.15s ease;
+          cursor: pointer;
+          will-change: transform;
+        }
+        .allplay-pin:hover {
+          transform: scale(1.12) translateY(-2px);
+          filter: brightness(1.15);
+        }
+        .allplay-pin:active {
+          transform: scale(0.95);
+        }
+        .allplay-pin-selected {
+          transform: scale(1.15) translateY(-3px);
+          filter: brightness(1.2);
+          z-index: 1000 !important;
+        }
+        .allplay-pin-cluster:hover {
+          transform: scale(1.18);
+        }
+        .allplay-pin-cluster:active {
+          transform: scale(0.92);
+        }
+
+        /* ─── LEAFLET ICON RESET ─── */
+        .leaflet-marker-icon {
           background: none !important;
           border: none !important;
         }
+
+        /* ─── USER LOCATION ─── */
         .allplay-user-marker {
           background: none !important;
           border: none !important;
@@ -407,11 +516,9 @@ export default function MapView({
         }
         .allplay-user-dot-pulse {
           position: absolute;
-          top: 50%;
-          left: 50%;
+          top: 50%; left: 50%;
           transform: translate(-50%, -50%);
-          width: 32px;
-          height: 32px;
+          width: 32px; height: 32px;
           background: rgba(43,168,74,0.25);
           border-radius: 50%;
           animation: userPulse 2s ease-in-out infinite;
@@ -421,15 +528,17 @@ export default function MapView({
           0%, 100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.4; }
           50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.15; }
         }
+
+        /* ─── TOOLTIP ─── */
         .allplay-tooltip {
           background: transparent !important;
           border: none !important;
           box-shadow: none !important;
           padding: 0 !important;
         }
-        .allplay-tooltip::before {
-          display: none !important;
-        }
+        .allplay-tooltip::before { display: none !important; }
+
+        /* ─── LEAFLET CONTROLS ─── */
         .leaflet-control-zoom {
           border: none !important;
           border-radius: 12px !important;
@@ -440,8 +549,7 @@ export default function MapView({
           background: #121715 !important;
           color: #F4F7F5 !important;
           border: 1px solid #223029 !important;
-          width: 36px !important;
-          height: 36px !important;
+          width: 36px !important; height: 36px !important;
           line-height: 36px !important;
           font-size: 16px !important;
         }
@@ -455,9 +563,7 @@ export default function MapView({
           font-size: 10px !important;
           border-radius: 6px 0 0 0 !important;
         }
-        .leaflet-control-attribution a {
-          color: #2BA84A !important;
-        }
+        .leaflet-control-attribution a { color: #2BA84A !important; }
       `}</style>
     </div>
   );
