@@ -1,54 +1,27 @@
 /**
  * Supabase Edge Function Caller
  * 
- * ARCHITECTURE: Backend (RLS/Edge Functions) is source of truth
- * - Always include auth token if available
- * - Let backend decide authorization via RLS
- * - Frontend only catches errors and displays them
+ * Waits for authReady before making any call,
+ * so tokens are always fresh on cold start.
  */
 
 import { getSupabaseConfig, SUPABASE_FUNCTIONS_URL } from './config';
-import { sessionStore } from './client';
-
-const IS_DEV = typeof window !== 'undefined' && 
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+import { sessionStore, waitForAuth } from './client';
 
 /**
  * Call a Supabase Edge Function
- * 
- * @param {string} name - Function name (e.g., 'create_match', 'join_match')
- * @param {object} body - Request body payload
- * @param {object} options - Optional config
- * @returns {Promise<object>} - Parsed JSON response
- * @throws {Error} - On non-2xx responses (backend decides auth)
  */
 export async function callEdgeFunction(name, body = {}, options = {}) {
-  // Get config (includes anon key)
+  // Wait for auth to be ready (token refreshed) before any call
+  await waitForAuth();
+
   const config = await getSupabaseConfig();
-  
-  // Build URL
   const url = `${SUPABASE_FUNCTIONS_URL}/${name}`;
-  
-  // Build headers
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-  
-  // Always include apikey
-  if (config.anonKey) {
-    headers['apikey'] = config.anonKey;
-  }
-  
-  // Always include auth token if available - let backend decide access
-  if (sessionStore.accessToken) {
-    headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
-  }
-  
-  // Log in dev mode
-  if (IS_DEV) {
-    console.log(`[EdgeFunction] Calling ${name}`, { hasAuth: !!sessionStore.accessToken });
-  }
-  
+
+  const headers = { 'Content-Type': 'application/json' };
+  if (config.anonKey) headers['apikey'] = config.anonKey;
+  if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
+
   let res;
   try {
     res = await fetch(url, {
@@ -57,8 +30,6 @@ export async function callEdgeFunction(name, body = {}, options = {}) {
       body: JSON.stringify(body)
     });
   } catch (networkErr) {
-    // True network error (DNS, offline, CORS preflight blocked, etc.)
-    console.error(`[EdgeFunction] ${name} network/CORS error:`, networkErr.message || networkErr);
     const error = new Error(`Nätverksfel vid anrop till ${name}: ${networkErr.message || 'CORS/fetch blocked'}`);
     error.status = 0;
     error.data = null;
@@ -66,48 +37,28 @@ export async function callEdgeFunction(name, body = {}, options = {}) {
     error.functionName = name;
     throw error;
   }
-    
-  // Always read body as text first – safe regardless of content-type
-  let rawText = '';
-  try {
-    rawText = await res.text();
-  } catch (_) {
-    // empty body
-  }
 
-  // Try to parse as JSON
+  let rawText = '';
+  try { rawText = await res.text(); } catch (_) { /* empty */ }
+
   let data = null;
-  try {
-    data = rawText ? JSON.parse(rawText) : {};
-  } catch (_) {
-    data = { message: rawText };
-  }
-    
-  // Log response in dev mode
-  if (IS_DEV) {
-    console.log(`[EdgeFunction] ${name} response:`, res.status, res.ok ? 'OK' : 'ERROR');
-  }
-    
-  // Log non-OK response for debugging (status + body)
+  try { data = rawText ? JSON.parse(rawText) : {}; } catch (_) { data = { message: rawText }; }
+
   if (!res.ok) {
     console.error(`[EdgeFunction] ${name} failed: status=${res.status}, body=${rawText.slice(0, 500)}`);
     const errorMessage = data?.message || data?.error || `EdgeFunction ${name} failed: ${res.status}`;
-      
-    // Create standardised error object
     const error = new Error(errorMessage);
     error.status = res.status;
     error.data = data;
     error.isNetworkError = false;
     error.functionName = name;
-      
-    // Handle specific status codes with Swedish error messages
+
     if (res.status === 401) {
       error.message = 'Du måste vara inloggad. Logga in och försök igen.';
       sessionStore.clear();
     } else if (res.status === 403) {
       error.message = 'Du saknar behörighet att utföra denna åtgärd.';
     } else if (res.status === 400 || res.status === 409 || res.status === 404) {
-      // Map common backend errors to Swedish
       const raw = (data?.message || data?.error || '').toLowerCase();
       if (raw.includes('match is full') || raw.includes('full')) {
         error.message = 'Matchen är full.';
@@ -125,16 +76,13 @@ export async function callEdgeFunction(name, body = {}, options = {}) {
         error.message = data?.message || 'Ogiltig förfrågan.';
       }
     }
-      
+
     throw error;
   }
-    
+
   return data;
 }
 
-/**
- * Call Edge Function without auth requirement (for public endpoints)
- */
 export async function callPublicEdgeFunction(name, body = {}) {
   return callEdgeFunction(name, body, { requireAuth: false });
 }

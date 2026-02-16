@@ -6,15 +6,14 @@
  * - No frontend-side security filtering
  * - Session persisted via Supabase tokens
  * 
- * SECURITY:
- * - Only uses SUPABASE_URL + SUPABASE_ANON_KEY
- * - NEVER uses service role key
- * - All writes go through Edge Functions (RLS enforced)
+ * AUTH READY GATE:
+ * - authReadyPromise resolves only after token refresh is complete
+ * - All services must await waitForAuth() before making any network calls
  */
 
 import { getSupabaseConfig, SUPABASE_URL } from './config';
 
-// Session storage keys - prefixed to avoid collisions
+// Session storage keys
 const STORAGE_KEYS = {
   ACCESS_TOKEN: 'allplay_supabase_access_token',
   REFRESH_TOKEN: 'allplay_supabase_refresh_token',
@@ -31,9 +30,32 @@ export const AUTH_STATES = {
   LOADING: 'loading'
 };
 
+/* ─── AUTH READY GATE ─── */
+let _authReadyResolve = null;
+let _authReady = false;
+
+const authReadyPromise = new Promise((resolve) => {
+  _authReadyResolve = resolve;
+});
+
+function markAuthReady() {
+  if (!_authReady) {
+    _authReady = true;
+    _authReadyResolve();
+  }
+}
+
 /**
- * Session Store - manages tokens and user data
- * Persists to localStorage for session survival across page reloads
+ * Wait for auth initialization to complete.
+ * All services MUST call this before any network request.
+ */
+export function waitForAuth() {
+  if (_authReady) return Promise.resolve();
+  return authReadyPromise;
+}
+
+/**
+ * Session Store
  */
 class SessionStore {
   constructor() {
@@ -47,29 +69,21 @@ class SessionStore {
     this._loaded = false;
   }
 
-  // Load from localStorage on init
   load() {
     if (this._loaded) return;
-    
     try {
       this._accessToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
       this._refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
       this._tokenExpiry = localStorage.getItem(STORAGE_KEYS.TOKEN_EXPIRY);
-      
       const userStr = localStorage.getItem(STORAGE_KEYS.USER);
       this._user = userStr ? JSON.parse(userStr) : null;
-      
       const rolesStr = localStorage.getItem(STORAGE_KEYS.ROLES);
       this._roles = rolesStr ? JSON.parse(rolesStr) : [];
-      
-      // If we have a token, assume authenticated until validated
       if (this._accessToken) {
         this._authState = AUTH_STATES.AUTHENTICATED;
-        console.log('[SessionStore] Loaded session from storage');
       } else {
         this._authState = AUTH_STATES.GUEST;
       }
-      
       this._loaded = true;
     } catch (e) {
       console.error('[SessionStore] Failed to load session:', e);
@@ -77,7 +91,6 @@ class SessionStore {
     }
   }
 
-  // Save to localStorage - ALWAYS persist for session survival
   save() {
     try {
       if (this._accessToken) {
@@ -102,62 +115,42 @@ class SessionStore {
       }
       localStorage.setItem(STORAGE_KEYS.ROLES, JSON.stringify(this._roles));
       localStorage.setItem(STORAGE_KEYS.AUTH_STATE, this._authState);
-      
-      console.log('[SessionStore] Session saved, authState:', this._authState);
     } catch (e) {
       console.error('[SessionStore] Failed to save session:', e);
     }
     this._notifyListeners();
   }
 
-  // Clear all session data (logout)
   clear() {
-    console.log('[SessionStore] Clearing session');
     this._accessToken = null;
     this._refreshToken = null;
     this._tokenExpiry = null;
     this._user = null;
     this._roles = [];
     this._authState = AUTH_STATES.GUEST;
-    
     Object.values(STORAGE_KEYS).forEach(key => {
       try { localStorage.removeItem(key); } catch (e) { /* ignore */ }
     });
-    
     this._notifyListeners();
   }
 
-  // Setters
   setTokens(accessToken, refreshToken, expiresIn = 3600) {
     this._accessToken = accessToken;
     this._refreshToken = refreshToken;
-    // Calculate expiry time (default 1 hour)
     this._tokenExpiry = Date.now() + (expiresIn * 1000);
     this.save();
   }
-  
-  // Check if token is expired or about to expire (within 5 min)
+
   isTokenExpired() {
     if (!this._tokenExpiry) return true;
-    return Date.now() > (this._tokenExpiry - 5 * 60 * 1000);
+    // Expired or within 60 seconds of expiry
+    return Date.now() > (Number(this._tokenExpiry) - 60 * 1000);
   }
 
-  setUser(user) {
-    this._user = user;
-    this.save();
-  }
+  setUser(user) { this._user = user; this.save(); }
+  setRoles(roles) { this._roles = Array.isArray(roles) ? roles : []; this.save(); }
+  setAuthState(state) { this._authState = state; this.save(); }
 
-  setRoles(roles) {
-    this._roles = Array.isArray(roles) ? roles : [];
-    this.save();
-  }
-
-  setAuthState(state) {
-    this._authState = state;
-    this.save();
-  }
-
-  // Getters
   get accessToken() { return this._accessToken; }
   get refreshToken() { return this._refreshToken; }
   get user() { return this._user; }
@@ -166,24 +159,11 @@ class SessionStore {
   get isAuthenticated() { return this._authState === AUTH_STATES.AUTHENTICATED; }
   get isGuest() { return this._authState === AUTH_STATES.GUEST; }
 
-  // Role checks
-  hasRole(role) {
-    return this._roles.includes(role);
-  }
+  hasRole(role) { return this._roles.includes(role); }
+  isAdmin() { return this.hasRole('admin'); }
+  isCupAdmin() { return this.hasRole('cup_admin') || this.hasRole('admin'); }
+  isModerator() { return this.hasRole('moderator') || this.hasRole('admin'); }
 
-  isAdmin() {
-    return this.hasRole('admin');
-  }
-
-  isCupAdmin() {
-    return this.hasRole('cup_admin') || this.hasRole('admin');
-  }
-
-  isModerator() {
-    return this.hasRole('moderator') || this.hasRole('admin');
-  }
-
-  // Subscribe to changes
   subscribe(listener) {
     this._listeners.add(listener);
     return () => this._listeners.delete(listener);
@@ -199,14 +179,11 @@ class SessionStore {
           isAuthenticated: this.isAuthenticated,
           isGuest: this.isGuest
         });
-      } catch (e) {
-        console.error('Session listener error:', e);
-      }
+      } catch (e) { /* ignore */ }
     });
   }
 }
 
-// Singleton session store
 export const sessionStore = new SessionStore();
 
 /**
@@ -220,99 +197,71 @@ class SupabaseClient {
 
   async init() {
     if (this._initialized) return;
-    
-    console.log('[SupabaseClient] Initializing...');
-    
-    // Load persisted session from localStorage
+
+    // Load persisted session
     sessionStore.load();
-    
-    // Get config (non-blocking - guest mode still works without it)
+
+    // Get config
     try {
       this._config = await getSupabaseConfig();
     } catch (e) {
-      console.log('[SupabaseClient] Failed to get config, continuing in guest mode');
+      console.log('[SupabaseClient] Config failed, guest mode');
     }
-    
-    // Restore session if we have tokens
+
+    // Handle token refresh BEFORE marking auth ready
     if (sessionStore.accessToken) {
-      console.log('[SupabaseClient] Found existing token, validating...');
-      
-      // Check if token needs refresh
       if (sessionStore.isTokenExpired() && sessionStore.refreshToken) {
-        console.log('[SupabaseClient] Token expired, attempting refresh...');
+        // Token expired → refresh first
         const refreshed = await this.refreshSession();
         if (!refreshed) {
-          console.log('[SupabaseClient] Refresh failed, clearing session');
           sessionStore.clear();
         }
-      } else {
-        // Token not expired, validate it
+      } else if (!sessionStore.isTokenExpired()) {
+        // Token looks valid, validate it
         try {
-          const isValid = await this.validateSession();
-          if (!isValid) {
-            // Try refresh before giving up
-            if (sessionStore.refreshToken) {
-              const refreshed = await this.refreshSession();
-              if (!refreshed) {
-                sessionStore.clear();
-              }
-            } else {
-              sessionStore.clear();
-            }
-          } else {
-            console.log('[SupabaseClient] Session validated successfully');
+          const valid = await this.validateSession();
+          if (!valid && sessionStore.refreshToken) {
+            const refreshed = await this.refreshSession();
+            if (!refreshed) sessionStore.clear();
+          } else if (!valid) {
+            sessionStore.clear();
           }
         } catch (e) {
-          console.log('[SupabaseClient] Session validation failed:', e.message);
-          // Try refresh before giving up
           if (sessionStore.refreshToken) {
             const refreshed = await this.refreshSession();
-            if (!refreshed) {
-              sessionStore.clear();
-            }
+            if (!refreshed) sessionStore.clear();
           } else {
             sessionStore.clear();
           }
         }
+      } else {
+        // Expired and no refresh token
+        sessionStore.clear();
       }
     } else {
-      // No token - default to guest mode (this is normal, NOT an error)
-      console.log('[SupabaseClient] No token found, guest mode');
       sessionStore.setAuthState(AUTH_STATES.GUEST);
     }
-    
+
     this._initialized = true;
-    console.log('[SupabaseClient] Initialized, authState:', sessionStore.authState);
+
+    // CRITICAL: Mark auth ready AFTER token is valid
+    markAuthReady();
+    console.log('[SupabaseClient] Auth ready, state:', sessionStore.authState);
   }
 
-  // Refresh the access token using refresh token
   async refreshSession() {
-    if (!sessionStore.refreshToken) {
-      return false;
-    }
-    
+    if (!sessionStore.refreshToken) return false;
     try {
       const result = await this._fetch('/auth/v1/token?grant_type=refresh_token', {
         method: 'POST',
         includeAuth: false,
         body: JSON.stringify({ refresh_token: sessionStore.refreshToken })
       });
-
-      if (result.error || !result.data?.access_token) {
-        console.log('[SupabaseClient] Token refresh failed:', result.error?.message);
-        return false;
-      }
-
+      if (result.error || !result.data?.access_token) return false;
       const { access_token, refresh_token, expires_in, user } = result.data;
-      
-      // Update tokens
       sessionStore.setTokens(access_token, refresh_token, expires_in || 3600);
-      if (user) {
-        sessionStore.setUser(user);
-      }
+      if (user) sessionStore.setUser(user);
       sessionStore.setAuthState(AUTH_STATES.AUTHENTICATED);
-      
-      console.log('[SupabaseClient] Token refreshed successfully');
       return true;
     } catch (e) {
       console.error('[SupabaseClient] Token refresh error:', e);
@@ -320,214 +269,95 @@ class SupabaseClient {
     }
   }
 
-  // Get headers for API calls
   async _getHeaders(includeAuth = true) {
-    const headers = {
-      'Content-Type': 'application/json',
-    };
-    
-    // Ensure config is loaded
-    if (!this._config) {
-      this._config = await getSupabaseConfig();
-    }
-    
-    if (this._config?.anonKey) {
-      headers['apikey'] = this._config.anonKey;
-    }
-    
-    if (includeAuth && sessionStore.accessToken) {
-      headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
-    }
-    
+    const headers = { 'Content-Type': 'application/json' };
+    if (!this._config) this._config = await getSupabaseConfig();
+    if (this._config?.anonKey) headers['apikey'] = this._config.anonKey;
+    if (includeAuth && sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
     return headers;
   }
 
-  // Generic fetch wrapper with error handling
   async _fetch(endpoint, options = {}) {
     const url = endpoint.startsWith('http') ? endpoint : `${SUPABASE_URL}${endpoint}`;
-    
     try {
       const headers = await this._getHeaders(options.includeAuth !== false);
-      const response = await fetch(url, {
-        ...options,
-        headers: {
-          ...headers,
-          ...options.headers
-        }
-      });
-
+      const response = await fetch(url, { ...options, headers: { ...headers, ...options.headers } });
       const data = await response.json().catch(() => ({}));
-
       if (!response.ok) {
-        console.error(`[SupabaseClient] _fetch ${endpoint} failed: status=${response.status}, body=${JSON.stringify(data).slice(0, 300)}`);
-        // Handle specific error codes
         if (response.status === 401) {
           sessionStore.clear();
           return { error: { code: 401, message: 'Session expired. Please login again.' } };
         }
-        if (response.status === 403) {
-          return { error: { code: 403, message: 'You do not have permission to perform this action.' } };
-        }
-        if (response.status === 400) {
-          return { error: { code: 400, message: data.message || data.error || 'Invalid request.' } };
-        }
         return { error: { code: response.status, message: data.message || data.error || 'Server error.' } };
       }
-
       return { data };
     } catch (e) {
-      console.error(`[SupabaseClient] _fetch ${endpoint} network/CORS error:`, e.message || e);
       return { error: { code: 0, message: `Network error: ${e.message || 'CORS/fetch blocked'}` } };
     }
   }
 
-  /**
-   * AUTH METHODS
-   */
-
-  // Login with email/password
   async login(email, password) {
     const result = await this._fetch('/auth/v1/token?grant_type=password', {
       method: 'POST',
       includeAuth: false,
       body: JSON.stringify({ email, password })
     });
-
-    if (result.error) {
-      return result;
-    }
-
+    if (result.error) return result;
     const { access_token, refresh_token, expires_in, user } = result.data;
-    
-    // Store tokens with expiry
     sessionStore.setTokens(access_token, refresh_token, expires_in || 3600);
     sessionStore.setUser(user);
     sessionStore.setAuthState(AUTH_STATES.AUTHENTICATED);
-    
-    console.log('[SupabaseClient] Login successful, session persisted');
 
-    // Sync Supabase user to Base44 (fire-and-forget, never blocks login)
+    // Mark auth ready if login happens after init
+    markAuthReady();
+
     this.syncUserToBase44(user).catch(() => {});
-
-    // Fetch roles from /me endpoint
     await this.fetchUserRoles();
-
     return { data: { user: sessionStore.user, roles: sessionStore.roles } };
   }
 
-  /**
-   * Sync Supabase Auth user to Base44 User entity.
-   * Fire-and-forget — NEVER blocks login or session validation.
-   * All errors are silently logged.
-   */
   async syncUserToBase44(supabaseUser) {
     const email = supabaseUser?.email || sessionStore.user?.email;
     const supabaseId = supabaseUser?.id || sessionStore.user?.id;
-
-    if (!supabaseId || !email) {
-      console.log('[syncUserToBase44] No id/email, skip');
-      return;
-    }
-
-    const fullName = supabaseUser?.user_metadata?.full_name 
-      || supabaseUser?.full_name 
-      || sessionStore.user?.user_metadata?.full_name 
-      || email.split('@')[0];
+    if (!supabaseId || !email) return;
+    const fullName = supabaseUser?.user_metadata?.full_name || supabaseUser?.full_name || sessionStore.user?.user_metadata?.full_name || email.split('@')[0];
     const provider = supabaseUser?.app_metadata?.provider || 'email';
-
     try {
       const { base44 } = await import('@/api/base44Client');
-      
-      const result = await base44.functions.invoke('auth/syncUser', {
-        supabase_user_id: supabaseId,
-        email,
-        full_name: fullName,
-        provider
-      });
-
-      if (result?.data?.ok) {
-        console.log('[syncUserToBase44] Synced:', result.data.created ? 'new' : 'existing');
-      }
-    } catch (error) {
-      // All errors non-fatal — Supabase is the real auth source
-      console.log('[syncUserToBase44] Skipped (non-fatal):', error?.status || error?.response?.status || 'unknown', error?.message || '');
-    }
+      await base44.functions.invoke('auth/syncUser', { supabase_user_id: supabaseId, email, full_name: fullName, provider });
+    } catch (error) { /* non-fatal */ }
   }
 
-  // Logout
   logout() {
-    // Clear admin cache (lazy import to avoid circular deps)
     import('./services/adminService').then(m => m.clearAdminCache()).catch(() => {});
     sessionStore.clear();
     return { data: { ok: true } };
   }
 
-  // Validate session by calling /me
   async validateSession() {
-    if (!sessionStore.accessToken) {
-      return false;
-    }
-
-    const result = await this._fetch('/functions/v1/me', {
-      method: 'POST'
-    });
-
-    if (result.error || !result.data?.ok) {
-      return false;
-    }
-
-    // ROBUST: Handle missing user data
+    if (!sessionStore.accessToken) return false;
+    const result = await this._fetch('/functions/v1/me', { method: 'POST' });
+    if (result.error || !result.data?.ok) return false;
     const userData = result.data.user || sessionStore.user || null;
     const roles = Array.isArray(result.data.roles) ? result.data.roles : [];
-    
     sessionStore.setUser(userData);
     sessionStore.setRoles(roles);
     sessionStore.setAuthState(AUTH_STATES.AUTHENTICATED);
-    
-    // Sync user to Base44 on session validation too (handles returning users)
-    // Fire-and-forget: don't block session validation on Base44 sync
-    if (userData) {
-      this.syncUserToBase44(userData).catch(() => {});
-    }
-    
+    if (userData) this.syncUserToBase44(userData).catch(() => {});
     return true;
   }
 
-  // Fetch user roles from /me endpoint
   async fetchUserRoles() {
-    const result = await this._fetch('/functions/v1/me', {
-      method: 'POST'
-    });
-
+    const result = await this._fetch('/functions/v1/me', { method: 'POST' });
     if (result.data?.ok) {
       const roles = Array.isArray(result.data.roles) ? result.data.roles : [];
       sessionStore.setRoles(roles);
     }
-
     return result;
   }
-
-  /**
-   * REMOVED: All domain-specific methods (createMatch, joinMatch, etc.)
-   * 
-   * ARCHITECTURE: Use services/* instead
-   * - matchesService.js for match operations
-   * - reportsService.js for report operations
-   * - venuesService.js for venue operations
-   * 
-   * This client only handles:
-   * - Session management (login/logout/refresh)
-   * - Low-level fetch with auth headers
-   * 
-   * Backend RLS handles all authorization - no frontend guards needed.
-   */
 }
 
-// Singleton client
 export const supabaseClient = new SupabaseClient();
-
-// Export only auth-related convenience functions
-// All domain operations should use services/* instead
 export const initSupabase = () => supabaseClient.init();
 export const login = (email, password) => supabaseClient.login(email, password);
 export const logout = () => supabaseClient.logout();

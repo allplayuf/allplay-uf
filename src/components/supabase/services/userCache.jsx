@@ -1,63 +1,37 @@
 /**
  * User Cache Service
  * 
- * ARCHITECTURE: In-memory cache for public user data
- * - Prevents duplicate network requests
- * - Bulk-fetches missing users via get_users_by_ids
- * - Thread-safe deduplication of concurrent requests
- * - Provides fallback for missing/failed users
+ * In-memory cache for public user data.
+ * Deduplicates concurrent requests.
+ * All network calls wait for authReady via waitForAuth().
  */
 
 import { callEdgeFunction } from '../callEdgeFunction';
 import { EDGE } from '../edgeNames';
 import { getSupabaseConfig, SUPABASE_URL } from '../config';
-import { sessionStore } from '../client';
+import { sessionStore, waitForAuth } from '../client';
 
-// In-memory cache
 const userCache = new Map();
-
-// Pending requests to avoid duplicate fetches
 const pendingRequests = new Map();
-
-// Max cache size (simple LRU would be better but keeping it simple)
 const MAX_CACHE_SIZE = 1000;
+const USER_COLUMNS = 'id,full_name,username,avatar_url,bio,city,skill_level,elo_rating,matches_played,mvp_count,is_admin';
 
-/**
- * Get cached user by ID
- * Returns null if not in cache
- */
 export function getCachedUser(userId) {
   if (!userId) return null;
   return userCache.get(userId) || null;
 }
 
-/**
- * Prime cache with users
- * Used after profile updates or bulk fetches
- */
 export function primeUsers(users) {
   if (!Array.isArray(users)) return;
-  
   users.forEach(user => {
-    if (user?.id) {
-      userCache.set(user.id, normalizeUser(user));
-    }
+    if (user?.id) userCache.set(user.id, normalizeUser(user));
   });
-  
-  // Simple cache size management
   if (userCache.size > MAX_CACHE_SIZE) {
-    const entriesToDelete = userCache.size - MAX_CACHE_SIZE;
     const keys = Array.from(userCache.keys());
-    for (let i = 0; i < entriesToDelete; i++) {
-      userCache.delete(keys[i]);
-    }
+    for (let i = 0; i < userCache.size - MAX_CACHE_SIZE; i++) userCache.delete(keys[i]);
   }
 }
 
-/**
- * Normalize user shape for consistent frontend use.
- * Handles both old view (few columns) and new view (many columns).
- */
 function normalizeUser(user) {
   return {
     id: user.id,
@@ -72,13 +46,11 @@ function normalizeUser(user) {
     birth_year: user.birth_year || null,
     matches_played: user.matches_played || 0,
     mvp_count: user.mvp_count || 0,
-    elo_rating: user.elo_rating || user.elo || null
+    elo_rating: user.elo_rating || user.elo || null,
+    is_admin: user.is_admin || false
   };
 }
 
-/**
- * Create fallback user for missing data
- */
 function createFallbackUser(userId) {
   return {
     id: userId,
@@ -93,200 +65,119 @@ function createFallbackUser(userId) {
     birth_year: null,
     matches_played: 0,
     mvp_count: 0,
-    elo_rating: null
+    elo_rating: null,
+    is_admin: false
   };
 }
 
-/**
- * Fetch users that are missing from cache
- * Deduplicates concurrent requests for same IDs
- * @param {string[]} userIds - Array of user IDs to fetch
- * @returns {Promise<Map<string, User>>} Map of userId -> user data
- */
 export async function fetchUsersMissing(userIds) {
-  if (!Array.isArray(userIds) || userIds.length === 0) {
-    return new Map();
-  }
-  
-  // Filter out invalid IDs and duplicates
+  if (!Array.isArray(userIds) || userIds.length === 0) return new Map();
+
+  await waitForAuth();
+
   const uniqueIds = [...new Set(userIds.filter(id => id && typeof id === 'string'))];
-  
-  if (uniqueIds.length === 0) {
-    return new Map();
-  }
-  
-  // Check which users are missing from cache
+  if (uniqueIds.length === 0) return new Map();
+
   const missingIds = uniqueIds.filter(id => !userCache.has(id));
-  
+
   if (missingIds.length === 0) {
-    // All users in cache - return them
     const result = new Map();
-    uniqueIds.forEach(id => {
-      const user = userCache.get(id);
-      if (user) {
-        result.set(id, user);
-      }
-    });
+    uniqueIds.forEach(id => { if (userCache.has(id)) result.set(id, userCache.get(id)); });
     return result;
   }
-  
-  // Check if there's already a pending request for these IDs
-  const requestKey = missingIds.sort().join(',');
-  
+
+  // Dedupe — sort IDs so same set hits same key
+  const requestKey = missingIds.slice().sort().join(',');
+
   if (pendingRequests.has(requestKey)) {
-    // Wait for existing request
     await pendingRequests.get(requestKey);
-    
-    // Return cached data after request completes
     const result = new Map();
-    uniqueIds.forEach(id => {
-      const user = userCache.get(id);
-      if (user) {
-        result.set(id, user);
-      } else {
-        // Fallback if fetch failed
-        const fallback = createFallbackUser(id);
-        userCache.set(id, fallback);
-        result.set(id, fallback);
-      }
-    });
+    uniqueIds.forEach(id => result.set(id, userCache.get(id) || createFallbackUser(id)));
     return result;
   }
-  
-  // Create new request promise
+
   const requestPromise = (async () => {
     try {
-      let users = [];
-      
-      // Try Edge Function first (may fail due to CORS)
-      try {
-        const response = await callEdgeFunction(EDGE.getUsersByIds, { 
-          user_ids: missingIds 
-        });
-        users = response?.users || [];
-      } catch (edgeError) {
-        console.warn('[userCache] Edge function failed (status:', edgeError.status, ', network:', edgeError.isNetworkError, '), trying REST. Msg:', edgeError.message);
-      }
-      
-      // Always try REST fallback if edge function returned no users
-      if (users.length === 0) {
+      // Split into chunks of 50
+      const chunks = [];
+      for (let i = 0; i < missingIds.length; i += 50) chunks.push(missingIds.slice(i, i + 50));
+
+      let allUsers = [];
+      for (const chunk of chunks) {
+        let users = [];
+
+        // Try Edge Function
         try {
-          const config = await getSupabaseConfig();
-          const headers = { 'Content-Type': 'application/json' };
-          if (config.anonKey) headers['apikey'] = config.anonKey;
-          if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
-          
-          const idsParam = `(${missingIds.join(',')})`;
-          const safeColumns = 'id,full_name,username,avatar_url,bio,city,skill_level,elo_rating,matches_played,mvp_count';
-          
-          // Try with known-safe columns first (avoids 400 from missing columns)
-          let res = await fetch(
-            `${SUPABASE_URL}/rest/v1/users?id=in.${idsParam}&select=${safeColumns}`,
-            { method: 'GET', headers }
-          );
-          
-          // If that fails (columns don't exist), try minimal set
-          if (res.status === 400) {
-            console.warn('[userCache] REST safe-columns failed, trying minimal');
-            res = await fetch(
-              `${SUPABASE_URL}/rest/v1/users?id=in.${idsParam}&select=id,full_name,username,avatar_url`,
+          const response = await callEdgeFunction(EDGE.getUsersByIds, { user_ids: chunk });
+          users = response?.users || [];
+        } catch (edgeError) {
+          console.warn('[userCache] Edge failed, trying REST:', edgeError.message);
+        }
+
+        // REST fallback
+        if (users.length === 0) {
+          try {
+            const config = await getSupabaseConfig();
+            const headers = { 'Content-Type': 'application/json' };
+            if (config.anonKey) headers['apikey'] = config.anonKey;
+            if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
+
+            const idsParam = `(${chunk.join(',')})`;
+            const res = await fetch(
+              `${SUPABASE_URL}/rest/v1/users?id=in.${idsParam}&select=${USER_COLUMNS}`,
               { method: 'GET', headers }
             );
+            if (res.ok) {
+              users = await res.json();
+            } else {
+              console.warn(`[userCache] REST fallback failed: ${res.status}`);
+            }
+          } catch (restError) {
+            console.warn('[userCache] REST network error:', restError.message);
           }
-          
-          if (res.ok) {
-            users = await res.json();
-            console.log(`[userCache] REST fallback returned ${users.length} users`);
-          } else {
-            const body = await res.text().catch(() => '');
-            console.warn(`[userCache] REST fallback failed: ${res.status}`, body.slice(0, 200));
-          }
-        } catch (restError) {
-          console.warn('[userCache] REST fallback network error:', restError.message);
         }
+
+        allUsers = allUsers.concat(users);
       }
-      
-      // Prime cache with fetched users
-      primeUsers(users);
-      
-      // Create fallbacks for users that weren't returned
-      const fetchedIds = new Set(users.map(u => u.id));
+
+      primeUsers(allUsers);
+
+      // Fallbacks for anything still missing
+      const fetchedIds = new Set(allUsers.map(u => u.id));
       missingIds.forEach(id => {
-        if (!fetchedIds.has(id)) {
-          const fallback = createFallbackUser(id);
-          userCache.set(id, fallback);
-        }
+        if (!fetchedIds.has(id)) userCache.set(id, createFallbackUser(id));
       });
-      
     } catch (error) {
       console.error('[userCache] Failed to fetch users:', error);
-      
-      // Create fallbacks for all missing users on error
       missingIds.forEach(id => {
-        if (!userCache.has(id)) {
-          const fallback = createFallbackUser(id);
-          userCache.set(id, fallback);
-        }
+        if (!userCache.has(id)) userCache.set(id, createFallbackUser(id));
       });
     } finally {
-      // Clean up pending request
       pendingRequests.delete(requestKey);
     }
   })();
-  
-  // Store pending request
+
   pendingRequests.set(requestKey, requestPromise);
-  
-  // Wait for request to complete
   await requestPromise;
-  
-  // Return all requested users from cache
+
   const result = new Map();
-  uniqueIds.forEach(id => {
-    const user = userCache.get(id);
-    if (user) {
-      result.set(id, user);
-    }
-  });
-  
+  uniqueIds.forEach(id => result.set(id, userCache.get(id) || createFallbackUser(id)));
   return result;
 }
 
-/**
- * Clear entire cache (useful for testing or logout)
- */
 export function clearUserCache() {
   userCache.clear();
   pendingRequests.clear();
 }
 
-/**
- * Get multiple users at once
- * Returns array in same order as input IDs
- * @param {string[]} userIds - Array of user IDs
- * @returns {Promise<User[]>} Array of user objects
- */
 export async function getUsers(userIds) {
-  if (!Array.isArray(userIds) || userIds.length === 0) {
-    return [];
-  }
-  
+  if (!Array.isArray(userIds) || userIds.length === 0) return [];
   const userMap = await fetchUsersMissing(userIds);
-  
-  // Return in same order as input
   return userIds.map(id => userMap.get(id) || createFallbackUser(id));
 }
 
-/**
- * Get single user
- * @param {string} userId - User ID
- * @returns {Promise<User>} User object
- */
 export async function getUser(userId) {
-  if (!userId) {
-    return createFallbackUser('unknown');
-  }
-  
+  if (!userId) return createFallbackUser('unknown');
   const users = await getUsers([userId]);
   return users[0] || createFallbackUser(userId);
 }

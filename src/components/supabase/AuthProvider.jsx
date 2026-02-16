@@ -8,7 +8,7 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { sessionStore, supabaseClient, AUTH_STATES } from './client';
+import { sessionStore, supabaseClient, AUTH_STATES, waitForAuth } from './client';
 import { primeUsers } from './services/userCache';
 import { checkIsAdmin, clearAdminCache } from './services/adminService';
 
