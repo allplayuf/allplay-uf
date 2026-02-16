@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
+import { HeroSkeleton, MatchGridSkeleton, SectionSkeleton } from "../components/ui/section-skeleton";
 import CreateMatchForm from "../components/matches/CreateMatchForm";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import CupsWidget from "../components/dashboard/CupsWidget";
@@ -392,11 +392,8 @@ export default function Dashboard() {
     }
   }, [userError]);
 
-  const isLoading = (isAuthenticated && userLoading) || matchesLoading || venuesLoading || participantsLoading;
-
-  if (isLoading) {
-    return <PageLoadingSkeleton />;
-  }
+  // No full-page gate. Critical data (matches) renders skeleton inline.
+  // User profile + participants load progressively without blocking.
 
   const handleRefresh = async () => {
     await Promise.all([
@@ -480,7 +477,10 @@ export default function Dashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
 
-        {/* Premium Hero Card */}
+        {/* Premium Hero Card — show skeleton while user data loads */}
+        {(isAuthenticated && userLoading) ? (
+          <HeroSkeleton />
+        ) : (
         <motion.div
           variants={VARIANTS.item}
           className="relative overflow-hidden rounded-3xl shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7),0_0_40px_0px_rgba(43,168,74,0.1)] border border-[#2BA84A]/20 bg-[#0A0D0B]"
@@ -739,6 +739,7 @@ export default function Dashboard() {
             </motion.div>
           </div>
         </motion.div>
+        )}
 
         {/* Inbox Widget */}
         {isAuthenticated && (
@@ -779,7 +780,9 @@ export default function Dashboard() {
                 </Link>
               </div>
 
-              {myUpcomingMatches.length === 0 ? (
+              {matchesLoading || venuesLoading ? (
+                <MatchGridSkeleton count={2} />
+              ) : myUpcomingMatches.length === 0 ? (
                 <div className="p-8 sm:p-10 text-center bg-gradient-to-br from-[#121715] to-[#0F2917]/20 border border-[#223029] rounded-2xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
                   <div className="w-16 h-16 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-4 ring-1 ring-[#2BA84A]/20">
                     <Calendar className="w-8 h-8 text-[#2BA84A]" />
@@ -815,7 +818,7 @@ export default function Dashboard() {
                             match={match} 
                             venues={venues} 
                             user={user} 
-                            participants={allParticipants.filter(p => p.match_id === match.id)}
+                            participants={(allParticipants || []).filter(p => p.match_id === match.id)}
                             onJoin={handleJoinMatch}
                             index={index}
                         />
@@ -823,6 +826,7 @@ export default function Dashboard() {
                   ))}
                 </div>
               )}
+              
             </motion.div>
 
             {/* Nearby Matches Widget */}
