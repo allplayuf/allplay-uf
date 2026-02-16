@@ -160,8 +160,13 @@ export function createPlanIcon({ state = 'empty', selected = false, count = 0 } 
 
   const stateClass = `ap-plan ap-plan-${state}${selected ? ' ap-plan-sel' : ''}`;
 
+  // Apply glow via inline style (more reliable than SVG filters in Leaflet)
+  const glowStyle = c.glow !== 'none' 
+    ? `filter:drop-shadow(0 0 ${selected ? 8 : 5}px ${c.glow});` 
+    : '';
+
   return L.divIcon({
-    html: `<div class="${stateClass}" style="width:${w}px;height:${h}px;">${svg}</div>`,
+    html: `<div class="${stateClass}" style="width:${w}px;height:${h}px;${glowStyle}">${svg}</div>`,
     className: '',
     iconSize: [w, h],
     iconAnchor: [cx, tipY],
