@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -60,16 +59,18 @@ export default function ProfileStats({ user, isOwnProfile = true }) {
   const SkillIcon = currentSkill.icon;
 
   return (
-    <div className="grid md:grid-cols-2 gap-6">
+    <div className="grid md:grid-cols-2 gap-4">
       {/* Player Skill Level */}
-      <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[20px]">
-        <CardHeader className="border-b border-[#223029] p-5">
-          <CardTitle className="text-[16px] leading-[24px] text-[#F4F7F5] flex items-center gap-2 font-semibold">
-            <Target className="w-5 h-5 text-[#9FC9AC]" />
+      <Card className="bg-[#121715] border border-[#223029] rounded-2xl overflow-hidden">
+        <CardHeader className="border-b border-[#223029] px-5 py-4">
+          <CardTitle className="text-sm text-[#F4F7F5] flex items-center gap-2 font-bold">
+            <div className="w-7 h-7 rounded-lg bg-[#2BA84A]/12 flex items-center justify-center">
+              <Target className="w-3.5 h-3.5 text-[#2BA84A]" />
+            </div>
             {isOwnProfile ? 'Min spelarnivå' : 'Spelarnivå'}
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent className="p-5">
           {isEditingSkill && isOwnProfile ? (
             <div className="space-y-4">
               <Label className="text-[#B6C2BC] text-[13px] leading-[18px] font-medium">
@@ -138,42 +139,33 @@ export default function ProfileStats({ user, isOwnProfile = true }) {
       </Card>
 
       {/* General Stats */}
-      <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[20px]">
-        <CardHeader className="border-b border-[#223029] p-5">
-          <CardTitle className="text-[16px] leading-[24px] text-[#F4F7F5] flex items-center gap-2 font-semibold">
-            <Trophy className="w-5 h-5 text-[#9FC9AC]" />
+      <Card className="bg-[#121715] border border-[#223029] rounded-2xl overflow-hidden">
+        <CardHeader className="border-b border-[#223029] px-5 py-4">
+          <CardTitle className="text-sm text-[#F4F7F5] flex items-center gap-2 font-bold">
+            <div className="w-7 h-7 rounded-lg bg-[#F4743B]/12 flex items-center justify-center">
+              <Trophy className="w-3.5 h-3.5 text-[#F4743B]" />
+            </div>
             Statistik
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-6 space-y-3">
-          <div className="flex items-center justify-between p-4 bg-[#18221E] rounded-xl border border-[#223029]">
-            <div className="flex items-center gap-3">
-              <Calendar className="w-5 h-5 text-[#9FC9AC]" />
-              <span className="text-[14px] leading-[20px] text-[#B6C2BC]">Matcher spelade</span>
-            </div>
-            <span className="text-[20px] leading-[28px] font-semibold text-[#F4F7F5]">{user?.matches_played || 0}</span>
-          </div>
-          <div className="flex items-center justify-between p-4 bg-[#18221E] rounded-xl border border-[#223029]">
-            <div className="flex items-center gap-3">
-              <Star className="w-5 h-5 text-[#F4743B]" />
-              <span className="text-[14px] leading-[20px] text-[#B6C2BC]">MVPs</span>
-            </div>
-            <span className="text-[20px] leading-[28px] font-semibold text-[#F4743B]">{user?.mvp_count || 0}</span>
-          </div>
-          <div className="flex items-center justify-between p-4 bg-[#18221E] rounded-xl border border-[#223029]">
-            <div className="flex items-center gap-3">
-              <Flame className="w-5 h-5 text-[#F4743B]" />
-              <span className="text-[14px] leading-[20px] text-[#B6C2BC]">Nuvarande streak</span>
-            </div>
-            <span className="text-[20px] leading-[28px] font-semibold text-[#F4743B]">{user?.current_streak || 0}</span>
-          </div>
-          <div className="flex items-center justify-between p-4 bg-[#18221E] rounded-xl border border-[#223029]">
-            <div className="flex items-center gap-3">
-              <Award className="w-5 h-5 text-[#9FC9AC]" />
-              <span className="text-[14px] leading-[20px] text-[#B6C2BC]">Längsta streak</span>
-            </div>
-            <span className="text-[20px] leading-[28px] font-semibold text-[#F4F7F5]">{user?.longest_streak || 0}</span>
-          </div>
+        <CardContent className="p-3 space-y-1.5">
+          {[
+            { icon: Calendar, label: 'Matcher spelade', value: user?.matches_played || 0, color: 'text-[#F4F7F5]', iconColor: 'text-[#2BA84A]' },
+            { icon: Star, label: 'MVPs', value: user?.mvp_count || 0, color: 'text-[#F4743B]', iconColor: 'text-[#F4743B]' },
+            { icon: Flame, label: 'Nuvarande streak', value: user?.current_streak || 0, color: 'text-[#F4743B]', iconColor: 'text-[#F4743B]' },
+            { icon: Award, label: 'Längsta streak', value: user?.longest_streak || 0, color: 'text-[#F4F7F5]', iconColor: 'text-[#2BA84A]' },
+          ].map((stat, idx) => {
+            const StatIcon = stat.icon;
+            return (
+              <div key={idx} className="flex items-center justify-between p-3.5 bg-[#18221E] rounded-xl">
+                <div className="flex items-center gap-2.5">
+                  <StatIcon className={`w-4 h-4 ${stat.iconColor}`} />
+                  <span className="text-[13px] text-[#B6C2BC] font-medium">{stat.label}</span>
+                </div>
+                <span className={`text-lg font-bold tabular-nums ${stat.color}`}>{stat.value}</span>
+              </div>
+            );
+          })}
         </CardContent>
       </Card>
     </div>

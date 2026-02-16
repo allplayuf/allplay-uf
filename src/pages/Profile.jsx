@@ -583,70 +583,19 @@ export default function ProfilePage() {
             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
           />
 
-          {/* Enhanced Glowing Rings */}
+          {/* Subtle Glowing Ring */}
           <motion.div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] lg:w-[700px] lg:h-[700px] rounded-full border-2 border-[#2BA84A]/20"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] lg:w-[800px] lg:h-[800px] rounded-full border border-[#2BA84A]/12"
             animate={{
-              scale: [1, 1.15, 1],
-              rotate: [0, 90, 0],
-              opacity: [0.2, 0.4, 0.2]
+              scale: [1, 1.08, 1],
+              opacity: [0.15, 0.25, 0.15]
             }}
-            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] lg:w-[900px] lg:h-[900px] rounded-full border border-[#248232]/10"
-            animate={{
-              scale: [1.1, 1, 1.1],
-              rotate: [0, -90, 0],
-              opacity: [0.15, 0.3, 0.15]
-            }}
-            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
           />
 
           {/* Ambient Orbs */}
-          <motion.div
-            className="absolute top-10 lg:top-20 right-10 lg:right-20 w-32 h-32 lg:w-48 lg:h-48 bg-[#2BA84A]/20 rounded-full blur-3xl"
-            animate={{
-              x: [0, 30, 0],
-              y: [0, -30, 0],
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.5, 0.3]
-            }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div
-            className="absolute bottom-10 lg:bottom-20 left-10 lg:left-20 w-40 h-40 lg:w-56 lg:h-56 bg-[#1A6029]/15 rounded-full blur-3xl"
-            animate={{
-              x: [0, -20, 0],
-              y: [0, 20, 0],
-              scale: [1, 1.15, 1],
-              opacity: [0.2, 0.4, 0.2]
-            }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          />
-
-          {/* Floating Light Particles */}
-          {[...Array(8)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-1 h-1 lg:w-2 lg:h-2 bg-[#2BA84A]/60 rounded-full"
-              style={{
-                left: `${15 + i * 12}%`,
-                top: `${25 + (i % 4) * 20}%`,
-              }}
-              animate={{
-                y: [0, -40, 0],
-                opacity: [0.2, 0.7, 0.2],
-                scale: [1, 1.5, 1]
-              }}
-              transition={{
-                duration: 4 + i * 0.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: i * 0.4,
-              }}
-            />
-          ))}
+          <div className="absolute top-10 right-10 lg:right-20 w-40 h-40 lg:w-56 lg:h-56 bg-[#2BA84A]/15 rounded-full blur-3xl opacity-40" />
+          <div className="absolute bottom-10 left-10 lg:left-20 w-48 h-48 lg:w-64 lg:h-64 bg-[#1A6029]/10 rounded-full blur-3xl opacity-30" />
 
           {/* Top Right Actions */}
           {!isViewingOtherProfile ? (
@@ -815,55 +764,25 @@ export default function ProfilePage() {
               transition={{ delay: 0.6 }}
               className="grid grid-cols-3 gap-2 sm:gap-3 mb-3 sm:mb-4"
             >
-              <motion.div 
-                whileHover={{ y: -4, scale: 1.02 }}
-                className="bg-[#1A201D]/60 backdrop-blur-md border border-[#2BA84A]/20 rounded-2xl p-4 sm:p-5 text-center hover:bg-[#1A201D]/80 transition-all duration-300 group"
-              >
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center mx-auto mb-2">
-                  <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
-                </div>
-                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-0.5">
-                  {displayUser?.matches_played || 0}
-                </div>
-                <div className="text-[10px] sm:text-xs text-white/70 font-semibold">Matcher</div>
-              </motion.div>
-              
-              <motion.div 
-                whileHover={{ y: -4, scale: 1.02 }}
-                className="bg-[#2A1812]/60 backdrop-blur-md border border-[#F4743B]/20 rounded-2xl p-4 sm:p-5 text-center hover:bg-[#2A1812]/80 transition-all duration-300 group"
-              >
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#F4743B]/30 rounded-lg sm:rounded-xl flex items-center justify-center mx-auto mb-2">
-                  <Award className="w-4 h-4 sm:w-5 sm:h-5 text-[#FDE3D2]" strokeWidth={2.5} />
-                </div>
-                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-[#FDE3D2] mb-0.5">
-                  {displayUser?.mvp_count || 0}
-                </div>
-                <div className="text-[10px] sm:text-xs text-[#FDE3D2]/70 font-semibold">MVPs</div>
-              </motion.div>
-              
-              <motion.div 
-                whileHover={{ y: -4, scale: 1.02 }}
-                className="bg-[#2A2208]/60 backdrop-blur-md border border-[#F59E0B]/20 rounded-2xl p-4 sm:p-5 text-center hover:bg-[#2A2208]/80 transition-all duration-300 group"
-              >
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#F59E0B]/30 rounded-lg sm:rounded-xl flex items-center justify-center mx-auto mb-2">
-                  <motion.div
-                    animate={{
-                      scale: [1, 1.1, 1]
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
+              {[
+                { value: displayUser?.matches_played || 0, label: 'Matcher', icon: Trophy, iconColor: 'text-[#86EFAC]', bg: 'bg-white/8 border-white/10' },
+                { value: displayUser?.mvp_count || 0, label: 'MVPs', icon: Award, iconColor: 'text-[#FDE3D2]', bg: 'bg-[#F4743B]/8 border-[#F4743B]/15' },
+                { value: displayUser?.current_streak || 0, label: 'Streak', icon: Trophy, iconColor: 'text-[#FDE68A]', bg: 'bg-[#F59E0B]/8 border-[#F59E0B]/15' },
+              ].map((stat, i) => {
+                const StatIcon = stat.icon;
+                return (
+                  <div 
+                    key={i}
+                    className={`backdrop-blur-md border rounded-2xl p-3.5 sm:p-4 text-center transition-all ${stat.bg}`}
                   >
-                    <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-[#FDE68A]" strokeWidth={2.5} />
-                  </motion.div>
-                </div>
-                <div className="text-xl sm:text-2xl lg:text-3xl font-black text-[#FDE68A] mb-0.5">
-                  {displayUser?.current_streak || 0}
-                </div>
-                <div className="text-[10px] sm:text-xs text-[#FDE68A]/70 font-semibold">Streak</div>
-              </motion.div>
+                    <StatIcon className={`w-4 h-4 sm:w-5 sm:h-5 ${stat.iconColor} mx-auto mb-1.5`} strokeWidth={2.5} />
+                    <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-0.5">
+                      {stat.value}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-white/60 font-semibold">{stat.label}</div>
+                  </div>
+                );
+              })}
             </motion.div>
 
             {/* Action Buttons - In Hero */}
@@ -920,14 +839,14 @@ export default function ProfilePage() {
             )}
 
             {matchHistory.length === 0 && (
-              <Card className="bg-gradient-to-br from-[#121715] to-[#0F2917]/20 border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[20px] p-12 text-center mt-6">
-                <div className="w-20 h-20 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-[#2BA84A]/20">
-                  <Trophy className="w-10 h-10 text-[#2BA84A]" />
+              <Card className="bg-[#121715] border border-[#223029] rounded-2xl p-10 text-center mt-6">
+                <div className="w-16 h-16 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-5 ring-1 ring-[#2BA84A]/20">
+                  <Trophy className="w-8 h-8 text-[#2BA84A]" />
                 </div>
-                <h3 className="text-2xl font-bold text-[#F4F7F5] mb-3">
+                <h3 className="text-xl font-bold text-[#F4F7F5] mb-2">
                   Inga matcher spelade
                 </h3>
-                <p className="text-base text-[#B6C2BC]">
+                <p className="text-sm text-[#9EAAA4]">
                   Denna användare har inte spelat några matcher än.
                 </p>
               </Card>
@@ -936,9 +855,9 @@ export default function ProfilePage() {
         ) : (
           <>
             {/* Sticky Tab Bar */}
-            <div className="sticky top-0 z-30 bg-[#0F1513]/95 backdrop-blur-md border-b border-[#223029] -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+            <div className="sticky top-0 z-30 bg-[#0F1513]/95 backdrop-blur-md -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 py-2">
               <div className="max-w-7xl mx-auto">
-                <div className="flex items-center justify-around sm:justify-start sm:gap-6 overflow-x-auto scrollbar-hide">
+                <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide">
                   {[
                     { id: 'inbox', label: 'Inbox', icon: Users, badge: friendRequests.length + teamInvites.length + teamJoinRequests.length },
                     { id: 'stats', label: 'Statistik', icon: TrendingUp },
@@ -946,28 +865,26 @@ export default function ProfilePage() {
                     { id: 'history', label: 'Historik', icon: Calendar }
                   ].map((tab) => {
                     const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
                     return (
                       <button
                         key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`relative flex items-center justify-center gap-2 h-12 px-4 text-sm font-medium transition-all duration-150 flex-shrink-0 ${
-                          activeTab === tab.id
-                            ? 'text-[#F4F7F5]'
-                            : 'text-[#B6C2BC] hover:text-[#F4F7F5]'
+                        onClick={() => { triggerHaptic('light'); setActiveTab(tab.id); }}
+                        className={`relative flex items-center justify-center gap-1.5 h-10 px-3.5 sm:px-4 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-150 flex-shrink-0 ${
+                          isActive
+                            ? 'bg-[#2BA84A]/16 text-[#F4F7F5] ring-1 ring-[#2BA84A]/30'
+                            : 'text-[#9EAAA4] hover:text-[#F4F7F5] hover:bg-[#18221E]'
                         }`}
                       >
                         <div className="relative">
-                          <Icon className="w-4 h-4" />
+                          <Icon className={`w-4 h-4 ${isActive ? 'text-[#2BA84A]' : ''}`} />
                           {tab.badge > 0 && (
                             <div className="absolute -top-1.5 -right-2 min-w-[14px] h-[14px] bg-[#F4743B] rounded-full flex items-center justify-center">
                               <span className="text-[8px] font-black text-white px-0.5">{tab.badge}</span>
                             </div>
                           )}
                         </div>
-                        <span className="hidden sm:inline">{tab.label}</span>
-                        {activeTab === tab.id && (
-                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#F4743B] rounded-full" />
-                        )}
+                        <span>{tab.label}</span>
                       </button>
                     );
                   })}
@@ -1028,37 +945,39 @@ export default function ProfilePage() {
                                 transition={{ duration: 0.4, delay: index * 0.1, ease: "easeOut" }}
                               >
                                 <Link to={`${createPageUrl("Profile")}?userId=${friend.id}`} className="block">
-                                  <Card className="bg-[#121715] border border-[#223029] shadow-[0_4px_12px_rgba(0,0,0,0.15)] rounded-2xl hover:shadow-[0_6px_18px_rgba(0,0,0,0.22)] hover:scale-[1.02] transition-all duration-150 cursor-pointer">
-                                    <CardContent className="p-4">
-                                      <div className="flex items-center gap-3 mb-3">
-                                        <div className="w-12 h-12 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0">
-                                          {friend.profile_image_url ? 
-                                            <img src={friend.profile_image_url} alt={friend.full_name} className="w-full h-full object-cover rounded-xl" loading="lazy" /> :
-                                            <span className="text-[#FFFFFF] font-semibold text-lg">{friend.full_name?.[0] || 'U'}</span>
-                                          }
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                          <h4 className="font-semibold text-[#F4F7F5] text-sm truncate">{friend.display_name || friend.full_name}</h4>
-                                          <div className="flex items-center gap-1 text-xs text-[#B6C2BC]">
-                                            <MapPin className="w-3 h-3" />
-                                            {friend.city}
+                                  <Card className="bg-[#121715] border border-[#223029] rounded-2xl hover:border-[#2BA84A]/30 transition-all duration-150 cursor-pointer overflow-hidden">
+                                    <CardContent className="p-0">
+                                      {/* Top accent bar */}
+                                      <div className={`h-1 bg-gradient-to-r ${friendSkill.color}`} />
+                                      <div className="p-4">
+                                        <div className="flex items-center gap-3 mb-3">
+                                          <div className="w-11 h-11 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                            {friend.profile_image_url ? 
+                                              <img src={friend.profile_image_url} alt={friend.full_name} className="w-full h-full object-cover" loading="lazy" /> :
+                                              <span className="text-[#FFFFFF] font-semibold text-base">{friend.full_name?.[0] || 'U'}</span>
+                                            }
                                           </div>
+                                          <div className="flex-1 min-w-0">
+                                            <h4 className="font-bold text-[#F4F7F5] text-sm truncate">{friend.display_name || friend.full_name}</h4>
+                                            <div className="flex items-center gap-1.5 text-xs text-[#9EAAA4]">
+                                              <MapPin className="w-3 h-3" />
+                                              {friend.city || 'Okänd stad'}
+                                            </div>
+                                          </div>
+                                          <Badge className={`bg-gradient-to-r ${friendSkill.color} ${friendSkill.textColor} text-[10px] font-bold border-0 px-2 h-6`}>
+                                            <FriendSkillIcon className="w-3 h-3 mr-1" />
+                                            {friendSkill.label}
+                                          </Badge>
                                         </div>
-                                      </div>
-                                      <div className="mb-3">
-                                        <Badge className={`w-full justify-center py-1.5 bg-gradient-to-r ${friendSkill.color} ${friendSkill.textColor} rounded-lg text-xs font-semibold`}>
-                                          <FriendSkillIcon className="w-3 h-3 mr-1" />
-                                          {friendSkill.label}
-                                        </Badge>
-                                      </div>
-                                      <div className="space-y-2">
-                                        <div className="flex items-center justify-between p-2 bg-[#0F1513] rounded-xl">
-                                          <span className="text-xs text-[#B6C2BC] font-medium">Matcher</span>
-                                          <span className="font-mono font-semibold text-[#F4F7F5] text-sm">{friend.matches_played || 0}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between p-2 bg-[#0F1513] rounded-xl">
-                                          <span className="text-xs text-[#B6C2BC] font-medium">MVPs</span>
-                                          <span className="font-mono font-semibold text-[#F4743B] text-sm">{friend.mvp_count || 0}</span>
+                                        <div className="flex gap-2">
+                                          <div className="flex-1 flex items-center justify-between p-2.5 bg-[#0F1513] rounded-xl">
+                                            <span className="text-[10px] text-[#9EAAA4] font-medium">Matcher</span>
+                                            <span className="font-mono font-bold text-[#F4F7F5] text-sm">{friend.matches_played || 0}</span>
+                                          </div>
+                                          <div className="flex-1 flex items-center justify-between p-2.5 bg-[#0F1513] rounded-xl">
+                                            <span className="text-[10px] text-[#9EAAA4] font-medium">MVPs</span>
+                                            <span className="font-mono font-bold text-[#F4743B] text-sm">{friend.mvp_count || 0}</span>
+                                          </div>
                                         </div>
                                       </div>
                                     </CardContent>
@@ -1097,7 +1016,7 @@ export default function ProfilePage() {
                   >
                     <h3 className="text-lg font-bold text-[#F4F7F5] mb-4">Lås upp utmärkelser genom att spela</h3>
                     {(displayUser?.matches_played || 0) === 0 ? (
-                      <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[20px] p-12 text-center">
+                      <Card className="bg-[#121715] border border-[#223029] rounded-2xl p-12 text-center">
                         <div className="w-20 h-20 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-[#2BA84A]/20">
                           <Award className="w-10 h-10 text-[#2BA84A]" />
                         </div>
@@ -1132,14 +1051,14 @@ export default function ProfilePage() {
                         </Suspense>
                       </div>
                     ) : (
-                      <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[20px] p-12 text-center">
-                        <div className="w-20 h-20 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-[#2BA84A]/20">
-                          <Trophy className="w-10 h-10 text-[#2BA84A]" />
+                      <Card className="bg-[#121715] border border-[#223029] rounded-2xl p-12 text-center">
+                        <div className="w-16 h-16 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-5 ring-1 ring-[#2BA84A]/20">
+                          <Trophy className="w-8 h-8 text-[#2BA84A]" />
                         </div>
-                        <h3 className="text-2xl font-bold text-[#F4F7F5] mb-3">
+                        <h3 className="text-xl font-bold text-[#F4F7F5] mb-2">
                           Du har inga matcher än
                         </h3>
-                        <p className="text-base text-[#B6C2BC]">
+                        <p className="text-sm text-[#9EAAA4]">
                           Spelade matcher kommer att synas här.
                         </p>
                       </Card>
