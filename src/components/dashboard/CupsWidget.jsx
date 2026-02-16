@@ -104,7 +104,7 @@ export default function CupsWidget() {
           </Link>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {cups.map((cup, index) => {
             const statusConfig = STATUS_CONFIG[cup.status] || STATUS_CONFIG.upcoming;
             const progress = cup.max_participants > 0 
