@@ -8,7 +8,7 @@
  */
 
 import { getSupabaseConfig, SUPABASE_URL } from '../config';
-import { sessionStore } from '../client';
+import { sessionStore, waitForAuth } from '../client';
 import { fetchUsersMissing } from './userCache';
 
 /**
@@ -16,9 +16,8 @@ import { fetchUsersMissing } from './userCache';
  * Returns array of match_ids the user is registered for
  */
 export async function getMyParticipantMatchIds() {
-  if (!sessionStore.user?.id) {
-    return [];
-  }
+  await waitForAuth();
+  if (!sessionStore.user?.id) return [];
 
   const config = await getSupabaseConfig();
   
@@ -59,9 +58,8 @@ export async function getMyParticipantMatchIds() {
  * @returns {Promise<Array>} Participants with user data
  */
 export async function getParticipantsForMatches(matchIds) {
-  if (!matchIds || matchIds.length === 0) {
-    return [];
-  }
+  if (!matchIds || matchIds.length === 0) return [];
+  await waitForAuth();
 
   const config = await getSupabaseConfig();
   
@@ -109,6 +107,7 @@ export async function getParticipantsForMatches(matchIds) {
  * Enriches with public user data from cache
  */
 export async function getAllParticipants() {
+  await waitForAuth();
   const config = await getSupabaseConfig();
   
   const headers = {

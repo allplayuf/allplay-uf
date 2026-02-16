@@ -9,7 +9,7 @@
 
 import { callEdgeFunction } from '../callEdgeFunction';
 import { getSupabaseConfig, SUPABASE_URL } from '../config';
-import { sessionStore } from '../client';
+import { sessionStore, waitForAuth } from '../client';
 
 /**
  * Upsert a venue by external_id
@@ -81,6 +81,7 @@ export async function getVenueByExternalId(externalId) {
  * Always include auth token - RLS decides what user can see
  */
 export async function getVenues() {
+  await waitForAuth();
   const config = await getSupabaseConfig();
   
   const headers = {

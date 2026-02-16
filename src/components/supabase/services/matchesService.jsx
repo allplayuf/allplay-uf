@@ -12,7 +12,7 @@
 
 import { callEdgeFunction, callPublicEdgeFunction } from '../callEdgeFunction';
 import { getSupabaseConfig, SUPABASE_URL } from '../config';
-import { sessionStore } from '../client';
+import { sessionStore, waitForAuth } from '../client';
 import { EDGE } from '../edgeNames';
 
 // Dev mode check for console logging
@@ -183,6 +183,7 @@ export async function checkInMatch(matchId, userLat, userLng) {
  * @param {string} [filters.status] - Filter by status (upcoming/ongoing/completed)
  */
 export async function getPublicMatches(filters = {}) {
+  await waitForAuth();
   const config = await getSupabaseConfig();
   
   const headers = {

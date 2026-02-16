@@ -7,16 +7,15 @@
  */
 
 import { getSupabaseConfig, SUPABASE_URL } from '../config';
-import { sessionStore } from '../client';
+import { sessionStore, waitForAuth } from '../client';
 
 /**
  * Get matches by IDs
  * @param {string[]} ids - Array of match IDs
  */
 export async function getMatchesByIds(ids) {
-  if (!ids || ids.length === 0) {
-    return [];
-  }
+  if (!ids || ids.length === 0) return [];
+  await waitForAuth();
 
   const config = await getSupabaseConfig();
   
@@ -58,9 +57,8 @@ export async function getMatchesByIds(ids) {
  * @param {string} status - Filter by status (optional: 'upcoming', 'finished')
  */
 export async function getMyMatches(userId, status = null) {
-  if (!userId) {
-    return [];
-  }
+  if (!userId) return [];
+  await waitForAuth();
 
   const config = await getSupabaseConfig();
   
