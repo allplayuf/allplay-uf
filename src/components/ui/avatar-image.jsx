@@ -8,7 +8,7 @@
  */
 import React, { useState, useCallback } from 'react';
 
-export default function AvatarImage({ src, name, className = 'w-6 h-6', textClassName = 'text-[9px]', eager = false }) {
+export default function AvatarImage({ src, name, className = 'w-6 h-6', textClassName = 'text-[9px]' }) {
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -30,9 +30,8 @@ export default function AvatarImage({ src, name, className = 'w-6 h-6', textClas
         <img
           src={src}
           alt={name || ''}
-          loading={eager ? 'eager' : 'lazy'}
+          loading="lazy"
           decoding="async"
-          fetchpriority={eager ? 'high' : undefined}
           onLoad={handleLoad}
           onError={handleError}
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-200 ${loaded ? 'opacity-100' : 'opacity-0'}`}
@@ -40,39 +39,4 @@ export default function AvatarImage({ src, name, className = 'w-6 h-6', textClas
       )}
     </div>
   );
-}
-
-/**
- * Preload a list of image URLs and resolve when all are loaded (or failed).
- * Use this for "page ready" gating to prevent avatar pop-in.
- * 
- * @param {string[]} urls - Array of image URLs to preload
- * @param {number} timeoutMs - Max time to wait (default 3000ms)
- * @returns {Promise<void>}
- */
-export function preloadImages(urls, timeoutMs = 3000) {
-  if (!urls || urls.length === 0) return Promise.resolve();
-
-  const uniqueUrls = [...new Set(urls.filter(Boolean))];
-  if (uniqueUrls.length === 0) return Promise.resolve();
-
-  return new Promise((resolve) => {
-    const timer = setTimeout(resolve, timeoutMs);
-    let remaining = uniqueUrls.length;
-
-    const done = () => {
-      remaining--;
-      if (remaining <= 0) {
-        clearTimeout(timer);
-        resolve();
-      }
-    };
-
-    uniqueUrls.forEach(url => {
-      const img = new Image();
-      img.onload = done;
-      img.onerror = done;
-      img.src = url;
-    });
-  });
 }

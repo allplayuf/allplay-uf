@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,6 @@ import { createPageUrl } from "@/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
-import { MapSkeleton } from "../components/ui/page-skeletons";
 
 import MapView from "../components/map/MapView";
 import VenueCard from "../components/map/VenueCard";
@@ -200,8 +199,6 @@ export default function MapPage() {
     }
   };
 
-  const [dataLoaded, setDataLoaded] = useState(false);
-
   const loadMapData = async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
@@ -215,10 +212,8 @@ export default function MapPage() {
 
       setVenues(venuesData);
       setMatches(upcomingMatches);
-      setDataLoaded(true);
     } catch (error) {
       console.error("Error loading map data:", error);
-      setDataLoaded(true); // show page even on error
     }
   };
 
@@ -275,11 +270,6 @@ export default function MapPage() {
 
   const totalMatchesInRange = filteredVenues.reduce((sum, venue) => sum + (venue.upcoming_matches?.length || 0), 0);
   const nearbyActiveMatches = filteredVenues.filter(v => (v.upcoming_matches?.length || 0) > 0).length;
-
-  // Page-ready gate: show skeleton until venues + matches loaded
-  if (!dataLoaded) {
-    return <MapSkeleton />;
-  }
 
   return (
     <div className="min-h-screen bg-[#0F1513]">

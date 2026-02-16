@@ -22,7 +22,6 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { HeroSkeleton, MatchGridSkeleton, SectionSkeleton } from "../components/ui/section-skeleton";
-import { DashboardSkeleton } from "../components/ui/page-skeletons";
 import CreateMatchForm from "../components/matches/CreateMatchForm";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import CupsWidget from "../components/dashboard/CupsWidget";
@@ -393,8 +392,8 @@ export default function Dashboard() {
     }
   }, [userError]);
 
-  // Page-ready gate: show full-page skeleton until critical data arrives
-  const isPageReady = !matchesLoading && !venuesLoading;
+  // No full-page gate. Critical data (matches) renders skeleton inline.
+  // User profile + participants load progressively without blocking.
 
   const handleRefresh = async () => {
     await Promise.all([
@@ -404,10 +403,6 @@ export default function Dashboard() {
       queryClient.invalidateQueries({ queryKey: ['supabase-myParticipantMatchIds'] })
     ]);
   };
-
-  if (!isPageReady) {
-    return <DashboardSkeleton />;
-  }
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
