@@ -362,7 +362,7 @@ export function OnboardingModal() {
                       <p className="text-xs text-[#7B8A83] text-center leading-relaxed">
                         Genom att använda AllPlay godkänner du vår{" "}
                         <a
-                          href="https://allplayuf.se/aboutallplay/anvandarpolicy"
+                          href="https://allplayuf.se/legalpolicy"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-[#2BA84A] underline underline-offset-2 hover:text-[#248232]"

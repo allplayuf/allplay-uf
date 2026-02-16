@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,927 +6,311 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  MapPin, 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Save, 
-  X,
-  CheckCircle,
-  Map as MapIcon,
-  List,
-  Keyboard
+import {
+  MapPin, Plus, Trash2, Save, X, CheckCircle,
+  Map as MapIcon, List, Keyboard, Filter, RefreshCw
 } from "lucide-react";
-import { Venue } from "@/entities/Venue";
+import { base44 } from "@/api/base44Client";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import AdminSectionHeader from "./AdminSectionHeader";
 
-// Draggable marker component with hover tooltip
+const PAGE_SIZE = 50;
+
 function DraggableMarker({ venue, onPositionChange, onDelete }) {
   const [position, setPosition] = useState([venue.latitude, venue.longitude]);
-
   const eventHandlers = {
     dragend(e) {
-      const marker = e.target;
-      const newPos = marker.getLatLng();
-      setPosition([newPos.lat, newPos.lng]);
-      onPositionChange(venue.id, newPos.lat, newPos.lng);
+      const pos = e.target.getLatLng();
+      setPosition([pos.lat, pos.lng]);
+      onPositionChange(venue.id, pos.lat, pos.lng);
     }
   };
 
   const icon = L.divIcon({
-    html: `
-      <div style="
-        width: 32px;
-        height: 40px;
-        position: relative;
-      ">
-        <svg width="32" height="40" viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
-          <path d="M16 2C9.373 2 4 7.373 4 14c0 9 12 22 12 22s12-13 12-22c0-6.627-5.373-12-12-12z" 
-                fill="#F4743B" 
-                stroke="#FFFFFF" 
-                stroke-width="2"/>
-          <circle cx="16" cy="14" r="5" fill="#FFFFFF"/>
-        </svg>
-      </div>
-    `,
-    className: 'custom-draggable-marker',
-    iconSize: [32, 40],
-    iconAnchor: [16, 40],
-    popupAnchor: [0, -40]
+    html: `<svg width="28" height="36" viewBox="0 0 28 36"><path d="M14 2C8.5 2 4 6.5 4 12c0 7.5 10 20 10 20s10-12.5 10-20c0-5.5-4.5-10-10-10z" fill="#F4743B" stroke="#FFF" stroke-width="1.5"/><circle cx="14" cy="12" r="4" fill="#FFF"/></svg>`,
+    className: '', iconSize: [28, 36], iconAnchor: [14, 36], popupAnchor: [0, -36]
   });
 
   return (
-    <Marker
-      position={position}
-      draggable={true}
-      eventHandlers={eventHandlers}
-      icon={icon}
-    >
-      <Tooltip direction="top" offset={[0, -40]} opacity={0.9} permanent={false}>
-        <div className="text-center">
-          <div className="font-semibold text-sm">{venue.name}</div>
-          <div className="text-xs text-gray-600">{venue.city}</div>
-          <div className="text-xs text-gray-500 mt-1">
-            {venue.latitude.toFixed(5)}, {venue.longitude.toFixed(5)}
-          </div>
-        </div>
+    <Marker position={position} draggable icon={icon} eventHandlers={eventHandlers}>
+      <Tooltip direction="top" offset={[0, -36]}>
+        <div className="text-center text-xs"><b>{venue.name}</b><br/>{venue.city}</div>
       </Tooltip>
-      
       <Popup>
-        <div className="p-2">
-          <h3 className="font-semibold text-sm mb-1">{venue.name}</h3>
-          <p className="text-xs text-gray-600 mb-2">{venue.address}, {venue.city}</p>
-          <div className="flex flex-wrap gap-1 mb-3">
-            {venue.formats_supported?.map(format => (
-              <span key={format} className="text-[10px] bg-green-100 text-green-800 px-2 py-0.5 rounded">
-                {format}
-              </span>
-            ))}
-          </div>
-          <Button 
-            variant="destructive" 
-            size="sm" 
-            className="w-full h-7 text-xs bg-red-600 hover:bg-red-700 text-white"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(venue.id);
-            }}
-          >
-            <Trash2 className="w-3 h-3 mr-1" />
-            Ta bort
-          </Button>
+        <div className="p-1">
+          <b className="text-sm">{venue.name}</b>
+          <p className="text-xs text-gray-600">{venue.address}, {venue.city}</p>
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(venue.id); }}
+            className="mt-2 w-full text-xs bg-red-600 text-white px-2 py-1 rounded"
+          >Ta bort</button>
         </div>
       </Popup>
     </Marker>
   );
 }
 
-// Keyboard handler for 'M' key
 function KeyboardHandler({ onKeyPress, isAddingMode }) {
-  const map = useMap();
   const [mousePos, setMousePos] = useState(null);
-
-  useMapEvents({
-    mousemove(e) {
-      setMousePos(e.latlng);
-    }
-  });
+  useMapEvents({ mousemove(e) { setMousePos(e.latlng); } });
 
   useEffect(() => {
     if (!isAddingMode) return;
-
-    const handleKeyPress = (e) => {
-      if (e.key === 'm' || e.key === 'M') {
-        if (mousePos) {
-          onKeyPress(mousePos.lat, mousePos.lng);
-        }
-      }
+    const handler = (e) => {
+      if ((e.key === 'm' || e.key === 'M') && mousePos) onKeyPress(mousePos.lat, mousePos.lng);
     };
-
-    document.addEventListener('keydown', handleKeyPress);
-    return () => document.removeEventListener('keydown', handleKeyPress);
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
   }, [mousePos, onKeyPress, isAddingMode]);
 
   return null;
 }
 
-export default function VenueManagement({ venues: initialVenues, onRefresh }) {
-  const [venues, setVenues] = useState(initialVenues);
-  const [editingVenue, setEditingVenue] = useState(null);
-  const [isAddingNew, setIsAddingNew] = useState(false);
-  const [newVenuePosition, setNewVenuePosition] = useState(null);
+export default function VenueManagement({ venues: propVenues = [], isLoading, lastUpdated, onRefresh }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('map');
-  const [mapCenter, setMapCenter] = useState([59.3293, 18.0686]);
   const [sortBy, setSortBy] = useState('name');
+  const [activeTab, setActiveTab] = useState('list');
+  const [isAddingNew, setIsAddingNew] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [pendingPosition, setPendingPosition] = useState(null);
+  const [page, setPage] = useState(0);
 
-  useEffect(() => {
-    setVenues(initialVenues);
-  }, [initialVenues]);
+  const filtered = useMemo(() => {
+    let list = [...propVenues];
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      list = list.filter(v =>
+        v.name?.toLowerCase().includes(q) ||
+        v.city?.toLowerCase().includes(q) ||
+        v.address?.toLowerCase().includes(q)
+      );
+    }
+    list.sort((a, b) => {
+      if (sortBy === 'name') return (a.name || '').localeCompare(b.name || '');
+      if (sortBy === 'city') return (a.city || '').localeCompare(b.city || '');
+      if (sortBy === 'newest') return (b.created_at || b.created_date || '').localeCompare(a.created_at || a.created_date || '');
+      return 0;
+    });
+    return list;
+  }, [propVenues, searchTerm, sortBy]);
+
+  const paginated = filtered.slice(0, (page + 1) * PAGE_SIZE);
+  const hasMore = paginated.length < filtered.length;
 
   const handleKeyPress = useCallback((lat, lng) => {
     setPendingPosition({ lat, lng });
     setShowCreateModal(true);
   }, []);
 
-  const handleCreateVenue = useCallback(async (venueData) => {
+  const handleCreateVenue = async (formData) => {
     try {
-      // Generate a stable external_id from name+city to prevent duplicates
-      const externalId = `admin_${(venueData.name || '').toLowerCase().trim()}_${(venueData.city || '').toLowerCase().trim()}`.replace(/\s+/g, '_');
-      
-      // Check if venue with same external_id already exists
-      const existingVenues = venues.filter(v => {
-        const vKey = `${(v.name || '').toLowerCase().trim()}_${(v.city || '').toLowerCase().trim()}`;
-        const newKey = `${(venueData.name || '').toLowerCase().trim()}_${(venueData.city || '').toLowerCase().trim()}`;
-        return vKey === newKey;
-      });
-      
-      if (existingVenues.length > 0) {
-        // Update existing instead of creating duplicate
-        await Venue.update(existingVenues[0].id, {
-          ...venueData,
-          latitude: pendingPosition.lat,
-          longitude: pendingPosition.lng,
-          is_active: true,
-          is_verified: true,
-          added_by_admin: true
-        });
-        setShowCreateModal(false);
-        setPendingPosition(null);
-        alert('Befintlig plan uppdaterad!');
-        onRefresh();
-        return;
-      }
-
-      await Venue.create({
-        ...venueData,
+      await base44.entities.Venue.create({
+        ...formData,
         latitude: pendingPosition.lat,
         longitude: pendingPosition.lng,
-        is_active: true,
-        is_verified: true,
-        added_by_admin: true
+        is_active: true, is_verified: true, added_by_admin: true
       });
-      
       setShowCreateModal(false);
       setPendingPosition(null);
-      alert('Plan skapad!');
       onRefresh();
     } catch (error) {
-      console.error("Error creating venue:", error);
-      alert('Kunde inte skapa plan. Försök igen.');
-    }
-  }, [pendingPosition, onRefresh, venues]);
-
-  const handleCancelCreate = useCallback(() => {
-    setShowCreateModal(false);
-    setPendingPosition(null);
-  }, []);
-
-  const handlePositionChange = async (venueId, lat, lng) => {
-    try {
-      await Venue.update(venueId, {
-        latitude: lat,
-        longitude: lng
-      });
-      
-      setVenues(venues.map(v => 
-        v.id === venueId ? { ...v, latitude: lat, longitude: lng } : v
-      ));
-      
-      alert('Position uppdaterad!');
-    } catch (error) {
-      console.error("Error updating venue position:", error);
-      alert('Kunde inte uppdatera position. Försök igen.');
+      console.error('[VenueManagement] Create failed:', error);
     }
   };
 
-  const handleSaveVenue = async (venueData) => {
+  const handlePositionChange = async (venueId, lat, lng) => {
     try {
-      if (editingVenue && editingVenue.id) {
-        await Venue.update(editingVenue.id, venueData);
-        alert('Plan uppdaterad!');
-      } else {
-        // Check for existing venue with same name+city before creating
-        const existingVenue = venues.find(v => 
-          (v.name || '').toLowerCase().trim() === (venueData.name || '').toLowerCase().trim() &&
-          (v.city || '').toLowerCase().trim() === (venueData.city || '').toLowerCase().trim()
-        );
-        
-        if (existingVenue) {
-          await Venue.update(existingVenue.id, venueData);
-          alert('Befintlig plan uppdaterad (samma namn och stad)!');
-        } else {
-          await Venue.create(venueData);
-          alert('Plan tillagd!');
-        }
-      }
-      
-      setEditingVenue(null);
-      setIsAddingNew(false);
-      setNewVenuePosition(null);
+      await base44.entities.Venue.update(venueId, { latitude: lat, longitude: lng });
       onRefresh();
     } catch (error) {
-      console.error("Error saving venue:", error);
-      alert('Kunde inte spara plan. Försök igen.');
+      console.error('[VenueManagement] Position update failed:', error);
     }
   };
 
   const handleDeleteVenue = async (venueId) => {
-    if (!confirm('Är du säker på att du vill ta bort denna plan?')) return;
-    
+    if (!confirm('Radera denna plan?')) return;
     try {
-      await Venue.delete(venueId);
-      setVenues(venues.filter(v => v.id !== venueId));
-      alert('Plan borttagen!');
+      await base44.entities.Venue.delete(venueId);
+      onRefresh();
     } catch (error) {
-      console.error("Error deleting venue:", error);
-      alert('Kunde inte ta bort plan. Försök igen.');
+      console.error('[VenueManagement] Delete failed:', error);
     }
   };
 
-  const filteredVenues = venues.filter(v =>
-    v.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    v.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    v.address?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const sortedVenues = [...filteredVenues].sort((a, b) => {
-    switch(sortBy) {
-      case 'name':
-        return (a.name || '').localeCompare(b.name || '');
-      case 'city':
-        return (a.city || '').localeCompare(b.city || '');
-      case 'created':
-        return new Date(b.created_date || 0).getTime() - new Date(a.created_date || 0).getTime();
-      default:
-        return 0;
-    }
-  });
+  const updatedStr = lastUpdated ? new Date(lastUpdated).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' }) : null;
 
   return (
-    <div className="space-y-6">
-      {/* Header Actions */}
-      <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-2xl">
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div className="flex-1 w-full sm:w-auto flex gap-2">
-              <Input
-                placeholder="Sök planer..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 bg-[#18221E] border-[#223029] text-[#F4F7F5] rounded-xl"
-              />
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-32 bg-[#18221E] border-[#223029] text-[#F4F7F5] rounded-xl">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent className="bg-[#121715] border-[#223029] rounded-xl">
-                  <SelectItem value="name" className="text-[#F4F7F5]">Namn</SelectItem>
-                  <SelectItem value="city" className="text-[#F4F7F5]">Stad</SelectItem>
-                  <SelectItem value="created" className="text-[#F4F7F5]">Senast tillagd</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button
-              onClick={() => {
-                setIsAddingNew(!isAddingNew);
-                setActiveTab('map');
-              }}
-              className={`${
-                isAddingNew 
-                  ? 'bg-[#F4743B] hover:bg-[#E5683A]' 
-                  : 'bg-[#2BA84A] hover:bg-[#248232]'
-              } text-white w-full sm:w-auto rounded-xl h-11`}
-            >
-              {isAddingNew ? (
-                <>
-                  <X className="w-4 h-4 mr-2" />
-                  Avsluta läggningsläge
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Lägg till plan
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="space-y-4">
+      <AdminSectionHeader
+        title="Planer"
+        icon={MapPin}
+        iconColor="#9370DB"
+        totalCount={propVenues.length}
+        filteredCount={filtered.length}
+        searchTerm={searchTerm}
+        onSearchChange={(v) => { setSearchTerm(v); setPage(0); }}
+        searchPlaceholder="Sök plan, stad, adress..."
+        isLoading={isLoading}
+        lastUpdated={lastUpdated}
+        onRefresh={onRefresh}
+      >
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="w-32 h-10 bg-[#18221E] border-[#223029] text-[#F4F7F5] rounded-xl text-sm">
+            <Filter className="w-3.5 h-3.5 mr-1" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-[#121715] border-[#223029]">
+            <SelectItem value="name" className="text-[#F4F7F5]">Namn</SelectItem>
+            <SelectItem value="city" className="text-[#F4F7F5]">Stad</SelectItem>
+            <SelectItem value="newest" className="text-[#F4F7F5]">Nyast</SelectItem>
+          </SelectContent>
+        </Select>
+      </AdminSectionHeader>
 
-      {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-[#121715] border border-[#223029] p-1">
-          <TabsTrigger value="map" className="flex items-center gap-2">
-            <MapIcon className="w-4 h-4" />
-            Karta
+        <TabsList className="bg-[#121715] border border-[#223029] p-1 rounded-xl">
+          <TabsTrigger value="list" className="flex items-center gap-1.5 text-sm data-[state=active]:bg-[#2BA84A] data-[state=active]:text-white text-[#B6C2BC]">
+            <List className="w-3.5 h-3.5" /> Lista
           </TabsTrigger>
-          <TabsTrigger value="list" className="flex items-center gap-2">
-            <List className="w-4 h-4" />
-            Lista ({venues.length})
+          <TabsTrigger value="map" className="flex items-center gap-1.5 text-sm data-[state=active]:bg-[#2BA84A] data-[state=active]:text-white text-[#B6C2BC]">
+            <MapIcon className="w-3.5 h-3.5" /> Karta
           </TabsTrigger>
         </TabsList>
 
-        {/* Map View */}
-        <TabsContent value="map" className="space-y-4">
-          {isAddingNew && (
-            <Card className="bg-gradient-to-r from-[#2BA84A]/20 to-[#248232]/20 border border-[#2BA84A]/30 rounded-xl">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="w-12 h-12 bg-[#2BA84A] rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Keyboard className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-[#F4F7F5] mb-1">Läggningsläge aktiverat</h3>
-                  <p className="text-sm text-[#B6C2BC]">
-                    Håll muspekaren över kartan och tryck <kbd className="px-2 py-1 bg-[#18221E] border border-[#223029] rounded text-[#2BA84A] font-mono text-xs">M</kbd> för att skapa en ny plan
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          <Card className="bg-[#121715] border border-[#223029] shadow-xl rounded-2xl overflow-hidden">
-            <CardHeader className="border-b border-[#223029]">
-              <CardTitle className="flex items-center gap-2 text-[#F4F7F5]">
-                <MapPin className="w-5 h-5 text-[#2BA84A]" />
-                Justera planpositioner
-              </CardTitle>
-              <p className="text-sm text-[#B6C2BC] mt-2">
-                Dra och släpp pins för att justera position
-              </p>
-            </CardHeader>
-            <CardContent className="p-0 relative">
-              <div className="h-[600px] w-full">
-                <MapContainer
-                  center={mapCenter}
-                  zoom={12}
-                  className="w-full h-full"
-                  scrollWheelZoom={true}
-                >
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-                  
-                  <KeyboardHandler onKeyPress={handleKeyPress} isAddingMode={isAddingNew} />
-                  
-                  {filteredVenues.map(venue => (
-                    <DraggableMarker
-                      key={venue.id}
-                      venue={venue}
-                      onPositionChange={handlePositionChange}
-                      onDelete={handleDeleteVenue}
-                    />
-                  ))}
-                </MapContainer>
-              </div>
-
-              {/* Enhanced Create Modal */}
-              {showCreateModal && pendingPosition && (
-                <QuickCreateModal
-                  position={pendingPosition}
-                  onConfirm={handleCreateVenue}
-                  onCancel={handleCancelCreate}
-                />
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Edit Form */}
-          {editingVenue && (
-            <Card className="bg-[#121715] border border-[#223029] shadow-xl rounded-2xl">
-              <CardHeader className="border-b border-[#223029]">
-                <CardTitle className="text-[#F4F7F5]">
-                  Lägg till ny plan
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <VenueForm
-                  venue={editingVenue}
-                  onSave={handleSaveVenue}
-                  onCancel={() => {
-                    setEditingVenue(null);
-                    setIsAddingNew(false);
-                    setNewVenuePosition(null);
-                  }}
-                />
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        {/* List View */}
         <TabsContent value="list">
-          <div className="grid md:grid-cols-2 gap-4">
-            {sortedVenues.map(venue => (
-              <Card key={venue.id} className="bg-[#121715] border border-[#223029] hover:border-[#2BA84A] transition-all rounded-2xl">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-[#F4F7F5] text-lg mb-1">{venue.name}</h3>
-                      <div className="text-sm text-[#B6C2BC] space-y-1">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4 flex-shrink-0" />
-                          {venue.address}, {venue.city}
+          {isLoading ? (
+            <Card className="bg-[#121715] border border-[#223029] rounded-[16px]">
+              <CardContent className="p-8 text-center">
+                <div className="w-8 h-8 border-2 border-[#9370DB] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                <p className="text-sm text-[#B6C2BC]">Laddar planer från Supabase...</p>
+              </CardContent>
+            </Card>
+          ) : filtered.length === 0 ? (
+            <Card className="bg-[#121715] border border-[#223029] rounded-[16px]">
+              <CardContent className="p-12 text-center">
+                <MapPin className="w-12 h-12 text-[#9370DB]/40 mx-auto mb-3" />
+                <h3 className="font-semibold text-[#F4F7F5] mb-1">Inga planer hittade</h3>
+                <p className="text-sm text-[#B6C2BC]">
+                  {searchTerm ? 'Ändra sökningen.' : 'Inga planer finns i Supabase.'}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-2">
+              {paginated.map(venue => (
+                <Card key={venue.id} className="bg-[#121715] border border-[#223029] hover:border-[#9370DB]/20 rounded-[14px] transition-colors">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <span className="font-semibold text-[#F4F7F5] text-sm truncate">{venue.name}</span>
+                          {venue.is_verified && <CheckCircle className="w-3.5 h-3.5 text-[#2BA84A]" />}
+                          <Badge className={`text-[10px] ${venue.is_active !== false ? 'bg-[#2BA84A]/15 text-[#2BA84A]' : 'bg-[#6B7280]/15 text-[#6B7280]'}`}>
+                            {venue.is_active !== false ? 'Aktiv' : 'Inaktiv'}
+                          </Badge>
                         </div>
-                        <div className="text-xs">
-                          Koordinater: {venue.latitude?.toFixed(6)}, {venue.longitude?.toFixed(6)}
+                        <div className="flex items-center gap-3 text-xs text-[#7B8A83]">
+                          <span>{venue.address}, {venue.city}</span>
+                          {venue.formats_supported?.length > 0 && (
+                            <span>{venue.formats_supported.join(', ')}</span>
+                          )}
                         </div>
                       </div>
+                      <Button
+                        size="sm" variant="destructive"
+                        onClick={() => handleDeleteVenue(venue.id)}
+                        className="h-8 px-3 bg-[#DC2626] hover:bg-[#B91C1C] text-white text-xs rounded-lg flex-shrink-0"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {venue.is_verified && (
-                        <CheckCircle className="w-5 h-5 text-[#2BA84A]" />
-                      )}
-                      <Badge className={venue.is_active ? 'bg-[#2BA84A]' : 'bg-[#6B7280]'}>
-                        {venue.is_active ? 'Aktiv' : 'Inaktiv'}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {venue.formats_supported?.map(format => (
-                      <Badge key={format} variant="outline" className="text-xs">
-                        {format}
-                      </Badge>
-                    ))}
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setEditingVenue(venue);
-                        setIsAddingNew(false);
-                        setActiveTab('map');
-                        setMapCenter([venue.latitude, venue.longitude]);
-                      }}
-                      className="flex-1"
-                    >
-                      <Edit className="w-4 h-4 mr-1" />
-                      Redigera
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleDeleteVenue(venue.id)}
-                      className="text-red-600 border-red-200 hover:bg-red-50"
-                    >
-                      <Trash2 className="w-4 h-4 mr-1" />
-                      Ta bort
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {sortedVenues.length === 0 && (
-            <div className="text-center py-12">
-              <MapPin className="w-12 h-12 text-[#248232] mx-auto mb-4 opacity-50" />
-              <p className="text-[#B6C2BC]">Inga planer hittade</p>
+                  </CardContent>
+                </Card>
+              ))}
+              {hasMore && (
+                <div className="text-center">
+                  <button onClick={() => setPage(p => p + 1)} className="text-sm text-[#9370DB] font-semibold py-2">
+                    Visa fler ({filtered.length - paginated.length} kvar)
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </TabsContent>
-      </Tabs>
 
-      <style jsx global>{`
-        @keyframes bounce {
-          0%, 100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-10px);
-          }
-        }
-        
-        .new-venue-marker {
-          animation: bounce 0.5s infinite;
-        }
-      `}</style>
+        <TabsContent value="map">
+          <div className="space-y-3">
+            <Button
+              onClick={() => setIsAddingNew(!isAddingNew)}
+              className={`${isAddingNew ? 'bg-[#F4743B] hover:bg-[#E5683A]' : 'bg-[#2BA84A] hover:bg-[#248232]'} text-white rounded-xl h-10`}
+            >
+              {isAddingNew ? <><X className="w-4 h-4 mr-1" />Avsluta</> : <><Plus className="w-4 h-4 mr-1" />Lägg till plan</>}
+            </Button>
+
+            {isAddingNew && (
+              <div className="p-3 bg-[#2BA84A]/10 border border-[#2BA84A]/30 rounded-xl text-sm text-[#B6C2BC]">
+                Tryck <kbd className="px-1.5 py-0.5 bg-[#18221E] border border-[#223029] rounded text-[#2BA84A] font-mono text-xs">M</kbd> över kartan
+              </div>
+            )}
+
+            <Card className="bg-[#121715] border border-[#223029] rounded-[16px] overflow-hidden">
+              <CardContent className="p-0">
+                <div className="h-[500px] w-full">
+                  <MapContainer center={[59.3293, 18.0686]} zoom={12} className="w-full h-full" scrollWheelZoom>
+                    <TileLayer
+                      url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                      attribution='&copy; CARTO'
+                    />
+                    <KeyboardHandler onKeyPress={handleKeyPress} isAddingMode={isAddingNew} />
+                    {filtered.filter(v => v.latitude && v.longitude).map(venue => (
+                      <DraggableMarker key={venue.id} venue={venue} onPositionChange={handlePositionChange} onDelete={handleDeleteVenue} />
+                    ))}
+                  </MapContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            {showCreateModal && pendingPosition && (
+              <QuickCreateModal position={pendingPosition} onConfirm={handleCreateVenue} onCancel={() => { setShowCreateModal(false); setPendingPosition(null); }} />
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
 
-// Quick Create Modal Component
 function QuickCreateModal({ position, onConfirm, onCancel }) {
-  const [formData, setFormData] = useState({
-    name: '',
-    address: '',
-    city: '',
-    surface_type: 'grass',
-    formats_supported: ['5v5'],
-    facilities: []
-  });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onConfirm(formData);
-  };
-
-  const toggleFacility = (facility) => {
-    setFormData(prev => ({
-      ...prev,
-      facilities: prev.facilities.includes(facility)
-        ? prev.facilities.filter(f => f !== facility)
-        : [...prev.facilities, facility]
-    }));
-  };
+  const [formData, setFormData] = useState({ name: '', address: '', city: '', formats_supported: ['5v5'], facilities: [] });
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
-      <div className="bg-[#121715] border-2 border-[#2BA84A] rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <form onSubmit={handleSubmit}>
-          <div className="p-6 border-b border-[#223029]">
-            <div className="flex items-start gap-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0">
-                <MapPin className="w-7 h-7 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-bold text-[#F4F7F5] mb-2">Skapa ny plan</h3>
-                <p className="text-sm text-[#B6C2BC]">
-                  Fyll i information om planen
-                </p>
-              </div>
-            </div>
+      <form onSubmit={(e) => { e.preventDefault(); onConfirm(formData); }} className="bg-[#121715] border-2 border-[#2BA84A] rounded-2xl max-w-md w-full overflow-hidden">
+        <div className="p-5 border-b border-[#223029]">
+          <h3 className="text-lg font-bold text-[#F4F7F5]">Skapa ny plan</h3>
+          <p className="text-xs text-[#7B8A83] mt-1 font-mono">{position.lat.toFixed(5)}, {position.lng.toFixed(5)}</p>
+        </div>
+        <div className="p-5 space-y-3">
+          <div>
+            <Label className="text-[#F4F7F5] text-xs mb-1 block">Namn *</Label>
+            <Input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-9" />
           </div>
-
-          <div className="p-6 space-y-4">
-            {/* Coordinates Display */}
-            <div className="bg-[#18221E] border border-[#223029] rounded-xl p-3">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-semibold text-[#7B8A83] uppercase tracking-wide">Koordinater</span>
-                <Badge className="bg-[#2BA84A]/20 text-[#2BA84A] border-0 text-xs">
-                  Exakt position
-                </Badge>
-              </div>
-              <div className="font-mono text-[#F4F7F5] text-xs">
-                {position.lat.toFixed(6)}, {position.lng.toFixed(6)}
-              </div>
-            </div>
-
-            {/* Name */}
-            <div>
-              <Label className="text-[#F4F7F5] mb-2 block">Plannamn *</Label>
-              <Input
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="bg-[#18221E] border-[#223029] text-[#F4F7F5]"
-                placeholder="T.ex. Östermalms IP"
-              />
-            </div>
-
-            {/* Address */}
-            <div>
-              <Label className="text-[#F4F7F5] mb-2 block">Adress *</Label>
-              <Input
-                required
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="bg-[#18221E] border-[#223029] text-[#F4F7F5]"
-                placeholder="T.ex. Fiskartorpsvägen 20"
-              />
-            </div>
-
-            {/* City */}
-            <div>
-              <Label className="text-[#F4F7F5] mb-2 block">Stad *</Label>
-              <Input
-                required
-                value={formData.city}
-                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                className="bg-[#18221E] border-[#223029] text-[#F4F7F5]"
-                placeholder="T.ex. Stockholm"
-              />
-            </div>
-
-            {/* Surface Type */}
-            <div>
-              <Label className="text-[#F4F7F5] mb-2 block">Underlag *</Label>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, surface_type: 'grass' })}
-                  className={`p-3 rounded-xl border-2 transition-all ${
-                    formData.surface_type === 'grass'
-                      ? 'border-[#2BA84A] bg-[#2BA84A]/10 text-[#2BA84A]'
-                      : 'border-[#223029] bg-[#18221E] text-[#B6C2BC] hover:border-[#2BA84A]/30'
-                  }`}
-                >
-                  <div className="text-2xl mb-1">🌱</div>
-                  <div className="text-xs font-semibold">Gräs</div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, surface_type: 'artificial_turf' })}
-                  className={`p-3 rounded-xl border-2 transition-all ${
-                    formData.surface_type === 'artificial_turf'
-                      ? 'border-[#2BA84A] bg-[#2BA84A]/10 text-[#2BA84A]'
-                      : 'border-[#223029] bg-[#18221E] text-[#B6C2BC] hover:border-[#2BA84A]/30'
-                  }`}
-                >
-                  <div className="text-2xl mb-1">🟢</div>
-                  <div className="text-xs font-semibold">Konstgräs</div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, surface_type: 'futsal' })}
-                  className={`p-3 rounded-xl border-2 transition-all ${
-                    formData.surface_type === 'futsal'
-                      ? 'border-[#2BA84A] bg-[#2BA84A]/10 text-[#2BA84A]'
-                      : 'border-[#223029] bg-[#18221E] text-[#B6C2BC] hover:border-[#2BA84A]/30'
-                  }`}
-                >
-                  <div className="text-2xl mb-1">🏀</div>
-                  <div className="text-xs font-semibold">Futsal</div>
-                </button>
-              </div>
-            </div>
-
-            {/* Facilities */}
-            <div>
-              <Label className="text-[#F4F7F5] mb-2 block">Faciliteter</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => toggleFacility('lighting')}
-                  className={`p-3 rounded-xl border-2 transition-all text-left ${
-                    formData.facilities.includes('lighting')
-                      ? 'border-[#2BA84A] bg-[#2BA84A]/10 text-[#2BA84A]'
-                      : 'border-[#223029] bg-[#18221E] text-[#B6C2BC] hover:border-[#2BA84A]/30'
-                  }`}
-                >
-                  <div className="text-xl mb-1">💡</div>
-                  <div className="text-xs font-semibold">Belysning</div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => toggleFacility('changing_rooms')}
-                  className={`p-3 rounded-xl border-2 transition-all text-left ${
-                    formData.facilities.includes('changing_rooms')
-                      ? 'border-[#2BA84A] bg-[#2BA84A]/10 text-[#2BA84A]'
-                      : 'border-[#223029] bg-[#18221E] text-[#B6C2BC] hover:border-[#2BA84A]/30'
-                  }`}
-                >
-                  <div className="text-xl mb-1">👕</div>
-                  <div className="text-xs font-semibold">Omklädningsrum</div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => toggleFacility('parking')}
-                  className={`p-3 rounded-xl border-2 transition-all text-left ${
-                    formData.facilities.includes('parking')
-                      ? 'border-[#2BA84A] bg-[#2BA84A]/10 text-[#2BA84A]'
-                      : 'border-[#223029] bg-[#18221E] text-[#B6C2BC] hover:border-[#2BA84A]/30'
-                  }`}
-                >
-                  <div className="text-xl mb-1">🅿️</div>
-                  <div className="text-xs font-semibold">Parkering</div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => toggleFacility('showers')}
-                  className={`p-3 rounded-xl border-2 transition-all text-left ${
-                    formData.facilities.includes('showers')
-                      ? 'border-[#2BA84A] bg-[#2BA84A]/10 text-[#2BA84A]'
-                      : 'border-[#223029] bg-[#18221E] text-[#B6C2BC] hover:border-[#2BA84A]/30'
-                  }`}
-                >
-                  <div className="text-xl mb-1">🚿</div>
-                  <div className="text-xs font-semibold">Duschar</div>
-                </button>
-              </div>
-            </div>
+          <div>
+            <Label className="text-[#F4F7F5] text-xs mb-1 block">Adress *</Label>
+            <Input required value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-9" />
           </div>
-
-          <div className="p-6 border-t border-[#223029] flex gap-3">
-            <Button
-              type="button"
-              onClick={onCancel}
-              variant="outline"
-              className="flex-1 border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] hover:text-[#F4F7F5]"
-            >
-              Avbryt
-            </Button>
-            <Button
-              type="submit"
-              className="flex-1 bg-gradient-to-r from-[#2BA84A] to-[#248232] hover:from-[#248232] hover:to-[#2BA84A] text-white shadow-lg"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Skapa plan
-            </Button>
+          <div>
+            <Label className="text-[#F4F7F5] text-xs mb-1 block">Stad *</Label>
+            <Input required value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-9" />
           </div>
-        </form>
-      </div>
+        </div>
+        <div className="p-5 border-t border-[#223029] flex gap-3">
+          <Button type="button" onClick={onCancel} variant="outline" className="flex-1 border-[#223029] text-[#B6C2BC]">Avbryt</Button>
+          <Button type="submit" className="flex-1 bg-[#2BA84A] hover:bg-[#248232] text-white">Skapa</Button>
+        </div>
+      </form>
     </div>
-  );
-}
-
-// Venue Form Component
-function VenueForm({ venue, onSave, onCancel }) {
-  const [formData, setFormData] = useState({
-    name: venue?.name || '',
-    address: venue?.address || '',
-    city: venue?.city || '',
-    latitude: venue?.latitude || 0,
-    longitude: venue?.longitude || 0,
-    type: venue?.type || 'public',
-    formats_supported: venue?.formats_supported || ['5v5'],
-    facilities: venue?.facilities || [],
-    is_active: venue?.is_active !== undefined ? venue.is_active : true,
-    is_verified: venue?.is_verified || false,
-    added_by_admin: venue?.added_by_admin !== undefined ? venue.added_by_admin : true,
-    contact_info: venue?.contact_info || '',
-    image_url: venue?.image_url || ''
-  });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSave(formData);
-  };
-
-  const handleFormatToggle = (format) => {
-    const formats = formData.formats_supported.includes(format)
-      ? formData.formats_supported.filter(f => f !== format)
-      : [...formData.formats_supported, format];
-    setFormData({ ...formData, formats_supported: formats });
-  };
-
-  const handleFacilityToggle = (facility) => {
-    const facilities = formData.facilities.includes(facility)
-      ? formData.facilities.filter(f => f !== facility)
-      : [...formData.facilities, facility];
-    setFormData({ ...formData, facilities });
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid md:grid-cols-2 gap-4">
-        <div>
-          <Label className="text-[#F4F7F5]">Plannamn *</Label>
-          <Input
-            required
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="bg-[#18221E] border-[#223029] text-[#F4F7F5]"
-            placeholder="T.ex. Östermalms IP"
-          />
-        </div>
-
-        <div>
-          <Label className="text-[#F4F7F5]">Stad *</Label>
-          <Input
-            required
-            value={formData.city}
-            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-            className="bg-[#18221E] border-[#223029] text-[#F4F7F5]"
-            placeholder="T.ex. Stockholm"
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label className="text-[#F4F7F5]">Adress *</Label>
-        <Input
-          required
-          value={formData.address}
-          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-          className="bg-[#18221E] border-[#223029] text-[#F4F7F5]"
-          placeholder="T.ex. Fiskartorpsvägen 20"
-        />
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-4">
-        <div>
-          <Label className="text-[#F4F7F5]">Latitude *</Label>
-          <Input
-            required
-            type="number"
-            step="any"
-            value={formData.latitude}
-            onChange={(e) => setFormData({ ...formData, latitude: parseFloat(e.target.value) })}
-            className="bg-[#18221E] border-[#223029] text-[#F4F7F5]"
-          />
-        </div>
-
-        <div>
-          <Label className="text-[#F4F7F5]">Longitude *</Label>
-          <Input
-            required
-            type="number"
-            step="any"
-            value={formData.longitude}
-            onChange={(e) => setFormData({ ...formData, longitude: parseFloat(e.target.value) })}
-            className="bg-[#18221E] border-[#223029] text-[#F4F7F5]"
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label className="text-[#F4F7F5]">Format som stöds</Label>
-        <div className="flex flex-wrap gap-2 mt-2">
-          {['5v5', '7v7', '11v11'].map(format => (
-            <Badge
-              key={format}
-              onClick={() => handleFormatToggle(format)}
-              className={`cursor-pointer ${
-                formData.formats_supported.includes(format)
-                  ? 'bg-[#2BA84A] text-white'
-                  : 'bg-[#18221E] text-[#B6C2BC]'
-              }`}
-            >
-              {format}
-            </Badge>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <Label className="text-[#F4F7F5]">Faciliteter</Label>
-        <div className="flex flex-wrap gap-2 mt-2">
-          {['changing_rooms', 'showers', 'parking', 'lighting', 'artificial_grass', 'natural_grass'].map(facility => (
-            <Badge
-              key={facility}
-              onClick={() => handleFacilityToggle(facility)}
-              className={`cursor-pointer ${
-                formData.facilities.includes(facility)
-                  ? 'bg-[#2BA84A] text-white'
-                  : 'bg-[#18221E] text-[#B6C2BC]'
-              }`}
-            >
-              {facility.replace('_', ' ')}
-            </Badge>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={formData.is_active}
-            onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-            className="w-4 h-4"
-          />
-          <span className="text-[#F4F7F5]">Aktiv plan</span>
-        </label>
-
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={formData.is_verified}
-            onChange={(e) => setFormData({ ...formData, is_verified: e.target.checked })}
-            className="w-4 h-4"
-          />
-          <span className="text-[#F4F7F5]">Verifierad</span>
-        </label>
-      </div>
-
-      <div className="flex gap-3 pt-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          className="flex-1"
-        >
-          <X className="w-4 h-4 mr-2" />
-          Avbryt
-        </Button>
-        <Button
-          type="submit"
-          className="flex-1 bg-[#2BA84A] hover:bg-[#248232] text-white"
-        >
-          <Save className="w-4 h-4 mr-2" />
-          Spara plan
-        </Button>
-      </div>
-    </form>
   );
 }
