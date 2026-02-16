@@ -55,7 +55,6 @@ import Community from './pages/Community';
 import CreateCup from './pages/CreateCup';
 import CupDetail from './pages/CupDetail';
 import Cups from './pages/Cups';
-import Dashboard from './pages/Dashboard';
 import EditProfile from './pages/EditProfile';
 import Feedback from './pages/Feedback';
 import Home from './pages/Home';
@@ -66,6 +65,7 @@ import Matches from './pages/Matches';
 import Profile from './pages/Profile';
 import TeamOverview from './pages/TeamOverview';
 import TermsOfService from './pages/TermsOfService';
+import Dashboard from './pages/Dashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -78,7 +78,6 @@ export const PAGES = {
     "CreateCup": CreateCup,
     "CupDetail": CupDetail,
     "Cups": Cups,
-    "Dashboard": Dashboard,
     "EditProfile": EditProfile,
     "Feedback": Feedback,
     "Home": Home,
@@ -89,6 +88,7 @@ export const PAGES = {
     "Profile": Profile,
     "TeamOverview": TeamOverview,
     "TermsOfService": TermsOfService,
+    "Dashboard": Dashboard,
 }
 
 export const pagesConfig = {

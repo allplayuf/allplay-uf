@@ -94,7 +94,7 @@ export default function InboxWidget() {
       transition={{ duration: 0.35 }}
     >
       <Link to={createPageUrl("Profile")}>
-        <Card className="bg-[#121715] rounded-[18px] shadow-[0_4px_16px_rgba(0,0,0,0.25)] border border-[#F4743B]/20 hover:border-[#F4743B]/40 transition-all overflow-hidden cursor-pointer group">
+        <Card className="bg-[#121715] rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.25)] border border-[#F4743B]/20 hover:border-[#F4743B]/40 transition-all overflow-hidden cursor-pointer group">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               {/* Icon with badge */}

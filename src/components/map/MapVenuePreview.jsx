@@ -18,7 +18,7 @@ export default function MapVenuePreview({ venue, matches = [], allParticipants =
     : 0;
 
   return (
-    <div className="absolute bottom-4 left-4 right-4 z-[1000] flex justify-center pointer-events-none">
+    <div className="absolute bottom-4 left-4 right-4 z-[1000] flex justify-center pointer-events-none" style={{ bottom: 'max(16px, env(safe-area-inset-bottom))' }}>
       <motion.div
         initial={{ y: 80, opacity: 0, scale: 0.9 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}

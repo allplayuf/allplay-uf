@@ -66,7 +66,7 @@ export default function NotificationsSlider({ notifications = [] }) {
 
   return (
     <div
-      className={`relative bg-gradient-to-br from-[#121715] to-[#0F1513] rounded-xl sm:rounded-2xl border border-[#223029] p-3 sm:p-4 overflow-hidden ${colors.glow}`}
+      className={`relative bg-gradient-to-br from-[#121715] to-[#0F1513] rounded-2xl border border-[#223029] p-3 sm:p-4 overflow-hidden ${colors.glow}`}
     >
       <div className="flex items-center gap-2 sm:gap-3">
         {activeNotifications.length > 1 && (
