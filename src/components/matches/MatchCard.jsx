@@ -10,6 +10,7 @@ import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
 import { getUsersByIds } from "@/components/supabase/services";
 import { AuthGateModal } from '@/components/ui/auth-gate-modal';
 import { LoginModal } from '@/components/supabase';
+import SmoothAvatar from '@/components/ui/smooth-avatar';
 
 const SKILL_LEVEL_CONFIG = {
   beginner: { label: 'Nybörjare', icon: Target },
@@ -243,32 +244,29 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
                     }`}
                   />
                 </div>
-                {participantUsers.length > 0 && (
-                  <div className="flex items-center gap-2 pt-1">
-                    <div className="flex -space-x-2">
-                      {participantUsers.slice(0, 5).map((participant, i) => {
-                        const avatarSrc = participant?.avatar_url || participant?.profile_image_url;
-                        const name = participant?.display_name || participant?.full_name || 'Spelare';
-                        return (
-                          <div 
-                            key={participant?.id || i}
-                            className="w-6 h-6 rounded-full bg-gradient-to-br from-[#2BA84A] to-[#248232] border border-[#121715] flex items-center justify-center overflow-hidden"
-                            title={name}
-                          >
-                            {avatarSrc ? (
-                              <img src={avatarSrc} alt={name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
-                            ) : (
-                              <span className="text-[9px] font-semibold text-white">{name[0] || '?'}</span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {actualParticipantCount > 5 && (
-                      <span className="text-[10px] leading-[14px] text-[#B6C2BC]">+{actualParticipantCount - 5}</span>
-                    )}
+                {/* Avatar row -- always show placeholders for participant slots to prevent pop-in */}
+                <div className="flex items-center gap-2 pt-1">
+                  <div className="flex -space-x-2">
+                    {(participantUsers.length > 0 ? participantUsers.slice(0, 5) : [...Array(Math.min(actualParticipantCount, 5))].map((_, i) => ({ id: i }))).map((participant, i) => {
+                      const avatarSrc = participant?.avatar_url || participant?.profile_image_url;
+                      const name = participant?.display_name || participant?.full_name || 'Spelare';
+                      return (
+                        <SmoothAvatar
+                          key={participant?.id || i}
+                          src={avatarSrc}
+                          alt={name}
+                          fallbackText={name}
+                          size={24}
+                          rounded="rounded-full"
+                          className="border border-[#121715]"
+                        />
+                      );
+                    })}
                   </div>
-                )}
+                  {actualParticipantCount > 5 && (
+                    <span className="text-[10px] leading-[14px] text-[#B6C2BC]">+{actualParticipantCount - 5}</span>
+                  )}
+                </div>
               </div>
             )}
 
