@@ -1,143 +1,260 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { AnimatePresence } from 'framer-motion';
 import MapVenuePreview from './MapVenuePreview';
 
-// Custom AllPlay pin - round green badge with football icon
-const createAllPlayIcon = (matchCount = 0, isActive = false, isSelected = false, hasUserMatch = false) => {
-  const hasMatches = matchCount > 0;
-  const pulseId = `pulse-${Math.random().toString(36).substr(2, 9)}`;
-  
-  // Color based on state
-  let bgGradient, glowColor, ringColor;
-  if (hasUserMatch) {
-    bgGradient = 'url(#grad-blue)';
-    glowColor = 'rgba(65,105,225,0.5)';
-    ringColor = '#4169E1';
-  } else if (isActive) {
-    bgGradient = 'url(#grad-active)';
-    glowColor = 'rgba(245,158,11,0.6)';
-    ringColor = '#F59E0B';
-  } else if (hasMatches) {
-    bgGradient = 'url(#grad-match)';
-    glowColor = 'rgba(43,168,74,0.6)';
-    ringColor = '#2BA84A';
-  } else {
-    bgGradient = 'url(#grad-default)';
-    glowColor = 'rgba(43,168,74,0.3)';
-    ringColor = '#2BA84A';
-  }
+/* ─── STATUS HELPERS ─── */
+function getMatchStatus(match) {
+  if (match.status === 'ongoing') return 'live';
+  const now = new Date();
+  const matchTime = new Date(`${match.date}T${match.time}`);
+  const diffH = (matchTime - now) / 3600000;
+  const isFull = !match.is_spontaneous && match.max_players && match.current_players >= match.max_players;
+  if (isFull) return 'full';
+  if (diffH <= 3 && diffH > 0) return 'soon';
+  return 'later';
+}
 
-  const size = isSelected ? 56 : 48;
-  const half = size / 2;
-  const r = isSelected ? 22 : 18;
-
-  const svgIcon = `
-    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="grad-default" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#1A3A24;stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#0F1F15;stop-opacity:1" />
-        </linearGradient>
-        <linearGradient id="grad-match" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#2BA84A;stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#1A7A32;stop-opacity:1" />
-        </linearGradient>
-        <linearGradient id="grad-active" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#F59E0B;stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#D97706;stop-opacity:1" />
-        </linearGradient>
-        <linearGradient id="grad-blue" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#4169E1;stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#2850B8;stop-opacity:1" />
-        </linearGradient>
-        <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.5)"/>
-        </filter>
-      </defs>
-      
-      ${(hasMatches || isActive) ? `
-        <circle cx="${half}" cy="${half}" r="${r + 6}" fill="none" stroke="${ringColor}" stroke-width="2" opacity="0.3">
-          <animate attributeName="r" values="${r + 4};${r + 10};${r + 4}" dur="2s" repeatCount="indefinite" />
-          <animate attributeName="opacity" values="0.4;0.1;0.4" dur="2s" repeatCount="indefinite" />
-        </circle>
-        <circle cx="${half}" cy="${half}" r="${r + 3}" fill="none" stroke="${ringColor}" stroke-width="1.5" opacity="0.2">
-          <animate attributeName="r" values="${r + 2};${r + 7};${r + 2}" dur="2s" repeatCount="indefinite" begin="0.3s" />
-          <animate attributeName="opacity" values="0.3;0.05;0.3" dur="2s" repeatCount="indefinite" begin="0.3s" />
-        </circle>
-      ` : ''}
-      
-      <!-- Main circle -->
-      <circle cx="${half}" cy="${half}" r="${r}" fill="${bgGradient}" filter="url(#shadow)" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
-      
-      <!-- Football icon (simplified) -->
-      <circle cx="${half}" cy="${half}" r="6" fill="none" stroke="white" stroke-width="1.5" opacity="0.9"/>
-      <circle cx="${half}" cy="${half}" r="2.5" fill="white" opacity="0.9"/>
-      <line x1="${half}" y1="${half - 6}" x2="${half}" y2="${half - 2.5}" stroke="white" stroke-width="1" opacity="0.7"/>
-      <line x1="${half}" y1="${half + 2.5}" x2="${half}" y2="${half + 6}" stroke="white" stroke-width="1" opacity="0.7"/>
-      <line x1="${half - 6}" y1="${half}" x2="${half - 2.5}" y2="${half}" stroke="white" stroke-width="1" opacity="0.7"/>
-      <line x1="${half + 2.5}" y1="${half}" x2="${half + 6}" y2="${half}" stroke="white" stroke-width="1" opacity="0.7"/>
-      
-      ${matchCount > 0 ? `
-        <!-- Match count badge -->
-        <circle cx="${half + r - 4}" cy="${half - r + 4}" r="8" fill="white" stroke="${ringColor}" stroke-width="1.5"/>
-        <text x="${half + r - 4}" y="${half - r + 4}" text-anchor="middle" dominant-baseline="central" fill="${hasUserMatch ? '#4169E1' : hasMatches ? '#1A7A32' : '#0F1F15'}" font-size="9" font-weight="800" font-family="system-ui, sans-serif">${matchCount > 9 ? '9+' : matchCount}</text>
-      ` : ''}
-    </svg>
-  `;
-
-  return L.divIcon({
-    html: svgIcon,
-    className: 'allplay-map-pin',
-    iconSize: [size, size],
-    iconAnchor: [half, half],
-    popupAnchor: [0, -half]
-  });
+const STATUS_RING = {
+  live:  { color: '#F59E0B', pulse: true  },
+  soon:  { color: '#2BA84A', pulse: false },
+  later: { color: '#4169E1', pulse: false },
+  full:  { color: '#9EAAA4', pulse: false },
 };
 
-// User location dot
-const createUserLocationIcon = () => {
+/* ─── VENUE PUCK (no active matches) ─── */
+function createVenuePuck(isSelected) {
+  const s = isSelected ? 28 : 24;
+  const h = s / 2;
+  const svg = `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="${h}" cy="${h}" r="${h - 2}" fill="#18221E" stroke="#2BA84A" stroke-width="1.5" opacity="0.9"/>
+    <circle cx="${h}" cy="${h}" r="4" fill="none" stroke="#2BA84A" stroke-width="1.2" opacity="0.7"/>
+    <circle cx="${h}" cy="${h}" r="1.5" fill="#2BA84A" opacity="0.7"/>
+  </svg>`;
   return L.divIcon({
-    html: `
-      <div class="allplay-user-dot">
-        <div class="allplay-user-dot-pulse"></div>
-        <div class="allplay-user-dot-core"></div>
-      </div>
-    `,
+    html: svg,
+    className: 'allplay-venue-puck',
+    iconSize: [s, s],
+    iconAnchor: [h, h],
+    popupAnchor: [0, -h],
+  });
+}
+
+/* ─── MATCH PIN (drop shape) ─── */
+function createMatchPin(matchCount, status, isSelected, hasUserMatch) {
+  const s = isSelected ? 44 : 36;
+  const cfg = STATUS_RING[status] || STATUS_RING.later;
+  const ringColor = hasUserMatch ? '#4169E1' : cfg.color;
+  const bodyFill = hasUserMatch ? '#1E3A6E' : (status === 'live' ? '#3A2A08' : '#0F2917');
+  const w = s;
+  const h = s + 10;
+  const cx = w / 2;
+  const bodyR = s / 2 - 3;
+  const cy = bodyR + 2;
+
+  const pulse = cfg.pulse ? `
+    <circle cx="${cx}" cy="${cy}" r="${bodyR + 5}" fill="none" stroke="${ringColor}" stroke-width="1.5" opacity="0.4">
+      <animate attributeName="r" values="${bodyR + 3};${bodyR + 9};${bodyR + 3}" dur="1.8s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.5;0.1;0.5" dur="1.8s" repeatCount="indefinite"/>
+    </circle>` : '';
+
+  const badge = matchCount > 1 ? `
+    <circle cx="${cx + bodyR - 2}" cy="${cy - bodyR + 2}" r="7" fill="white" stroke="${ringColor}" stroke-width="1.2"/>
+    <text x="${cx + bodyR - 2}" y="${cy - bodyR + 2}" text-anchor="middle" dominant-baseline="central"
+      fill="${hasUserMatch ? '#1E3A6E' : '#0F2917'}" font-size="8" font-weight="800" font-family="system-ui">${matchCount > 9 ? '9+' : matchCount}</text>` : '';
+
+  const svg = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
+    ${pulse}
+    <!-- Drop tail -->
+    <path d="M${cx},${h - 2} L${cx - 5},${cy + bodyR - 4} Q${cx},${cy + bodyR + 2} ${cx + 5},${cy + bodyR - 4} Z" fill="${bodyFill}" stroke="${ringColor}" stroke-width="1.2"/>
+    <!-- Body circle -->
+    <circle cx="${cx}" cy="${cy}" r="${bodyR}" fill="${bodyFill}" stroke="${ringColor}" stroke-width="2"/>
+    <!-- Football icon -->
+    <circle cx="${cx}" cy="${cy}" r="5.5" fill="none" stroke="white" stroke-width="1.3" opacity="0.85"/>
+    <circle cx="${cx}" cy="${cy}" r="2" fill="white" opacity="0.85"/>
+    <line x1="${cx}" y1="${cy - 5.5}" x2="${cx}" y2="${cy - 2}" stroke="white" stroke-width="0.8" opacity="0.6"/>
+    <line x1="${cx}" y1="${cy + 2}" x2="${cx}" y2="${cy + 5.5}" stroke="white" stroke-width="0.8" opacity="0.6"/>
+    <line x1="${cx - 5.5}" y1="${cy}" x2="${cx - 2}" y2="${cy}" stroke="white" stroke-width="0.8" opacity="0.6"/>
+    <line x1="${cx + 2}" y1="${cy}" x2="${cx + 5.5}" y2="${cy}" stroke="white" stroke-width="0.8" opacity="0.6"/>
+    ${badge}
+  </svg>`;
+
+  return L.divIcon({
+    html: svg,
+    className: 'allplay-match-pin',
+    iconSize: [w, h],
+    iconAnchor: [cx, h],
+    popupAnchor: [0, -h],
+  });
+}
+
+/* ─── SELECTED TOOLTIP ─── */
+function createSelectedTooltip(match, spotsLeft) {
+  const timeStr = match.time || '';
+  const spotsText = match.is_spontaneous ? 'Spontan' : (spotsLeft !== null && spotsLeft > 0 ? `${spotsLeft} platser kvar` : 'Full');
+  const html = `<div style="
+    background:#121715;border:1px solid #223029;border-radius:10px;padding:5px 10px;
+    font-family:system-ui;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.5);
+    display:flex;align-items:center;gap:6px;pointer-events:none;
+  ">
+    <span style="color:#2BA84A;font-weight:700;font-size:11px;">${timeStr}</span>
+    <span style="color:#9EAAA4;font-size:10px;">·</span>
+    <span style="color:#B6C2BC;font-size:10px;font-weight:600;">${spotsText}</span>
+  </div>`;
+  return html;
+}
+
+/* ─── CLUSTER ICON ─── */
+function createClusterIcon(count) {
+  const s = 36;
+  const h = s / 2;
+  const svg = `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="${h}" cy="${h}" r="${h - 2}" fill="#18221E" stroke="#2BA84A" stroke-width="2" opacity="0.95"/>
+    <text x="${h}" y="${h}" text-anchor="middle" dominant-baseline="central" fill="#2BA84A" font-size="13" font-weight="800" font-family="system-ui">${count}</text>
+  </svg>`;
+  return L.divIcon({
+    html: svg,
+    className: 'allplay-cluster',
+    iconSize: [s, s],
+    iconAnchor: [h, h],
+  });
+}
+
+/* ─── USER LOCATION DOT ─── */
+function createUserLocationIcon() {
+  return L.divIcon({
+    html: `<div class="allplay-user-dot">
+      <div class="allplay-user-dot-pulse"></div>
+      <div class="allplay-user-dot-core"></div>
+    </div>`,
     className: 'allplay-user-marker',
     iconSize: [32, 32],
-    iconAnchor: [16, 16]
+    iconAnchor: [16, 16],
   });
-};
+}
 
+/* ─── MAP CENTER CONTROLLER ─── */
 function MapCenterController({ center, zoom, selectedVenue }) {
   const map = useMap();
-  
   useEffect(() => {
-    if (selectedVenue && selectedVenue.latitude && selectedVenue.longitude) {
-      map.setView([selectedVenue.latitude, selectedVenue.longitude], 16, {
-        animate: true,
-        duration: 0.8
-      });
-    } else if (center && center.lat && center.lng) {
-      map.setView([center.lat, center.lng], zoom, {
-        animate: true,
-        duration: 0.5
-      });
+    if (selectedVenue?.latitude && selectedVenue?.longitude) {
+      map.setView([selectedVenue.latitude, selectedVenue.longitude], 16, { animate: true, duration: 0.8 });
+    } else if (center?.lat && center?.lng) {
+      map.setView([center.lat, center.lng], zoom, { animate: true, duration: 0.5 });
     }
   }, [center, zoom, selectedVenue, map]);
-  
   return null;
 }
 
-export default function MapView({ 
-  venues = [], 
-  matches = [], 
+/* ─── CLUSTERING LAYER ─── */
+function ClusteredMarkers({ venues, venueStatuses, selectedVenue, onMarkerClick, matches }) {
+  const map = useMap();
+  const layerRef = useRef(null);
+  const [zoom, setZoom] = useState(map.getZoom());
+
+  useMapEvents({
+    zoomend: () => setZoom(map.getZoom()),
+  });
+
+  useEffect(() => {
+    if (layerRef.current) {
+      map.removeLayer(layerRef.current);
+    }
+
+    const group = L.layerGroup();
+
+    if (zoom >= 14) {
+      // No clustering at close zoom — render individually
+      venues.forEach(venue => {
+        const st = venueStatuses[venue.id] || { isActive: false, hasUserMatch: false, matchCount: 0 };
+        const isSelected = selectedVenue?.id === venue.id;
+        const hasMatches = st.matchCount > 0;
+
+        let icon;
+        if (hasMatches) {
+          const venueMatches = matches.filter(m => m.venue_id === venue.id && (m.status === 'upcoming' || m.status === 'ongoing'));
+          const bestMatch = venueMatches[0];
+          const status = bestMatch ? getMatchStatus(bestMatch) : 'later';
+          icon = createMatchPin(st.matchCount, status, isSelected, st.hasUserMatch);
+        } else {
+          icon = createVenuePuck(isSelected);
+        }
+
+        const marker = L.marker([venue.latitude, venue.longitude], { icon });
+        marker.on('click', () => onMarkerClick(venue));
+
+        // Selected tooltip
+        if (isSelected && hasMatches) {
+          const venueMatches = matches.filter(m => m.venue_id === venue.id && (m.status === 'upcoming' || m.status === 'ongoing'));
+          const bestMatch = venueMatches[0];
+          if (bestMatch) {
+            const spotsLeft = bestMatch.is_spontaneous ? null : (bestMatch.max_players - (bestMatch.current_players || 0));
+            marker.bindTooltip(createSelectedTooltip(bestMatch, spotsLeft), {
+              permanent: true, direction: 'top', offset: [0, -10], className: 'allplay-tooltip',
+            });
+          }
+        }
+
+        group.addLayer(marker);
+      });
+    } else {
+      // Cluster nearby venues using a simple grid
+      const gridSize = zoom <= 10 ? 0.05 : zoom <= 12 ? 0.02 : 0.01;
+      const clusters = {};
+
+      venues.forEach(venue => {
+        const gx = Math.floor(venue.latitude / gridSize);
+        const gy = Math.floor(venue.longitude / gridSize);
+        const key = `${gx}_${gy}`;
+        if (!clusters[key]) clusters[key] = [];
+        clusters[key].push(venue);
+      });
+
+      Object.values(clusters).forEach(clusterVenues => {
+        if (clusterVenues.length === 1) {
+          const venue = clusterVenues[0];
+          const st = venueStatuses[venue.id] || { matchCount: 0 };
+          const hasMatches = st.matchCount > 0;
+          const icon = hasMatches
+            ? createMatchPin(st.matchCount, 'later', false, st.hasUserMatch)
+            : createVenuePuck(false);
+          const marker = L.marker([venue.latitude, venue.longitude], { icon });
+          marker.on('click', () => onMarkerClick(venue));
+          group.addLayer(marker);
+        } else {
+          const avgLat = clusterVenues.reduce((s, v) => s + v.latitude, 0) / clusterVenues.length;
+          const avgLng = clusterVenues.reduce((s, v) => s + v.longitude, 0) / clusterVenues.length;
+          const totalMatches = clusterVenues.reduce((s, v) => s + (venueStatuses[v.id]?.matchCount || 0), 0);
+          const icon = createClusterIcon(clusterVenues.length);
+          const marker = L.marker([avgLat, avgLng], { icon });
+          marker.on('click', () => {
+            map.setView([avgLat, avgLng], zoom + 2, { animate: true });
+          });
+          group.addLayer(marker);
+        }
+      });
+    }
+
+    group.addTo(map);
+    layerRef.current = group;
+
+    return () => {
+      if (layerRef.current) map.removeLayer(layerRef.current);
+    };
+  }, [venues, venueStatuses, selectedVenue, zoom, matches, map, onMarkerClick]);
+
+  return null;
+}
+
+/* ─── MAIN COMPONENT ─── */
+export default function MapView({
+  venues = [],
+  matches = [],
   allParticipants = [],
-  selectedVenue, 
-  userLocation, 
+  selectedVenue,
+  userLocation,
   onVenueSelect,
   onShowDetails,
   onMatchClick,
@@ -154,47 +271,33 @@ export default function MapView({
       const upcomingMatches = venueMatches.filter(m => m.status === 'upcoming');
       const hasUserMatch = venueMatches.some(m => userMatchIds.includes(m.id));
       const matchCount = upcomingMatches.length + (ongoingMatch ? 1 : 0);
-      
-      statusMap[venue.id] = { 
-        isActive: !!ongoingMatch, 
-        hasUserMatch, 
-        matchCount
-      };
+      statusMap[venue.id] = { isActive: !!ongoingMatch, hasUserMatch, matchCount };
     });
     return statusMap;
   }, [venues, matches, userMatchIds]);
 
   const validVenues = useMemo(() => {
-    return venues.filter(venue => 
-      venue.latitude && 
-      venue.longitude && 
-      !isNaN(venue.latitude) && 
-      !isNaN(venue.longitude) &&
-      venue.latitude >= -90 && 
-      venue.latitude <= 90 &&
-      venue.longitude >= -180 && 
-      venue.longitude <= 180
+    return venues.filter(v =>
+      v.latitude && v.longitude &&
+      !isNaN(v.latitude) && !isNaN(v.longitude) &&
+      v.latitude >= -90 && v.latitude <= 90 &&
+      v.longitude >= -180 && v.longitude <= 180
     );
   }, [venues]);
 
   const defaultCenter = useMemo(() => {
-    if (userLocation && userLocation.lat && userLocation.lng) {
-      return userLocation;
-    }
+    if (userLocation?.lat && userLocation?.lng) return userLocation;
     return { lat: 59.3293, lng: 18.0686 };
   }, [userLocation]);
 
-  const handleMarkerClick = (venue) => {
-    if (onVenueSelect && typeof onVenueSelect === 'function') {
-      onVenueSelect(venue);
-    }
-  };
+  const handleMarkerClick = useCallback((venue) => {
+    if (onVenueSelect) onVenueSelect(venue);
+  }, [onVenueSelect]);
 
   return (
     <div className="w-full h-full relative">
-      {/* Dark gradient overlay for depth */}
       <div className="absolute inset-0 z-[1] pointer-events-none bg-gradient-to-b from-[#0F1513]/10 via-transparent to-[#0F1513]/20" />
-      
+
       <MapContainer
         center={[defaultCenter.lat, defaultCenter.lng]}
         zoom={13}
@@ -210,7 +313,6 @@ export default function MapView({
         updateWhenIdle={true}
         updateWhenZooming={false}
       >
-        {/* Dark Map Tiles - Carto Dark Matter */}
         <TileLayer
           attribution='&copy; <a href="https://carto.com/">CARTO</a>'
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
@@ -221,30 +323,19 @@ export default function MapView({
 
         {mapReady && <MapCenterController center={defaultCenter} zoom={13} selectedVenue={selectedVenue} />}
 
-        {/* User location marker */}
-        {userLocation && userLocation.lat && userLocation.lng && (
-          <Marker
-            position={[userLocation.lat, userLocation.lng]}
-            icon={createUserLocationIcon()}
-          />
+        {userLocation?.lat && userLocation?.lng && (
+          <Marker position={[userLocation.lat, userLocation.lng]} icon={createUserLocationIcon()} />
         )}
 
-        {/* Venue markers */}
-        {validVenues.map((venue) => {
-          const { isActive, hasUserMatch, matchCount } = venueStatuses[venue.id] || { isActive: false, hasUserMatch: false, matchCount: 0 };
-          const isSelected = selectedVenue && selectedVenue.id === venue.id;
-
-          return (
-            <Marker
-              key={venue.id}
-              position={[venue.latitude, venue.longitude]}
-              icon={createAllPlayIcon(matchCount, isActive, isSelected, hasUserMatch)}
-              eventHandlers={{
-                click: () => handleMarkerClick(venue),
-              }}
-            />
-          );
-        })}
+        {mapReady && (
+          <ClusteredMarkers
+            venues={validVenues}
+            venueStatuses={venueStatuses}
+            selectedVenue={selectedVenue}
+            onMarkerClick={handleMarkerClick}
+            matches={matches}
+          />
+        )}
       </MapContainer>
 
       {/* Floating Venue Preview Card */}
@@ -263,8 +354,24 @@ export default function MapView({
         )}
       </AnimatePresence>
 
+      {/* Legend */}
+      <div className="absolute bottom-3 left-3 z-[2] flex items-center gap-2 bg-[#121715]/90 backdrop-blur-sm rounded-lg px-2.5 py-1.5 border border-[#223029]">
+        <div className="flex items-center gap-1">
+          <div className="w-2.5 h-2.5 rounded-full bg-[#18221E] border border-[#2BA84A]" />
+          <span className="text-[9px] text-[#9EAAA4]">Plan</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2.5 h-2.5 rounded-full bg-[#2BA84A]" />
+          <span className="text-[9px] text-[#9EAAA4]">Match</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
+          <span className="text-[9px] text-[#9EAAA4]">Live</span>
+        </div>
+      </div>
+
       <style>{`
-        .allplay-map-pin {
+        .allplay-venue-puck, .allplay-match-pin, .allplay-cluster {
           background: none !important;
           border: none !important;
         }
@@ -306,8 +413,15 @@ export default function MapView({
           0%, 100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.4; }
           50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.15; }
         }
-        
-        /* Override Leaflet zoom control */
+        .allplay-tooltip {
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+          padding: 0 !important;
+        }
+        .allplay-tooltip::before {
+          display: none !important;
+        }
         .leaflet-control-zoom {
           border: none !important;
           border-radius: 12px !important;
@@ -327,8 +441,6 @@ export default function MapView({
           background: #18221E !important;
           color: #2BA84A !important;
         }
-        
-        /* Hide default attribution styling */
         .leaflet-control-attribution {
           background: rgba(18,23,21,0.7) !important;
           color: #7B8A83 !important;
