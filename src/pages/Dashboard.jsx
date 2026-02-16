@@ -393,8 +393,8 @@ export default function Dashboard() {
     }
   }, [userError]);
 
-  // No full-page gate. Critical data (matches) renders skeleton inline.
-  // User profile + participants load progressively without blocking.
+  // Page-ready gate: show full-page skeleton until critical data arrives
+  const isPageReady = !matchesLoading && !venuesLoading;
 
   const handleRefresh = async () => {
     await Promise.all([
