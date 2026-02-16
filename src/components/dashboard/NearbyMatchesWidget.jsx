@@ -165,19 +165,24 @@ export default function NearbyMatchesWidget({
         })}
       </div>
 
-      {/* Quick links */}
-      <div className="flex gap-2 pt-1">
+      {/* Quick links — pill style */}
+      <div className="flex gap-2">
         <Link to={createPageUrl("Matches")} className="flex-1">
-          <button className="w-full inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-[#18221E] px-3 text-[11px] font-semibold text-[#B6C2BC] border border-[#223029] transition-all hover:border-[#2BA84A]/30 hover:text-[#F4F7F5]">
-            Alla matcher
-            <ArrowRight className="w-3 h-3" />
-          </button>
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            className="w-full inline-flex h-10 items-center justify-center gap-1.5 rounded-2xl bg-[#18221E] px-4 text-xs font-bold text-[#F4F7F5] border border-[#223029] transition-all hover:border-[#2BA84A]/30 active:bg-[#223029]"
+          >
+            Utforska matcher
+            <ArrowRight className="w-3.5 h-3.5 text-[#9EAAA4]" />
+          </motion.button>
         </Link>
-        <Link to={createPageUrl("Map")} className="flex-1">
-          <button className="w-full inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-[#2BA84A]/10 px-3 text-[11px] font-semibold text-[#2BA84A] ring-1 ring-[#2BA84A]/20 transition-all hover:bg-[#2BA84A]/16">
-            <MapPin className="w-3 h-3" />
-            Visa på karta
-          </button>
+        <Link to={createPageUrl("Map")}>
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[#2BA84A]/12 ring-1 ring-[#2BA84A]/25 transition-all hover:bg-[#2BA84A]/20 active:ring-[#2BA84A]/40"
+          >
+            <MapPin className="w-4 h-4 text-[#2BA84A]" />
+          </motion.button>
         </Link>
       </div>
     </div>

@@ -42,19 +42,17 @@ export default function CupsWidget() {
       const allCups = await base44.entities.Cup.list('-created_date');
       const today = new Date().toISOString().split('T')[0];
       
+      const today = new Date().toISOString().split('T')[0];
+      
       return allCups
-        .filter(cup => 
-          cup.is_public !== false && 
-          (cup.name === 'Futsal Fiesta 2025' || // Always show Futsal Fiesta 2025
-           cup.status === 'registration_open' || 
-           cup.status === 'upcoming' ||
-           cup.status === 'ongoing')
-        )
+        .filter(cup => {
+          if (cup.is_public === false) return false;
+          // Only show cups whose start_date hasn't passed yet, or are currently ongoing
+          if (cup.status === 'ongoing') return true;
+          if (cup.start_date && cup.start_date < today && cup.status !== 'ongoing') return false;
+          return cup.status === 'registration_open' || cup.status === 'upcoming';
+        })
         .sort((a, b) => {
-          // Prioritize Futsal Fiesta 2025 first, then status order
-          if (a.name === 'Futsal Fiesta 2025') return -1;
-          if (b.name === 'Futsal Fiesta 2025') return 1;
-          
           const statusOrder = { ongoing: 0, registration_open: 1, upcoming: 2 };
           return (statusOrder[a.status] || 3) - (statusOrder[b.status] || 3);
         })
@@ -82,28 +80,9 @@ export default function CupsWidget() {
     );
   }
 
+  // Don't render anything if no upcoming/active cups
   if (cups.length === 0) {
-    return (
-      <Card className="bg-[#121715] rounded-[16px] sm:rounded-[20px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029]">
-        <CardContent className="p-5 sm:p-6">
-          <div className="flex items-center gap-2 mb-5">
-            <Trophy className="w-5 h-5 text-[#F59E0B]" />
-            <h3 className="text-[16px] leading-[24px] font-semibold text-[#F4F7F5]">Cuper</h3>
-          </div>
-          <div className="text-center py-6">
-            <div className="w-12 h-12 bg-[#F59E0B]/10 rounded-2xl flex items-center justify-center mx-auto mb-3 ring-1 ring-[#F59E0B]/30">
-              <Trophy className="w-6 h-6 text-[#F59E0B]" />
-            </div>
-            <p className="text-sm text-[#B6C2BC] mb-4">Inga aktiva cuper just nu</p>
-            <Link to={createPageUrl("Community") + "?tab=cups"}>
-              <button className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-[#F59E0B]/16 px-4 text-xs font-semibold text-[#FCD34D] ring-1 ring-[#F59E0B]/30 transition-all hover:bg-[#F59E0B]/24">
-                Utforska cuper
-              </button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return null;
   }
 
   return (

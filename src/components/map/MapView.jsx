@@ -24,37 +24,48 @@ const STATUS_RING = {
   full:  { color: '#9EAAA4', pulse: false },
 };
 
-/* ─── VENUE PUCK (no active matches) ─── */
-function createVenuePuck(isSelected) {
-  const s = isSelected ? 28 : 24;
-  const h = s / 2;
-  const svg = `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="${h}" cy="${h}" r="${h - 2}" fill="#18221E" stroke="#2BA84A" stroke-width="1.5" opacity="0.9"/>
-    <circle cx="${h}" cy="${h}" r="4" fill="none" stroke="#2BA84A" stroke-width="1.2" opacity="0.7"/>
-    <circle cx="${h}" cy="${h}" r="1.5" fill="#2BA84A" opacity="0.7"/>
+/* ─── VENUE PIN (drop-shape, green — no active matches) ─── */
+function createVenuePin(isSelected) {
+  const s = isSelected ? 34 : 28;
+  const w = s;
+  const h = s + 8;
+  const cx = w / 2;
+  const bodyR = s / 2 - 2;
+  const cy = bodyR + 2;
+  const fillColor = '#0F2917';
+  const strokeColor = '#2BA84A';
+
+  const svg = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
+    <path d="M${cx},${h - 1} L${cx - 4},${cy + bodyR - 3} Q${cx},${cy + bodyR + 2} ${cx + 4},${cy + bodyR - 3} Z" fill="${fillColor}" stroke="${strokeColor}" stroke-width="1"/>
+    <circle cx="${cx}" cy="${cy}" r="${bodyR}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="1.5"/>
+    <circle cx="${cx}" cy="${cy}" r="4.5" fill="none" stroke="${strokeColor}" stroke-width="1.2" opacity="0.8"/>
+    <circle cx="${cx}" cy="${cy}" r="1.8" fill="${strokeColor}" opacity="0.8"/>
   </svg>`;
   return L.divIcon({
     html: svg,
     className: 'allplay-venue-puck',
-    iconSize: [s, s],
-    iconAnchor: [h, h],
+    iconSize: [w, h],
+    iconAnchor: [cx, h],
     popupAnchor: [0, -h],
   });
 }
 
-/* ─── MATCH PIN (drop shape) ─── */
+/* ─── MATCH PIN (drop shape — orange for match, blue if user joined) ─── */
 function createMatchPin(matchCount, status, isSelected, hasUserMatch) {
-  const s = isSelected ? 44 : 36;
-  const cfg = STATUS_RING[status] || STATUS_RING.later;
-  const ringColor = hasUserMatch ? '#4169E1' : cfg.color;
-  const bodyFill = hasUserMatch ? '#1E3A6E' : (status === 'live' ? '#3A2A08' : '#0F2917');
+  const s = isSelected ? 40 : 32;
   const w = s;
   const h = s + 10;
   const cx = w / 2;
   const bodyR = s / 2 - 3;
   const cy = bodyR + 2;
 
-  const pulse = cfg.pulse ? `
+  // Color scheme: blue = user joined, orange = has match
+  const ringColor = hasUserMatch ? '#4169E1' : '#F4743B';
+  const bodyFill = hasUserMatch ? '#142244' : '#2A1208';
+  const iconColor = hasUserMatch ? '#93B4F5' : '#FDE3D2';
+  const cfg = STATUS_RING[status] || STATUS_RING.later;
+
+  const pulse = (cfg.pulse || status === 'live') ? `
     <circle cx="${cx}" cy="${cy}" r="${bodyR + 5}" fill="none" stroke="${ringColor}" stroke-width="1.5" opacity="0.4">
       <animate attributeName="r" values="${bodyR + 3};${bodyR + 9};${bodyR + 3}" dur="1.8s" repeatCount="indefinite"/>
       <animate attributeName="opacity" values="0.5;0.1;0.5" dur="1.8s" repeatCount="indefinite"/>
@@ -63,21 +74,18 @@ function createMatchPin(matchCount, status, isSelected, hasUserMatch) {
   const badge = matchCount > 1 ? `
     <circle cx="${cx + bodyR - 2}" cy="${cy - bodyR + 2}" r="7" fill="white" stroke="${ringColor}" stroke-width="1.2"/>
     <text x="${cx + bodyR - 2}" y="${cy - bodyR + 2}" text-anchor="middle" dominant-baseline="central"
-      fill="${hasUserMatch ? '#1E3A6E' : '#0F2917'}" font-size="8" font-weight="800" font-family="system-ui">${matchCount > 9 ? '9+' : matchCount}</text>` : '';
+      fill="${hasUserMatch ? '#142244' : '#2A1208'}" font-size="8" font-weight="800" font-family="system-ui">${matchCount > 9 ? '9+' : matchCount}</text>` : '';
 
   const svg = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
     ${pulse}
-    <!-- Drop tail -->
     <path d="M${cx},${h - 2} L${cx - 5},${cy + bodyR - 4} Q${cx},${cy + bodyR + 2} ${cx + 5},${cy + bodyR - 4} Z" fill="${bodyFill}" stroke="${ringColor}" stroke-width="1.2"/>
-    <!-- Body circle -->
     <circle cx="${cx}" cy="${cy}" r="${bodyR}" fill="${bodyFill}" stroke="${ringColor}" stroke-width="2"/>
-    <!-- Football icon -->
-    <circle cx="${cx}" cy="${cy}" r="5.5" fill="none" stroke="white" stroke-width="1.3" opacity="0.85"/>
-    <circle cx="${cx}" cy="${cy}" r="2" fill="white" opacity="0.85"/>
-    <line x1="${cx}" y1="${cy - 5.5}" x2="${cx}" y2="${cy - 2}" stroke="white" stroke-width="0.8" opacity="0.6"/>
-    <line x1="${cx}" y1="${cy + 2}" x2="${cx}" y2="${cy + 5.5}" stroke="white" stroke-width="0.8" opacity="0.6"/>
-    <line x1="${cx - 5.5}" y1="${cy}" x2="${cx - 2}" y2="${cy}" stroke="white" stroke-width="0.8" opacity="0.6"/>
-    <line x1="${cx + 2}" y1="${cy}" x2="${cx + 5.5}" y2="${cy}" stroke="white" stroke-width="0.8" opacity="0.6"/>
+    <circle cx="${cx}" cy="${cy}" r="5" fill="none" stroke="${iconColor}" stroke-width="1.2" opacity="0.85"/>
+    <circle cx="${cx}" cy="${cy}" r="1.8" fill="${iconColor}" opacity="0.85"/>
+    <line x1="${cx}" y1="${cy - 5}" x2="${cx}" y2="${cy - 1.8}" stroke="${iconColor}" stroke-width="0.8" opacity="0.6"/>
+    <line x1="${cx}" y1="${cy + 1.8}" x2="${cx}" y2="${cy + 5}" stroke="${iconColor}" stroke-width="0.8" opacity="0.6"/>
+    <line x1="${cx - 5}" y1="${cy}" x2="${cx - 1.8}" y2="${cy}" stroke="${iconColor}" stroke-width="0.8" opacity="0.6"/>
+    <line x1="${cx + 1.8}" y1="${cy}" x2="${cx + 5}" y2="${cy}" stroke="${iconColor}" stroke-width="0.8" opacity="0.6"/>
     ${badge}
   </svg>`;
 
@@ -179,7 +187,7 @@ function ClusteredMarkers({ venues, venueStatuses, selectedVenue, onMarkerClick,
           const status = bestMatch ? getMatchStatus(bestMatch) : 'later';
           icon = createMatchPin(st.matchCount, status, isSelected, st.hasUserMatch);
         } else {
-          icon = createVenuePuck(isSelected);
+          icon = createVenuePin(isSelected);
         }
 
         const marker = L.marker([venue.latitude, venue.longitude], { icon });
@@ -219,7 +227,7 @@ function ClusteredMarkers({ venues, venueStatuses, selectedVenue, onMarkerClick,
           const hasMatches = st.matchCount > 0;
           const icon = hasMatches
             ? createMatchPin(st.matchCount, 'later', false, st.hasUserMatch)
-            : createVenuePuck(false);
+            : createVenuePin(false);
           const marker = L.marker([venue.latitude, venue.longitude], { icon });
           marker.on('click', () => onMarkerClick(venue));
           group.addLayer(marker);
@@ -355,18 +363,18 @@ export default function MapView({
       </AnimatePresence>
 
       {/* Legend */}
-      <div className="absolute bottom-3 left-3 z-[2] flex items-center gap-2 bg-[#121715]/90 backdrop-blur-sm rounded-lg px-2.5 py-1.5 border border-[#223029]">
+      <div className="absolute bottom-3 left-3 z-[2] flex items-center gap-2.5 bg-[#121715]/90 backdrop-blur-sm rounded-lg px-2.5 py-1.5 border border-[#223029]">
         <div className="flex items-center gap-1">
-          <div className="w-2.5 h-2.5 rounded-full bg-[#18221E] border border-[#2BA84A]" />
+          <div className="w-2.5 h-2.5 rounded-full bg-[#0F2917] border border-[#2BA84A]" />
           <span className="text-[9px] text-[#9EAAA4]">Plan</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-2.5 h-2.5 rounded-full bg-[#2BA84A]" />
+          <div className="w-2.5 h-2.5 rounded-full bg-[#F4743B]" />
           <span className="text-[9px] text-[#9EAAA4]">Match</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
-          <span className="text-[9px] text-[#9EAAA4]">Live</span>
+          <div className="w-2.5 h-2.5 rounded-full bg-[#4169E1]" />
+          <span className="text-[9px] text-[#9EAAA4]">Anmäld</span>
         </div>
       </div>
 
