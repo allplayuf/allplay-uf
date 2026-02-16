@@ -32,79 +32,63 @@ function getPinColors(hasMatch, hasUserMatch, status) {
   return PIN_COLORS.match;
 }
 
-/* ─── VENUE PIN (green teardrop — no match) ─── */
+/* ─── VENUE PIN (rounded standard map pin) ─── */
 function createVenuePin(isSelected) {
-  const s = isSelected ? 38 : 30;
-  const w = s + 8;       // extra for shadow room
-  const h = s + 16;
+  const w = isSelected ? 36 : 28;
+  const h = isSelected ? 46 : 36;
   const cx = w / 2;
-  const r = s / 2 - 1;
-  const cy = r + 4;      // body center
-  const tipY = h - 3;
+  const r = w / 2 - 2;
+  const cy = r + 2;
   const c = PIN_COLORS.venue;
+  const sw = isSelected ? 2.2 : 1.6;
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
-    <ellipse cx="${cx}" cy="${tipY}" rx="${r*0.35}" ry="2.5" fill="rgba(0,0,0,0.35)"/>
-    <path d="M${cx},${tipY - 1}
-             C${cx},${tipY - 1} ${cx - r*0.5},${cy + r*0.65} ${cx - r},${cy}
-             A${r},${r} 0 1,1 ${cx + r},${cy}
-             C${cx + r*0.5},${cy + r*0.65} ${cx},${tipY - 1} ${cx},${tipY - 1}Z"
-          fill="${c.fill}" stroke="${c.stroke}" stroke-width="${isSelected ? 2.5 : 1.8}"/>
-    <circle cx="${cx}" cy="${cy}" r="4.5" fill="none" stroke="${c.icon}" stroke-width="1.4" opacity="0.85"/>
-    <circle cx="${cx}" cy="${cy}" r="1.8" fill="${c.icon}" opacity="0.9"/>
+    <defs><filter id="vs${isSelected?1:0}"><feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-opacity="0.35"/></filter></defs>
+    <path d="M${cx} ${h-1} C${cx} ${h-1} ${cx-r*0.6} ${cy+r*0.8} ${cx-r} ${cy}
+             a${r} ${r} 0 1 1 ${r*2} 0
+             C${cx+r*0.6} ${cy+r*0.8} ${cx} ${h-1} ${cx} ${h-1}Z"
+          fill="${c.fill}" stroke="${c.stroke}" stroke-width="${sw}" filter="url(#vs${isSelected?1:0})" stroke-linejoin="round"/>
+    <circle cx="${cx}" cy="${cy}" r="${r*0.38}" fill="${c.icon}" opacity="0.9"/>
   </svg>`;
 
   return L.divIcon({
     html: `<div class="ap-pin${isSelected ? ' ap-sel' : ''}">${svg}</div>`,
     className: '',
     iconSize: [w, h],
-    iconAnchor: [cx, tipY],
-    popupAnchor: [0, -h + 6],
+    iconAnchor: [cx, h - 1],
+    popupAnchor: [0, -h + 4],
   });
 }
 
-/* ─── MATCH PIN (orange/blue/gold teardrop) ─── */
+/* ─── MATCH PIN (rounded standard map pin — orange/blue/gold) ─── */
 function createMatchPin(matchCount, status, isSelected, hasUserMatch) {
-  const s = isSelected ? 44 : 36;
-  const w = s + 10;
-  const h = s + 18;
+  const w = isSelected ? 40 : 32;
+  const h = isSelected ? 52 : 42;
   const cx = w / 2;
-  const r = s / 2 - 1;
-  const cy = r + 5;
-  const tipY = h - 3;
+  const r = w / 2 - 2;
+  const cy = r + 2;
   const c = getPinColors(true, hasUserMatch, status);
+  const sw = isSelected ? 2.4 : 1.8;
 
-  // Pulse ring for live matches
   const pulse = status === 'live' ? `
-    <circle cx="${cx}" cy="${cy}" r="${r + 6}" fill="none" stroke="${c.stroke}" stroke-width="1.5" opacity="0.3">
-      <animate attributeName="r" values="${r+4};${r+10};${r+4}" dur="1.6s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.4;0.08;0.4" dur="1.6s" repeatCount="indefinite"/>
+    <circle cx="${cx}" cy="${cy}" r="${r + 5}" fill="none" stroke="${c.stroke}" stroke-width="1.2" opacity="0.3">
+      <animate attributeName="r" values="${r+3};${r+9};${r+3}" dur="1.6s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.35;0.05;0.35" dur="1.6s" repeatCount="indefinite"/>
     </circle>` : '';
 
-  // Badge for multiple matches
   const badge = matchCount > 1 ? `
-    <circle cx="${cx + r - 4}" cy="${cy - r + 4}" r="8" fill="#FFFFFF" stroke="${c.stroke}" stroke-width="1.4"/>
-    <text x="${cx + r - 4}" y="${cy - r + 4}" text-anchor="middle" dominant-baseline="central"
-          fill="#111" font-size="9" font-weight="800" font-family="system-ui">${matchCount > 9 ? '9+' : matchCount}</text>` : '';
-
-  // Football icon in center
-  const icon = `
-    <circle cx="${cx}" cy="${cy}" r="6" fill="none" stroke="${c.icon}" stroke-width="1.4" opacity="0.9"/>
-    <circle cx="${cx}" cy="${cy}" r="2.2" fill="${c.icon}" opacity="0.9"/>
-    <line x1="${cx}" y1="${cy - 6}" x2="${cx}" y2="${cy - 2.2}" stroke="${c.icon}" stroke-width="0.8" opacity="0.55"/>
-    <line x1="${cx}" y1="${cy + 2.2}" x2="${cx}" y2="${cy + 6}" stroke="${c.icon}" stroke-width="0.8" opacity="0.55"/>
-    <line x1="${cx - 6}" y1="${cy}" x2="${cx - 2.2}" y2="${cy}" stroke="${c.icon}" stroke-width="0.8" opacity="0.55"/>
-    <line x1="${cx + 2.2}" y1="${cy}" x2="${cx + 6}" y2="${cy}" stroke="${c.icon}" stroke-width="0.8" opacity="0.55"/>`;
+    <circle cx="${cx + r - 2}" cy="${cy - r + 2}" r="7" fill="#FFF" stroke="${c.stroke}" stroke-width="1.2"/>
+    <text x="${cx + r - 2}" y="${cy - r + 2}" text-anchor="middle" dominant-baseline="central"
+          fill="#111" font-size="8" font-weight="800" font-family="system-ui">${matchCount > 9 ? '9+' : matchCount}</text>` : '';
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <defs><filter id="ms${isSelected?1:0}"><feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-opacity="0.4"/></filter></defs>
     ${pulse}
-    <ellipse cx="${cx}" cy="${tipY}" rx="${r*0.4}" ry="3" fill="rgba(0,0,0,0.4)"/>
-    <path d="M${cx},${tipY - 1}
-             C${cx},${tipY - 1} ${cx - r*0.5},${cy + r*0.65} ${cx - r},${cy}
-             A${r},${r} 0 1,1 ${cx + r},${cy}
-             C${cx + r*0.5},${cy + r*0.65} ${cx},${tipY - 1} ${cx},${tipY - 1}Z"
-          fill="${c.fill}" stroke="${c.stroke}" stroke-width="${isSelected ? 2.8 : 2.2}"/>
-    ${icon}
+    <path d="M${cx} ${h-1} C${cx} ${h-1} ${cx-r*0.6} ${cy+r*0.8} ${cx-r} ${cy}
+             a${r} ${r} 0 1 1 ${r*2} 0
+             C${cx+r*0.6} ${cy+r*0.8} ${cx} ${h-1} ${cx} ${h-1}Z"
+          fill="${c.fill}" stroke="${c.stroke}" stroke-width="${sw}" filter="url(#ms${isSelected?1:0})" stroke-linejoin="round"/>
+    <circle cx="${cx}" cy="${cy}" r="${r*0.42}" fill="${c.icon}" opacity="0.9"/>
     ${badge}
   </svg>`;
 
@@ -113,8 +97,8 @@ function createMatchPin(matchCount, status, isSelected, hasUserMatch) {
     html: `<div class="${cls}">${svg}</div>`,
     className: '',
     iconSize: [w, h],
-    iconAnchor: [cx, tipY],
-    popupAnchor: [0, -h + 6],
+    iconAnchor: [cx, h - 1],
+    popupAnchor: [0, -h + 4],
   });
 }
 
