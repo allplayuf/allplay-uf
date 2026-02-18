@@ -13,6 +13,7 @@ import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { HeroSkeleton } from "../components/ui/section-skeleton";
 import { TabSkeleton, TabSkeletonGrid } from "../components/ui/tab-skeleton";
+import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import { NoPlayersFound, NoTeamsFound } from "../components/ui/empty-state";
 import { CUPS_QUERY_KEY } from "../components/dashboard/CupsWidget";
