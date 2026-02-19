@@ -380,17 +380,38 @@ export default function MatchDetailPage() {
       if (!shouldLeave) return;
 
       setIsActionLoading(true);
+      console.log('[MatchDetail] leaveMatch called for matchId:', matchId, 'userId:', user?.id);
       
-      // Let backend handle validation
-      await leaveMatch(matchId);
+      // Optimistic update: remove user from participants cache
+      const prevParticipants = queryClient.getQueryData(['supabase-matchParticipants', matchId]);
+      if (user?.id) {
+        queryClient.setQueryData(['supabase-matchParticipants', matchId], (old = []) =>
+          old.filter(p => p.user_id !== user.id)
+        );
+      }
 
+      try {
+        await leaveMatch(matchId);
+        console.log('[MatchDetail] leaveMatch success');
+      } catch (error) {
+        // Rollback optimistic update on failure
+        console.error('[MatchDetail] leaveMatch failed, rolling back:', error);
+        if (prevParticipants) {
+          queryClient.setQueryData(['supabase-matchParticipants', matchId], prevParticipants);
+        }
+        throw error;
+      }
+
+      // Invalidate all related caches
       queryClient.invalidateQueries({ queryKey: ['supabase-matchParticipants', matchId] });
+      queryClient.invalidateQueries({ queryKey: ['supabase-match', matchId] });
       queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
+      queryClient.invalidateQueries({ queryKey: ['supabase-participantMatchIds'] });
 
       await alert('Match lämnad', 'Du har lämnat matchen', { type: 'info' });
 
     } catch (error) {
-      console.error("Error leaving match:", error);
+      console.error("[MatchDetail] Error leaving match:", error);
       const msg = error.status === 401
         ? 'Du måste vara inloggad.'
         : (error.message || 'Det gick inte att lämna matchen. Försök igen.');
