@@ -48,7 +48,7 @@ const getStatusBadge = (status) => {
   return statusConfig[status] || statusConfig.upcoming;
 };
 
-export default React.memo(function MatchCard({ match, venues = [], user, participants = [], onJoin, onRefresh, index = 0 }) {
+export default React.memo(function MatchCard({ match, venues = [], user, participants = [], onJoin, onRefresh }) {
   // ALWAYS call hooks first, before any conditional returns
   const [participantUsers, setParticipantUsers] = useState([]);
   const [showAuthGate, setShowAuthGate] = useState(false);
