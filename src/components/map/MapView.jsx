@@ -205,7 +205,7 @@ function ClusteredMarkers({ venues, venueStatuses, selectedVenue, onMarkerClick,
           const status = bestMatch ? getMatchStatus(bestMatch) : 'later';
           icon = createMatchPin(st.matchCount, status, isSelected, st.hasUserMatch);
         } else {
-          icon = createVenuePin(isSelected);
+          icon = createVenuePin(isSelected, false, false);
         }
 
         const marker = L.marker([venue.latitude, venue.longitude], { icon });
