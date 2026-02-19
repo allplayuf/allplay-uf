@@ -840,7 +840,7 @@ export default function MatchDetailPage() {
                   </>
                 )}
 
-                {isParticipant && match.status === 'upcoming' && (
+                {(isParticipant || isParticipantEnriched) && match.status === 'upcoming' && (
                   <>
                     <CheckInButton
                       match={match}
