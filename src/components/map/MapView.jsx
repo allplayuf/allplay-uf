@@ -33,14 +33,29 @@ function getPinColors(hasMatch, hasUserMatch, status) {
 }
 
 /* ─── VENUE PIN (rounded standard map pin) ─── */
-function createVenuePin(isSelected) {
+function createVenuePin(isSelected, hasMatch = false, hasUserMatch = false) {
   const w = isSelected ? 36 : 28;
   const h = isSelected ? 46 : 36;
   const cx = w / 2;
   const r = w / 2 - 2;
   const cy = r + 2;
-  const c = PIN_COLORS.venue;
+  // Pick color based on state: user signed up > has match > plain venue
+  const c = hasUserMatch ? PIN_COLORS.joined : hasMatch ? PIN_COLORS.match : PIN_COLORS.venue;
   const sw = isSelected ? 2.2 : 1.6;
+
+  // Inner icon: football for match, checkmark for joined, dot for plain venue
+  let innerIcon;
+  if (hasUserMatch) {
+    // Checkmark icon
+    innerIcon = `<polyline points="${cx-r*0.2},${cy} ${cx-r*0.05},${cy+r*0.15} ${cx+r*0.2},${cy-r*0.15}" fill="none" stroke="${c.icon}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  } else if (hasMatch) {
+    // Football circle with lines
+    innerIcon = `<circle cx="${cx}" cy="${cy}" r="${r*0.3}" fill="none" stroke="${c.icon}" stroke-width="1.3" opacity="0.9"/>
+      <line x1="${cx-r*0.2}" y1="${cy}" x2="${cx+r*0.2}" y2="${cy}" stroke="${c.icon}" stroke-width="1" opacity="0.7"/>
+      <line x1="${cx}" y1="${cy-r*0.2}" x2="${cx}" y2="${cy+r*0.2}" stroke="${c.icon}" stroke-width="1" opacity="0.7"/>`;
+  } else {
+    innerIcon = `<circle cx="${cx}" cy="${cy}" r="${r*0.38}" fill="${c.icon}" opacity="0.9"/>`;
+  }
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
     <defs><filter id="vs${isSelected?1:0}"><feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-opacity="0.35"/></filter></defs>
@@ -48,7 +63,7 @@ function createVenuePin(isSelected) {
              a${r} ${r} 0 1 1 ${r*2} 0
              C${cx+r*0.6} ${cy+r*0.8} ${cx} ${h-1} ${cx} ${h-1}Z"
           fill="${c.fill}" stroke="${c.stroke}" stroke-width="${sw}" filter="url(#vs${isSelected?1:0})" stroke-linejoin="round"/>
-    <circle cx="${cx}" cy="${cy}" r="${r*0.38}" fill="${c.icon}" opacity="0.9"/>
+    ${innerIcon}
   </svg>`;
 
   return L.divIcon({
