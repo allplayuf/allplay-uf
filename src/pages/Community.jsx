@@ -315,7 +315,9 @@ export default function CommunityPage() {
 
   const handleCreateTeam = async (teamData) => {
     try {
+      console.log('[Community] handleCreateTeam called with:', teamData.name, teamData.city);
       const result = await createSupabaseTeam(teamData);
+      console.log('[Community] createTeam result:', JSON.stringify(result));
       
       setShowCreateTeamForm(false);
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.publicTeams });
@@ -324,14 +326,12 @@ export default function CommunityPage() {
       await alert('Lag skapat! ⚽', `${teamData.name} har skapats!`, { type: 'success' });
 
       // Navigate to team detail if we got an ID back
-      if (result?.team_id || result?.id) {
-        const { createPageUrl } = await import('@/utils');
-        const { useNavigate } = await import('react-router-dom');
-        // Use window.location for simplicity since we're in an async callback
-        window.location.href = `${createPageUrl("TeamOverview")}?id=${result.team_id || result.id}`;
+      const teamId = result?.team?.id || result?.team_id || result?.id;
+      if (teamId) {
+        window.location.href = `${createPageUrl("TeamOverview")}?id=${teamId}`;
       }
     } catch (error) {
-      console.error("Error creating team:", error);
+      console.error("[Community] Error creating team:", error);
       const msg = error.status === 401
         ? 'Du måste vara inloggad.'
         : error.status === 409
