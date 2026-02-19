@@ -622,7 +622,9 @@ export default function MatchDetailPage() {
   const isParticipant = !!user?.id && Array.isArray(participantsRaw) && participantsRaw.some(p => p.user_id === user.id);
   
   // UI-level check only - backend validates actual join permission
-  const canJoin = !isCupMatch && !isParticipant && match.status === 'upcoming' && !isGuest && !isOrganizer;
+  // Also check enriched participants (p.id) as fallback
+  const isParticipantEnriched = !!user?.id && Array.isArray(participants) && participants.some(p => p.id === user.id);
+  const canJoin = !isCupMatch && !isParticipant && !isParticipantEnriched && match.status === 'upcoming' && !isGuest && !isOrganizer;
   const isCompleted = match.status === 'completed';
 
   const statusConfig = STATUS_CONFIG[match.status] || STATUS_CONFIG.upcoming;
