@@ -92,9 +92,27 @@ export async function getMyTeamMemberships() {
 /**
  * Create a new team via Edge Function
  * 
- * @param {object} data - Team data
+ * @param {object} data - Team data from CreateTeamForm
  * @returns {Promise<object>} - Created team with id
  */
 export async function createTeam(data) {
-  return callEdgeFunction(EDGE.createTeam, data);
+  // Normalize payload for Supabase edge function
+  const payload = {
+    name: (data.name || '').trim(),
+    description: (data.description || '').trim(),
+    city: (data.city || '').trim(),
+    logo_url: data.logo_url || null,
+    is_public: data.is_public !== false,
+    max_members: data.max_members || 20,
+    team_color: data.teamColor || data.team_color || '#2BA84A',
+  };
+
+  console.log('[teamsService] createTeam payload:', JSON.stringify(payload));
+
+  if (!payload.name) throw new Error('Lagnamn krävs');
+  if (!payload.city) throw new Error('Stad krävs');
+
+  const result = await callEdgeFunction(EDGE.createTeam, payload);
+  console.log('[teamsService] createTeam result:', JSON.stringify(result));
+  return result;
 }
