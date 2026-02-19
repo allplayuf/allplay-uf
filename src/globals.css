@@ -109,7 +109,8 @@ css
     -webkit-tap-highlight-color: transparent;
   }
   
-  * {
+  /* Transitions only on interactive elements, not * (kills scroll perf) */
+  button, a, [role="button"], input, select, textarea, .transition-all, .transition-colors {
     transition-property: color, background-color, border-color, opacity;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 100ms;
