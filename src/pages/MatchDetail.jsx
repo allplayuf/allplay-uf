@@ -618,8 +618,8 @@ export default function MatchDetailPage() {
 
   const isOrganizer = match.organizer_id === user?.id || match.created_by === user?.id;
   
-  // CRITICAL: Safe participant check (no useMemo - cheap calculation)
-  const isParticipant = !!user?.id && Array.isArray(participants) && participants.some(p => p.id === user.id);
+  // CRITICAL: Safe participant check - check both p.id (enriched) and p.user_id (raw) for reliability
+  const isParticipant = !!user?.id && Array.isArray(participantsRaw) && participantsRaw.some(p => p.user_id === user.id);
   
   // UI-level check only - backend validates actual join permission
   const canJoin = !isCupMatch && !isParticipant && match.status === 'upcoming' && !isGuest && !isOrganizer;
