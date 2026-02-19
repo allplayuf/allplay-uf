@@ -702,7 +702,7 @@ export default function MatchDetailPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  {isParticipant && (
+                  {(isParticipant || isParticipantEnriched) && (
                     <button
                       onClick={() => setShowEndModal(true)}
                       className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#2BA84A] px-8 text-white font-bold hover:bg-[#248232] transition-all shadow-lg hover:scale-105"
