@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Clock, Users, Trophy, Target, ChevronRight, Shield, Zap, TrendingUp, Crown, Flame, LogIn } from "lucide-react";
+import { MapPin, Clock, Users, Target, ChevronRight, Shield, Zap, TrendingUp, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { triggerHaptic } from "@/components/utils/motionTokens";
