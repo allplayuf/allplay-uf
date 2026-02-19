@@ -1,124 +1,111 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import { RefreshCw } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 /**
  * Pull-to-Refresh Component
- * Mobile-optimized gesture for refreshing data
+ * 
+ * IMPORTANT: This is a PASS-THROUGH wrapper. It does NOT create its own
+ * scroll container. The parent layout's main content div is the sole
+ * scroll container. PTR only intercepts touch gestures when scrollTop === 0.
  */
 export function PullToRefresh({ onRefresh, children, threshold = 80 }) {
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [startY, setStartY] = useState(0);
-  const containerRef = useRef(null);
+  const touchStartY = useRef(0);
+  const isPulling = useRef(false);
 
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+  const handleTouchStart = useCallback((e) => {
+    // Find the nearest scrollable ancestor
+    let el = e.target;
+    while (el && el !== document.body) {
+      if (el.scrollTop > 0) return; // Already scrolled, don't intercept
+      el = el.parentElement;
+    }
+    touchStartY.current = e.touches[0].clientY;
+    isPulling.current = false;
+  }, []);
 
-    let touchStartY = 0;
-    let scrollTop = 0;
-    let lastScrollTop = 0;
+  const handleTouchMove = useCallback((e) => {
+    if (isRefreshing) return;
 
-    const handleTouchStart = (e) => {
-      scrollTop = container.scrollTop;
-      lastScrollTop = scrollTop;
-      if (scrollTop === 0) {
-        touchStartY = e.touches[0].clientY;
-        setStartY(touchStartY);
-      }
-    };
-
-    const handleTouchMove = (e) => {
-      const currentScrollTop = container.scrollTop;
-      
-      // Prevent PTR if scrolling down or not at top
-      if (isRefreshing || scrollTop > 0 || currentScrollTop > 0 || currentScrollTop > lastScrollTop) {
-        lastScrollTop = currentScrollTop;
+    // Check if we're at the top of the scroll container
+    let el = e.target;
+    while (el && el !== document.body) {
+      if (el.scrollTop > 0) {
+        // Not at top — let native scroll handle it
+        if (isPulling.current) {
+          isPulling.current = false;
+          setPullDistance(0);
+        }
         return;
       }
+      el = el.parentElement;
+    }
 
-      const currentY = e.touches[0].clientY;
-      const distance = currentY - touchStartY;
+    const currentY = e.touches[0].clientY;
+    const distance = currentY - touchStartY.current;
 
-      if (distance > 0) {
-        // Apply resistance curve (slower as you pull further)
-        const resistanceFactor = Math.min(distance / threshold, 1.5);
-        const adjustedDistance = Math.min(distance * (1 - resistanceFactor * 0.4), threshold * 1.2);
-        setPullDistance(adjustedDistance);
+    if (distance > 10) {
+      isPulling.current = true;
+      const resistanceFactor = Math.min(distance / threshold, 1.5);
+      const adjustedDistance = Math.min(distance * (1 - resistanceFactor * 0.4), threshold * 1.2);
+      setPullDistance(adjustedDistance);
+      e.preventDefault();
+    }
+  }, [isRefreshing, threshold]);
 
-        // Prevent default scroll when pulling
-        if (distance > 10) {
-          e.preventDefault();
-        }
+  const handleTouchEnd = useCallback(async () => {
+    if (!isPulling.current) return;
+    isPulling.current = false;
+
+    if (pullDistance >= threshold && !isRefreshing) {
+      setIsRefreshing(true);
+      try {
+        await onRefresh?.();
+      } finally {
+        setTimeout(() => {
+          setIsRefreshing(false);
+          setPullDistance(0);
+        }, 400);
       }
-    };
-
-    const handleTouchEnd = async () => {
-      if (pullDistance >= threshold && !isRefreshing) {
-        setIsRefreshing(true);
-        try {
-          await onRefresh?.();
-        } finally {
-          setTimeout(() => {
-            setIsRefreshing(false);
-            setPullDistance(0);
-          }, 500);
-        }
-      } else {
-        setPullDistance(0);
-      }
-    };
-
-    container.addEventListener('touchstart', handleTouchStart, { passive: true });
-    container.addEventListener('touchmove', handleTouchMove, { passive: false });
-    container.addEventListener('touchend', handleTouchEnd, { passive: true });
-
-    return () => {
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchmove', handleTouchMove);
-      container.removeEventListener('touchend', handleTouchEnd);
-    };
+    } else {
+      setPullDistance(0);
+    }
   }, [pullDistance, threshold, isRefreshing, onRefresh]);
 
-  const rotation = isRefreshing ? 360 : Math.min((pullDistance / threshold) * 180, 180);
   const opacity = Math.min(pullDistance / threshold, 1);
-  const scale = Math.min(pullDistance / threshold, 1);
 
   return (
-    <div ref={containerRef} className="relative h-full">
+    <div
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Pull indicator */}
-      <AnimatePresence>
-        {(pullDistance > 10 || isRefreshing) && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute top-0 left-0 right-0 flex items-center justify-center z-50 pointer-events-none"
-            style={{ height: Math.max(pullDistance, 60) }}
+      {(pullDistance > 10 || isRefreshing) && (
+        <div
+          className="flex items-center justify-center pointer-events-none"
+          style={{ height: Math.max(pullDistance, isRefreshing ? 60 : 0), overflow: 'hidden', transition: isRefreshing || pullDistance === 0 ? 'height 0.3s ease-out' : 'none' }}
+        >
+          <div
+            className="w-8 h-8 rounded-full bg-[#2BA84A] flex items-center justify-center shadow-lg"
+            style={{
+              opacity,
+              transform: `rotate(${isRefreshing ? 360 : Math.min((pullDistance / threshold) * 180, 180)}deg) scale(${Math.min(pullDistance / threshold, 1)})`,
+              transition: isRefreshing ? 'transform 1s linear infinite' : 'none',
+              animation: isRefreshing ? 'ptr-spin 1s linear infinite' : 'none',
+            }}
           >
-            <motion.div
-              animate={{
-                rotate: isRefreshing ? 360 : rotation,
-                scale: isRefreshing ? 1 : scale,
-              }}
-              transition={{
-                rotate: { duration: isRefreshing ? 1 : 0, repeat: isRefreshing ? Infinity : 0, ease: 'linear' },
-                scale: { duration: 0.2 }
-              }}
-              className="w-8 h-8 rounded-full bg-[#2BA84A] flex items-center justify-center shadow-lg"
-              style={{ opacity }}
-            >
-              <RefreshCw className="w-5 h-5 text-white" />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <RefreshCw className="w-5 h-5 text-white" />
+          </div>
+        </div>
+      )}
 
-      {/* Content */}
-      <div style={{ transform: `translateY(${isRefreshing ? 60 : pullDistance}px)`, transition: isRefreshing || pullDistance === 0 ? 'transform 0.3s ease-out' : 'none' }}>
-        {children}
-      </div>
+      {children}
+
+      {isRefreshing && (
+        <style>{`@keyframes ptr-spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }`}</style>
+      )}
     </div>
   );
 }
