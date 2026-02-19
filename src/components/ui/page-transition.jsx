@@ -1,48 +1,18 @@
 /**
  * PageTransition
  * 
- * Wraps page content with direction-aware animations:
- *  - tab:  subtle crossfade
- *  - push: slide from right
- *  - pop:  slide from left (mirror of push)
- * 
- * Respects prefers-reduced-motion.
+ * Lightweight wrapper — no motion.div, no AnimatePresence.
+ * This prevents scroll-container re-mount on every route change.
+ * The old approach (keyed motion.div) destroyed scroll position 
+ * and caused scroll "jumps" on mobile.
  */
 
 import React from 'react';
-import { motion } from 'framer-motion';
-import { useNavigation } from '../navigation/NavigationProvider';
-import {
-  TAB_VARIANTS,
-  PUSH_VARIANTS,
-  POP_VARIANTS,
-  TRANSITIONS,
-  safeVariants,
-  safeTransition,
-} from '../utils/motionTokens';
 
-const DIRECTION_CONFIG = {
-  tab: { variants: TAB_VARIANTS, transition: TRANSITIONS.tab },
-  push: { variants: PUSH_VARIANTS, transition: TRANSITIONS.push },
-  pop: { variants: POP_VARIANTS, transition: TRANSITIONS.pop },
-};
-
-export function PageTransition({ children, pageKey }) {
-  const { direction } = useNavigation();
-  const config = DIRECTION_CONFIG[direction] || DIRECTION_CONFIG.tab;
-  const variants = safeVariants(config.variants);
-  const transition = safeTransition(config.transition);
-
+export function PageTransition({ children }) {
   return (
-    <motion.div
-      key={pageKey}
-      initial={variants.initial}
-      animate={variants.animate}
-      exit={variants.exit}
-      transition={transition}
-      className="w-full h-full will-change-transform"
-    >
+    <div className="w-full">
       {children}
-    </motion.div>
+    </div>
   );
 }
