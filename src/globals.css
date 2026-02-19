@@ -207,5 +207,10 @@ css
 /* GPU-accelerate scrollable containers */
 [style*="overflow"] {
   -webkit-overflow-scrolling: touch;
-  transform: translateZ(0);
+}
+
+/* Promote main scrollable areas to their own compositing layer */
+.flex-1.overflow-auto {
+  will-change: scroll-position;
+  contain: layout style;
 }
