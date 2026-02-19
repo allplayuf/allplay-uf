@@ -115,18 +115,18 @@ export async function createTeam(data) {
   if (!payload.name) throw new Error('Lagnamn krävs');
   if (!payload.city) throw new Error('Stad krävs');
 
-  // Use Base44 SDK to call the backend function (NOT Supabase edge function)
-  const { base44 } = await import('@/api/base44Client');
-  const response = await base44.functions.invoke('teams/createTeam', payload);
+  // Import the backend function directly (Platform V2)
+  const { createTeam: callCreateTeam } = await import('@/functions/teams/createTeam');
+  const response = await callCreateTeam(payload);
   
-  console.log('[teamsService] createTeam result:', JSON.stringify(response?.data));
+  console.log('[teamsService] createTeam response:', JSON.stringify(response?.data));
   
-  // The base44 SDK wraps response in { data: ... }
+  // Axios-style response from Platform V2
   const result = response?.data || response;
   
   if (result?.error) {
     const error = new Error(result.error);
-    error.status = result.details ? 400 : 500;
+    error.status = response?.status || 500;
     throw error;
   }
   
