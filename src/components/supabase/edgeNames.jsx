@@ -9,7 +9,7 @@
 export const EDGE = {
   // Auth & User
   me: 'me',
-  getUsersByIds: 'get_users_by_ids',
+
   getMyProfile: 'get_my_profile',
   updateProfile: 'update_profile',
   
