@@ -42,14 +42,13 @@ export function NavigationProvider({ children, mainContentRef }) {
     if (!el) return;
 
     const saved = scrollPositionsRef.current[pathname];
-    // Use rAF to ensure DOM has rendered
-    requestAnimationFrame(() => {
-      if (saved !== undefined && saved > 0) {
+    // Use rAF to ensure DOM has rendered — only restore if we have a saved position
+    // Do NOT force scrollTop = 0 on new pages — that causes "jump" on mobile
+    if (saved !== undefined && saved > 0) {
+      requestAnimationFrame(() => {
         el.scrollTop = saved;
-      } else {
-        el.scrollTop = 0;
-      }
-    });
+      });
+    }
   }, [mainContentRef]);
 
   useEffect(() => {
