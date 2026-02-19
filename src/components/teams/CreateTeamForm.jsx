@@ -70,7 +70,7 @@ export default function CreateTeamForm({ user, onSubmit, onCancel }) {
 
   return (
     <>
-      <Card className="bg-[#121715] border-0 shadow-none rounded-t-[20px] lg:rounded-[20px] flex flex-col h-full overflow-hidden">
+      <Card className="bg-[#121715] border-0 shadow-none rounded-t-[20px] lg:rounded-[20px] flex flex-col max-h-[85vh] lg:max-h-[85vh] overflow-hidden">
         {/* Header with team color preview */}
         <div className="relative overflow-hidden rounded-t-[20px] lg:rounded-t-[16px] flex-shrink-0">
           <div 
