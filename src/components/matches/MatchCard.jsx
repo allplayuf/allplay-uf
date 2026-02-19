@@ -284,33 +284,12 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
             <div className="flex gap-3 pt-3 mt-auto">
               {/* Join button - show if joinable and user can join */}
               {canJoin && (
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.95 }}
-                  animate={{ 
-                    scale: [1, 1.03, 1],
-                  }}
-                  transition={{ 
-                    duration: 1.2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
+                <button
                   onClick={handleJoinClick}
-                  className="flex-1 bg-[#F4743B] hover:bg-[#E5683A] text-white text-base font-extrabold uppercase tracking-wide h-12 rounded-2xl transition-all flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(244,116,59,0.4)] hover:shadow-[0_0_25px_rgba(244,116,59,0.6)] border border-[#F4743B]/50 relative overflow-hidden group/btn"
+                  className="flex-1 bg-[#F4743B] hover:bg-[#E5683A] active:scale-95 text-white text-base font-extrabold uppercase tracking-wide h-12 rounded-2xl transition-transform flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(244,116,59,0.4)] hover:shadow-[0_0_25px_rgba(244,116,59,0.6)] border border-[#F4743B]/50"
                 >
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12"
-                    initial={{ x: '-100%' }}
-                    animate={{ x: '200%' }}
-                    transition={{
-                      repeat: Infinity,
-                      duration: 1.5,
-                      ease: "easeInOut",
-                      repeatDelay: 0.5
-                    }}
-                  />
-                  <span className="relative z-10">Gå med</span>
-                </motion.button>
+                  Gå med
+                </button>
               )}
 
               {/* Status badges for non-joinable states */}
