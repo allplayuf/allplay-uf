@@ -152,7 +152,10 @@ export async function joinMatch(matchId) {
  * @param {string} matchId - Match UUID
  */
 export async function leaveMatch(matchId) {
-  return callEdgeFunction(EDGE.leaveMatch, { match_id: matchId });
+  console.log('[matchesService] leaveMatch called with matchId:', matchId);
+  const result = await callEdgeFunction(EDGE.leaveMatch, { match_id: matchId });
+  console.log('[matchesService] leaveMatch result:', result);
+  return result;
 }
 
 /**
