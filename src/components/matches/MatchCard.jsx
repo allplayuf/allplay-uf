@@ -228,11 +228,9 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
                   </span>
                 </div>
                 <div className="h-1.5 bg-[#18221E] rounded-full overflow-hidden border border-[#223029]">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progressPercentage}%` }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                    className={`h-full rounded-full transition-all ${
+                  <div 
+                    style={{ width: `${progressPercentage}%` }}
+                    className={`h-full rounded-full transition-[width] duration-500 ease-out ${
                       progressPercentage >= 90 
                         ? 'bg-[#F4743B]'
                         : 'bg-[#2BA84A]'
