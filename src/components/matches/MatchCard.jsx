@@ -314,7 +314,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
     </>
   );
 });
