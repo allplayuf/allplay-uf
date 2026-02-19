@@ -165,12 +165,8 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
       }}
     />
     
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2, delay: index * 0.05 }}
-    >
-      <Card className={`bg-[#121715] border border-[#223029] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_0_24px_rgba(43,168,74,0.15)] hover:border-[#2BA84A]/40 transition-all duration-200 group h-full flex flex-col ${
+    <div>
+      <Card className={`bg-[#121715] border border-[#223029] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_0_24px_rgba(43,168,74,0.15)] hover:border-[#2BA84A]/40 transition-shadow transition-colors h-full flex flex-col ${
         match.status === 'completed' ? 'opacity-75' : ''
       }`}>
         <CardContent className="p-4 flex flex-col h-full">
