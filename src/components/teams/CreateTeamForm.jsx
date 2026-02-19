@@ -281,12 +281,6 @@ export default function CreateTeamForm({ user, onSubmit, onCancel }) {
         </CardContent>
       </Card>
 
-      {/* Prevent body scroll when modal is open */}
-      <style jsx global>{`
-        body {
-          overflow: hidden;
-        }
-      `}</style>
     </>
   );
 }
