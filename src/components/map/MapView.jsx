@@ -243,7 +243,7 @@ function ClusteredMarkers({ venues, venueStatuses, selectedVenue, onMarkerClick,
           const hasMatches = st.matchCount > 0;
           const icon = hasMatches
             ? createMatchPin(st.matchCount, 'later', false, st.hasUserMatch)
-            : createVenuePin(false);
+            : createVenuePin(false, false, false);
           const marker = L.marker([venue.latitude, venue.longitude], { icon });
           marker.on('click', () => onMarkerClick(venue));
           group.addLayer(marker);
