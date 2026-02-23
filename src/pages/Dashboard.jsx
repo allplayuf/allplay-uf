@@ -93,16 +93,18 @@ export default function Dashboard() {
     };
   }, [authUser, userProfile, isGuest]);
 
-  // Fetch all matches from Supabase
-  const { data: allMatchesRaw = [], isLoading: matchesLoading } = useQuery({
-    queryKey: QUERY_KEYS.matches,
-    queryFn: async () => {
-      const matches = await getPublicMatches({ status: 'upcoming' });
-      return matches.map(transformMatchData);
-    },
-    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
-    enabled: true,
-  });
+  // Single enriched feed: matches + participants + avatars in one query
+  const { data: feedData, isLoading: matchesLoading } = useMatchFeed();
+
+  const allMatchesRaw = feedData?.matches || [];
+  const allParticipantsGrouped = feedData?.participantsByMatch || {};
+  const feedUserAvatars = feedData?.userAvatars || {};
+  const feedMyMatchIds = feedData?.myMatchIds || new Set();
+
+  // Flatten participants for components that expect a flat array
+  const allParticipants = React.useMemo(() => {
+    return Object.values(allParticipantsGrouped).flat();
+  }, [allParticipantsGrouped]);
 
   // Fetch venues from Supabase
   const { data: venues = [], isLoading: venuesLoading } = useQuery({
@@ -112,26 +114,8 @@ export default function Dashboard() {
     enabled: true,
   });
 
-  // Fetch user's participant match IDs from Supabase
-  const { data: myParticipantMatchIds = [] } = useQuery({
-    queryKey: [...QUERY_KEYS.myParticipantMatchIds, authUser?.id],
-    queryFn: () => getMyParticipantMatchIds(),
-    ...CACHE_STRATEGIES.REALTIME,
-    enabled: isAuthenticated && !!authUser?.id,
-  });
-
-  // Get visible match IDs for fetching participants
-  const visibleMatchIds = React.useMemo(() => {
-    return allMatchesRaw.map(m => m.id);
-  }, [allMatchesRaw]);
-
-  // Fetch participants for visible matches
-  const { data: allParticipants = [], isLoading: participantsLoading } = useQuery({
-    queryKey: ['supabase-participantsForMatches', visibleMatchIds],
-    queryFn: () => getParticipantsForMatches(visibleMatchIds),
-    ...CACHE_STRATEGIES.REALTIME,
-    enabled: visibleMatchIds.length > 0,
-  });
+  // Derive myParticipantMatchIds from feed for backward compatibility
+  const myParticipantMatchIds = React.useMemo(() => [...feedMyMatchIds], [feedMyMatchIds]);
 
   // Fetch admin notifications (keeping this as is for now - can be migrated later)
   const { data: adminNotifications = [] } = useQuery({
