@@ -34,7 +34,6 @@ import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 const QUERY_KEYS = {
   venues: ['supabase-venues'],
   userProfile: ['supabase-userProfile'],
-  myParticipantMatchIds: ['supabase-myParticipantMatchIds'],
   completedMatches: ['supabase-completedMatches']
 };
 
