@@ -375,9 +375,8 @@ export default function Dashboard() {
   const handleRefresh = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['supabase-userProfile'] }),
-      queryClient.invalidateQueries({ queryKey: ['matches-infinite'] }),
+      queryClient.invalidateQueries({ queryKey: MATCH_FEED_KEY }),
       queryClient.invalidateQueries({ queryKey: ['supabase-venues'] }),
-      queryClient.invalidateQueries({ queryKey: ['supabase-myParticipantMatchIds'] })
     ]);
   };
 
