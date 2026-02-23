@@ -51,15 +51,15 @@ export default function MapPage() {
   });
 
   const formatLabels = {
-    all: 'Alla format',
-    '5v5': '5v5',
-    '7v7': '7v7',
-    '11v11': '11v11'
+    all: 'ALLA FORMAT',
+    '5v5': '5V5',
+    '7v7': '7V7',
+    '11v11': '11V11'
   };
 
   const sortByLabels = {
-    distance: 'Närmast',
-    matches: 'Mest bokade'
+    distance: 'AVSTÅND',
+    matches: 'MEST BOKADE'
   };
 
   const calculateDistance = useCallback((lat1, lon1, lat2, lon2) => {
@@ -203,12 +203,16 @@ export default function MapPage() {
     try {
       const today = new Date().toISOString().split('T')[0];
       
-      const [venuesData, matchesData] = await Promise.all([
+      const [venuesData, upcomingMatchesData, ongoingMatchesData] = await Promise.all([
         base44.entities.Venue.list(),
-        base44.entities.Match.filter({ status: 'upcoming' }, '-date', 100)
+        base44.entities.Match.filter({ status: 'upcoming' }, '-date', 100),
+        base44.entities.Match.filter({ status: 'ongoing' }, '-date', 50)
       ]);
 
-      const upcomingMatches = matchesData.filter(m => m.date >= today);
+      const upcomingMatches = [
+        ...upcomingMatchesData.filter(m => m.date >= today),
+        ...ongoingMatchesData
+      ];
 
       setVenues(venuesData);
       setMatches(upcomingMatches);

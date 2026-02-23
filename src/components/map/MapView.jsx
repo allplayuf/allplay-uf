@@ -286,10 +286,13 @@ export default function MapView({
     const statusMap = {};
     venues.forEach(venue => {
       const venueMatches = matches.filter(m => m.venue_id === venue.id);
-      const ongoingMatch = venueMatches.find(m => m.status === 'ongoing');
-      const upcomingMatches = venueMatches.filter(m => m.status === 'upcoming');
-      const hasUserMatch = venueMatches.some(m => userMatchIds.includes(m.id));
-      const matchCount = upcomingMatches.length + (ongoingMatch ? 1 : 0);
+      // Only count upcoming + ongoing as "active" matches for pin coloring
+      const activeMatches = venueMatches.filter(m => m.status === 'upcoming' || m.status === 'ongoing');
+      const ongoingMatch = activeMatches.find(m => m.status === 'ongoing');
+      const hasUserMatch = activeMatches.some(m => userMatchIds.includes(m.id));
+      const matchCount = activeMatches.length;
+      // Priority: BLUE (user joined) > ORANGE (match exists) > GREEN (no match)
+      // finished/cancelled matches => treated as no active match => GREEN
       statusMap[venue.id] = { isActive: !!ongoingMatch, hasUserMatch, matchCount };
     });
     return statusMap;
@@ -404,10 +407,20 @@ export default function MapView({
       </div>
 
       <style>{`
-        /* Pin base */
+        /* Pin base — isolated, no inheritance from global styles */
         .ap-pin {
           transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
           cursor: pointer;
+          display: block;
+          line-height: 0;
+          font-size: 0;
+          box-sizing: content-box;
+        }
+        .ap-pin svg {
+          display: block;
+          max-width: none;
+          filter: none;
+          transform: none;
         }
         .ap-pin:hover {
           transform: scale(1.15) translateY(-3px);
@@ -426,10 +439,16 @@ export default function MapView({
           transform: scale(0.9);
         }
 
-        /* Leaflet icon reset */
+        /* Leaflet icon reset — cross-platform consistency */
         .leaflet-marker-icon {
           background: none !important;
           border: none !important;
+          filter: none !important;
+          image-rendering: auto;
+        }
+        .leaflet-marker-icon img {
+          max-width: none !important;
+          filter: none !important;
         }
 
         /* User location dot */
