@@ -70,6 +70,7 @@ export default function InfiniteMatchList({
                 venues={venues || []}
                 user={user}
                 participants={participants[match.id] || []}
+                userAvatars={userAvatars}
                 onJoin={onJoin}
                 onRefresh={onRefresh}
                 index={index}
