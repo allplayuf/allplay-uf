@@ -209,8 +209,7 @@ export default function Dashboard() {
       }
       triggerHaptic('success');
       await supabaseJoinMatch(matchId);
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.matches });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myParticipantMatchIds });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-feed'] });
     } catch (error) {
       console.error("Error joining match:", error);
       displayError(error.message || 'Kunde inte gå med i matchen.');
