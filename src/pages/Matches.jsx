@@ -508,18 +508,19 @@ export default function MatchesPage() {
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
             >
-              {allMatches.length === 0 ? (
+              {!matchesLoading && allMatches.length === 0 ? (
                 <NoMatchesFound onCreateMatch={() => setShowCreateForm(true)} />
               ) : (
                 <InfiniteMatchList
-                  data={matchesData}
-                  fetchNextPage={fetchNextPage}
-                  hasNextPage={hasNextPage}
-                  isFetchingNextPage={isFetchingNextPage}
+                  data={matchesLoading ? null : { pages: [{ matches: allMatches }] }}
+                  fetchNextPage={() => {}}
+                  hasNextPage={false}
+                  isFetchingNextPage={false}
                   isLoading={matchesLoading}
                   venues={venues}
                   user={user}
                   participants={participantsByMatch}
+                  userAvatars={userAvatars}
                   onJoin={handleJoinMatch}
                   onRefresh={handleRefresh}
                   matchSort={matchSort}
