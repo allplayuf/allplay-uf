@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MatchCard from './MatchCard';
-import { MatchCardSkeleton } from '../ui/loading-skeleton';
+import MatchCardSkeleton from './MatchCardSkeleton';
 
 export default function InfiniteMatchList({ 
   data, 
@@ -13,6 +13,7 @@ export default function InfiniteMatchList({
   venues,
   user,
   participants,
+  userAvatars,
   onJoin,
   onRefresh
 }) {
