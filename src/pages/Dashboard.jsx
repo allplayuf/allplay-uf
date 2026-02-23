@@ -795,6 +795,7 @@ export default function Dashboard() {
                             venues={venues} 
                             user={user} 
                             participants={(allParticipants || []).filter(p => p.match_id === match.id)}
+                            userAvatars={feedUserAvatars}
                             onJoin={handleJoinMatch}
                             index={index}
                         />
