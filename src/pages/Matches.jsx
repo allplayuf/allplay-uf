@@ -13,7 +13,7 @@ import InfiniteMatchList from "../components/matches/InfiniteMatchList";
 import MyMatches from "../components/matches/MyMatches";
 import CompletedMatches from "../components/matches/CompletedMatches";
 import { useCustomDialog } from "../components/ui/custom-dialog";
-import { useInfiniteMatches } from "../components/hooks/useInfiniteMatches";
+import { useMatchFeed, MATCH_FEED_KEY } from "../components/hooks/useMatchFeed";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import { NoMatchesFound } from "../components/ui/empty-state";
 import { PullToRefresh } from "../components/ui/pull-to-refresh";
@@ -25,8 +25,6 @@ import {
   upsertVenue,
   getVenues,
   getMyProfile,
-  getMyParticipantMatchIds,
-  getParticipantsForMatches,
   getCompletedMatches,
   transformMatchData
 } from "../components/supabase/services";
