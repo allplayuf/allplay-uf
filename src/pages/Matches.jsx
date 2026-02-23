@@ -276,8 +276,7 @@ export default function MatchesPage() {
       // Use deleteMatch service method
       await deleteMatch(matchId);
 
-      queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myParticipantMatchIds });
+      queryClient.invalidateQueries({ queryKey: MATCH_FEED_KEY });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.completedMatches });
 
       await alert(
