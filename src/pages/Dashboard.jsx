@@ -98,45 +98,40 @@ export default function Dashboard() {
     };
   }, [authUser, userProfile, isGuest]);
 
-  // Fetch all matches from Supabase
-  const { data: allMatchesRaw = [], isLoading: matchesLoading } = useQuery({
-    queryKey: QUERY_KEYS.matches,
+  // Fetch ALL feed data in a single coordinated query to avoid waterfall loading
+  // Matches + venues + participants are fetched together so cards render complete
+  const { data: feedData, isLoading: feedLoading } = useQuery({
+    queryKey: ['dashboard-feed', authUser?.id],
     queryFn: async () => {
-      const matches = await getPublicMatches({ status: 'upcoming' });
-      return matches.map(transformMatchData);
+      // Fire all requests in parallel — no waterfall
+      const [matchesRaw, venuesData, myMatchIds] = await Promise.all([
+        getPublicMatches({ status: 'upcoming' }),
+        getVenues(),
+        (isAuthenticated && authUser?.id) ? getMyParticipantMatchIds() : Promise.resolve([]),
+      ]);
+
+      const matches = matchesRaw.map(transformMatchData);
+      const matchIds = matches.map(m => m.id);
+
+      // Fetch participants for all visible matches (+ pre-warms user cache)
+      const participants = matchIds.length > 0
+        ? await getParticipantsForMatches(matchIds)
+        : [];
+
+      return { matches, venues: venuesData, myMatchIds, participants };
     },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+    refetchOnMount: 'always', // Always fresh on tab switch
     enabled: true,
   });
 
-  // Fetch venues from Supabase
-  const { data: venues = [], isLoading: venuesLoading } = useQuery({
-    queryKey: QUERY_KEYS.venues,
-    queryFn: () => getVenues(),
-    ...CACHE_STRATEGIES.STATIC,
-    enabled: true,
-  });
-
-  // Fetch user's participant match IDs from Supabase
-  const { data: myParticipantMatchIds = [] } = useQuery({
-    queryKey: [...QUERY_KEYS.myParticipantMatchIds, authUser?.id],
-    queryFn: () => getMyParticipantMatchIds(),
-    ...CACHE_STRATEGIES.REALTIME,
-    enabled: isAuthenticated && !!authUser?.id,
-  });
-
-  // Get visible match IDs for fetching participants
-  const visibleMatchIds = React.useMemo(() => {
-    return allMatchesRaw.map(m => m.id);
-  }, [allMatchesRaw]);
-
-  // Fetch participants for visible matches
-  const { data: allParticipants = [], isLoading: participantsLoading } = useQuery({
-    queryKey: ['supabase-participantsForMatches', visibleMatchIds],
-    queryFn: () => getParticipantsForMatches(visibleMatchIds),
-    ...CACHE_STRATEGIES.REALTIME,
-    enabled: visibleMatchIds.length > 0,
-  });
+  // Destructure feed data with safe defaults
+  const allMatchesRaw = feedData?.matches ?? [];
+  const venues = feedData?.venues ?? [];
+  const myParticipantMatchIds = feedData?.myMatchIds ?? [];
+  const allParticipants = feedData?.participants ?? [];
+  const matchesLoading = feedLoading;
+  const venuesLoading = feedLoading;
 
   // Fetch admin notifications (keeping this as is for now - can be migrated later)
   const { data: adminNotifications = [] } = useQuery({
