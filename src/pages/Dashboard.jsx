@@ -36,11 +36,8 @@ import {
   upsertVenue,
   getVenues,
   getMyProfile,
-  getPublicMatches,
-  getMyParticipantMatchIds,
-  getParticipantsForMatches,
-  transformMatchData
 } from "../components/supabase/services";
+import { useMatchFeed, MATCH_FEED_KEY } from "../components/hooks/useMatchFeed";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { PullToRefresh } from "../components/ui/pull-to-refresh";
 import { AuthGateModal } from "../components/ui/auth-gate-modal";
