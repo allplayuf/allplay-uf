@@ -133,16 +133,7 @@ export default function Dashboard() {
   const matchesLoading = feedLoading;
   const venuesLoading = feedLoading;
 
-  // Fetch admin notifications (keeping this as is for now - can be migrated later)
-  const { data: adminNotifications = [] } = useQuery({
-    queryKey: QUERY_KEYS.adminNotifications,
-    queryFn: async () => {
-      // TODO: Migrate to Supabase when admin_notifications table is ready
-      return [];
-    },
-    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
-    enabled: true,
-  });
+  const adminNotifications = [];
 
   useEffect(() => {
     getUserLocation();
