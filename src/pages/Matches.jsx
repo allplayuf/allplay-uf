@@ -253,10 +253,8 @@ export default function MatchesPage() {
 
   const handleRefresh = async () => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['matches-infinite'] }),
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myParticipantMatchIds }),
+      queryClient.invalidateQueries({ queryKey: MATCH_FEED_KEY }),
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.completedMatches }),
-      queryClient.invalidateQueries({ queryKey: ['supabase-participantsForMatches'] })
     ]);
   };
 
