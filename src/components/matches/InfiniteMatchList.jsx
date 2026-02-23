@@ -84,7 +84,7 @@ export default function InfiniteMatchList({
         {isFetchingNextPage && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[...Array(2)].map((_, i) => (
-              <MatchCardSkeleton key={i} />
+              <MatchCardSkeleton key={`loading-${i}`} />
             ))}
           </div>
         )}
