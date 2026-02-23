@@ -238,8 +238,7 @@ export default function Dashboard() {
 
       setShowCreateMatchModal(false);
       
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.matches });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myParticipantMatchIds });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-feed'] });
       
       // Navigate to newly created match if we got an ID back
       if (result?.match_id) {
