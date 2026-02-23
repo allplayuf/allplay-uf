@@ -444,30 +444,30 @@ export default function MapPage() {
 
             <div className="flex gap-2">
               <Select value={filters.format} onValueChange={(value) => setFilters(prev => ({ ...prev, format: value }))}>
-                <SelectTrigger className="h-10 flex-1 bg-[#18221E]/80 border border-[#223029]/60 text-[#F4F7F5] rounded-full text-xs">
+                <SelectTrigger className="h-10 flex-1 bg-[#18221E]/80 border border-[#223029]/60 text-[#F4F7F5] rounded-full text-xs uppercase tracking-wide">
                   <Filter className="w-4 h-4 mr-1.5" />
                   <SelectValue>
                     {formatLabels[filters.format]}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="bg-[#121715] border border-[#223029] rounded-xl">
-                  <SelectItem value="all">Alla format</SelectItem>
-                  <SelectItem value="5v5">5v5</SelectItem>
-                  <SelectItem value="7v7">7v7</SelectItem>
-                  <SelectItem value="11v11">11v11</SelectItem>
+                  <SelectItem value="all">ALLA FORMAT</SelectItem>
+                  <SelectItem value="5v5">5V5</SelectItem>
+                  <SelectItem value="7v7">7V7</SelectItem>
+                  <SelectItem value="11v11">11V11</SelectItem>
                 </SelectContent>
               </Select>
               
               <Select value={filters.sortBy} onValueChange={(value) => setFilters(prev => ({ ...prev, sortBy: value }))}>
-                <SelectTrigger className="h-10 flex-1 bg-[#18221E]/80 border border-[#223029]/60 text-[#F4F7F5] rounded-full text-xs">
+                <SelectTrigger className="h-10 flex-1 bg-[#18221E]/80 border border-[#223029]/60 text-[#F4F7F5] rounded-full text-xs uppercase tracking-wide">
                   <SlidersHorizontal className="w-4 h-4 mr-1.5" />
                   <SelectValue>
                     {sortByLabels[filters.sortBy]}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="bg-[#121715] border border-[#223029] rounded-xl">
-                  <SelectItem value="distance">Närmast</SelectItem>
-                  <SelectItem value="matches">Mest bokade</SelectItem>
+                  <SelectItem value="distance">AVSTÅND</SelectItem>
+                  <SelectItem value="matches">MEST BOKADE</SelectItem>
                 </SelectContent>
               </Select>
             </div>
