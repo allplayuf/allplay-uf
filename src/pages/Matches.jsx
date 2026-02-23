@@ -13,7 +13,7 @@ import InfiniteMatchList from "../components/matches/InfiniteMatchList";
 import MyMatches from "../components/matches/MyMatches";
 import CompletedMatches from "../components/matches/CompletedMatches";
 import { useCustomDialog } from "../components/ui/custom-dialog";
-import { useMatchFeed, MATCH_FEED_KEY } from "../components/hooks/useMatchFeed";
+import { useInfiniteMatches } from "../components/hooks/useInfiniteMatches";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import { NoMatchesFound } from "../components/ui/empty-state";
 import { PullToRefresh } from "../components/ui/pull-to-refresh";
@@ -25,6 +25,8 @@ import {
   upsertVenue,
   getVenues,
   getMyProfile,
+  getMyParticipantMatchIds,
+  getParticipantsForMatches,
   getCompletedMatches,
   transformMatchData
 } from "../components/supabase/services";
@@ -34,6 +36,7 @@ import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 const QUERY_KEYS = {
   venues: ['supabase-venues'],
   userProfile: ['supabase-userProfile'],
+  myParticipantMatchIds: ['supabase-myParticipantMatchIds'],
   completedMatches: ['supabase-completedMatches']
 };
 
@@ -112,26 +115,64 @@ export default function MatchesPage() {
     ...CACHE_STRATEGIES.STATIC,
   });
 
-  // Single enriched feed: matches + participants + avatars in one query
-  const { 
-    data: feedData,
-    isLoading: matchesLoading,
-  } = useMatchFeed({
-    skill_level: sortBy === 'my_level' ? userProfile?.skill_level : 'all',
-    date: sortBy === 'today' ? 'today' : undefined,
+  // Fetch user's participant match IDs from Supabase
+  const { data: myParticipantMatchIds = [], isLoading: isParticipantIdsLoading } = useQuery({
+    queryKey: [...QUERY_KEYS.myParticipantMatchIds, authUser?.id],
+    queryFn: () => getMyParticipantMatchIds(),
+    ...CACHE_STRATEGIES.REALTIME,
+    enabled: isAuthenticated && !!authUser?.id,
   });
 
-  const allMatches = feedData?.matches || [];
-  const participantsByMatch = feedData?.participantsByMatch || {};
-  const userAvatars = feedData?.userAvatars || {};
-  const myMatchIds = feedData?.myMatchIds || new Set();
+  // Use infinite scroll hook for matches (already uses Supabase)
+  const {
+    data: matchesData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: matchesLoading
+  } = useInfiniteMatches({
+    skill_level: sortBy === 'my_level' ? userProfile?.skill_level : 'all',
+    date: sortBy === 'today' ? 'today' : undefined,
+    venues
+  });
+
+  // Process matches data - filter out cup matches
+  const allMatches = useMemo(() => {
+    return (matchesData?.pages.flatMap(page => page.matches) || [])
+      .filter(m => !m.is_cup_match);
+  }, [matchesData]);
+
+  // Get visible match IDs for fetching participants
+  const visibleMatchIds = useMemo(() => {
+    return allMatches.map(m => m.id);
+  }, [allMatches]);
+
+  // Fetch participants for visible matches
+  const { data: visibleParticipants = [] } = useQuery({
+    queryKey: ['supabase-participantsForMatches', visibleMatchIds],
+    queryFn: () => getParticipantsForMatches(visibleMatchIds),
+    ...CACHE_STRATEGIES.REALTIME,
+    enabled: visibleMatchIds.length > 0,
+  });
+
+  // Group participants by match
+  const participantsByMatch = useMemo(() => {
+    const grouped = {};
+    visibleParticipants.forEach(p => {
+      if (!grouped[p.match_id]) {
+        grouped[p.match_id] = [];
+      }
+      grouped[p.match_id].push(p);
+    });
+    return grouped;
+  }, [visibleParticipants]);
 
   // Filter my matches from the loaded matches
   const myMatches = useMemo(() => {
     return allMatches.filter(m => 
-      myMatchIds.has(m.id) || m.organizer_id === authUser?.id
+      myParticipantMatchIds.includes(m.id) || m.organizer_id === authUser?.id
     );
-  }, [allMatches, myMatchIds, authUser?.id]);
+  }, [allMatches, myParticipantMatchIds, authUser?.id]);
   
   // Fetch completed matches from Supabase (uses 'finished' status)
   const { data: completedMatchesRaw = [], isLoading: completedLoading } = useQuery({
@@ -152,8 +193,10 @@ export default function MatchesPage() {
       await joinMatch(matchId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: MATCH_FEED_KEY });
+      queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myParticipantMatchIds });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.completedMatches });
+      queryClient.invalidateQueries({ queryKey: ['supabase-participantsForMatches'] });
     },
   });
 
@@ -211,7 +254,8 @@ export default function MatchesPage() {
       setShowCreateForm(false);
       setPreselectedVenueId(null);
       
-      queryClient.invalidateQueries({ queryKey: MATCH_FEED_KEY });
+      queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myParticipantMatchIds });
       
       // Navigate to newly created match if we got an ID back
       if (result?.match_id) {
@@ -253,8 +297,10 @@ export default function MatchesPage() {
 
   const handleRefresh = async () => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: MATCH_FEED_KEY }),
+      queryClient.invalidateQueries({ queryKey: ['matches-infinite'] }),
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myParticipantMatchIds }),
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.completedMatches }),
+      queryClient.invalidateQueries({ queryKey: ['supabase-participantsForMatches'] })
     ]);
   };
 
@@ -276,7 +322,8 @@ export default function MatchesPage() {
       // Use deleteMatch service method
       await deleteMatch(matchId);
 
-      queryClient.invalidateQueries({ queryKey: MATCH_FEED_KEY });
+      queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myParticipantMatchIds });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.completedMatches });
 
       await alert(
@@ -508,19 +555,18 @@ export default function MatchesPage() {
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
             >
-              {!matchesLoading && allMatches.length === 0 ? (
+              {allMatches.length === 0 ? (
                 <NoMatchesFound onCreateMatch={() => setShowCreateForm(true)} />
               ) : (
                 <InfiniteMatchList
-                  data={matchesLoading ? null : { pages: [{ matches: allMatches }] }}
-                  fetchNextPage={() => {}}
-                  hasNextPage={false}
-                  isFetchingNextPage={false}
+                  data={matchesData}
+                  fetchNextPage={fetchNextPage}
+                  hasNextPage={hasNextPage}
+                  isFetchingNextPage={isFetchingNextPage}
                   isLoading={matchesLoading}
                   venues={venues}
                   user={user}
                   participants={participantsByMatch}
-                  userAvatars={userAvatars}
                   onJoin={handleJoinMatch}
                   onRefresh={handleRefresh}
                   matchSort={matchSort}

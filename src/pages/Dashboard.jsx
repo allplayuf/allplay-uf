@@ -36,8 +36,11 @@ import {
   upsertVenue,
   getVenues,
   getMyProfile,
+  getPublicMatches,
+  getMyParticipantMatchIds,
+  getParticipantsForMatches,
+  transformMatchData
 } from "../components/supabase/services";
-import { useMatchFeed, MATCH_FEED_KEY } from "../components/hooks/useMatchFeed";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { PullToRefresh } from "../components/ui/pull-to-refresh";
 import { AuthGateModal } from "../components/ui/auth-gate-modal";
@@ -46,7 +49,9 @@ import { LoginModal } from "../components/supabase";
 // Query keys
 const QUERY_KEYS = {
   userProfile: ['supabase-userProfile'],
+  matches: ['supabase-matches'],
   venues: ['supabase-venues'],
+  myParticipantMatchIds: ['supabase-myParticipantMatchIds'],
   adminNotifications: ['adminNotifications']
 };
 
@@ -93,18 +98,16 @@ export default function Dashboard() {
     };
   }, [authUser, userProfile, isGuest]);
 
-  // Single enriched feed: matches + participants + avatars in one query
-  const { data: feedData, isLoading: matchesLoading } = useMatchFeed();
-
-  const allMatchesRaw = feedData?.matches || [];
-  const allParticipantsGrouped = feedData?.participantsByMatch || {};
-  const feedUserAvatars = feedData?.userAvatars || {};
-  const feedMyMatchIds = feedData?.myMatchIds || new Set();
-
-  // Flatten participants for components that expect a flat array
-  const allParticipants = React.useMemo(() => {
-    return Object.values(allParticipantsGrouped).flat();
-  }, [allParticipantsGrouped]);
+  // Fetch all matches from Supabase
+  const { data: allMatchesRaw = [], isLoading: matchesLoading } = useQuery({
+    queryKey: QUERY_KEYS.matches,
+    queryFn: async () => {
+      const matches = await getPublicMatches({ status: 'upcoming' });
+      return matches.map(transformMatchData);
+    },
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+    enabled: true,
+  });
 
   // Fetch venues from Supabase
   const { data: venues = [], isLoading: venuesLoading } = useQuery({
@@ -114,8 +117,26 @@ export default function Dashboard() {
     enabled: true,
   });
 
-  // Derive myParticipantMatchIds from feed for backward compatibility
-  const myParticipantMatchIds = React.useMemo(() => [...feedMyMatchIds], [feedMyMatchIds]);
+  // Fetch user's participant match IDs from Supabase
+  const { data: myParticipantMatchIds = [] } = useQuery({
+    queryKey: [...QUERY_KEYS.myParticipantMatchIds, authUser?.id],
+    queryFn: () => getMyParticipantMatchIds(),
+    ...CACHE_STRATEGIES.REALTIME,
+    enabled: isAuthenticated && !!authUser?.id,
+  });
+
+  // Get visible match IDs for fetching participants
+  const visibleMatchIds = React.useMemo(() => {
+    return allMatchesRaw.map(m => m.id);
+  }, [allMatchesRaw]);
+
+  // Fetch participants for visible matches
+  const { data: allParticipants = [], isLoading: participantsLoading } = useQuery({
+    queryKey: ['supabase-participantsForMatches', visibleMatchIds],
+    queryFn: () => getParticipantsForMatches(visibleMatchIds),
+    ...CACHE_STRATEGIES.REALTIME,
+    enabled: visibleMatchIds.length > 0,
+  });
 
   // Fetch admin notifications (keeping this as is for now - can be migrated later)
   const { data: adminNotifications = [] } = useQuery({
@@ -202,7 +223,8 @@ export default function Dashboard() {
       }
       triggerHaptic('success');
       await supabaseJoinMatch(matchId);
-      queryClient.invalidateQueries({ queryKey: MATCH_FEED_KEY });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.matches });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myParticipantMatchIds });
     } catch (error) {
       console.error("Error joining match:", error);
       displayError(error.message || 'Kunde inte gå med i matchen.');
@@ -231,7 +253,8 @@ export default function Dashboard() {
 
       setShowCreateMatchModal(false);
       
-      queryClient.invalidateQueries({ queryKey: MATCH_FEED_KEY });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.matches });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myParticipantMatchIds });
       
       // Navigate to newly created match if we got an ID back
       if (result?.match_id) {
@@ -375,8 +398,9 @@ export default function Dashboard() {
   const handleRefresh = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['supabase-userProfile'] }),
-      queryClient.invalidateQueries({ queryKey: MATCH_FEED_KEY }),
+      queryClient.invalidateQueries({ queryKey: ['matches-infinite'] }),
       queryClient.invalidateQueries({ queryKey: ['supabase-venues'] }),
+      queryClient.invalidateQueries({ queryKey: ['supabase-myParticipantMatchIds'] })
     ]);
   };
 
@@ -795,7 +819,6 @@ export default function Dashboard() {
                             venues={venues} 
                             user={user} 
                             participants={(allParticipants || []).filter(p => p.match_id === match.id)}
-                            userAvatars={feedUserAvatars}
                             onJoin={handleJoinMatch}
                             index={index}
                         />

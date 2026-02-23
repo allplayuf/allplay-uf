@@ -48,28 +48,20 @@ const getStatusBadge = (status) => {
   return statusConfig[status] || statusConfig.upcoming;
 };
 
-export default React.memo(function MatchCard({ match, venues = [], user, participants = [], onJoin, onRefresh, userAvatars }) {
+export default React.memo(function MatchCard({ match, venues = [], user, participants = [], onJoin, onRefresh }) {
   // ALWAYS call hooks first, before any conditional returns
   const [participantUsers, setParticipantUsers] = useState([]);
   const [showAuthGate, setShowAuthGate] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const { isGuest } = useSupabaseAuth();
 
-  // Use pre-resolved avatars if available, otherwise fall back to fetching
   useEffect(() => {
-    if (userAvatars && participants && participants.length > 0) {
-      // Build participantUsers from pre-resolved avatars — no network call
-      const resolved = participants.slice(0, 5).map(p => {
-        const avatar = userAvatars[p.user_id];
-        return avatar || { id: p.user_id, display_name: 'Spelare', avatar_url: null };
-      });
-      setParticipantUsers(resolved);
-    } else if (participants && participants.length > 0) {
+    if (participants && participants.length > 0) {
       loadParticipantUsers();
     } else {
       setParticipantUsers([]);
     }
-  }, [participants, userAvatars]);
+  }, [participants]);
 
   // NOW we can do null checks after hooks
   if (!match) {

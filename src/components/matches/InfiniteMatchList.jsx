@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MatchCard from './MatchCard';
-import MatchCardSkeleton from './MatchCardSkeleton';
+import { MatchCardSkeleton } from '../ui/loading-skeleton';
 
 export default function InfiniteMatchList({ 
   data, 
@@ -13,7 +13,6 @@ export default function InfiniteMatchList({
   venues,
   user,
   participants,
-  userAvatars,
   onJoin,
   onRefresh
 }) {
@@ -39,7 +38,7 @@ export default function InfiniteMatchList({
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[...Array(4)].map((_, i) => (
+        {[...Array(6)].map((_, i) => (
           <MatchCardSkeleton key={i} />
         ))}
       </div>
@@ -70,7 +69,6 @@ export default function InfiniteMatchList({
                 venues={venues || []}
                 user={user}
                 participants={participants[match.id] || []}
-                userAvatars={userAvatars}
                 onJoin={onJoin}
                 onRefresh={onRefresh}
                 index={index}
@@ -84,7 +82,7 @@ export default function InfiniteMatchList({
         {isFetchingNextPage && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[...Array(2)].map((_, i) => (
-              <MatchCardSkeleton key={`loading-${i}`} />
+              <MatchCardSkeleton key={i} />
             ))}
           </div>
         )}
