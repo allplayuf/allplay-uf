@@ -112,64 +112,26 @@ export default function MatchesPage() {
     ...CACHE_STRATEGIES.STATIC,
   });
 
-  // Fetch user's participant match IDs from Supabase
-  const { data: myParticipantMatchIds = [], isLoading: isParticipantIdsLoading } = useQuery({
-    queryKey: [...QUERY_KEYS.myParticipantMatchIds, authUser?.id],
-    queryFn: () => getMyParticipantMatchIds(),
-    ...CACHE_STRATEGIES.REALTIME,
-    enabled: isAuthenticated && !!authUser?.id,
-  });
-
-  // Use infinite scroll hook for matches (already uses Supabase)
-  const {
-    data: matchesData,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading: matchesLoading
-  } = useInfiniteMatches({
+  // Single enriched feed: matches + participants + avatars in one query
+  const { 
+    data: feedData,
+    isLoading: matchesLoading,
+  } = useMatchFeed({
     skill_level: sortBy === 'my_level' ? userProfile?.skill_level : 'all',
     date: sortBy === 'today' ? 'today' : undefined,
-    venues
   });
 
-  // Process matches data - filter out cup matches
-  const allMatches = useMemo(() => {
-    return (matchesData?.pages.flatMap(page => page.matches) || [])
-      .filter(m => !m.is_cup_match);
-  }, [matchesData]);
-
-  // Get visible match IDs for fetching participants
-  const visibleMatchIds = useMemo(() => {
-    return allMatches.map(m => m.id);
-  }, [allMatches]);
-
-  // Fetch participants for visible matches
-  const { data: visibleParticipants = [] } = useQuery({
-    queryKey: ['supabase-participantsForMatches', visibleMatchIds],
-    queryFn: () => getParticipantsForMatches(visibleMatchIds),
-    ...CACHE_STRATEGIES.REALTIME,
-    enabled: visibleMatchIds.length > 0,
-  });
-
-  // Group participants by match
-  const participantsByMatch = useMemo(() => {
-    const grouped = {};
-    visibleParticipants.forEach(p => {
-      if (!grouped[p.match_id]) {
-        grouped[p.match_id] = [];
-      }
-      grouped[p.match_id].push(p);
-    });
-    return grouped;
-  }, [visibleParticipants]);
+  const allMatches = feedData?.matches || [];
+  const participantsByMatch = feedData?.participantsByMatch || {};
+  const userAvatars = feedData?.userAvatars || {};
+  const myMatchIds = feedData?.myMatchIds || new Set();
 
   // Filter my matches from the loaded matches
   const myMatches = useMemo(() => {
     return allMatches.filter(m => 
-      myParticipantMatchIds.includes(m.id) || m.organizer_id === authUser?.id
+      myMatchIds.has(m.id) || m.organizer_id === authUser?.id
     );
-  }, [allMatches, myParticipantMatchIds, authUser?.id]);
+  }, [allMatches, myMatchIds, authUser?.id]);
   
   // Fetch completed matches from Supabase (uses 'finished' status)
   const { data: completedMatchesRaw = [], isLoading: completedLoading } = useQuery({
