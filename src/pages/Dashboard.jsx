@@ -49,10 +49,6 @@ import { LoginModal } from "../components/supabase";
 // Query keys
 const QUERY_KEYS = {
   userProfile: ['supabase-userProfile'],
-  matches: ['supabase-matches'],
-  venues: ['supabase-venues'],
-  myParticipantMatchIds: ['supabase-myParticipantMatchIds'],
-  adminNotifications: ['adminNotifications']
 };
 
 export default function Dashboard() {
