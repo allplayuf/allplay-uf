@@ -39,7 +39,7 @@ export default function InfiniteMatchList({
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[...Array(6)].map((_, i) => (
+        {[...Array(4)].map((_, i) => (
           <MatchCardSkeleton key={i} />
         ))}
       </div>
