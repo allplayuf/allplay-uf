@@ -39,7 +39,7 @@ import {
   getPublicMatches,
   getMyParticipantMatchIds,
   getParticipantsForMatches,
-  transformMatchData
+  transformMatchData,
 } from "../components/supabase/services";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { PullToRefresh } from "../components/ui/pull-to-refresh";
