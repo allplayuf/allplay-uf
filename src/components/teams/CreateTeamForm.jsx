@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Shield, X, Upload, Image as ImageIcon, Palette, Check, Loader2, Users, MapPin } from "lucide-react";
-import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
+import { callEdgeFunction } from "@/components/supabase/callEdgeFunction";
 
 export default function CreateTeamForm({ user, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
