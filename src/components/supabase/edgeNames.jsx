@@ -39,6 +39,7 @@ export const EDGE = {
 
   // Teams
   createTeam: 'create_team',
+  deleteTeam: 'delete_team',
   
   // Account
   deleteAccount: 'delete_account',
@@ -46,4 +47,3 @@ export const EDGE = {
   // Legacy mappings (for migration period)
   checkInToMatch: 'check_in_match', // Old name -> new name
 };
-
