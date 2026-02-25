@@ -112,9 +112,7 @@ export default function AdminPage() {
     });
     if (!shouldDelete) return;
     try {
-      await base44.entities.Match.update(matchId, {
-        status: 'cancelled', deleted_at: new Date().toISOString(), deleted_by: authUser?.id
-      });
+      await callEdgeFunction('delete_match', { match_id: matchId });
       await alert('Raderad', 'Matchen har raderats.', { type: 'success' });
       queryClient.invalidateQueries({ queryKey: ['admin-matches'] });
     } catch (error) {
