@@ -97,20 +97,11 @@ export default function AdminPage() {
 
   const handleReportAction = async (reportId, action, notes) => {
     try {
-      let status = 'resolved';
-      if (action === 'dismiss' || action === 'dismissed') status = 'dismissed';
-
-      await base44.entities.Report.update(reportId, {
-        status,
-        moderator_notes: notes,
-        resolved_date: new Date().toISOString(),
-        action_taken: action,
-        resolved_by: authUser?.id
-      });
-
+      await handleReport(reportId, action, notes);
       await alert('Rapport uppdaterad', `Åtgärd: ${action}`, { type: 'success' });
       queryClient.invalidateQueries({ queryKey: ['admin-reports'] });
     } catch (error) {
+      console.error('[Admin] handleReportAction failed:', error);
       await alert('Fel', error.message || 'Kunde inte uppdatera rapport.', { type: 'alert' });
     }
   };
