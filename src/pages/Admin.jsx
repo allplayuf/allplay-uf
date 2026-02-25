@@ -126,9 +126,7 @@ export default function AdminPage() {
     });
     if (!shouldDelete) return;
     try {
-      await base44.entities.Team.update(teamId, {
-        is_active: false, deleted_at: new Date().toISOString(), deleted_by: authUser?.id
-      });
+      await callEdgeFunction('delete_team', { team_id: teamId });
       await alert('Raderat', 'Laget har raderats.', { type: 'success' });
       queryClient.invalidateQueries({ queryKey: ['admin-teams'] });
     } catch (error) {
