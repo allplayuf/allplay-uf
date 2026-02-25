@@ -90,23 +90,20 @@ export async function getMyTeamMemberships() {
 }
 
 /**
- * Create a new team via Base44 backend function
- * 
- * The create_team function lives as a Base44 backend function (functions/teams/createTeam),
- * NOT as a Supabase edge function. So we call it through the Base44 SDK.
+ * Create a new team via Supabase Edge Function
  * 
  * @param {object} data - Team data from CreateTeamForm
  * @returns {Promise<object>} - Created team with id
  */
 export async function createTeam(data) {
-  // Normalize payload
+  // Normalize and validate payload
   const payload = {
     name: (data.name || '').trim(),
-    description: (data.description || '').trim(),
+    description: (data.description || '').trim().slice(0, 500),
     city: (data.city || '').trim(),
-    logo_url: data.logo_url || null,
+    logo_url: (data.logo_url || '').trim() || null,
     is_public: data.is_public !== false,
-    max_members: data.max_members || 20,
+    max_members: Math.max(2, Math.min(50, parseInt(data.max_members) || 20)),
     teamColor: data.teamColor || data.team_color || '#2BA84A',
   };
 
@@ -115,19 +112,12 @@ export async function createTeam(data) {
   if (!payload.name) throw new Error('Lagnamn krävs');
   if (!payload.city) throw new Error('Stad krävs');
 
-  // Import the backend function directly (Platform V2)
-  const { createTeam: callCreateTeam } = await import('@/functions/teams/createTeam');
-  const response = await callCreateTeam(payload);
+  const result = await callEdgeFunction(EDGE.createTeam, payload);
   
-  console.log('[teamsService] createTeam response:', JSON.stringify(response?.data));
-  
-  // Axios-style response from Platform V2
-  const result = response?.data || response;
+  console.log('[teamsService] createTeam result:', JSON.stringify(result));
   
   if (result?.error) {
-    const error = new Error(result.error);
-    error.status = response?.status || 500;
-    throw error;
+    throw new Error(result.error);
   }
   
   return result;
