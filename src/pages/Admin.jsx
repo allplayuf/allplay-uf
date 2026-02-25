@@ -15,8 +15,9 @@ import { getVenues } from "../components/supabase/services/venuesService";
 import { getPublicMatches } from "../components/supabase/services/matchesService";
 import { getTeams } from "../components/supabase/services/teamsService";
 import { searchPlayers } from "../components/supabase/services/playersService";
-import { base44 } from "@/api/base44Client";
 import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
+import { getReports, handleReport } from "../components/supabase/services/reportsService";
+import { callEdgeFunction } from "../components/supabase/callEdgeFunction";
 
 import ModerationQueue from "../components/admin/ModerationQueue";
 import UserManagement from "../components/admin/UserManagement";
