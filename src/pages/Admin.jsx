@@ -74,7 +74,15 @@ export default function AdminPage() {
 
   const { data: reports = [], isLoading: reportsLoading, dataUpdatedAt: reportsUpdatedAt } = useQuery({
     queryKey: ['admin-reports'],
-    queryFn: () => base44.entities.Report.list('-created_date'),
+    queryFn: async () => {
+      try {
+        const result = await getReports();
+        return Array.isArray(result) ? result : (result?.reports || []);
+      } catch (e) {
+        console.warn('[Admin] getReports failed, edge function may not exist:', e.message);
+        return [];
+      }
+    },
     enabled: !!isAdmin,
     staleTime: 30000,
   });
