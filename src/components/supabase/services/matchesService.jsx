@@ -102,10 +102,11 @@ export async function createMatch(payload) {
   }
   
   // Transform frontend format to backend format
+  // NOTE: pitch_id is NOT sent from frontend. The edge function (or DB trigger)
+  // resolves pitch_id from venues.external_id using venue_id.
   const backendPayload = {
     request_id: matchData.request_id || null, // Idempotency key
     venue_id: venueUuid,
-    pitch_id: String(venueUuid), // text fallback required by backend
     starts_at: matchData.starts_at || (matchData.date && matchData.time ? `${matchData.date}T${matchData.time}:00` : null),
     level,
     is_public: matchData.is_public !== false && !matchData.is_private,
