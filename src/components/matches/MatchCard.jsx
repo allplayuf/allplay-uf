@@ -15,6 +15,7 @@ const SKILL_LEVEL_CONFIG = {
   beginner: { label: 'Nybörjare', icon: Target },
   intermediate: { label: 'Medel', icon: TrendingUp },
   advanced: { label: 'Avancerad', icon: Shield },
+  pro: { label: 'Proffs', icon: Crown },
   elite: { label: 'Elite', icon: Crown },
   mixed: { label: 'Blandad nivå', icon: Users }
 };
