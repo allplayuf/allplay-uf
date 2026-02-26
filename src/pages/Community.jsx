@@ -9,7 +9,7 @@ import { Users, UserPlus, Trophy, Plus, Search, Target, Heart } from "lucide-rea
 import { motion, AnimatePresence } from "framer-motion";
 import { TRANSITIONS } from "../components/utils/motionTokens";
 import { triggerHaptic } from "../components/utils/motionTokens";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { HeroSkeleton } from "../components/ui/section-skeleton";
 import { TabSkeleton, TabSkeletonGrid } from "../components/ui/tab-skeleton";
