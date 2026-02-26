@@ -176,11 +176,17 @@ export default function CommunityPage() {
     queryKey: QUERY_KEYS.teamMembers(user?.id),
     queryFn: async () => {
       const memberships = await getMyTeamMemberships();
+      if (memberships.length === 0) return [];
       const teamIds = memberships.map(m => m.team_id);
-      return allTeams.filter(t => teamIds.includes(t.id));
+      // Use allTeams if available, otherwise fetch fresh
+      if (allTeams.length > 0) {
+        return allTeams.filter(t => teamIds.includes(t.id));
+      }
+      const freshTeams = await getTeams();
+      return freshTeams.filter(t => teamIds.includes(t.id));
     },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
-    enabled: !!user && allTeams.length > 0,
+    enabled: !!user,
   });
 
   // Fetch team invites with OPTIMIZED caching
