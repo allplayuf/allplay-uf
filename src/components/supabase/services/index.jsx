@@ -78,7 +78,10 @@ export {
 // Teams
 export {
   getTeams,
+  getTeamById,
   getTeamMembers,
+  getTeamMembersWithProfiles,
+  getMyTeams,
   getMyTeamMemberships,
   createTeam as createSupabaseTeam
 } from './teamsService';
