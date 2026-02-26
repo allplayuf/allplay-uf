@@ -321,13 +321,15 @@ export default function CommunityPage() {
 
   const handleCreateTeam = async (teamData) => {
     try {
-      console.log('[Community] handleCreateTeam called with:', teamData.name, teamData.city);
       const result = await createSupabaseTeam(teamData);
-      console.log('[Community] createTeam result:', JSON.stringify(result));
       
       setShowCreateTeamForm(false);
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.publicTeams });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamMembers(user?.id) });
+      
+      // Invalidate and refetch immediately
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.publicTeams }),
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamMembers(user?.id) }),
+      ]);
       
       await alert('Lag skapat! ⚽', `${teamData.name} har skapats!`, { type: 'success' });
 
