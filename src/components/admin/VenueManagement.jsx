@@ -10,8 +10,8 @@ import {
   MapPin, Plus, Trash2, Save, X, CheckCircle,
   Map as MapIcon, List, Keyboard, Filter, RefreshCw
 } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMapEvents, useMap } from 'react-leaflet';
-import VenueDeduplicator from "./VenueDeduplicator";
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import AdminSectionHeader from "./AdminSectionHeader";
@@ -68,7 +68,7 @@ function KeyboardHandler({ onKeyPress, isAddingMode }) {
   return null;
 }
 
-export default function VenueManagement({ venues: propVenues = [], matches: propMatches = [], isLoading, lastUpdated, onRefresh }) {
+export default function VenueManagement({ venues: propVenues = [], isLoading, lastUpdated, onRefresh }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [activeTab, setActiveTab] = useState('list');
@@ -106,16 +106,11 @@ export default function VenueManagement({ venues: propVenues = [], matches: prop
 
   const handleCreateVenue = async (formData) => {
     try {
-      const { getSupabaseConfig, SUPABASE_URL } = await import('../supabase/config');
-      const { sessionStore, waitForAuth } = await import('../supabase/client');
-      await waitForAuth();
-      const config = await getSupabaseConfig();
-      const headers = { 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
-      if (config.anonKey) headers['apikey'] = config.anonKey;
-      if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
-      await fetch(`${SUPABASE_URL}/rest/v1/venues`, {
-        method: 'POST', headers,
-        body: JSON.stringify({ ...formData, latitude: pendingPosition.lat, longitude: pendingPosition.lng, is_active: true, is_verified: true })
+      await base44.entities.Venue.create({
+        ...formData,
+        latitude: pendingPosition.lat,
+        longitude: pendingPosition.lng,
+        is_active: true, is_verified: true, added_by_admin: true
       });
       setShowCreateModal(false);
       setPendingPosition(null);
@@ -127,16 +122,7 @@ export default function VenueManagement({ venues: propVenues = [], matches: prop
 
   const handlePositionChange = async (venueId, lat, lng) => {
     try {
-      const { getSupabaseConfig, SUPABASE_URL } = await import('../supabase/config');
-      const { sessionStore, waitForAuth } = await import('../supabase/client');
-      await waitForAuth();
-      const config = await getSupabaseConfig();
-      const headers = { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' };
-      if (config.anonKey) headers['apikey'] = config.anonKey;
-      if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
-      await fetch(`${SUPABASE_URL}/rest/v1/venues?id=eq.${venueId}`, {
-        method: 'PATCH', headers, body: JSON.stringify({ latitude: lat, longitude: lng })
-      });
+      await base44.entities.Venue.update(venueId, { latitude: lat, longitude: lng });
       onRefresh();
     } catch (error) {
       console.error('[VenueManagement] Position update failed:', error);
@@ -146,14 +132,7 @@ export default function VenueManagement({ venues: propVenues = [], matches: prop
   const handleDeleteVenue = async (venueId) => {
     if (!confirm('Radera denna plan?')) return;
     try {
-      const { getSupabaseConfig, SUPABASE_URL } = await import('../supabase/config');
-      const { sessionStore, waitForAuth } = await import('../supabase/client');
-      await waitForAuth();
-      const config = await getSupabaseConfig();
-      const headers = { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' };
-      if (config.anonKey) headers['apikey'] = config.anonKey;
-      if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
-      await fetch(`${SUPABASE_URL}/rest/v1/venues?id=eq.${venueId}`, { method: 'DELETE', headers });
+      await base44.entities.Venue.delete(venueId);
       onRefresh();
     } catch (error) {
       console.error('[VenueManagement] Delete failed:', error);
@@ -189,9 +168,6 @@ export default function VenueManagement({ venues: propVenues = [], matches: prop
           </SelectContent>
         </Select>
       </AdminSectionHeader>
-
-      {/* Venue Deduplicator */}
-      <VenueDeduplicator venues={propVenues} matches={propMatches} onRefresh={onRefresh} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="bg-[#121715] border border-[#223029] p-1 rounded-xl">

@@ -176,17 +176,11 @@ export default function CommunityPage() {
     queryKey: QUERY_KEYS.teamMembers(user?.id),
     queryFn: async () => {
       const memberships = await getMyTeamMemberships();
-      if (memberships.length === 0) return [];
       const teamIds = memberships.map(m => m.team_id);
-      // Use allTeams if available, otherwise fetch fresh
-      if (allTeams.length > 0) {
-        return allTeams.filter(t => teamIds.includes(t.id));
-      }
-      const freshTeams = await getTeams();
-      return freshTeams.filter(t => teamIds.includes(t.id));
+      return allTeams.filter(t => teamIds.includes(t.id));
     },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
-    enabled: !!user,
+    enabled: !!user && allTeams.length > 0,
   });
 
   // Fetch team invites with OPTIMIZED caching
@@ -321,15 +315,13 @@ export default function CommunityPage() {
 
   const handleCreateTeam = async (teamData) => {
     try {
+      console.log('[Community] handleCreateTeam called with:', teamData.name, teamData.city);
       const result = await createSupabaseTeam(teamData);
+      console.log('[Community] createTeam result:', JSON.stringify(result));
       
       setShowCreateTeamForm(false);
-      
-      // Invalidate and refetch immediately
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.publicTeams }),
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamMembers(user?.id) }),
-      ]);
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.publicTeams });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamMembers(user?.id) });
       
       await alert('Lag skapat! ⚽', `${teamData.name} har skapats!`, { type: 'success' });
 
