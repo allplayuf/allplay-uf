@@ -69,6 +69,7 @@ const TAB_COLORS = {
 };
 
 export default function CommunityPage() {
+  const navigate = useNavigate();
   const locationHook = useLocation();
   const urlParams = new URLSearchParams(locationHook.search);
   const initialTab = urlParams.get('tab') || 'friends';
