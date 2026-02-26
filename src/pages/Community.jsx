@@ -23,6 +23,7 @@ import { AuthGateModal } from "../components/ui/auth-gate-modal";
 import { LoginModal } from "../components/supabase";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { getMyProfile, getTeams, getMyTeamMemberships, createSupabaseTeam } from "../components/supabase/services";
+import { createPageUrl } from "@/utils";
 
 const FriendsList = lazy(() => import("../components/community/FriendsList"));
 const FindPlayers = lazy(() => import("../components/community/FindPlayers"));
