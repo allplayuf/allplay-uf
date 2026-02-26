@@ -316,15 +316,19 @@ export default function CommunityPage() {
       console.log('[Community] createTeam result:', JSON.stringify(result));
       
       setShowCreateTeamForm(false);
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.publicTeams });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamMembers(user?.id) });
+      
+      // Invalidate both team lists so "Mina lag" and "Alla lag" update
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.publicTeams }),
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamMembers(user?.id) }),
+      ]);
       
       await alert('Lag skapat! ⚽', `${teamData.name} har skapats!`, { type: 'success' });
 
       // Navigate to team detail if we got an ID back
       const teamId = result?.team?.id || result?.team_id || result?.id;
       if (teamId) {
-        window.location.href = `${createPageUrl("TeamOverview")}?id=${teamId}`;
+        navigate(`${createPageUrl("TeamOverview")}?id=${teamId}`);
       }
     } catch (error) {
       console.error("[Community] Error creating team:", error);
