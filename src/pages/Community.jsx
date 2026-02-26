@@ -171,16 +171,12 @@ export default function CommunityPage() {
     enabled: !!user,
   });
 
-  // Fetch user's team memberships from Supabase
+  // Fetch user's teams directly (JOIN team_members → teams in one query)
   const { data: myTeams = [], isLoading: myTeamsLoading } = useQuery({
     queryKey: QUERY_KEYS.teamMembers(user?.id),
-    queryFn: async () => {
-      const memberships = await getMyTeamMemberships();
-      const teamIds = memberships.map(m => m.team_id);
-      return allTeams.filter(t => teamIds.includes(t.id));
-    },
+    queryFn: () => getMyTeams(),
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
-    enabled: !!user && allTeams.length > 0,
+    enabled: !!user && !isGuestUser,
   });
 
   // Fetch team invites with OPTIMIZED caching
