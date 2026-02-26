@@ -11,20 +11,20 @@ import { getSupabaseConfig, SUPABASE_URL } from '../config';
 import { sessionStore, waitForAuth } from '../client';
 import { EDGE } from '../edgeNames';
 
-const IS_DEV = typeof window !== 'undefined' &&
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-
-/**
- * Get teams from Supabase `teams` table (authenticated)
- * RLS determines what the user can see
- */
-export async function getTeams() {
-  await waitForAuth();
+async function supabaseHeaders() {
   const config = await getSupabaseConfig();
-
   const headers = { 'Content-Type': 'application/json' };
   if (config.anonKey) headers['apikey'] = config.anonKey;
   if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
+  return headers;
+}
+
+/**
+ * Get all teams (RLS determines visibility)
+ */
+export async function getTeams() {
+  await waitForAuth();
+  const headers = await supabaseHeaders();
 
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/teams?select=*&order=created_at.desc`,
@@ -37,21 +37,39 @@ export async function getTeams() {
     throw new Error(`Kunde inte hämta lag: ${res.status}`);
   }
 
-  const teams = await res.json();
-  if (IS_DEV) console.log('[teamsService] Fetched', teams.length, 'teams');
-  return teams;
+  return res.json();
 }
 
 /**
- * Get team members for a specific team
+ * Get a single team by ID
+ */
+export async function getTeamById(teamId) {
+  if (!teamId) return null;
+  await waitForAuth();
+  const headers = await supabaseHeaders();
+
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/teams?id=eq.${teamId}&select=*`,
+    { method: 'GET', headers }
+  );
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    console.error('[teamsService] getTeamById failed:', res.status, text);
+    throw new Error(`Kunde inte hämta lag: ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data?.[0] || null;
+}
+
+/**
+ * Get team members for a specific team (raw rows)
  */
 export async function getTeamMembers(teamId) {
+  if (!teamId) return [];
   await waitForAuth();
-  const config = await getSupabaseConfig();
-
-  const headers = { 'Content-Type': 'application/json' };
-  if (config.anonKey) headers['apikey'] = config.anonKey;
-  if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
+  const headers = await supabaseHeaders();
 
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/team_members?select=*&team_id=eq.${teamId}`,
@@ -59,27 +77,93 @@ export async function getTeamMembers(teamId) {
   );
 
   if (!res.ok) {
-    throw new Error(`Kunde inte hämta lagmedlemmar: ${res.status}`);
+    const text = await res.text().catch(() => '');
+    console.error('[teamsService] getTeamMembers failed:', res.status, text);
+    return [];
   }
 
   return res.json();
 }
 
 /**
- * Get current user's team memberships
+ * Get team members WITH user profiles joined
+ * Returns array of { ...team_member_fields, user: { id, full_name, avatar_url, ... } }
  */
-export async function getMyTeamMemberships() {
+export async function getTeamMembersWithProfiles(teamId) {
+  if (!teamId) return [];
   await waitForAuth();
-  const config = await getSupabaseConfig();
 
-  const headers = { 'Content-Type': 'application/json' };
-  if (config.anonKey) headers['apikey'] = config.anonKey;
-  if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
+  const members = await getTeamMembers(teamId);
+  if (members.length === 0) return [];
 
-  // Get user ID from session
+  // Fetch user profiles for all member user_ids
+  const userIds = members.map(m => m.user_id).filter(Boolean);
+  if (userIds.length === 0) return members.map(m => ({ ...m, user: null }));
+
+  const headers = await supabaseHeaders();
+  const idsParam = `(${userIds.join(',')})`;
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/users?id=in.${idsParam}&select=id,full_name,username,avatar_url,city,skill_level,matches_played,mvp_count`,
+    { method: 'GET', headers }
+  );
+
+  let users = [];
+  if (res.ok) {
+    users = await res.json();
+  }
+
+  const userMap = new Map(users.map(u => [u.id, u]));
+
+  return members.map(m => ({
+    ...m,
+    user: userMap.get(m.user_id) || { id: m.user_id, full_name: 'Okänd spelare', avatar_url: null }
+  }));
+}
+
+/**
+ * Get current user's team memberships → returns teams (joined)
+ * 
+ * Query: team_members WHERE user_id = me AND status = active
+ * Then fetches the actual teams by IDs.
+ */
+export async function getMyTeams() {
+  await waitForAuth();
   const userId = sessionStore.user?.id;
   if (!userId) return [];
 
+  const headers = await supabaseHeaders();
+
+  // Step 1: Get my memberships
+  const membershipsRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/team_members?select=team_id&user_id=eq.${userId}&status=eq.active`,
+    { method: 'GET', headers }
+  );
+
+  if (!membershipsRes.ok) return [];
+  const memberships = await membershipsRes.json();
+  if (memberships.length === 0) return [];
+
+  // Step 2: Fetch those teams
+  const teamIds = memberships.map(m => m.team_id).filter(Boolean);
+  if (teamIds.length === 0) return [];
+
+  const idsParam = `(${teamIds.join(',')})`;
+  const teamsRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/teams?id=in.${idsParam}&select=*&order=created_at.desc`,
+    { method: 'GET', headers }
+  );
+
+  if (!teamsRes.ok) return [];
+  return teamsRes.json();
+}
+
+/** @deprecated Use getMyTeams() instead */
+export async function getMyTeamMemberships() {
+  await waitForAuth();
+  const userId = sessionStore.user?.id;
+  if (!userId) return [];
+
+  const headers = await supabaseHeaders();
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/team_members?select=*&user_id=eq.${userId}&status=eq.active`,
     { method: 'GET', headers }
@@ -91,12 +175,9 @@ export async function getMyTeamMemberships() {
 
 /**
  * Create a new team via Supabase Edge Function
- * 
- * @param {object} data - Team data from CreateTeamForm
- * @returns {Promise<object>} - Created team with id
+ * Edge function handles: INSERT into teams + INSERT into team_members (owner row)
  */
 export async function createTeam(data) {
-  // Normalize and validate payload
   const payload = {
     name: (data.name || '').trim(),
     description: (data.description || '').trim().slice(0, 500),
@@ -107,10 +188,10 @@ export async function createTeam(data) {
     teamColor: data.teamColor || data.team_color || '#2BA84A',
   };
 
-  console.log('[teamsService] createTeam payload:', JSON.stringify(payload));
-
   if (!payload.name) throw new Error('Lagnamn krävs');
   if (!payload.city) throw new Error('Stad krävs');
+
+  console.log('[teamsService] createTeam payload:', JSON.stringify(payload));
 
   const result = await callEdgeFunction(EDGE.createTeam, payload);
   
