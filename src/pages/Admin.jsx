@@ -254,6 +254,7 @@ export default function AdminPage() {
           <TabsContent value="venues">
             <VenueManagement
               venues={venues}
+              matches={matches}
               isLoading={venuesLoading}
               lastUpdated={venuesUpdatedAt}
               onRefresh={() => queryClient.invalidateQueries({ queryKey: ['admin-venues'] })}
