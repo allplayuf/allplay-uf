@@ -1,6 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
 import { getUsersByIds, getUserById } from "../components/supabase/services/usersService";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import { Card, CardContent } from "@/components/ui/card";
