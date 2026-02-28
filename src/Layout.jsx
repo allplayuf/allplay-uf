@@ -250,23 +250,37 @@ function LayoutInner({ children }) {
           {/* iOS safe-area spacer — always visible on mobile, dark bg behind status bar */}
           <div className="lg:hidden bg-[#0B0F0D] flex-shrink-0" style={{ paddingTop: 'env(safe-area-inset-top)' }} />
 
-          {/* Mobile back header for sub-pages (scrolls with content, NOT sticky) */}
-          {!isRootPage && (
-            <header className="lg:hidden bg-[#0B0F0D] border-b border-[#223029] flex-shrink-0" style={{ paddingLeft: 'calc(1rem + env(safe-area-inset-left))', paddingRight: 'calc(1rem + env(safe-area-inset-right))', paddingBottom: '0.75rem' }}>
+          {/* Mobile top header — logo on root pages, back button on sub-pages */}
+          <header className="lg:hidden bg-[#0B0F0D] flex-shrink-0 flex items-center justify-between min-h-[44px]" style={{ paddingLeft: 'calc(1rem + env(safe-area-inset-left))', paddingRight: 'calc(1rem + env(safe-area-inset-right))', paddingBottom: '0.5rem', paddingTop: '0.25rem' }}>
+            {isRootPage ? (
+              <>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg overflow-hidden bg-transparent flex items-center justify-center">
+                    <img 
+                      src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png" 
+                      alt="AllPlay" 
+                      className="w-full h-full object-contain"
+                      loading="eager"
+                    />
+                  </div>
+                  <span className="font-bold text-[#F4F7F5] text-[16px] leading-[22px]">AllPlay</span>
+                </div>
+              </>
+            ) : (
               <button
                 onClick={() => {
                   triggerHaptic('light');
                   navigate(-1);
                 }}
-                className="flex items-center gap-2 text-[#F4F7F5] hover:text-[#2BA84A] transition-colors min-h-[44px]"
+                className="flex items-center gap-1.5 text-[#F4F7F5] hover:text-[#2BA84A] transition-colors min-h-[44px]"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="m15 18-6-6 6-6"/>
                 </svg>
-                <span className="font-semibold">Tillbaka</span>
+                <span className="font-semibold text-[15px]">Tillbaka</span>
               </button>
-            </header>
-          )}
+            )}
+          </header>
 
           <div 
             ref={mainContentRef}
