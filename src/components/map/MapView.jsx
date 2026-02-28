@@ -19,16 +19,20 @@ function getMatchStatus(match) {
 
 /* ─── PIN COLOR TOKENS ─── */
 const PIN_COLORS = {
-  venue:  { fill: '#0D2818', stroke: '#2BA84A', icon: '#4ADE80' },
-  match:  { fill: '#2A1208', stroke: '#F4743B', icon: '#FDBA74' },
-  joined: { fill: '#0E1B3D', stroke: '#4169E1', icon: '#93B4F5' },
-  live:   { fill: '#2A1F08', stroke: '#F59E0B', icon: '#FDE68A' },
+  venue:  { fill: '#0D2818', stroke: '#2BA84A', icon: '#4ADE80' },   // green – plain venue
+  match:  { fill: '#2A1208', stroke: '#F4743B', icon: '#FDBA74' },   // orange – match exists
+  soon:   { fill: '#2A0A1A', stroke: '#EC4899', icon: '#F9A8D4' },   // pink – starting within 3h
+  full:   { fill: '#1A0D0D', stroke: '#DC2626', icon: '#FCA5A5' },   // red – no spots left
+  joined: { fill: '#0E1B3D', stroke: '#4169E1', icon: '#93B4F5' },   // blue – user signed up
+  live:   { fill: '#2A1F08', stroke: '#F59E0B', icon: '#FDE68A' },   // gold – ongoing
 };
 
 function getPinColors(hasMatch, hasUserMatch, status) {
   if (!hasMatch) return PIN_COLORS.venue;
   if (status === 'live') return PIN_COLORS.live;
   if (hasUserMatch) return PIN_COLORS.joined;
+  if (status === 'full') return PIN_COLORS.full;
+  if (status === 'soon') return PIN_COLORS.soon;
   return PIN_COLORS.match;
 }
 

@@ -1,4 +1,4 @@
-css
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -46,47 +46,7 @@ css
     --radius: 0.75rem;
   }
 
-  @media (prefers-color-scheme: light) {
-    :root {
-      --color-background: #F4F7F5;
-      --color-surface: #FFFFFF;
-      --color-surface-hover: #EAF6EE;
-      --color-border: #D1DCD5;
-      --color-text-primary: #0F1513;
-      --color-text-secondary: #4A5A52;
-      --color-text-muted: #5C6B63;
-      --color-primary: #2BA84A;
-      --color-primary-hover: #248232;
-      --color-primary-light: #EAF6EE;
-      --color-accent: #F4743B;
-      --color-accent-hover: #E5683A;
-
-      --scrollbar-track: #E8EDE9;
-      --scrollbar-thumb: #C1CCC5;
-      --scrollbar-thumb-hover: #2BA84A;
-
-      /* shadcn/ui semantic tokens (light theme) */
-      --background: 140 14% 97%;
-      --foreground: 156 28% 7%;
-      --card: 0 0% 100%;
-      --card-foreground: 156 28% 7%;
-      --popover: 0 0% 100%;
-      --popover-foreground: 156 28% 7%;
-      --primary: 138 56% 41%;
-      --primary-foreground: 0 0% 100%;
-      --secondary: 140 14% 90%;
-      --secondary-foreground: 156 28% 7%;
-      --muted: 140 14% 90%;
-      --muted-foreground: 150 10% 37%;
-      --accent: 140 14% 90%;
-      --accent-foreground: 156 28% 7%;
-      --destructive: 0 72% 51%;
-      --destructive-foreground: 0 0% 100%;
-      --border: 144 14% 83%;
-      --input: 144 14% 83%;
-      --ring: 138 56% 41%;
-    }
-  }
+  /* Light mode override removed — AllPlay is always dark */
 
   html, body, #root {
     background-color: #0B0F0D;
