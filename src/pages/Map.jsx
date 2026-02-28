@@ -261,7 +261,6 @@ export default function MapPage() {
   };
 
   const totalMatchesInRange = filteredVenues.reduce((sum, venue) => sum + (venue.upcoming_matches?.length || 0), 0);
-  const nearbyActiveMatches = filteredVenues.filter(v => (v.upcoming_matches?.length || 0) > 0).length;
 
   return (
     <div className="bg-[#0F1513]">
