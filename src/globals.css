@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -48,20 +47,44 @@
 
   /* Light mode override removed — AllPlay is always dark */
 
-  html, body, #root {
-    background-color: #0B0F0D;
-    color: var(--color-text-primary);
+  html {
+    background: #0B0F0D !important;
+    background-color: #0B0F0D !important;
+    height: 100%;
     margin: 0;
     padding: 0;
-    overscroll-behavior-y: none;
+    overflow: hidden;
+    overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: #0B0F0D !important;
+    background-color: #0B0F0D !important;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    overscroll-behavior: none;
+    color: var(--color-text-primary);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    scroll-behavior: smooth;
-    /* Force dark color scheme for iOS */
     color-scheme: dark;
     -webkit-text-size-adjust: 100%;
+  }
+
+  #root {
+    background: #0B0F0D !important;
+    background-color: #0B0F0D !important;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    overscroll-behavior: none;
+    color: var(--color-text-primary);
   }
   
   /* Disable text selection and touch callouts on interactive elements */
@@ -176,4 +199,50 @@
 .flex-1.overflow-auto {
   will-change: scroll-position;
   contain: layout style;
+}
+
+/* === iOS safe-area: statusbar shield === */
+.statusbar-shield {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top);
+  background: #0B0F0D;
+  z-index: 999999;
+  pointer-events: none;
+}
+
+/* === App shell wrapping entire layout === */
+.app-shell {
+  position: fixed;
+  inset: 0;
+  background: #0B0F0D;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-top: env(safe-area-inset-top);
+}
+
+/* === Scrollable content area inside app shell === */
+.app-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  background: #0B0F0D;
+}
+
+/* === Fixed bottom mobile nav === */
+.mobile-bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999998;
+  background: rgba(11, 15, 13, 0.98);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid #223029;
 }
