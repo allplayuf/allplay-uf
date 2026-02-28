@@ -336,9 +336,9 @@ export default function MapPage() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-hidden relative" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div className="flex-1 overflow-hidden relative">
           {viewMode === "list" ? (
-            <div className="h-full overflow-y-auto p-3 space-y-3" style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}>
+            <div className="h-full overflow-y-auto overscroll-none p-3 space-y-3" style={{ paddingBottom: '1rem' }}>
               <AnimatePresence mode="popLayout">
                 {filteredVenues.map((venue, index) => (
                   <motion.div
