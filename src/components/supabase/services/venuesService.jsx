@@ -116,13 +116,15 @@ export async function getVenues() {
       longitude: v.longitude ?? v.lng ?? null,
     }));
     
-    // Debug: log first venue to confirm normalization
+    // Debug: log first raw venue to see actual DB columns
+    if (rows.length > 0) {
+      console.log('[venuesService] RAW venue keys:', Object.keys(rows[0]));
+      console.log('[venuesService] RAW venue sample:', JSON.stringify(rows[0]));
+    }
     if (normalized.length > 0) {
-      console.log('[venuesService] Sample venue after normalization:', {
+      console.log('[venuesService] NORMALIZED venue sample:', {
         id: normalized[0].id,
         name: normalized[0].name,
-        lat: normalized[0].lat,
-        lng: normalized[0].lng,
         latitude: normalized[0].latitude,
         longitude: normalized[0].longitude,
       });
