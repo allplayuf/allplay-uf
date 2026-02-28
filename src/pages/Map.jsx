@@ -1,23 +1,25 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { base44 } from "@/api/base44Client";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, Filter, Search, Navigation, SlidersHorizontal, List, Map as MapIcon, Zap } from "lucide-react";
+import { MapPin, Filter, Search, Navigation, SlidersHorizontal, List, Map as MapIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
+import { useSupabaseAuth } from "../components/supabase/AuthProvider";
+import {
+  getVenues,
+  getPublicMatches,
+  getMyParticipantMatchIds,
+  getParticipantsForMatches,
+  transformMatchData
+} from "../components/supabase/services";
 
 import MapView from "../components/map/MapView";
 import VenueCard from "../components/map/VenueCard";
 import VenueDetailModal from "../components/map/VenueDetailModal";
 import FilterSheet from "../components/map/FilterSheet";
-
-const QUERY_KEYS = {
-  participants: ['participants']
-};
 
 export default function MapPage() {
   const navigate = useNavigate();
@@ -37,18 +39,7 @@ export default function MapPage() {
   const [userLocation, setUserLocation] = useState({ lat: 59.3293, lng: 18.0686 });
   const [showVenueModal, setShowVenueModal] = useState(false);
   const [selectedVenueForModal, setSelectedVenueForModal] = useState(null);
-  const [user, setUser] = useState(null);
-  const [userMatchIds, setUserMatchIds] = useState([]);
-
-  // Fetch all participants for sync
-  const { data: allParticipants = [] } = useQuery({
-    queryKey: QUERY_KEYS.participants,
-    queryFn: async () => {
-      return await base44.entities.MatchParticipant.list();
-    },
-    ...CACHE_STRATEGIES.REALTIME,
-    enabled: !!user,
-  });
+  const { user: authUser, isAuthenticated } = useSupabaseAuth();
 
   const formatLabels = {
     all: 'ALLA FORMAT',
@@ -174,52 +165,50 @@ export default function MapPage() {
     setFilteredVenues(filtered);
   }, [venues, matches, filters, searchQuery, userLocation, calculateDistance]);
 
+  // Fetch map data from Supabase
+  const { data: mapData } = useQuery({
+    queryKey: ['map-data'],
+    queryFn: async () => {
+      const [venuesData, matchesRaw] = await Promise.all([
+        getVenues(),
+        getPublicMatches({ status: 'upcoming' }),
+      ]);
+      const matches = matchesRaw.map(transformMatchData);
+      return { venues: venuesData, matches };
+    },
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+  });
+
+  // Fetch user's match IDs
+  const { data: userMatchIds = [] } = useQuery({
+    queryKey: ['map-user-match-ids', authUser?.id],
+    queryFn: () => getMyParticipantMatchIds(),
+    enabled: isAuthenticated && !!authUser?.id,
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+  });
+
+  // Fetch participants for visible matches
+  const matchIds = (mapData?.matches || []).map(m => m.id);
+  const { data: allParticipants = [] } = useQuery({
+    queryKey: ['map-participants', matchIds.slice(0, 5).join(',')],
+    queryFn: () => getParticipantsForMatches(matchIds),
+    enabled: matchIds.length > 0,
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+  });
+
+  // Sync state from queries
   useEffect(() => {
-    loadMapData();
+    if (mapData?.venues) setVenues(mapData.venues);
+    if (mapData?.matches) setMatches(mapData.matches);
+  }, [mapData]);
+
+  useEffect(() => {
     getUserLocation();
-    loadUser();
   }, []);
 
   useEffect(() => {
     applyFilters();
   }, [applyFilters]);
-
-  const loadUser = async () => {
-    try {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-      
-      const participations = await base44.entities.MatchParticipant.filter({ user_id: currentUser.id });
-      const matchIds = participations.map(p => p.match_id);
-      setUserMatchIds(matchIds);
-    } catch (error) {
-      console.error("Error loading user:", error);
-      setUser(null);
-      setUserMatchIds([]);
-    }
-  };
-
-  const loadMapData = async () => {
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      
-      const [venuesData, upcomingMatchesData, ongoingMatchesData] = await Promise.all([
-        base44.entities.Venue.list(),
-        base44.entities.Match.filter({ status: 'upcoming' }, '-date', 100),
-        base44.entities.Match.filter({ status: 'ongoing' }, '-date', 50)
-      ]);
-
-      const upcomingMatches = [
-        ...upcomingMatchesData.filter(m => m.date >= today),
-        ...ongoingMatchesData
-      ];
-
-      setVenues(venuesData);
-      setMatches(upcomingMatches);
-    } catch (error) {
-      console.error("Error loading map data:", error);
-    }
-  };
 
   const getUserLocation = () => {
     if (navigator.geolocation) {
