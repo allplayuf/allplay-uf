@@ -183,42 +183,32 @@ export default function MapPage() {
   useEffect(() => {
     loadMapData();
     getUserLocation();
-    loadUser();
   }, []);
+
+  // Load user match IDs from Supabase when auth changes
+  useEffect(() => {
+    if (isAuthenticated && authUser?.id) {
+      getMyParticipantMatchIds().then(ids => setUserMatchIds(ids)).catch(() => setUserMatchIds([]));
+    } else {
+      setUserMatchIds([]);
+    }
+  }, [isAuthenticated, authUser?.id]);
 
   useEffect(() => {
     applyFilters();
   }, [applyFilters]);
 
-  const loadUser = async () => {
-    try {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-      
-      const participations = await base44.entities.MatchParticipant.filter({ user_id: currentUser.id });
-      const matchIds = participations.map(p => p.match_id);
-      setUserMatchIds(matchIds);
-    } catch (error) {
-      console.error("Error loading user:", error);
-      setUser(null);
-      setUserMatchIds([]);
-    }
-  };
-
   const loadMapData = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0];
-      
-      const [venuesData, upcomingMatchesData, ongoingMatchesData] = await Promise.all([
-        base44.entities.Venue.list(),
-        base44.entities.Match.filter({ status: 'upcoming' }, '-date', 100),
-        base44.entities.Match.filter({ status: 'ongoing' }, '-date', 50)
+      const [venuesData, matchesRaw] = await Promise.all([
+        getVenues(),
+        getPublicMatches({ status: 'upcoming' }),
       ]);
 
-      const upcomingMatches = [
-        ...upcomingMatchesData.filter(m => m.date >= today),
-        ...ongoingMatchesData
-      ];
+      const today = new Date().toISOString().split('T')[0];
+      const upcomingMatches = matchesRaw
+        .map(transformMatchData)
+        .filter(m => m && (m.status === 'upcoming' || m.status === 'ongoing'));
 
       setVenues(venuesData);
       setMatches(upcomingMatches);
