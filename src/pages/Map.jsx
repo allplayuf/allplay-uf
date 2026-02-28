@@ -40,17 +40,20 @@ export default function MapPage() {
   const [userLocation, setUserLocation] = useState({ lat: 59.3293, lng: 18.0686 });
   const [showVenueModal, setShowVenueModal] = useState(false);
   const [selectedVenueForModal, setSelectedVenueForModal] = useState(null);
-  const [user, setUser] = useState(null);
   const [userMatchIds, setUserMatchIds] = useState([]);
 
-  // Fetch all participants for sync
+  const { user: authUser, isAuthenticated } = useSupabaseAuth();
+
+  // Fetch all participants for matches displayed on map
   const { data: allParticipants = [] } = useQuery({
-    queryKey: QUERY_KEYS.participants,
+    queryKey: ['map-participants', matches.map(m => m.id).join(',')],
     queryFn: async () => {
-      return await base44.entities.MatchParticipant.list();
+      const matchIds = matches.map(m => m.id).filter(Boolean);
+      if (matchIds.length === 0) return [];
+      return await getParticipantsForMatches(matchIds);
     },
-    ...CACHE_STRATEGIES.REALTIME,
-    enabled: !!user,
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+    enabled: matches.length > 0,
   });
 
   const formatLabels = {
