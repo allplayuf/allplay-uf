@@ -52,8 +52,7 @@
     color: var(--color-text-primary);
     margin: 0;
     padding: 0;
-    overscroll-behavior-y: none;
-    overscroll-behavior: none;
+    overscroll-behavior: none !important;
     -webkit-overflow-scrolling: touch;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
@@ -67,20 +66,23 @@
   html {
     background-color: #0B0F0D;
     height: 100%;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
   }
 
   body {
     background-color: #0B0F0D;
-    min-height: 100%;
+    height: 100%;
     overflow: hidden;
     position: fixed;
     width: 100%;
-    height: 100%;
   }
 
   #root {
     height: 100%;
     overflow: hidden;
+    position: relative;
   }
   
   /* Disable text selection and touch callouts on interactive elements */
