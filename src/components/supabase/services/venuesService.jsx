@@ -107,7 +107,28 @@ export async function getVenues() {
       throw new Error(`Failed to fetch venues: ${res.status}`);
     }
     
-    return await res.json();
+    const rows = await res.json();
+    
+    // Normalize coordinates: Supabase stores lat/lng, app uses latitude/longitude
+    const normalized = rows.map(v => ({
+      ...v,
+      latitude: v.latitude ?? v.lat ?? null,
+      longitude: v.longitude ?? v.lng ?? null,
+    }));
+    
+    // Debug: log first venue to confirm normalization
+    if (normalized.length > 0) {
+      console.log('[venuesService] Sample venue after normalization:', {
+        id: normalized[0].id,
+        name: normalized[0].name,
+        lat: normalized[0].lat,
+        lng: normalized[0].lng,
+        latitude: normalized[0].latitude,
+        longitude: normalized[0].longitude,
+      });
+    }
+    
+    return normalized;
   } catch (e) {
     console.error('[venuesService] Failed to fetch venues:', e);
     return [];
