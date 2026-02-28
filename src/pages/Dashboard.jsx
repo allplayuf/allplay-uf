@@ -407,7 +407,7 @@ export default function Dashboard() {
       variants={VARIANTS.container}
       initial="hidden"
       animate="visible"
-      className="bg-[#0F1513] pb-24 lg:pb-8" style={{ minHeight: '100%' }}
+      className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8"
     >
       {/* Error Dialog */}
       <AnimatePresence>

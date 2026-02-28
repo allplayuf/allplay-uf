@@ -264,8 +264,8 @@ export default function MapPage() {
   const nearbyActiveMatches = filteredVenues.filter(v => (v.upcoming_matches?.length || 0) > 0).length;
 
   return (
-    <div className="bg-[#0F1513] h-full flex flex-col">
-      <div className="lg:hidden flex flex-col" style={{ height: '100%' }}>
+    <div className="min-h-screen bg-[#0F1513]">
+      <div className="lg:hidden flex flex-col pb-16" style={{ height: 'calc(100vh - env(safe-area-inset-top))' }}>
         <div className="sticky top-0 z-[100] bg-[#121715]/95 backdrop-blur-xl border-b border-[#223029]/60 p-3 space-y-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
           
           {/* Live matches banner */}
@@ -336,7 +336,7 @@ export default function MapPage() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-hidden relative">
+        <div className="flex-1 overflow-hidden relative" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           {viewMode === "list" ? (
             <div className="h-full overflow-y-auto p-3 space-y-3" style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}>
               <AnimatePresence mode="popLayout">
@@ -392,7 +392,7 @@ export default function MapPage() {
         </div>
       </div>
 
-      <div className="hidden lg:flex flex-1">
+      <div className="hidden lg:flex h-screen">
         <div className="w-96 bg-[#121715] border-r border-[#223029]/60 flex flex-col z-10">
           <div className="sticky top-0 z-10 bg-[#121715] p-4 border-b border-[#223029]/60 space-y-3">
             <div className="flex items-center justify-between">
