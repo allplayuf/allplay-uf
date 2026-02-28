@@ -142,16 +142,20 @@ function LayoutInner({ children }) {
   // Determine if current page is a root page or sub-page
   const isRootPage = navigationItems.some(item => location.pathname === item.url);
 
-  // iOS pull-down prevention: block overscroll when at top of scroll container
+  // iOS pull-down prevention: block rubber-band overscroll at top
+  // Also blocks pull-up overscroll at bottom
   useEffect(() => {
     let startY = 0;
     const onTouchStart = (e) => { startY = e.touches[0].clientY; };
     const onTouchMove = (e) => {
       const scroller = mainContentRef.current;
       if (!scroller) return;
+      // If event was already prevented by PullToRefresh, skip
+      if (e.defaultPrevented) return;
       const currentY = e.touches[0].clientY;
       const isPullingDown = currentY > startY && scroller.scrollTop <= 0;
-      if (isPullingDown) {
+      const isPullingUp = currentY < startY && (scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight);
+      if (isPullingDown || isPullingUp) {
         e.preventDefault();
       }
     };
