@@ -226,7 +226,8 @@
 
 /* === Scrollable content area inside app shell === */
 .app-scroll {
-  flex: 1;
+  flex: 1 1 0%;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
