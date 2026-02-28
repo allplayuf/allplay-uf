@@ -247,36 +247,32 @@ function LayoutInner({ children }) {
 
         {/* Main Content */}
         <main className="flex-1 flex flex-col bg-[#0B0F0D] min-h-screen lg:min-h-0">
-          {/* Mobile Header - fixed at top */}
+          {/* Mobile Header - always visible */}
           <header className="lg:hidden sticky top-0 z-[100] bg-[#0B0F0D] border-b border-[#223029]" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-            {isRootPage ? (
-              <div className="flex items-center gap-3 px-4 py-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden bg-transparent">
-                  <img 
-                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png" 
-                    alt="AllPlay UF Logo" 
-                    className="w-full h-full object-contain"
-                    loading="eager"
-                  />
-                </div>
-                <h1 className="font-bold text-[#F4F7F5] text-[18px] leading-[24px]">AllPlay UF</h1>
-              </div>
-            ) : (
-              <div style={{ paddingLeft: 'calc(1rem + env(safe-area-inset-left))', paddingRight: 'calc(1rem + env(safe-area-inset-right))' }} className="py-2">
+            <div className="flex items-center gap-3 px-4 py-3">
+              {!isRootPage && (
                 <button
                   onClick={() => {
                     triggerHaptic('light');
                     navigate(-1);
                   }}
-                  className="flex items-center gap-2 text-[#F4F7F5] hover:text-[#2BA84A] transition-colors min-h-[44px]"
+                  className="flex items-center justify-center w-9 h-9 rounded-xl bg-[#18221E] text-[#F4F7F5] hover:text-[#2BA84A] transition-colors flex-shrink-0"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="m15 18-6-6 6-6"/>
                   </svg>
-                  <span className="font-semibold">Tillbaka</span>
                 </button>
+              )}
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden bg-transparent flex-shrink-0">
+                <img 
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png" 
+                  alt="AllPlay UF Logo" 
+                  className="w-full h-full object-contain"
+                  loading="eager"
+                />
               </div>
-            )}
+              <h1 className="font-bold text-[#F4F7F5] text-[18px] leading-[24px]">AllPlay UF</h1>
+            </div>
           </header>
 
           {/* PREVIEW BANNER REMOVED */}

@@ -7,24 +7,18 @@ import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, Users, Trophy, MapPin, Crown, TrendingUp, Target,
-  MessageCircle, BarChart, Image as ImageIcon, Swords, Calendar,
-  Loader2
+  Swords, Loader2
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { getTeamById, getTeamMembersWithProfiles } from "../components/supabase/services";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 
-import TeamChat from "../components/teams/TeamChat";
-import TeamPolls from "../components/teams/TeamPolls";
-import TeamHighlights from "../components/teams/TeamHighlights";
 import TeamChallenges from "../components/teams/TeamChallenges";
 import TeamColorPicker from "../components/teams/TeamColorPicker";
 import RankBadge from "../components/teams/RankBadge";
 import InviteFriendsToTeamModal from "../components/teams/InviteFriendsToTeamModal";
 import CreateTeamMatchForm from "../components/teams/CreateTeamMatchForm";
-import TeamCalendar from "../components/teams/TeamCalendar";
-import TeamLeaderboard from "../components/teams/TeamLeaderboard";
 import TeamStatsCard from "../components/teams/TeamStatsCard";
 
 const SKILL_LEVEL_CONFIG = {
@@ -37,11 +31,6 @@ const SKILL_LEVEL_CONFIG = {
 const ALL_TABS = [
   { id: 'stats', label: 'Statistik', icon: Trophy, showForCupTeam: true },
   { id: 'members', label: 'Medlemmar', icon: Users, showForCupTeam: true },
-  { id: 'calendar', label: 'Kalender', icon: Calendar, showForCupTeam: true },
-  { id: 'ranking', label: 'Ranking', icon: TrendingUp, showForCupTeam: false },
-  { id: 'chat', label: 'Chatt', icon: MessageCircle, showForCupTeam: false },
-  { id: 'polls', label: 'Omröstningar', icon: BarChart, showForCupTeam: false },
-  { id: 'highlights', label: 'Highlights', icon: ImageIcon, showForCupTeam: false },
   { id: 'challenges', label: 'Utmaningar', icon: Swords, showForCupTeam: false }
 ];
 

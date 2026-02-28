@@ -268,16 +268,6 @@ export default function MapPage() {
       <div className="lg:hidden flex flex-col" style={{ height: 'calc(100dvh - env(safe-area-inset-top) - 3.5rem - 5rem - env(safe-area-inset-bottom))' }}>
         <div className="sticky top-0 z-[50] bg-[#121715]/95 backdrop-blur-xl border-b border-[#223029]/60 p-3 space-y-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
           
-          {/* Live matches banner */}
-          {totalMatchesInRange > 0 && viewMode === 'map' && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#2BA84A]/10 border border-[#2BA84A]/20">
-              <div className="w-2 h-2 rounded-full bg-[#2BA84A] animate-pulse" />
-              <span className="text-xs font-semibold text-[#86EFAC]">
-                {totalMatchesInRange} {totalMatchesInRange === 1 ? 'match' : 'matcher'} nära dig just nu
-              </span>
-            </div>
-          )}
-
           <div className="flex items-center gap-2">
             <div className="flex gap-1 bg-[#18221E]/80 rounded-full p-1 border border-[#223029]/60">
               <button
@@ -325,14 +315,9 @@ export default function MapPage() {
               <Navigation className="w-4 h-4" />
             </button>
             
-            <div className="flex items-center gap-1.5 ml-auto">
-              <span className="inline-flex h-7 items-center rounded-full bg-[#2BA84A]/12 px-2.5 text-[11px] font-bold text-[#86EFAC] ring-1 ring-[#2BA84A]/20">
-                ⚽ {totalMatchesInRange}
-              </span>
-              <span className="inline-flex h-7 items-center rounded-full bg-[#18221E] px-2.5 text-[11px] font-medium text-[#9EAAA4] ring-1 ring-[#223029]/60">
-                {filters.distance}km
-              </span>
-            </div>
+            <span className="inline-flex h-7 items-center rounded-full bg-[#18221E] px-2.5 text-[11px] font-medium text-[#9EAAA4] ring-1 ring-[#223029]/60 ml-auto">
+              {filteredVenues.length} planer · {filters.distance}km
+            </span>
           </div>
         </div>
 
