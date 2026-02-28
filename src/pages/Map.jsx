@@ -264,7 +264,7 @@ export default function MapPage() {
   const nearbyActiveMatches = filteredVenues.filter(v => (v.upcoming_matches?.length || 0) > 0).length;
 
   return (
-    <div className="bg-[#0F1513]" style={{ minHeight: '100%' }}>
+    <div className="bg-[#0F1513] h-full flex flex-col">
       <div className="lg:hidden flex flex-col" style={{ height: '100%' }}>
         <div className="sticky top-0 z-[100] bg-[#121715]/95 backdrop-blur-xl border-b border-[#223029]/60 p-3 space-y-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
           
