@@ -330,7 +330,6 @@ class SupabaseClient {
     sessionStore.setUser(userData);
     sessionStore.setRoles(roles);
     sessionStore.setAuthState(AUTH_STATES.AUTHENTICATED);
-    if (userData) this.syncUserToBase44(userData).catch(() => {});
     return true;
   }
 
