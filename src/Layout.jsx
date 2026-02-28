@@ -250,28 +250,31 @@ function LayoutInner({ children }) {
           {/* iOS safe-area spacer — always visible on mobile, dark bg behind status bar */}
           <div className="lg:hidden bg-[#0B0F0D] flex-shrink-0" style={{ paddingTop: 'env(safe-area-inset-top)' }} />
 
-          {/* Mobile top header — AllPlay logo bar */}
-          <header className="lg:hidden bg-[#0B0F0D] flex-shrink-0 flex items-center min-h-[44px]" style={{ paddingLeft: 'calc(1rem + env(safe-area-inset-left))', paddingRight: 'calc(1rem + env(safe-area-inset-right))', paddingBottom: '0.5rem', paddingTop: '0.25rem' }}>
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg overflow-hidden bg-transparent flex items-center justify-center">
-                <img 
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png" 
-                  alt="AllPlay" 
-                  className="w-full h-full object-contain"
-                  loading="eager"
-                />
-              </div>
-              <span className="font-bold text-[#F4F7F5] text-[16px] leading-[22px]">AllPlay</span>
-            </div>
-          </header>
+          {/* Mobile back header for sub-pages (scrolls with content, NOT sticky) */}
+          {!isRootPage && (
+            <header className="lg:hidden bg-[#0B0F0D] border-b border-[#223029] flex-shrink-0" style={{ paddingLeft: 'calc(1rem + env(safe-area-inset-left))', paddingRight: 'calc(1rem + env(safe-area-inset-right))', paddingBottom: '0.75rem' }}>
+              <button
+                onClick={() => {
+                  triggerHaptic('light');
+                  navigate(-1);
+                }}
+                className="flex items-center gap-2 text-[#F4F7F5] hover:text-[#2BA84A] transition-colors min-h-[44px]"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m15 18-6-6 6-6"/>
+                </svg>
+                <span className="font-semibold">Tillbaka</span>
+              </button>
+            </header>
+          )}
 
           <div 
             ref={mainContentRef}
-            className="flex-1 overflow-y-auto lg:pb-0"
+            className="flex-1 overflow-y-auto lg:pb-0 overscroll-none"
             style={{ 
               paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))',
               WebkitOverflowScrolling: 'touch',
-              overscrollBehavior: 'contain',
+              overscrollBehavior: 'none',
             }}
           >
             <NavigationProvider mainContentRef={mainContentRef}>
