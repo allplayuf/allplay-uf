@@ -392,7 +392,7 @@ export default function MapPage() {
         </div>
       </div>
 
-      <div className="hidden lg:flex h-screen">
+      <div className="hidden lg:flex h-full">
         <div className="w-96 bg-[#121715] border-r border-[#223029]/60 flex flex-col z-10">
           <div className="sticky top-0 z-10 bg-[#121715] p-4 border-b border-[#223029]/60 space-y-3">
             <div className="flex items-center justify-between">
