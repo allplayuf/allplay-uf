@@ -395,16 +395,6 @@ export default function MapPage() {
               </button>
             </div>
             
-            {/* Live banner */}
-            {totalMatchesInRange > 0 && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#2BA84A]/8 border border-[#2BA84A]/15">
-                <div className="w-2 h-2 rounded-full bg-[#2BA84A] animate-pulse" />
-                <span className="text-xs font-semibold text-[#86EFAC]">
-                  {totalMatchesInRange} {totalMatchesInRange === 1 ? 'match' : 'matcher'} nära dig
-                </span>
-              </div>
-            )}
-            
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#9EAAA4] w-4 h-4" />
               <Input
@@ -449,14 +439,9 @@ export default function MapPage() {
               <span className="font-semibold text-[#F4F7F5]">
                 {filteredVenues.length} planer
               </span>
-              <div className="flex items-center gap-1.5">
-                <span className="inline-flex h-6 items-center rounded-full bg-[#2BA84A]/12 px-2.5 font-bold text-[#86EFAC] ring-1 ring-[#2BA84A]/20 text-[11px]">
-                  ⚽ {totalMatchesInRange}
-                </span>
-                <span className="inline-flex h-6 items-center rounded-full bg-[#18221E] px-2.5 font-medium text-[#9EAAA4] ring-1 ring-[#223029]/60 text-[11px]">
-                  {filters.distance}km
-                </span>
-              </div>
+              <span className="inline-flex h-6 items-center rounded-full bg-[#18221E] px-2.5 font-medium text-[#9EAAA4] ring-1 ring-[#223029]/60 text-[11px]">
+                {filteredVenues.length} planer · {filters.distance}km
+              </span>
             </div>
           </div>
 

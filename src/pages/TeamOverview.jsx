@@ -372,36 +372,6 @@ export default function TeamOverviewPage() {
               </motion.div>
             )}
 
-            {activeTab === 'calendar' && (
-              <motion.div key="calendar" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }}>
-                <TeamCalendar team={team} />
-              </motion.div>
-            )}
-
-            {!isCupTeam && activeTab === 'ranking' && (
-              <motion.div key="ranking" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }}>
-                <TeamLeaderboard currentTeamId={team.id} />
-              </motion.div>
-            )}
-
-            {!isCupTeam && activeTab === 'chat' && (
-              <motion.div key="chat" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }}>
-                <TeamChat team={team} currentUser={user} isMember={isUserMember} />
-              </motion.div>
-            )}
-
-            {!isCupTeam && activeTab === 'polls' && (
-              <motion.div key="polls" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }}>
-                <TeamPolls team={team} currentUser={user} isMember={isUserMember} isCaptainOrVice={isCaptainOrVice} />
-              </motion.div>
-            )}
-
-            {!isCupTeam && activeTab === 'highlights' && (
-              <motion.div key="highlights" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }}>
-                <TeamHighlights team={team} currentUser={user} isMember={isUserMember} />
-              </motion.div>
-            )}
-
             {!isCupTeam && activeTab === 'challenges' && (
               <motion.div key="challenges" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }}>
                 <TeamChallenges team={team} currentUser={user} isCaptainOrVice={isCaptainOrVice} />
