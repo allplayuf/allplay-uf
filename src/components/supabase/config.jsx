@@ -1,8 +1,7 @@
 /**
  * Supabase Configuration
  * 
- * ZERO Base44 dependency. Anon key fetched directly from our own
- * Base44 backend function via plain fetch, then cached forever.
+ * All Supabase config values - fetched once from backend
  */
 
 const SUPABASE_URL = 'https://vqfjjokqmykqawjlgevj.supabase.co';
@@ -12,9 +11,8 @@ let cachedConfig = null;
 let configPromise = null;
 
 /**
- * Fetch Supabase config (anon key) from backend.
- * Uses a direct fetch to the Base44 function endpoint
- * so we never import @/api/base44Client.
+ * Fetch Supabase config (anon key) from Base44 backend
+ * Caches the result for the session
  */
 export async function getSupabaseConfig() {
   if (cachedConfig) return cachedConfig;
@@ -24,23 +22,16 @@ export async function getSupabaseConfig() {
   
   configPromise = (async () => {
     try {
-      // Direct fetch — no Base44 SDK dependency
-      const res = await fetch('/api/getSupabaseConfig', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
-      });
+      const { base44 } = await import('@/api/base44Client');
+      const response = await base44.functions.invoke('getSupabaseConfig');
       
-      if (res.ok) {
-        const data = await res.json();
-        if (data?.anonKey) {
-          cachedConfig = {
-            url: SUPABASE_URL,
-            functionsUrl: SUPABASE_FUNCTIONS_URL,
-            anonKey: data.anonKey
-          };
-          return cachedConfig;
-        }
+      if (response?.data?.anonKey) {
+        cachedConfig = {
+          url: SUPABASE_URL,
+          functionsUrl: SUPABASE_FUNCTIONS_URL,
+          anonKey: response.data.anonKey
+        };
+        return cachedConfig;
       }
     } catch (e) {
       console.error('[Supabase] Failed to get config:', e);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
+import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -171,8 +172,22 @@ export default function MatchDetailPage() {
     queryFn: async () => {
       if (!matchId) return null;
       
-      const result = await getMatchDetails(matchId);
-      if (result) return normalizeMatch(result);
+      // Try Supabase Edge Function first
+      try {
+        const result = await getMatchDetails(matchId);
+        if (result) return normalizeMatch(result);
+      } catch (error) {
+        console.warn('[MatchDetail] Edge function failed, falling back to Base44:', error.message);
+      }
+      
+      // Fallback: load from Base44 entities
+      try {
+        const matches = await base44.entities.Match.filter({ id: matchId });
+        if (matches && matches.length > 0) return normalizeMatch(matches[0]);
+      } catch (e) {
+        console.error('[MatchDetail] Base44 fallback also failed:', e.message);
+      }
+      
       return null;
     },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
@@ -185,8 +200,16 @@ export default function MatchDetailPage() {
   // Check if this is a cup match
   const isCupMatch = match?.is_cup_match || false;
 
-  // CupMatch data — embedded in match data from edge function, or null
-  const cupMatch = match?.cup_match || null;
+  // Fetch CupMatch to get cup_id for navigation (keeping Base44 for cups for now)
+  const { data: cupMatch } = useQuery({
+    queryKey: ['cupMatch', matchId],
+    queryFn: async () => {
+      const cupMatches = await base44.entities.CupMatch.filter({ match_id: matchId });
+      return cupMatches[0] || null;
+    },
+    ...CACHE_STRATEGIES.STATIC,
+    enabled: !!matchId && isCupMatch
+  });
 
   // 3. Fetch Venues from Supabase
   const { data: venues = [] } = useQuery({
@@ -223,9 +246,23 @@ export default function MatchDetailPage() {
     queryFn: async () => {
       if (!matchId) return [];
       
-      const parts = await getMatchParticipants(matchId);
-      if (Array.isArray(parts)) return parts;
-      if (parts && typeof parts === 'object' && !Array.isArray(parts)) return [parts];
+      // Try Supabase Edge Function first
+      try {
+        const parts = await getMatchParticipants(matchId);
+        if (Array.isArray(parts)) return parts;
+        if (parts && typeof parts === 'object' && !Array.isArray(parts)) return [parts];
+      } catch (error) {
+        console.warn('[MatchDetail] Edge participants failed, falling back to Base44:', error.message);
+      }
+      
+      // Fallback: load from Base44 entities
+      try {
+        const parts = await base44.entities.MatchParticipant.filter({ match_id: matchId });
+        return Array.isArray(parts) ? parts : [];
+      } catch (e) {
+        console.error('[MatchDetail] Base44 participants fallback failed:', e.message);
+      }
+      
       return [];
     },
     ...CACHE_STRATEGIES.DYNAMIC,

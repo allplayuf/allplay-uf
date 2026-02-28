@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,19 +9,15 @@ import { createPageUrl } from "@/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
-import {
-  getVenues,
-  getPublicMatches,
-  getMyParticipantMatchIds,
-  getParticipantsForMatches,
-  transformMatchData,
-} from "../components/supabase/services";
-import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 
 import MapView from "../components/map/MapView";
 import VenueCard from "../components/map/VenueCard";
 import VenueDetailModal from "../components/map/VenueDetailModal";
 import FilterSheet from "../components/map/FilterSheet";
+
+const QUERY_KEYS = {
+  participants: ['participants']
+};
 
 export default function MapPage() {
   const navigate = useNavigate();
@@ -40,20 +37,17 @@ export default function MapPage() {
   const [userLocation, setUserLocation] = useState({ lat: 59.3293, lng: 18.0686 });
   const [showVenueModal, setShowVenueModal] = useState(false);
   const [selectedVenueForModal, setSelectedVenueForModal] = useState(null);
+  const [user, setUser] = useState(null);
   const [userMatchIds, setUserMatchIds] = useState([]);
 
-  const { user: authUser, isAuthenticated } = useSupabaseAuth();
-
-  // Fetch all participants for matches displayed on map
+  // Fetch all participants for sync
   const { data: allParticipants = [] } = useQuery({
-    queryKey: ['map-participants', matches.map(m => m.id).join(',')],
+    queryKey: QUERY_KEYS.participants,
     queryFn: async () => {
-      const matchIds = matches.map(m => m.id).filter(Boolean);
-      if (matchIds.length === 0) return [];
-      return await getParticipantsForMatches(matchIds);
+      return await base44.entities.MatchParticipant.list();
     },
-    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
-    enabled: matches.length > 0,
+    ...CACHE_STRATEGIES.REALTIME,
+    enabled: !!user,
   });
 
   const formatLabels = {
@@ -183,32 +177,42 @@ export default function MapPage() {
   useEffect(() => {
     loadMapData();
     getUserLocation();
+    loadUser();
   }, []);
-
-  // Load user match IDs from Supabase when auth changes
-  useEffect(() => {
-    if (isAuthenticated && authUser?.id) {
-      getMyParticipantMatchIds().then(ids => setUserMatchIds(ids)).catch(() => setUserMatchIds([]));
-    } else {
-      setUserMatchIds([]);
-    }
-  }, [isAuthenticated, authUser?.id]);
 
   useEffect(() => {
     applyFilters();
   }, [applyFilters]);
 
+  const loadUser = async () => {
+    try {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      
+      const participations = await base44.entities.MatchParticipant.filter({ user_id: currentUser.id });
+      const matchIds = participations.map(p => p.match_id);
+      setUserMatchIds(matchIds);
+    } catch (error) {
+      console.error("Error loading user:", error);
+      setUser(null);
+      setUserMatchIds([]);
+    }
+  };
+
   const loadMapData = async () => {
     try {
-      const [venuesData, matchesRaw] = await Promise.all([
-        getVenues(),
-        getPublicMatches({ status: 'upcoming' }),
+      const today = new Date().toISOString().split('T')[0];
+      
+      const [venuesData, upcomingMatchesData, ongoingMatchesData] = await Promise.all([
+        base44.entities.Venue.list(),
+        base44.entities.Match.filter({ status: 'upcoming' }, '-date', 100),
+        base44.entities.Match.filter({ status: 'ongoing' }, '-date', 50)
       ]);
 
-      const today = new Date().toISOString().split('T')[0];
-      const upcomingMatches = matchesRaw
-        .map(transformMatchData)
-        .filter(m => m && (m.status === 'upcoming' || m.status === 'ongoing'));
+      const upcomingMatches = [
+        ...upcomingMatchesData.filter(m => m.date >= today),
+        ...ongoingMatchesData
+      ];
 
       setVenues(venuesData);
       setMatches(upcomingMatches);

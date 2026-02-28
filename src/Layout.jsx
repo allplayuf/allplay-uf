@@ -247,10 +247,22 @@ function LayoutInner({ children }) {
 
         {/* Main Content */}
         <main className="flex-1 flex flex-col bg-[#131816] min-h-screen lg:min-h-0">
-          {/* Mobile header — NOT sticky, scrolls with content.
-              Only show back button on sub-pages (not root tabs). */}
-          {!isRootPage && (
-            <header className="lg:hidden bg-[#121715] border-b border-[#223029]" style={{ paddingLeft: 'calc(1rem + env(safe-area-inset-left))', paddingRight: 'calc(1rem + env(safe-area-inset-right))', paddingTop: 'calc(0.75rem + env(safe-area-inset-top))', paddingBottom: '0.75rem' }}>
+          <header className="lg:hidden sticky top-0 z-40 bg-[#121715] border-b border-[#223029]" style={{ paddingLeft: 'calc(1rem + env(safe-area-inset-left))', paddingRight: 'calc(1rem + env(safe-area-inset-right))', paddingTop: 'calc(0.75rem + env(safe-area-inset-top))', paddingBottom: '0.75rem' }}>
+            {isRootPage ? (
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-transparent">
+                  <img 
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png" 
+                    alt="AllPlay UF Logo" 
+                    className="w-full h-full object-contain"
+                    loading="eager"
+                  />
+                </div>
+                <div>
+                  <h1 className="text-lg font-semibold text-[#F4F7F5]">AllPlay UF</h1>
+                </div>
+              </div>
+            ) : (
               <button
                 onClick={() => {
                   triggerHaptic('light');
@@ -263,8 +275,8 @@ function LayoutInner({ children }) {
                 </svg>
                 <span className="font-semibold">Tillbaka</span>
               </button>
-            </header>
-          )}
+            )}
+          </header>
 
           {/* PREVIEW BANNER REMOVED */}
 

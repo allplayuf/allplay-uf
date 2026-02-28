@@ -311,8 +311,21 @@ class SupabaseClient {
     // Mark auth ready if login happens after init
     markAuthReady();
 
+    this.syncUserToBase44(user).catch(() => {});
     await this.fetchUserRoles();
     return { data: { user: sessionStore.user, roles: sessionStore.roles } };
+  }
+
+  async syncUserToBase44(supabaseUser) {
+    const email = supabaseUser?.email || sessionStore.user?.email;
+    const supabaseId = supabaseUser?.id || sessionStore.user?.id;
+    if (!supabaseId || !email) return;
+    const fullName = supabaseUser?.user_metadata?.full_name || supabaseUser?.full_name || sessionStore.user?.user_metadata?.full_name || email.split('@')[0];
+    const provider = supabaseUser?.app_metadata?.provider || 'email';
+    try {
+      const { base44 } = await import('@/api/base44Client');
+      await base44.functions.invoke('auth/syncUser', { supabase_user_id: supabaseId, email, full_name: fullName, provider });
+    } catch (error) { /* non-fatal */ }
   }
 
   logout() {
@@ -330,6 +343,7 @@ class SupabaseClient {
     sessionStore.setUser(userData);
     sessionStore.setRoles(roles);
     sessionStore.setAuthState(AUTH_STATES.AUTHENTICATED);
+    if (userData) this.syncUserToBase44(userData).catch(() => {});
     return true;
   }
 
