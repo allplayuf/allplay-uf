@@ -311,7 +311,6 @@ class SupabaseClient {
     // Mark auth ready if login happens after init
     markAuthReady();
 
-    this.syncUserToBase44(user).catch(() => {});
     await this.fetchUserRoles();
     return { data: { user: sessionStore.user, roles: sessionStore.roles } };
   }
