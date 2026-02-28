@@ -154,7 +154,7 @@ function LayoutInner({ children }) {
         {/* Consent check - blocks authenticated users without valid consent */}
         <ConsentChecker>
 
-        <div className="min-h-screen flex w-full bg-[#0B0F0D]">
+        <div className="h-full flex w-full bg-[#0B0F0D] overflow-hidden">
         <Toaster 
           position="bottom-center"
           theme="dark"
