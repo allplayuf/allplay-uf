@@ -16,7 +16,6 @@ import { checkIsAdmin, clearAdminCache } from "./components/supabase/services/ad
 import { GuestBanner } from "@/components/ui/guest-banner";
 import { SupabaseAuthProvider, useSupabaseAuth, initSupabase } from "@/components/supabase";
 import { triggerHaptic } from "@/components/utils/motionTokens";
-import { ArrowLeft } from "lucide-react";
 import ConsentChecker from "@/components/legal/ConsentChecker";
 import { NavigationProvider } from "@/components/navigation/NavigationProvider";
 
