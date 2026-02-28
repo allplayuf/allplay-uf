@@ -185,16 +185,8 @@ export default function MatchDetailPage() {
   // Check if this is a cup match
   const isCupMatch = match?.is_cup_match || false;
 
-  // Fetch CupMatch to get cup_id for navigation (keeping Base44 for cups for now)
-  const { data: cupMatch } = useQuery({
-    queryKey: ['cupMatch', matchId],
-    queryFn: async () => {
-      const cupMatches = await base44.entities.CupMatch.filter({ match_id: matchId });
-      return cupMatches[0] || null;
-    },
-    ...CACHE_STRATEGIES.STATIC,
-    enabled: !!matchId && isCupMatch
-  });
+  // CupMatch data — embedded in match data from edge function, or null
+  const cupMatch = match?.cup_match || null;
 
   // 3. Fetch Venues from Supabase
   const { data: venues = [] } = useQuery({
