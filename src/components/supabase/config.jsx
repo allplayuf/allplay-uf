@@ -24,18 +24,23 @@ export async function getSupabaseConfig() {
   
   configPromise = (async () => {
     try {
-      // Use Base44 function import (V2 platform)
-      const { getSupabaseConfig: fetchConfig } = await import('@/functions/getSupabaseConfig');
-      const response = await fetchConfig({});
-      const data = response?.data;
+      // Direct fetch — no Base44 SDK dependency
+      const res = await fetch('/api/getSupabaseConfig', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
       
-      if (data?.anonKey) {
-        cachedConfig = {
-          url: SUPABASE_URL,
-          functionsUrl: SUPABASE_FUNCTIONS_URL,
-          anonKey: data.anonKey
-        };
-        return cachedConfig;
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.anonKey) {
+          cachedConfig = {
+            url: SUPABASE_URL,
+            functionsUrl: SUPABASE_FUNCTIONS_URL,
+            anonKey: data.anonKey
+          };
+          return cachedConfig;
+        }
       }
     } catch (e) {
       console.error('[Supabase] Failed to get config:', e);
