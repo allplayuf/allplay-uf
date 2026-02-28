@@ -21,6 +21,7 @@ import ConsentChecker from "@/components/legal/ConsentChecker";
 import { NavigationProvider } from "@/components/navigation/NavigationProvider";
 
 // Guest banner wrapper that uses Supabase auth state
+// Must be rendered INSIDE SupabaseAuthProvider (it's in LayoutInner)
 function GuestBannerWrapper() {
   const { isGuest: isGuestUser, isLoading } = useSupabaseAuth();
   
