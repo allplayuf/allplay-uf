@@ -248,11 +248,9 @@ function LayoutInner({ children }) {
         {/* Main Content */}
         <main className="flex-1 flex flex-col bg-[#0B0F0D] min-h-screen lg:min-h-0 overflow-hidden">
           {/* Mobile Header - always visible */}
-          <header className="lg:hidden sticky top-0 z-[100] bg-[#0B0F0D]">
-            {/* Safe area spacer — same bg, pushes content below status bar */}
-            <div className="bg-[#0B0F0D]" style={{ height: 'env(safe-area-inset-top, 0px)' }} />
-            {!isRootPage && (
-              <div className="flex items-center gap-3 px-4 py-2 border-b border-[#223029]">
+          <header className="lg:hidden sticky top-0 z-[100] bg-[#0B0F0D] border-b border-[#223029]" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+            <div className="flex items-center gap-3 px-4 py-3">
+              {!isRootPage && (
                 <button
                   onClick={() => {
                     triggerHaptic('light');
@@ -264,8 +262,17 @@ function LayoutInner({ children }) {
                     <path d="m15 18-6-6 6-6"/>
                   </svg>
                 </button>
+              )}
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden bg-transparent flex-shrink-0">
+                <img 
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png" 
+                  alt="AllPlay UF Logo" 
+                  className="w-full h-full object-contain"
+                  loading="eager"
+                />
               </div>
-            )}
+              <h1 className="font-bold text-[#F4F7F5] text-[18px] leading-[24px]">AllPlay UF</h1>
+            </div>
           </header>
 
           {/* PREVIEW BANNER REMOVED */}
