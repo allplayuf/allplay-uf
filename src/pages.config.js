@@ -49,7 +49,9 @@
  */
 import AboutAllPlay from './pages/AboutAllPlay';
 import AccountSettings from './pages/AccountSettings';
+import Admin from './pages/Admin';
 import AdminCleanup from './pages/AdminCleanup';
+import Community from './pages/Community';
 import CreateCup from './pages/CreateCup';
 import CupDetail from './pages/CupDetail';
 import Cups from './pages/Cups';
@@ -58,21 +60,21 @@ import EditProfile from './pages/EditProfile';
 import Feedback from './pages/Feedback';
 import Home from './pages/Home';
 import LegalPolicy from './pages/LegalPolicy';
+import Map from './pages/Map';
 import MatchDetail from './pages/MatchDetail';
 import Matches from './pages/Matches';
 import Profile from './pages/Profile';
-import TermsOfService from './pages/TermsOfService';
-import Community from './pages/Community';
-import Admin from './pages/Admin';
-import Map from './pages/Map';
 import TeamOverview from './pages/TeamOverview';
+import TermsOfService from './pages/TermsOfService';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AboutAllPlay": AboutAllPlay,
     "AccountSettings": AccountSettings,
+    "Admin": Admin,
     "AdminCleanup": AdminCleanup,
+    "Community": Community,
     "CreateCup": CreateCup,
     "CupDetail": CupDetail,
     "Cups": Cups,
@@ -81,14 +83,12 @@ export const PAGES = {
     "Feedback": Feedback,
     "Home": Home,
     "LegalPolicy": LegalPolicy,
+    "Map": Map,
     "MatchDetail": MatchDetail,
     "Matches": Matches,
     "Profile": Profile,
-    "TermsOfService": TermsOfService,
-    "Community": Community,
-    "Admin": Admin,
-    "Map": Map,
     "TeamOverview": TeamOverview,
+    "TermsOfService": TermsOfService,
 }
 
 export const pagesConfig = {
