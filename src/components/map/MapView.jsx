@@ -379,34 +379,30 @@ export default function MapView({
       </AnimatePresence>
 
       {/* Legend */}
-      <div className="absolute bottom-3 left-3 z-[2] flex items-center gap-2.5 bg-[#121715]/92 backdrop-blur-md rounded-xl px-3 py-2 border border-[#223029] shadow-lg">
+      <div className="absolute bottom-3 left-3 z-[2] flex items-center gap-2 bg-[#121715]/92 backdrop-blur-md rounded-xl px-2.5 py-1.5 border border-[#223029] shadow-lg flex-wrap">
         <div className="flex items-center gap-1">
-          <svg width="10" height="14" viewBox="0 0 10 14" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 13C5 13 2.5 8.5 1.5 5.5a4 4 0 117 0C7.5 8.5 5 13 5 13z" fill="#0D2818" stroke="#2BA84A" strokeWidth="1.2" strokeLinejoin="round"/>
-            <circle cx="5" cy="5" r="1.5" fill="#4ADE80"/>
-          </svg>
-          <span className="text-[10px] font-medium text-[#9EAAA4]">Plan</span>
+          <svg width="10" height="14" viewBox="0 0 10 14"><path d="M5 13C5 13 2.5 8.5 1.5 5.5a4 4 0 117 0C7.5 8.5 5 13 5 13z" fill="#0D2818" stroke="#2BA84A" strokeWidth="1.2" strokeLinejoin="round"/><circle cx="5" cy="5" r="1.5" fill="#4ADE80"/></svg>
+          <span className="text-[9px] font-medium text-[#9EAAA4]">Plan</span>
         </div>
         <div className="flex items-center gap-1">
-          <svg width="10" height="14" viewBox="0 0 10 14" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 13C5 13 2.5 8.5 1.5 5.5a4 4 0 117 0C7.5 8.5 5 13 5 13z" fill="#2A1208" stroke="#F4743B" strokeWidth="1.2" strokeLinejoin="round"/>
-            <circle cx="5" cy="5" r="1.5" fill="#FDBA74"/>
-          </svg>
-          <span className="text-[10px] font-medium text-[#9EAAA4]">Match</span>
+          <svg width="10" height="14" viewBox="0 0 10 14"><path d="M5 13C5 13 2.5 8.5 1.5 5.5a4 4 0 117 0C7.5 8.5 5 13 5 13z" fill="#2A1208" stroke="#F4743B" strokeWidth="1.2" strokeLinejoin="round"/><circle cx="5" cy="5" r="1.5" fill="#FDBA74"/></svg>
+          <span className="text-[9px] font-medium text-[#9EAAA4]">Match</span>
         </div>
         <div className="flex items-center gap-1">
-          <svg width="10" height="14" viewBox="0 0 10 14" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 13C5 13 2.5 8.5 1.5 5.5a4 4 0 117 0C7.5 8.5 5 13 5 13z" fill="#0E1B3D" stroke="#4169E1" strokeWidth="1.2" strokeLinejoin="round"/>
-            <circle cx="5" cy="5" r="1.5" fill="#93B4F5"/>
-          </svg>
-          <span className="text-[10px] font-medium text-[#9EAAA4]">Anmäld</span>
+          <svg width="10" height="14" viewBox="0 0 10 14"><path d="M5 13C5 13 2.5 8.5 1.5 5.5a4 4 0 117 0C7.5 8.5 5 13 5 13z" fill="#2A0A1A" stroke="#EC4899" strokeWidth="1.2" strokeLinejoin="round"/><circle cx="5" cy="5" r="1.5" fill="#F9A8D4"/></svg>
+          <span className="text-[9px] font-medium text-[#9EAAA4]">Snart</span>
         </div>
         <div className="flex items-center gap-1">
-          <svg width="10" height="14" viewBox="0 0 10 14" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 13C5 13 2.5 8.5 1.5 5.5a4 4 0 117 0C7.5 8.5 5 13 5 13z" fill="#2A1F08" stroke="#F59E0B" strokeWidth="1.2" strokeLinejoin="round"/>
-            <circle cx="5" cy="5" r="1.5" fill="#FDE68A"/>
-          </svg>
-          <span className="text-[10px] font-medium text-[#9EAAA4]">Live</span>
+          <svg width="10" height="14" viewBox="0 0 10 14"><path d="M5 13C5 13 2.5 8.5 1.5 5.5a4 4 0 117 0C7.5 8.5 5 13 5 13z" fill="#1A0D0D" stroke="#DC2626" strokeWidth="1.2" strokeLinejoin="round"/><circle cx="5" cy="5" r="1.5" fill="#FCA5A5"/></svg>
+          <span className="text-[9px] font-medium text-[#9EAAA4]">Full</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <svg width="10" height="14" viewBox="0 0 10 14"><path d="M5 13C5 13 2.5 8.5 1.5 5.5a4 4 0 117 0C7.5 8.5 5 13 5 13z" fill="#0E1B3D" stroke="#4169E1" strokeWidth="1.2" strokeLinejoin="round"/><circle cx="5" cy="5" r="1.5" fill="#93B4F5"/></svg>
+          <span className="text-[9px] font-medium text-[#9EAAA4]">Anmäld</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <svg width="10" height="14" viewBox="0 0 10 14"><path d="M5 13C5 13 2.5 8.5 1.5 5.5a4 4 0 117 0C7.5 8.5 5 13 5 13z" fill="#2A1F08" stroke="#F59E0B" strokeWidth="1.2" strokeLinejoin="round"/><circle cx="5" cy="5" r="1.5" fill="#FDE68A"/></svg>
+          <span className="text-[9px] font-medium text-[#9EAAA4]">Live</span>
         </div>
       </div>
 
