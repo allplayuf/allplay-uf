@@ -246,13 +246,13 @@ function LayoutInner({ children }) {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col bg-[#0B0F0D] min-h-screen lg:min-h-0">
+        <main className="flex-1 flex flex-col bg-[#0B0F0D] min-h-0 h-full overflow-hidden">
           {/* iOS safe-area spacer — always visible on mobile, dark bg behind status bar */}
           <div className="lg:hidden bg-[#0B0F0D] flex-shrink-0" style={{ paddingTop: 'env(safe-area-inset-top)' }} />
 
           {/* Mobile back header for sub-pages (scrolls with content, NOT sticky) */}
           {!isRootPage && (
-            <header className="lg:hidden bg-[#0B0F0D] border-b border-[#223029]" style={{ paddingLeft: 'calc(1rem + env(safe-area-inset-left))', paddingRight: 'calc(1rem + env(safe-area-inset-right))', paddingBottom: '0.75rem' }}>
+            <header className="lg:hidden bg-[#0B0F0D] border-b border-[#223029] flex-shrink-0" style={{ paddingLeft: 'calc(1rem + env(safe-area-inset-left))', paddingRight: 'calc(1rem + env(safe-area-inset-right))', paddingBottom: '0.75rem' }}>
               <button
                 onClick={() => {
                   triggerHaptic('light');
@@ -268,15 +268,13 @@ function LayoutInner({ children }) {
             </header>
           )}
 
-          {/* PREVIEW BANNER REMOVED */}
-
           <div 
             ref={mainContentRef}
-            className="flex-1 overflow-y-auto lg:pb-0"
+            className="flex-1 overflow-y-auto lg:pb-0 overscroll-none"
             style={{ 
               paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))',
               WebkitOverflowScrolling: 'touch',
-              overscrollBehaviorY: 'contain',
+              overscrollBehavior: 'none',
             }}
           >
             <NavigationProvider mainContentRef={mainContentRef}>
