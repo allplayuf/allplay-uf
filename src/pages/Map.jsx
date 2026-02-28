@@ -78,9 +78,8 @@ export default function MapPage() {
 
   const applyFilters = useCallback(() => {
     let filtered = venues.filter(venue => {
-      if (!venue.latitude || !venue.longitude ||
+      if (venue.latitude == null || venue.longitude == null ||
           isNaN(parseFloat(venue.latitude)) || isNaN(parseFloat(venue.longitude))) {
-        console.warn('Venue missing valid coordinates:', venue.name);
         return false;
       }
 
