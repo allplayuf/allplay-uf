@@ -303,12 +303,14 @@ export default function MapView({
   }, [venues, matches, userMatchIds]);
 
   const validVenues = useMemo(() => {
-    return venues.filter(v =>
-      v.latitude && v.longitude &&
+    const valid = venues.filter(v =>
+      v.latitude != null && v.longitude != null &&
       !isNaN(v.latitude) && !isNaN(v.longitude) &&
       v.latitude >= -90 && v.latitude <= 90 &&
       v.longitude >= -180 && v.longitude <= 180
     );
+    console.log(`[MapView] validVenues: ${valid.length}/${venues.length} passed coordinate filter`);
+    return valid;
   }, [venues]);
 
   const defaultCenter = useMemo(() => {
