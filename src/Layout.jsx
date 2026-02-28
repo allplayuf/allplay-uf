@@ -247,9 +247,12 @@ function LayoutInner({ children }) {
 
         {/* Main Content */}
         <main className="flex-1 flex flex-col bg-[#0B0F0D] min-h-screen lg:min-h-0">
-          {/* Mobile header: scrolls with content (NOT sticky), dark safe-area background */}
+          {/* iOS safe-area spacer for root pages (no header, just dark background behind status bar) */}
+          <div className="lg:hidden bg-[#0B0F0D]" style={{ paddingTop: 'env(safe-area-inset-top)' }} />
+
+          {/* Mobile back header for sub-pages (scrolls with content, NOT sticky) */}
           {!isRootPage && (
-            <header className="lg:hidden bg-[#0B0F0D] border-b border-[#223029]" style={{ paddingLeft: 'calc(1rem + env(safe-area-inset-left))', paddingRight: 'calc(1rem + env(safe-area-inset-right))', paddingTop: 'calc(0.75rem + env(safe-area-inset-top))', paddingBottom: '0.75rem' }}>
+            <header className="lg:hidden bg-[#0B0F0D] border-b border-[#223029]" style={{ paddingLeft: 'calc(1rem + env(safe-area-inset-left))', paddingRight: 'calc(1rem + env(safe-area-inset-right))', paddingBottom: '0.75rem' }}>
               <button
                 onClick={() => {
                   triggerHaptic('light');
