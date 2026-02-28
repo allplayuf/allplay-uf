@@ -264,9 +264,9 @@ export default function MapPage() {
   const nearbyActiveMatches = filteredVenues.filter(v => (v.upcoming_matches?.length || 0) > 0).length;
 
   return (
-    <div className="min-h-screen bg-[#0F1513]">
-      <div className="lg:hidden flex flex-col pb-16" style={{ height: 'calc(100vh - env(safe-area-inset-top))' }}>
-        <div className="sticky top-0 z-[100] bg-[#121715]/95 backdrop-blur-xl border-b border-[#223029]/60 p-3 space-y-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+    <div className="bg-[#0F1513]">
+      <div className="lg:hidden flex flex-col" style={{ height: 'calc(100dvh - env(safe-area-inset-top) - 3.5rem - 5rem - env(safe-area-inset-bottom))' }}>
+        <div className="sticky top-0 z-[50] bg-[#121715]/95 backdrop-blur-xl border-b border-[#223029]/60 p-3 space-y-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
           
           {/* Live matches banner */}
           {totalMatchesInRange > 0 && viewMode === 'map' && (
