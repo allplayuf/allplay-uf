@@ -154,7 +154,7 @@ function LayoutInner({ children }) {
         {/* Consent check - blocks authenticated users without valid consent */}
         <ConsentChecker>
 
-        <div className="min-h-screen flex w-full bg-[#0B0F0D]">
+        <div className="h-screen flex w-full bg-[#0B0F0D] overflow-hidden">
         <Toaster 
           position="bottom-center"
           theme="dark"
@@ -246,7 +246,7 @@ function LayoutInner({ children }) {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col bg-[#0B0F0D] min-h-screen lg:min-h-0">
+        <main className="flex-1 flex flex-col bg-[#0B0F0D] min-h-screen lg:min-h-0 overflow-hidden">
           {/* Mobile Header - always visible */}
           <header className="lg:hidden sticky top-0 z-[100] bg-[#0B0F0D] border-b border-[#223029]" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
             <div className="flex items-center gap-3 px-4 py-3">
