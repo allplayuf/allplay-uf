@@ -284,11 +284,11 @@ function LayoutInner({ children }) {
 
           <div 
             ref={mainContentRef}
-            className="flex-1 overflow-y-auto lg:pb-0 overscroll-none"
+            className="flex-1 overflow-y-auto lg:pb-0"
             style={{ 
               paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))',
               WebkitOverflowScrolling: 'touch',
-              overscrollBehavior: 'none',
+              overscrollBehavior: 'contain',
             }}
           >
             <NavigationProvider mainContentRef={mainContentRef}>
