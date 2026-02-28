@@ -623,7 +623,8 @@ export default function MatchesPage() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => { triggerHaptic('medium'); setShowCreateForm(true); }}
-        className="fixed bottom-20 lg:bottom-8 right-4 lg:right-8 w-14 h-14 lg:w-16 lg:h-16 bg-[#F4743B] hover:bg-[#E5683A] text-white rounded-full shadow-[0_8px_24px_rgba(244,116,59,0.4)] flex items-center justify-center z-40 transition-all"
+        style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom) + 0.5rem)' }}
+        className="fixed lg:bottom-8 right-4 lg:right-8 w-14 h-14 lg:w-16 lg:h-16 bg-[#F4743B] hover:bg-[#E5683A] text-white rounded-full shadow-[0_8px_24px_rgba(244,116,59,0.4)] flex items-center justify-center z-40 transition-all"
       >
         <Plus className="w-6 h-6 lg:w-7 lg:h-7" strokeWidth={2.5} />
       </motion.button>
