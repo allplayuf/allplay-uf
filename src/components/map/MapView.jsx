@@ -175,7 +175,7 @@ function createUserLocationIcon() {
 function MapCenterController({ center, zoom, selectedVenue }) {
   const map = useMap();
   useEffect(() => {
-    if (selectedVenue?.latitude && selectedVenue?.longitude) {
+    if (selectedVenue?.latitude != null && selectedVenue?.longitude != null) {
       map.setView([selectedVenue.latitude, selectedVenue.longitude], 16, { animate: true, duration: 0.8 });
     } else if (center?.lat && center?.lng) {
       map.setView([center.lat, center.lng], zoom, { animate: true, duration: 0.5 });
