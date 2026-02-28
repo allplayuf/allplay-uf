@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,15 +8,19 @@ import { createPageUrl } from "@/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
+import {
+  getVenues,
+  getPublicMatches,
+  getMyParticipantMatchIds,
+  getParticipantsForMatches,
+  transformMatchData,
+} from "../components/supabase/services";
+import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 
 import MapView from "../components/map/MapView";
 import VenueCard from "../components/map/VenueCard";
 import VenueDetailModal from "../components/map/VenueDetailModal";
 import FilterSheet from "../components/map/FilterSheet";
-
-const QUERY_KEYS = {
-  participants: ['participants']
-};
 
 export default function MapPage() {
   const navigate = useNavigate();
