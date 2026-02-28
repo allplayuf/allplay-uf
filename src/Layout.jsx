@@ -247,8 +247,8 @@ function LayoutInner({ children }) {
 
         {/* Main Content */}
         <main className="flex-1 flex flex-col bg-[#0B0F0D] min-h-screen lg:min-h-0">
-          {/* iOS safe-area spacer for root pages (no header, just dark background behind status bar) */}
-          <div className="lg:hidden bg-[#0B0F0D]" style={{ paddingTop: 'env(safe-area-inset-top)' }} />
+          {/* iOS safe-area spacer — always visible on mobile, dark bg behind status bar */}
+          <div className="lg:hidden bg-[#0B0F0D] flex-shrink-0" style={{ paddingTop: 'env(safe-area-inset-top)' }} />
 
           {/* Mobile back header for sub-pages (scrolls with content, NOT sticky) */}
           {!isRootPage && (
