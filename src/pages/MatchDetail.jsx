@@ -223,23 +223,9 @@ export default function MatchDetailPage() {
     queryFn: async () => {
       if (!matchId) return [];
       
-      // Try Supabase Edge Function first
-      try {
-        const parts = await getMatchParticipants(matchId);
-        if (Array.isArray(parts)) return parts;
-        if (parts && typeof parts === 'object' && !Array.isArray(parts)) return [parts];
-      } catch (error) {
-        console.warn('[MatchDetail] Edge participants failed, falling back to Base44:', error.message);
-      }
-      
-      // Fallback: load from Base44 entities
-      try {
-        const parts = await base44.entities.MatchParticipant.filter({ match_id: matchId });
-        return Array.isArray(parts) ? parts : [];
-      } catch (e) {
-        console.error('[MatchDetail] Base44 participants fallback failed:', e.message);
-      }
-      
+      const parts = await getMatchParticipants(matchId);
+      if (Array.isArray(parts)) return parts;
+      if (parts && typeof parts === 'object' && !Array.isArray(parts)) return [parts];
       return [];
     },
     ...CACHE_STRATEGIES.DYNAMIC,
