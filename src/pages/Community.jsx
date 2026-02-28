@@ -391,7 +391,7 @@ export default function CommunityPage() {
         }}
       />
       
-      <div className="min-h-screen bg-[#0F1513] flex items-center justify-center p-4">
+      <div className="min-h-full bg-[#0F1513] flex items-center justify-center p-4">
         <Card className="bg-[#121715] border border-[#223029] rounded-[20px] p-8 max-w-md w-full text-center">
           <div className="w-20 h-20 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-[#2BA84A]/20">
             <Users className="w-10 h-10 text-[#2BA84A]" />
@@ -413,7 +413,7 @@ export default function CommunityPage() {
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
-    <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
+    <div className="min-h-full bg-[#0F1513] pb-8 lg:pb-8">
       <DialogContainer />
       
       {/* Create Team Modal */}

@@ -359,7 +359,7 @@ export default function MatchesPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
+      <div className="min-h-full bg-[#0F1513] pb-8 lg:pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           <PageLoadingSkeleton />
         </div>
@@ -369,7 +369,7 @@ export default function MatchesPage() {
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
-    <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
+    <div className="min-h-full bg-[#0F1513] pb-8 lg:pb-8">
       <DialogContainer />
       
       {/* Create Match Form Modal */}
