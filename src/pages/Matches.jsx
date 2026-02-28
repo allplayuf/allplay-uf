@@ -359,7 +359,7 @@ export default function MatchesPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-full bg-[#0F1513] pb-8 lg:pb-8">
+      <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           <PageLoadingSkeleton />
         </div>
@@ -369,7 +369,7 @@ export default function MatchesPage() {
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
-    <div className="min-h-full bg-[#0F1513] pb-8 lg:pb-8">
+    <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
       <DialogContainer />
       
       {/* Create Match Form Modal */}
@@ -623,8 +623,7 @@ export default function MatchesPage() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => { triggerHaptic('medium'); setShowCreateForm(true); }}
-        style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom) + 0.5rem)' }}
-        className="fixed lg:bottom-8 right-4 lg:right-8 w-14 h-14 lg:w-16 lg:h-16 bg-[#F4743B] hover:bg-[#E5683A] text-white rounded-full shadow-[0_8px_24px_rgba(244,116,59,0.4)] flex items-center justify-center z-40 transition-all"
+        className="fixed bottom-20 lg:bottom-8 right-4 lg:right-8 w-14 h-14 lg:w-16 lg:h-16 bg-[#F4743B] hover:bg-[#E5683A] text-white rounded-full shadow-[0_8px_24px_rgba(244,116,59,0.4)] flex items-center justify-center z-40 transition-all"
       >
         <Plus className="w-6 h-6 lg:w-7 lg:h-7" strokeWidth={2.5} />
       </motion.button>

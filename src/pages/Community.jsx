@@ -391,7 +391,7 @@ export default function CommunityPage() {
         }}
       />
       
-      <div className="min-h-full bg-[#0F1513] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#0F1513] flex items-center justify-center p-4">
         <Card className="bg-[#121715] border border-[#223029] rounded-[20px] p-8 max-w-md w-full text-center">
           <div className="w-20 h-20 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-[#2BA84A]/20">
             <Users className="w-10 h-10 text-[#2BA84A]" />
@@ -413,7 +413,7 @@ export default function CommunityPage() {
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
-    <div className="min-h-full bg-[#0F1513] pb-8 lg:pb-8">
+    <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
       <DialogContainer />
       
       {/* Create Team Modal */}
@@ -748,8 +748,7 @@ export default function CommunityPage() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => { triggerHaptic('medium'); setShowCreateTeamForm(true); }}
-          style={{ bottom: 'calc(5rem + env(safe-area-inset-bottom) + 0.5rem)' }}
-          className="fixed lg:bottom-8 right-4 lg:right-8 w-14 h-14 lg:w-16 lg:h-16 bg-[#9370DB] hover:bg-[#7C3AED] text-white rounded-full shadow-[0_4px_16px_rgba(147,112,219,0.4)] ring-2 ring-[#9370DB]/20 hover:ring-[#9370DB]/40 flex items-center justify-center z-40 transition-all duration-200"
+          className="fixed bottom-20 lg:bottom-8 right-4 lg:right-8 w-14 h-14 lg:w-16 lg:h-16 bg-[#9370DB] hover:bg-[#7C3AED] text-white rounded-full shadow-[0_4px_16px_rgba(147,112,219,0.4)] ring-2 ring-[#9370DB]/20 hover:ring-[#9370DB]/40 flex items-center justify-center z-40 transition-all duration-200"
         >
           <Plus className="w-6 h-6 lg:w-7 lg:h-7" strokeWidth={2.5} />
         </motion.button>
