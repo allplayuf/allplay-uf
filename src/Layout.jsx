@@ -154,7 +154,7 @@ function LayoutInner({ children }) {
         {/* Consent check - blocks authenticated users without valid consent */}
         <ConsentChecker>
 
-        <div className="min-h-screen flex w-full bg-[#131816]">
+        <div className="min-h-screen flex w-full bg-[#0B0F0D]">
         <Toaster 
           position="bottom-center"
           theme="dark"
@@ -246,37 +246,24 @@ function LayoutInner({ children }) {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col bg-[#131816] min-h-screen lg:min-h-0">
-          <header className="lg:hidden sticky top-0 z-40 bg-[#121715] border-b border-[#223029]" style={{ paddingLeft: 'calc(1rem + env(safe-area-inset-left))', paddingRight: 'calc(1rem + env(safe-area-inset-right))', paddingTop: 'calc(0.75rem + env(safe-area-inset-top))', paddingBottom: '0.75rem' }}>
-            {isRootPage ? (
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-transparent">
-                  <img 
-                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png" 
-                    alt="AllPlay UF Logo" 
-                    className="w-full h-full object-contain"
-                    loading="eager"
-                  />
-                </div>
-                <div>
-                  <h1 className="text-lg font-semibold text-[#F4F7F5]">AllPlay UF</h1>
-                </div>
-              </div>
-            ) : (
+        <main className="flex-1 flex flex-col bg-[#0B0F0D] min-h-screen lg:min-h-0">
+          {/* Mobile header: scrolls with content (NOT sticky), dark safe-area background */}
+          {!isRootPage && (
+            <header className="lg:hidden bg-[#0B0F0D] border-b border-[#223029]" style={{ paddingLeft: 'calc(1rem + env(safe-area-inset-left))', paddingRight: 'calc(1rem + env(safe-area-inset-right))', paddingTop: 'calc(0.75rem + env(safe-area-inset-top))', paddingBottom: '0.75rem' }}>
               <button
                 onClick={() => {
                   triggerHaptic('light');
                   navigate(-1);
                 }}
-                className="flex items-center gap-2 text-[#F4F7F5] hover:text-[#2BA84A] transition-colors"
+                className="flex items-center gap-2 text-[#F4F7F5] hover:text-[#2BA84A] transition-colors min-h-[44px]"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="m15 18-6-6 6-6"/>
                 </svg>
                 <span className="font-semibold">Tillbaka</span>
               </button>
-            )}
-          </header>
+            </header>
+          )}
 
           {/* PREVIEW BANNER REMOVED */}
 
@@ -300,7 +287,7 @@ function LayoutInner({ children }) {
             </NavigationProvider>
           </div>
 
-          <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] bg-[#121715] border-t border-[#223029]">
+          <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] bg-[#0B0F0D] border-t border-[#223029]">
             <div className="flex items-center justify-around" style={{ paddingLeft: 'calc(0.5rem + env(safe-area-inset-left))', paddingRight: 'calc(0.5rem + env(safe-area-inset-right))', paddingTop: '0.5rem', paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
               {navigationItems.map((item) => {
                 const isActive = location.pathname === item.url;

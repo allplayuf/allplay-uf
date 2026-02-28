@@ -88,8 +88,8 @@ css
     }
   }
 
-  html, body {
-    background-color: var(--color-background);
+  html, body, #root {
+    background-color: #0B0F0D;
     color: var(--color-text-primary);
     margin: 0;
     padding: 0;
@@ -99,6 +99,9 @@ css
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     scroll-behavior: smooth;
+    /* Force dark color scheme for iOS */
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
   }
   
   /* Disable text selection and touch callouts on interactive elements */
