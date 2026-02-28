@@ -60,12 +60,12 @@ import EditProfile from './pages/EditProfile';
 import Feedback from './pages/Feedback';
 import Home from './pages/Home';
 import LegalPolicy from './pages/LegalPolicy';
+import Map from './pages/Map';
+import MatchDetail from './pages/MatchDetail';
 import Matches from './pages/Matches';
+import Profile from './pages/Profile';
 import TeamOverview from './pages/TeamOverview';
 import TermsOfService from './pages/TermsOfService';
-import Profile from './pages/Profile';
-import MatchDetail from './pages/MatchDetail';
-import Map from './pages/Map';
 import __Layout from './Layout.jsx';
 
 
@@ -83,12 +83,12 @@ export const PAGES = {
     "Feedback": Feedback,
     "Home": Home,
     "LegalPolicy": LegalPolicy,
+    "Map": Map,
+    "MatchDetail": MatchDetail,
     "Matches": Matches,
+    "Profile": Profile,
     "TeamOverview": TeamOverview,
     "TermsOfService": TermsOfService,
-    "Profile": Profile,
-    "MatchDetail": MatchDetail,
-    "Map": Map,
 }
 
 export const pagesConfig = {

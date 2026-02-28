@@ -142,8 +142,33 @@ function LayoutInner({ children }) {
   // Determine if current page is a root page or sub-page
   const isRootPage = navigationItems.some(item => location.pathname === item.url);
 
+  // iOS pull-down prevention: block overscroll when at top of scroll container
+  useEffect(() => {
+    let startY = 0;
+    const onTouchStart = (e) => { startY = e.touches[0].clientY; };
+    const onTouchMove = (e) => {
+      const scroller = mainContentRef.current;
+      if (!scroller) return;
+      const currentY = e.touches[0].clientY;
+      const isPullingDown = currentY > startY && scroller.scrollTop <= 0;
+      if (isPullingDown) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener('touchstart', onTouchStart, { passive: true });
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    return () => {
+      document.removeEventListener('touchstart', onTouchStart);
+      document.removeEventListener('touchmove', onTouchMove);
+    };
+  }, []);
+
   return (
     <ErrorBoundary>
+        {/* Fixed statusbar shield - covers iOS safe-area-inset-top with dark bg */}
+        <div className="statusbar-shield" />
+
+        <div className="app-shell">
         <RouteProgress />
         <OnboardingModal />
         <OfflineDetector />
@@ -154,7 +179,7 @@ function LayoutInner({ children }) {
         {/* Consent check - blocks authenticated users without valid consent */}
         <ConsentChecker>
 
-        <div className="min-h-screen flex w-full bg-[#0B0F0D]">
+        <div className="flex flex-1 w-full bg-[#0B0F0D] overflow-hidden">
         <Toaster 
           position="bottom-center"
           theme="dark"
@@ -246,13 +271,10 @@ function LayoutInner({ children }) {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col bg-[#0B0F0D] min-h-screen lg:min-h-0">
-          {/* iOS safe-area spacer for root pages (no header, just dark background behind status bar) */}
-          <div className="lg:hidden bg-[#0B0F0D]" style={{ paddingTop: 'env(safe-area-inset-top)' }} />
-
-          {/* Mobile back header for sub-pages (scrolls with content, NOT sticky) */}
+        <main className="flex-1 flex flex-col bg-[#0B0F0D] min-h-0 overflow-hidden">
+          {/* Mobile back header for sub-pages */}
           {!isRootPage && (
-            <header className="lg:hidden bg-[#0B0F0D] border-b border-[#223029]" style={{ paddingLeft: 'calc(1rem + env(safe-area-inset-left))', paddingRight: 'calc(1rem + env(safe-area-inset-right))', paddingBottom: '0.75rem' }}>
+            <header className="lg:hidden bg-[#0B0F0D] border-b border-[#223029] flex-shrink-0" style={{ paddingLeft: 'calc(1rem + env(safe-area-inset-left))', paddingRight: 'calc(1rem + env(safe-area-inset-right))', paddingBottom: '0.75rem', paddingTop: '0.5rem' }}>
               <button
                 onClick={() => {
                   triggerHaptic('light');
@@ -268,15 +290,12 @@ function LayoutInner({ children }) {
             </header>
           )}
 
-          {/* PREVIEW BANNER REMOVED */}
-
+          {/* Scrollable content area */}
           <div 
             ref={mainContentRef}
-            className="flex-1 overflow-y-auto lg:pb-0"
+            className="app-scroll lg:pb-0"
             style={{ 
               paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))',
-              WebkitOverflowScrolling: 'touch',
-              overscrollBehaviorY: 'contain',
             }}
           >
             <NavigationProvider mainContentRef={mainContentRef}>
@@ -290,7 +309,8 @@ function LayoutInner({ children }) {
             </NavigationProvider>
           </div>
 
-          <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] bg-[#0B0F0D] border-t border-[#223029]">
+          {/* Mobile bottom navigation - always fixed */}
+          <nav className="lg:hidden mobile-bottom-nav">
             <div className="flex items-center justify-around" style={{ paddingLeft: 'calc(0.5rem + env(safe-area-inset-left))', paddingRight: 'calc(0.5rem + env(safe-area-inset-right))', paddingTop: '0.5rem', paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
               {navigationItems.map((item) => {
                 const isActive = location.pathname === item.url;
@@ -314,6 +334,7 @@ function LayoutInner({ children }) {
         </main>
         </div>
         </ConsentChecker>
+        </div>
     </ErrorBoundary>
   );
 }
