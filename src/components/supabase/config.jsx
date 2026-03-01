@@ -34,7 +34,8 @@ export async function getSupabaseConfig() {
 
 /**
  * Build standard headers for any Supabase request (REST or Edge).
- * Always waits for auth + config so tokens are guaranteed fresh.
+ * Always waits for auth so tokens are guaranteed fresh.
+ * apikey is ALWAYS present (hardcoded constant) — no async fetch needed.
  *
  * @param {object} [opts]
  * @param {boolean} [opts.includeAuth=true] - attach Bearer token
@@ -45,17 +46,12 @@ export async function getAuthHeaders({ includeAuth = true, json = true } = {}) {
   // Lazy import to break circular dependency (client ↔ config)
   const { sessionStore, waitForAuth } = await import('./client');
   await waitForAuth();
-  const config = await getSupabaseConfig();
 
   const headers = {};
   if (json) headers['Content-Type'] = 'application/json';
 
-  // apikey is REQUIRED for every Supabase request
-  if (config.anonKey) {
-    headers['apikey'] = config.anonKey;
-  } else {
-    console.warn('[getAuthHeaders] apikey is NULL — request will likely 403');
-  }
+  // apikey is ALWAYS available — hardcoded constant, never null
+  headers['apikey'] = SUPABASE_ANON_KEY;
 
   if (includeAuth && sessionStore.accessToken) {
     headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
