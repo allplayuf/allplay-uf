@@ -60,4 +60,4 @@ export async function getAuthHeaders({ includeAuth = true, json = true } = {}) {
   return headers;
 }
 
-export { SUPABASE_URL, SUPABASE_FUNCTIONS_URL };
+export { SUPABASE_URL, SUPABASE_FUNCTIONS_URL, SUPABASE_ANON_KEY };
