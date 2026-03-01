@@ -6,8 +6,6 @@
  * always sends both `apikey` and `Authorization`.
  */
 
-import { sessionStore, waitForAuth } from './client';
-
 const SUPABASE_URL = 'https://vqfjjokqmykqawjlgevj.supabase.co';
 const SUPABASE_FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
 
@@ -65,6 +63,8 @@ export async function getSupabaseConfig() {
  * @returns {Promise<Record<string,string>>}
  */
 export async function getAuthHeaders({ includeAuth = true, json = true } = {}) {
+  // Lazy import to break circular dependency (client ↔ config)
+  const { sessionStore, waitForAuth } = await import('./client');
   await waitForAuth();
   const config = await getSupabaseConfig();
 
