@@ -37,27 +37,41 @@ export async function getSupabaseConfig() {
  * Always waits for auth so tokens are guaranteed fresh.
  * apikey is ALWAYS present (hardcoded constant) — no async fetch needed.
  *
+ * IMPORTANT: This is re-exported from callEdgeFunction.getStandardHeaders
+ * to maintain backward compatibility with all services that import from config.
+ *
  * @param {object} [opts]
  * @param {boolean} [opts.includeAuth=true] - attach Bearer token
  * @param {boolean} [opts.json=true]        - set Content-Type JSON
  * @returns {Promise<Record<string,string>>}
  */
 export async function getAuthHeaders({ includeAuth = true, json = true } = {}) {
-  // Lazy import to break circular dependency (client ↔ config)
+  // Lazy import to break circular dependency (client ↔ config ↔ callEdgeFunction)
   const { sessionStore, waitForAuth } = await import('./client');
   await waitForAuth();
 
   const headers = {};
   if (json) headers['Content-Type'] = 'application/json';
 
-  // apikey is ALWAYS available — hardcoded constant, never null
+  // HARD CHECK: apikey must be present
+  if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.length < 20) {
+    console.error('[getAuthHeaders] CRITICAL: SUPABASE_ANON_KEY is missing or invalid!', {
+      length: String(SUPABASE_ANON_KEY || '').length,
+      prefix: String(SUPABASE_ANON_KEY || '').slice(0, 8)
+    });
+  }
+
   headers['apikey'] = SUPABASE_ANON_KEY;
 
   if (includeAuth && sessionStore.accessToken) {
     headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
   }
 
+  // Debug log for iOS troubleshooting
+  console.log('[getAuthHeaders] built headers:', {
+    apikey: headers['apikey'] ? `${headers['apikey'].slice(0, 8)}... (${headers['apikey'].length} chars)` : 'MISSING',
+    auth: headers['Authorization'] ? 'present' : 'absent'
+  });
+
   return headers;
 }
-
-// All exports are inline (export const) above
