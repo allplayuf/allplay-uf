@@ -353,8 +353,8 @@ function QuickCreateModal({ position, onConfirm, onCancel, isLoading, showCoords
     e.preventDefault();
     onConfirm({
       ...formData,
-      latitude: position?.lat ?? parseFloat(formData.latitude) || null,
-      longitude: position?.lng ?? parseFloat(formData.longitude) || null,
+      latitude: position?.lat ?? (parseFloat(formData.latitude) || null),
+      longitude: position?.lng ?? (parseFloat(formData.longitude) || null),
     });
   };
 
