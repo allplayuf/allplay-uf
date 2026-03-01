@@ -10,7 +10,7 @@ import {
   MapPin, Plus, Trash2, Save, X, CheckCircle,
   Map as MapIcon, List, Keyboard, Filter, RefreshCw
 } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { createVenue, deleteVenue } from "../supabase/services/venuesService";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -74,11 +74,23 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
   const [activeTab, setActiveTab] = useState('list');
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const [pendingPosition, setPendingPosition] = useState(null);
   const [page, setPage] = useState(0);
+  const [actionLoading, setActionLoading] = useState(null);
+
+  // Deduplicate venues by id (Supabase is source of truth)
+  const venues = useMemo(() => {
+    const seen = new Set();
+    return propVenues.filter(v => {
+      if (seen.has(v.id)) return false;
+      seen.add(v.id);
+      return true;
+    });
+  }, [propVenues]);
 
   const filtered = useMemo(() => {
-    let list = [...propVenues];
+    let list = [...venues];
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
       list = list.filter(v =>
@@ -94,7 +106,7 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
       return 0;
     });
     return list;
-  }, [propVenues, searchTerm, sortBy]);
+  }, [venues, searchTerm, sortBy]);
 
   const paginated = filtered.slice(0, (page + 1) * PAGE_SIZE);
   const hasMore = paginated.length < filtered.length;
@@ -105,41 +117,54 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
   }, []);
 
   const handleCreateVenue = async (formData) => {
+    setActionLoading('create');
     try {
-      await base44.entities.Venue.create({
+      await createVenue({
         ...formData,
-        latitude: pendingPosition.lat,
-        longitude: pendingPosition.lng,
-        is_active: true, is_verified: true, added_by_admin: true
+        latitude: pendingPosition?.lat ?? formData.latitude,
+        longitude: pendingPosition?.lng ?? formData.longitude,
+        is_verified: true,
       });
       setShowCreateModal(false);
+      setShowCreateForm(false);
       setPendingPosition(null);
       onRefresh();
     } catch (error) {
       console.error('[VenueManagement] Create failed:', error);
+      window.alert('Kunde inte skapa plan: ' + (error.message || 'Okänt fel'));
+    } finally {
+      setActionLoading(null);
     }
   };
 
   const handlePositionChange = async (venueId, lat, lng) => {
-    try {
-      await base44.entities.Venue.update(venueId, { latitude: lat, longitude: lng });
-      onRefresh();
-    } catch (error) {
-      console.error('[VenueManagement] Position update failed:', error);
-    }
+    // Position change via REST PATCH
+    const { getAuthHeaders, SUPABASE_URL } = await import('../supabase/config');
+    const headers = await getAuthHeaders();
+    await fetch(
+      `${SUPABASE_URL}/rest/v1/venues?id=eq.${encodeURIComponent(venueId)}`,
+      {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ lat, lng })
+      }
+    );
+    onRefresh();
   };
 
   const handleDeleteVenue = async (venueId) => {
-    if (!confirm('Radera denna plan?')) return;
+    if (!confirm('Radera denna plan permanent?')) return;
+    setActionLoading(venueId);
     try {
-      await base44.entities.Venue.delete(venueId);
+      await deleteVenue(venueId);
       onRefresh();
     } catch (error) {
       console.error('[VenueManagement] Delete failed:', error);
+      window.alert('Kunde inte radera plan: ' + (error.message || 'Okänt fel'));
+    } finally {
+      setActionLoading(null);
     }
   };
-
-  const updatedStr = lastUpdated ? new Date(lastUpdated).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' }) : null;
 
   return (
     <div className="space-y-4">
@@ -147,7 +172,7 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
         title="Planer"
         icon={MapPin}
         iconColor="#9370DB"
-        totalCount={propVenues.length}
+        totalCount={venues.length}
         filteredCount={filtered.length}
         searchTerm={searchTerm}
         onSearchChange={(v) => { setSearchTerm(v); setPage(0); }}
@@ -180,6 +205,27 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
         </TabsList>
 
         <TabsContent value="list">
+          {/* Create new venue button */}
+          <div className="mb-3">
+            <Button
+              onClick={() => setShowCreateForm(!showCreateForm)}
+              className={`${showCreateForm ? 'bg-[#F4743B] hover:bg-[#E5683A]' : 'bg-[#2BA84A] hover:bg-[#248232]'} text-white rounded-xl h-10`}
+            >
+              {showCreateForm ? <><X className="w-4 h-4 mr-1" />Avbryt</> : <><Plus className="w-4 h-4 mr-1" />Skapa ny plan</>}
+            </Button>
+          </div>
+
+          {/* Inline create form */}
+          {showCreateForm && (
+            <QuickCreateModal
+              position={null}
+              onConfirm={handleCreateVenue}
+              onCancel={() => setShowCreateForm(false)}
+              isLoading={actionLoading === 'create'}
+              showCoords
+            />
+          )}
+
           {isLoading ? (
             <Card className="bg-[#121715] border border-[#223029] rounded-[16px]">
               <CardContent className="p-8 text-center">
@@ -212,18 +258,23 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
                           </Badge>
                         </div>
                         <div className="flex items-center gap-3 text-xs text-[#7B8A83]">
-                          <span>{venue.address}, {venue.city}</span>
-                          {venue.formats_supported?.length > 0 && (
-                            <span>{venue.formats_supported.join(', ')}</span>
+                          <span>{[venue.address, venue.city].filter(Boolean).join(', ')}</span>
+                          {venue.external_id && (
+                            <span className="text-[10px] font-mono text-[#9EAAA4]">ext:{venue.external_id.slice(0, 12)}</span>
                           )}
                         </div>
                       </div>
                       <Button
                         size="sm" variant="destructive"
                         onClick={() => handleDeleteVenue(venue.id)}
+                        disabled={actionLoading === venue.id}
                         className="h-8 px-3 bg-[#DC2626] hover:bg-[#B91C1C] text-white text-xs rounded-lg flex-shrink-0"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        {actionLoading === venue.id ? (
+                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Trash2 className="w-3.5 h-3.5" />
+                        )}
                       </Button>
                     </div>
                   </CardContent>
@@ -273,7 +324,12 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
             </Card>
 
             {showCreateModal && pendingPosition && (
-              <QuickCreateModal position={pendingPosition} onConfirm={handleCreateVenue} onCancel={() => { setShowCreateModal(false); setPendingPosition(null); }} />
+              <QuickCreateModal
+                position={pendingPosition}
+                onConfirm={handleCreateVenue}
+                onCancel={() => { setShowCreateModal(false); setPendingPosition(null); }}
+                isLoading={actionLoading === 'create'}
+              />
             )}
           </div>
         </TabsContent>
@@ -282,15 +338,75 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
   );
 }
 
-function QuickCreateModal({ position, onConfirm, onCancel }) {
-  const [formData, setFormData] = useState({ name: '', address: '', city: '', formats_supported: ['5v5'], facilities: [] });
+function QuickCreateModal({ position, onConfirm, onCancel, isLoading, showCoords }) {
+  const [formData, setFormData] = useState({
+    name: '',
+    address: '',
+    city: '',
+    latitude: position?.lat ?? '',
+    longitude: position?.lng ?? '',
+    formats_supported: ['5v5'],
+    facilities: []
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onConfirm({
+      ...formData,
+      latitude: position?.lat ?? parseFloat(formData.latitude) || null,
+      longitude: position?.lng ?? parseFloat(formData.longitude) || null,
+    });
+  };
+
+  // Inline card for list tab, modal for map tab
+  if (!position && showCoords) {
+    return (
+      <Card className="bg-[#121715] border-2 border-[#2BA84A] rounded-2xl mb-3">
+        <CardContent className="p-5">
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <h3 className="text-lg font-bold text-[#F4F7F5] mb-2">Ny plan</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-[#F4F7F5] text-xs mb-1 block">Namn *</Label>
+                <Input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-9" />
+              </div>
+              <div>
+                <Label className="text-[#F4F7F5] text-xs mb-1 block">Stad *</Label>
+                <Input required value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-9" />
+              </div>
+            </div>
+            <div>
+              <Label className="text-[#F4F7F5] text-xs mb-1 block">Adress *</Label>
+              <Input required value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-9" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-[#F4F7F5] text-xs mb-1 block">Latitud</Label>
+                <Input type="number" step="any" value={formData.latitude} onChange={e => setFormData({ ...formData, latitude: e.target.value })} className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-9" placeholder="59.33" />
+              </div>
+              <div>
+                <Label className="text-[#F4F7F5] text-xs mb-1 block">Longitud</Label>
+                <Input type="number" step="any" value={formData.longitude} onChange={e => setFormData({ ...formData, longitude: e.target.value })} className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-9" placeholder="18.07" />
+              </div>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <Button type="button" onClick={onCancel} variant="outline" className="flex-1 border-[#223029] text-[#B6C2BC]">Avbryt</Button>
+              <Button type="submit" disabled={isLoading} className="flex-1 bg-[#2BA84A] hover:bg-[#248232] text-white">
+                {isLoading ? 'Skapar...' : 'Skapa'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
-      <form onSubmit={(e) => { e.preventDefault(); onConfirm(formData); }} className="bg-[#121715] border-2 border-[#2BA84A] rounded-2xl max-w-md w-full overflow-hidden">
+      <form onSubmit={handleSubmit} className="bg-[#121715] border-2 border-[#2BA84A] rounded-2xl max-w-md w-full overflow-hidden">
         <div className="p-5 border-b border-[#223029]">
           <h3 className="text-lg font-bold text-[#F4F7F5]">Skapa ny plan</h3>
-          <p className="text-xs text-[#7B8A83] mt-1 font-mono">{position.lat.toFixed(5)}, {position.lng.toFixed(5)}</p>
+          {position && <p className="text-xs text-[#7B8A83] mt-1 font-mono">{position.lat.toFixed(5)}, {position.lng.toFixed(5)}</p>}
         </div>
         <div className="p-5 space-y-3">
           <div>
@@ -308,7 +424,9 @@ function QuickCreateModal({ position, onConfirm, onCancel }) {
         </div>
         <div className="p-5 border-t border-[#223029] flex gap-3">
           <Button type="button" onClick={onCancel} variant="outline" className="flex-1 border-[#223029] text-[#B6C2BC]">Avbryt</Button>
-          <Button type="submit" className="flex-1 bg-[#2BA84A] hover:bg-[#248232] text-white">Skapa</Button>
+          <Button type="submit" disabled={isLoading} className="flex-1 bg-[#2BA84A] hover:bg-[#248232] text-white">
+            {isLoading ? 'Skapar...' : 'Skapa'}
+          </Button>
         </div>
       </form>
     </div>
