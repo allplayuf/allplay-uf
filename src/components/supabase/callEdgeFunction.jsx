@@ -4,41 +4,41 @@
  * ALL edge function calls in the entire app MUST go through this wrapper.
  * No supabase.functions.invoke(), no raw fetch to /functions/v1/*.
  * 
- * HARD FAIL: If SUPABASE_ANON_KEY is missing or too short, throws immediately.
- * DEBUG: Logs apikey length, prefix, token presence BEFORE every request.
- * DEBUG: Logs status + response body AFTER every request.
+ * HARD FAIL: If SUPABASE_ANON_KEY is missing or length < 50, throws immediately.
+ * DEBUG: Logs + stores last call info for UI display (iOS Safari lacks console).
  */
 
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config';
 import { sessionStore, waitForAuth } from './client';
 
-// ── HARD FAIL CHECK at module load time ──
-// If tree-shaking or bundler drops the constant, this catches it.
-if (!SUPABASE_ANON_KEY || typeof SUPABASE_ANON_KEY !== 'string' || SUPABASE_ANON_KEY.length < 20) {
-  const msg = `[CRITICAL] SUPABASE_ANON_KEY missing or invalid in this build! Value: "${String(SUPABASE_ANON_KEY).slice(0, 10)}..." (length: ${String(SUPABASE_ANON_KEY || '').length})`;
+// ── GLOBAL DEBUG STATE (readable from any component) ──
+// This is THE way to see what's happening on iOS where console is invisible.
+const _debugLog = [];
+const MAX_DEBUG_ENTRIES = 20;
+
+export function getEdgeFunctionDebugLog() {
+  return _debugLog.slice(); // Return copy
+}
+
+function pushDebug(entry) {
+  _debugLog.unshift({ ...entry, ts: new Date().toISOString() });
+  if (_debugLog.length > MAX_DEBUG_ENTRIES) _debugLog.pop();
+  // Also console.log for web debugging
+  console.log(`[EdgeFn] ${entry.phase}:`, entry);
+}
+
+// ── MODULE LOAD CHECK ──
+const _anonKeyValid = typeof SUPABASE_ANON_KEY === 'string' && SUPABASE_ANON_KEY.length >= 50;
+
+if (!_anonKeyValid) {
+  const msg = `[CRITICAL] SUPABASE_ANON_KEY missing or invalid in THIS build! type=${typeof SUPABASE_ANON_KEY}, length=${String(SUPABASE_ANON_KEY || '').length}, prefix="${String(SUPABASE_ANON_KEY || '').slice(0, 10)}"`;
   console.error(msg);
-  // Don't throw at module level (breaks entire app), but flag for runtime
+  pushDebug({ phase: 'MODULE_LOAD_FAIL', message: msg, anonKeyLength: String(SUPABASE_ANON_KEY || '').length });
+} else {
+  pushDebug({ phase: 'MODULE_LOAD_OK', anonKeyLength: SUPABASE_ANON_KEY.length, anonKeyPrefix: SUPABASE_ANON_KEY.slice(0, 8) });
 }
 
 const FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
-
-/**
- * Build headers for edge function calls.
- * apikey is ALWAYS the hardcoded SUPABASE_ANON_KEY constant.
- * Authorization is Bearer <access_token> when user is logged in.
- */
-function buildHeaders() {
-  const headers = {
-    'Content-Type': 'application/json',
-    'apikey': SUPABASE_ANON_KEY
-  };
-
-  if (sessionStore.accessToken) {
-    headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
-  }
-
-  return headers;
-}
 
 /**
  * Call a Supabase Edge Function.
@@ -54,28 +54,49 @@ export async function callEdgeFunction(name, body = {}, options = {}) {
 
   const method = options.method || 'POST';
 
-  // ── HARD FAIL if anon key is missing ──
-  if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.length < 20) {
-    const error = new Error(`SUPABASE_ANON_KEY missing in this build! Cannot call ${name}. Key length: ${String(SUPABASE_ANON_KEY || '').length}`);
+  // ── HARD FAIL if anon key is missing or too short ──
+  if (!SUPABASE_ANON_KEY || typeof SUPABASE_ANON_KEY !== 'string' || SUPABASE_ANON_KEY.length < 50) {
+    const detail = {
+      phase: 'HARD_FAIL',
+      fn: name,
+      anonKeyType: typeof SUPABASE_ANON_KEY,
+      anonKeyLength: String(SUPABASE_ANON_KEY || '').length,
+      anonKeyPrefix: String(SUPABASE_ANON_KEY || '').slice(0, 10),
+    };
+    pushDebug(detail);
+    const error = new Error(`SUPABASE_ANON_KEY missing in THIS build! fn=${name}, keyLen=${detail.anonKeyLength}`);
     error.status = 0;
     error.functionName = name;
     error.isConfigError = true;
-    console.error(`[EdgeFunction] HARD FAIL:`, error.message);
+    error.debugDetail = detail;
     throw error;
   }
 
-  const headers = buildHeaders();
+  // ── BUILD HEADERS — inline, no helper, no indirection ──
+  const headers = {
+    'Content-Type': 'application/json',
+    'apikey': SUPABASE_ANON_KEY
+  };
+  if (sessionStore.accessToken) {
+    headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
+  }
+
   const url = `${FUNCTIONS_URL}/${name}`;
 
   // ── DEBUG LOG BEFORE REQUEST ──
-  console.log(`[EdgeFunction] → ${name}`, {
+  const preDebug = {
+    phase: 'PRE',
+    fn: name,
     method,
-    anonKeyLength: SUPABASE_ANON_KEY.length,
-    anonKeyPrefix: SUPABASE_ANON_KEY.slice(0, 8) + '...',
+    anonLen: SUPABASE_ANON_KEY.length,
+    anonPrefix: SUPABASE_ANON_KEY.slice(0, 8),
     tokenPresent: !!headers['Authorization'],
-    tokenPrefix: headers['Authorization'] ? headers['Authorization'].slice(0, 15) + '...' : 'NONE',
-    url
-  });
+    url,
+    // Verify the header object actually has apikey set
+    headerApikeySet: !!headers['apikey'],
+    headerApikeyLen: (headers['apikey'] || '').length,
+  };
+  pushDebug(preDebug);
 
   let res;
   try {
@@ -85,7 +106,12 @@ export async function callEdgeFunction(name, body = {}, options = {}) {
       body: JSON.stringify(body)
     });
   } catch (networkErr) {
-    console.error(`[EdgeFunction] ✗ ${name} NETWORK ERROR:`, networkErr.message);
+    const netDebug = {
+      phase: 'NETWORK_ERROR',
+      fn: name,
+      error: networkErr.message || 'unknown',
+    };
+    pushDebug(netDebug);
     const error = new Error(`Nätverksfel vid anrop till ${name}: ${networkErr.message || 'CORS/fetch blocked'}`);
     error.status = 0;
     error.data = null;
@@ -94,22 +120,25 @@ export async function callEdgeFunction(name, body = {}, options = {}) {
     throw error;
   }
 
-  // ── DEBUG LOG AFTER REQUEST ──
+  // ── READ RESPONSE ──
   let rawText = '';
   try { rawText = await res.text(); } catch (_) { /* empty */ }
 
-  console.log(`[EdgeFunction] ← ${name}`, {
+  // ── DEBUG LOG AFTER REQUEST ──
+  const postDebug = {
+    phase: 'POST',
+    fn: name,
     status: res.status,
     ok: res.ok,
-    bodyLength: rawText.length,
-    bodyPreview: rawText.slice(0, 300)
-  });
+    bodyLen: rawText.length,
+    bodyPreview: rawText.slice(0, 200),
+  };
+  pushDebug(postDebug);
 
   let data = null;
   try { data = rawText ? JSON.parse(rawText) : {}; } catch (_) { data = { message: rawText }; }
 
   if (!res.ok) {
-    console.error(`[EdgeFunction] ✗ ${name} FAILED: status=${res.status}, body=${rawText.slice(0, 500)}`);
     const errorMessage = data?.message || data?.error || `EdgeFunction ${name} failed: ${res.status}`;
     const error = new Error(errorMessage);
     error.status = res.status;
@@ -121,9 +150,8 @@ export async function callEdgeFunction(name, body = {}, options = {}) {
       error.message = 'Du måste vara inloggad. Logga in och försök igen.';
       sessionStore.clear();
     } else if (res.status === 403) {
-      error.message = data?.message?.includes('apikey')
-        ? `API-nyckel saknas i request. anonKey=${SUPABASE_ANON_KEY.length} chars. Starta om appen.`
-        : 'Du saknar behörighet att utföra denna åtgärd.';
+      // Extra detail for the exact 403 / apikey issue
+      error.message = `403 Forbidden: fn=${name}, sentApikeyLen=${SUPABASE_ANON_KEY.length}, sentApikeyPrefix=${SUPABASE_ANON_KEY.slice(0, 8)}. ${data?.message || 'Saknar behörighet.'}`;
     } else if (res.status === 400 || res.status === 409 || res.status === 404) {
       const raw = (data?.message || data?.error || '').toLowerCase();
       if (raw.includes('match is full') || raw.includes('full')) {
@@ -161,11 +189,6 @@ export async function callPublicEdgeFunction(name, body = {}) {
  * Build standard headers for REST API calls (not edge functions).
  * Use this for direct Supabase REST API access (tables/views).
  * Always includes apikey + auth token.
- * 
- * @param {object} [opts]
- * @param {boolean} [opts.includeAuth=true]
- * @param {boolean} [opts.json=true]
- * @returns {Promise<Record<string,string>>}
  */
 export async function getStandardHeaders({ includeAuth = true, json = true } = {}) {
   await waitForAuth();
