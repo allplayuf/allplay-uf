@@ -7,7 +7,7 @@
  * - Participants enriched with public user data from cache
  */
 
-import { getSupabaseConfig, SUPABASE_URL } from '../config';
+import { getAuthHeaders, SUPABASE_URL } from '../config';
 import { sessionStore, waitForAuth } from '../client';
 import { fetchUsersMissing } from './userCache';
 
@@ -19,19 +19,7 @@ export async function getMyParticipantMatchIds() {
   await waitForAuth();
   if (!sessionStore.user?.id) return [];
 
-  const config = await getSupabaseConfig();
-  
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-  
-  if (config.anonKey) {
-    headers['apikey'] = config.anonKey;
-  }
-  
-  if (sessionStore.accessToken) {
-    headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
-  }
+  const headers = await getAuthHeaders();
   
   try {
     const res = await fetch(
@@ -59,21 +47,8 @@ export async function getMyParticipantMatchIds() {
  */
 export async function getParticipantsForMatches(matchIds) {
   if (!matchIds || matchIds.length === 0) return [];
-  await waitForAuth();
 
-  const config = await getSupabaseConfig();
-  
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-  
-  if (config.anonKey) {
-    headers['apikey'] = config.anonKey;
-  }
-  
-  if (sessionStore.accessToken) {
-    headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
-  }
+  const headers = await getAuthHeaders();
   
   try {
     const idsParam = `(${matchIds.join(',')})`;
@@ -107,20 +82,7 @@ export async function getParticipantsForMatches(matchIds) {
  * Enriches with public user data from cache
  */
 export async function getAllParticipants() {
-  await waitForAuth();
-  const config = await getSupabaseConfig();
-  
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-  
-  if (config.anonKey) {
-    headers['apikey'] = config.anonKey;
-  }
-  
-  if (sessionStore.accessToken) {
-    headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
-  }
+  const headers = await getAuthHeaders();
   
   try {
     const res = await fetch(

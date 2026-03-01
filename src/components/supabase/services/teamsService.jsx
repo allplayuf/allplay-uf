@@ -7,17 +7,12 @@
  */
 
 import { callEdgeFunction } from '../callEdgeFunction';
-import { getSupabaseConfig, SUPABASE_URL } from '../config';
+import { getAuthHeaders, SUPABASE_URL } from '../config';
 import { sessionStore, waitForAuth } from '../client';
 import { EDGE } from '../edgeNames';
 
-async function supabaseHeaders() {
-  const config = await getSupabaseConfig();
-  const headers = { 'Content-Type': 'application/json' };
-  if (config.anonKey) headers['apikey'] = config.anonKey;
-  if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
-  return headers;
-}
+// Alias for backward compat inside this file
+const supabaseHeaders = () => getAuthHeaders();
 
 /**
  * Get all teams (RLS determines visibility)

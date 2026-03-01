@@ -6,8 +6,8 @@
  * Build display_name / profile_image_url locally as fallbacks.
  */
 
-import { getSupabaseConfig, SUPABASE_URL } from '../config';
-import { sessionStore, waitForAuth } from '../client';
+import { getAuthHeaders, SUPABASE_URL } from '../config';
+import { waitForAuth } from '../client';
 
 /**
  * Columns guaranteed to exist in the public.users view.
@@ -15,16 +15,8 @@ import { sessionStore, waitForAuth } from '../client';
  */
 const SAFE_SELECT = 'id,full_name,username,avatar_url,elo_rating';
 
-/**
- * Build auth headers for Supabase REST
- */
-async function buildHeaders() {
-  const config = await getSupabaseConfig();
-  const headers = { 'Content-Type': 'application/json' };
-  if (config.anonKey) headers['apikey'] = config.anonKey;
-  if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
-  return headers;
-}
+// Use shared header builder
+const buildHeaders = () => getAuthHeaders();
 
 /**
  * Normalize a raw row into a shape the frontend expects.

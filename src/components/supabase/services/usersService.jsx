@@ -6,7 +6,7 @@
  * - waitForAuth() ensures token is valid before any call
  */
 
-import { getSupabaseConfig, SUPABASE_URL } from '../config';
+import { getAuthHeaders, SUPABASE_URL } from '../config';
 import { sessionStore, waitForAuth } from '../client';
 import { callEdgeFunction } from '../callEdgeFunction';
 import { EDGE } from '../edgeNames';
@@ -20,10 +20,7 @@ const USER_COLUMNS = 'id,full_name,username,avatar_url,bio,city,skill_level,elo_
 async function fetchUsersViaRest(ids) {
   if (!ids || ids.length === 0) return [];
 
-  const config = await getSupabaseConfig();
-  const headers = { 'Content-Type': 'application/json' };
-  if (config.anonKey) headers['apikey'] = config.anonKey;
-  if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
+  const headers = await getAuthHeaders();
 
   const idsParam = `(${ids.join(',')})`;
   const res = await fetch(
@@ -43,13 +40,9 @@ async function fetchUsersViaRest(ids) {
  */
 export async function getMyProfile() {
   await waitForAuth();
-
   if (!sessionStore.user?.id) return null;
 
-  const config = await getSupabaseConfig();
-  const headers = { 'Content-Type': 'application/json' };
-  if (config.anonKey) headers['apikey'] = config.anonKey;
-  if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
+  const headers = await getAuthHeaders();
 
   try {
     const res = await fetch(

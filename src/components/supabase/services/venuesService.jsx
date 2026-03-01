@@ -8,7 +8,7 @@
  */
 
 import { callEdgeFunction } from '../callEdgeFunction';
-import { getSupabaseConfig, SUPABASE_URL } from '../config';
+import { getAuthHeaders, SUPABASE_URL } from '../config';
 import { sessionStore, waitForAuth } from '../client';
 
 /**
@@ -58,10 +58,7 @@ export async function upsertVenue(venue) {
 export async function getVenueByExternalId(externalId) {
   if (!externalId) return null;
   
-  const config = await getSupabaseConfig();
-  const headers = { 'Content-Type': 'application/json' };
-  if (config.anonKey) headers['apikey'] = config.anonKey;
-  if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
+  const headers = await getAuthHeaders();
 
   try {
     const res = await fetch(
@@ -81,21 +78,7 @@ export async function getVenueByExternalId(externalId) {
  * Always include auth token - RLS decides what user can see
  */
 export async function getVenues() {
-  await waitForAuth();
-  const config = await getSupabaseConfig();
-  
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-  
-  if (config.anonKey) {
-    headers['apikey'] = config.anonKey;
-  }
-  
-  // Always include auth if available - RLS handles access
-  if (sessionStore.accessToken) {
-    headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
-  }
+  const headers = await getAuthHeaders();
   
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/venues?select=*&order=name.asc`, {

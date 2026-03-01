@@ -8,8 +8,8 @@
 
 import { callEdgeFunction } from '../callEdgeFunction';
 import { EDGE } from '../edgeNames';
-import { getSupabaseConfig, SUPABASE_URL } from '../config';
-import { sessionStore, waitForAuth } from '../client';
+import { getAuthHeaders, SUPABASE_URL } from '../config';
+import { waitForAuth } from '../client';
 
 const userCache = new Map();
 const pendingRequests = new Map();
@@ -117,11 +117,7 @@ export async function fetchUsersMissing(userIds) {
         // REST fallback
         if (users.length === 0) {
           try {
-            const config = await getSupabaseConfig();
-            const headers = { 'Content-Type': 'application/json' };
-            if (config.anonKey) headers['apikey'] = config.anonKey;
-            if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
-
+            const headers = await getAuthHeaders();
             const idsParam = `(${chunk.join(',')})`;
             const res = await fetch(
               `${SUPABASE_URL}/rest/v1/users?id=in.${idsParam}&select=${USER_COLUMNS}`,

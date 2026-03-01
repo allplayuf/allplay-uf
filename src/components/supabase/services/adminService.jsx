@@ -5,7 +5,7 @@
  * Caches result per user session.
  */
 
-import { getSupabaseConfig, SUPABASE_URL } from '../config';
+import { getAuthHeaders, SUPABASE_URL } from '../config';
 import { sessionStore, waitForAuth } from '../client';
 
 let _cachedIsAdmin = null;
@@ -45,10 +45,7 @@ export async function checkIsAdmin({ forceRefresh = false } = {}) {
 
   // 3. Check is_admin column on public.users
   try {
-    const config = await getSupabaseConfig();
-    const headers = { 'Content-Type': 'application/json' };
-    if (config.anonKey) headers['apikey'] = config.anonKey;
-    if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
+    const headers = await getAuthHeaders();
 
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/users?id=eq.${userId}&select=is_admin&limit=1`,

@@ -6,8 +6,8 @@
  * - No frontend authorization checks
  */
 
-import { getSupabaseConfig, SUPABASE_URL } from '../config';
-import { sessionStore, waitForAuth } from '../client';
+import { getAuthHeaders, SUPABASE_URL } from '../config';
+import { waitForAuth } from '../client';
 
 /**
  * Get matches by IDs
@@ -15,21 +15,8 @@ import { sessionStore, waitForAuth } from '../client';
  */
 export async function getMatchesByIds(ids) {
   if (!ids || ids.length === 0) return [];
-  await waitForAuth();
 
-  const config = await getSupabaseConfig();
-  
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-  
-  if (config.anonKey) {
-    headers['apikey'] = config.anonKey;
-  }
-  
-  if (sessionStore.accessToken) {
-    headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
-  }
+  const headers = await getAuthHeaders();
   
   try {
     const idsParam = `(${ids.join(',')})`;
@@ -58,21 +45,8 @@ export async function getMatchesByIds(ids) {
  */
 export async function getMyMatches(userId, status = null) {
   if (!userId) return [];
-  await waitForAuth();
 
-  const config = await getSupabaseConfig();
-  
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-  
-  if (config.anonKey) {
-    headers['apikey'] = config.anonKey;
-  }
-  
-  if (sessionStore.accessToken) {
-    headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
-  }
+  const headers = await getAuthHeaders();
   
   try {
     // First get user's participant match IDs

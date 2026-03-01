@@ -11,8 +11,7 @@
  */
 
 import { callEdgeFunction, callPublicEdgeFunction } from '../callEdgeFunction';
-import { getSupabaseConfig, SUPABASE_URL } from '../config';
-import { sessionStore, waitForAuth } from '../client';
+import { getAuthHeaders, SUPABASE_URL } from '../config';
 import { EDGE } from '../edgeNames';
 
 // Dev mode check for console logging
@@ -187,21 +186,7 @@ export async function checkInMatch(matchId, userLat, userLng) {
  * @param {string} [filters.status] - Filter by status (upcoming/ongoing/completed)
  */
 export async function getPublicMatches(filters = {}) {
-  await waitForAuth();
-  const config = await getSupabaseConfig();
-  
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-  
-  if (config.anonKey) {
-    headers['apikey'] = config.anonKey;
-  }
-  
-  // Include auth token if authenticated (RLS will handle access)
-  if (sessionStore.accessToken) {
-    headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
-  }
+  const headers = await getAuthHeaders();
   
   // Build query - always sort by starts_at ASC (backend is source of truth)
   let queryParams = 'select=*&order=starts_at.asc';
