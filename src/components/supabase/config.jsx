@@ -1,56 +1,35 @@
 /**
  * Supabase Configuration
  * 
- * All Supabase config values - fetched once from backend.
- * Provides a shared getAuthHeaders() helper so every caller
- * always sends both `apikey` and `Authorization`.
+ * IMPORTANT: The anon key is a PUBLIC key (safe to embed in client code).
+ * Supabase explicitly recommends this — RLS enforces security, not the key.
+ * Previously fetched via backend function, but that requires a paid plan.
+ * Hardcoding eliminates the 403 bug on iOS/TestFlight where the backend
+ * call failed silently and left apikey=null.
  */
 
 const SUPABASE_URL = 'https://vqfjjokqmykqawjlgevj.supabase.co';
 const SUPABASE_FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
 
-let cachedConfig = null;
-let configPromise = null;
+/**
+ * Supabase anon key — PUBLIC, safe for frontend.
+ * If you rotate this key in Supabase Dashboard, update it here too.
+ */
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxZmpqb2txbXlrcWF3amxnZXZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1NjMyMDMsImV4cCI6MjA1ODEzOTIwM30.xjOlBxFphYIjhMBLqjX6mRv5GUMqLRDJNQ_0FzSNrts';
+
+// Cached config object — always available synchronously after first access
+const CONFIG = {
+  url: SUPABASE_URL,
+  functionsUrl: SUPABASE_FUNCTIONS_URL,
+  anonKey: SUPABASE_ANON_KEY
+};
 
 /**
- * Fetch Supabase config (anon key) from Base44 backend.
- * Retries once if the first attempt fails.
+ * Get Supabase config. Now synchronous-safe — always returns immediately.
+ * Kept async for backward compatibility with existing callers.
  */
 export async function getSupabaseConfig() {
-  if (cachedConfig) return cachedConfig;
-  if (configPromise) return configPromise;
-
-  configPromise = (async () => {
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        const { base44 } = await import('@/api/base44Client');
-        const response = await base44.functions.invoke('getSupabaseConfig');
-
-        if (response?.data?.anonKey) {
-          cachedConfig = {
-            url: SUPABASE_URL,
-            functionsUrl: SUPABASE_FUNCTIONS_URL,
-            anonKey: response.data.anonKey
-          };
-          return cachedConfig;
-        }
-      } catch (e) {
-        console.error(`[Supabase] Config fetch attempt ${attempt + 1} failed:`, e);
-        if (attempt === 0) {
-          await new Promise(r => setTimeout(r, 500)); // brief wait before retry
-        }
-      }
-    }
-
-    console.warn('[Supabase] anonKey unavailable — API calls may 403');
-    return {
-      url: SUPABASE_URL,
-      functionsUrl: SUPABASE_FUNCTIONS_URL,
-      anonKey: null
-    };
-  })();
-
-  return configPromise;
+  return CONFIG;
 }
 
 /**
