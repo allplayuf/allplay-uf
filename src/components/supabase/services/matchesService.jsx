@@ -333,7 +333,8 @@ export async function finishMatch(matchId, { home_score, away_score, notes } = {
 }
 
 /**
- * Delete a match (organizer only)
+ * Delete a match (organizer only) via Edge Function
+ * Uses singular `delete_match` — the only deployed function name.
  * 
  * @param {string} matchId - Match UUID
  */
@@ -341,13 +342,7 @@ export async function deleteMatch(matchId) {
   if (!matchId) {
     throw new Error('matchId is required');
   }
-  // Try delete_matches first (new endpoint), fallback to delete_match
-  try {
-    return await callEdgeFunction(EDGE.deleteMatches, { match_id: matchId });
-  } catch (e) {
-    // Fallback to old endpoint
-    return callEdgeFunction(EDGE.deleteMatch, { match_id: matchId });
-  }
+  return callEdgeFunction(EDGE.deleteMatch, { match_id: matchId });
 }
 
 /**

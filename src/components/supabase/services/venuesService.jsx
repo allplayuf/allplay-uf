@@ -119,38 +119,60 @@ export async function deleteVenue(venueId) {
   
   const headers = await getAuthHeaders();
   
+  console.log('[venuesService] deleteVenue:', venueId);
+  
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/venues?id=eq.${encodeURIComponent(venueId)}`,
-    { method: 'DELETE', headers }
+    { 
+      method: 'DELETE', 
+      headers: { ...headers, 'Prefer': 'return=representation' }
+    }
   );
 
+  const body = await res.text().catch(() => '');
+  console.log('[venuesService] deleteVenue response:', res.status, body);
+
   if (!res.ok) {
-    const err = await res.text().catch(() => '');
-    console.error('[venuesService] deleteVenue failed:', res.status, err);
-    throw new Error(`Kunde inte radera plan: ${res.status}`);
+    console.error('[venuesService] deleteVenue failed:', res.status, body);
+    throw new Error(`Kunde inte radera plan: ${res.status} ${body}`);
   }
   
-  return { ok: true };
+  // Check if anything was actually deleted
+  let deleted = [];
+  try { deleted = JSON.parse(body); } catch (_) {}
+  if (Array.isArray(deleted) && deleted.length === 0) {
+    throw new Error('Ingen plan raderades — RLS kan blockera borttagning. Kontrollera admin-behörighet.');
+  }
+  
+  return { ok: true, deleted };
 }
 
 /**
- * Delete multiple venues by IDs
+ * Delete multiple venues by IDs (one by one for reliable error reporting)
  */
 export async function deleteVenues(venueIds) {
-  if (!venueIds?.length) return { ok: true };
-  const headers = await getAuthHeaders();
+  if (!venueIds?.length) return { ok: true, deleted: 0 };
   
-  const idsParam = `(${venueIds.map(id => encodeURIComponent(id)).join(',')})`;
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/venues?id=in.${idsParam}`,
-    { method: 'DELETE', headers }
-  );
-
-  if (!res.ok) {
-    const err = await res.text().catch(() => '');
-    throw new Error(`Kunde inte radera planer: ${res.status} ${err}`);
+  const results = [];
+  const errors = [];
+  
+  for (const id of venueIds) {
+    try {
+      await deleteVenue(id);
+      results.push(id);
+    } catch (e) {
+      console.error('[venuesService] Failed to delete venue', id, e.message);
+      errors.push({ id, error: e.message });
+    }
   }
-  return { ok: true };
+  
+  console.log(`[venuesService] deleteVenues: ${results.length}/${venueIds.length} deleted, ${errors.length} failed`);
+  
+  if (errors.length > 0 && results.length === 0) {
+    throw new Error(`Kunde inte radera några planer: ${errors[0].error}`);
+  }
+  
+  return { ok: true, deleted: results.length, errors };
 }
 
 /**

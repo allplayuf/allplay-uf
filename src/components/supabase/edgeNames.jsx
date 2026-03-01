@@ -1,4 +1,3 @@
-
 /**
  * Edge Function Names - Single Source of Truth
  * All edge function endpoints use snake_case
@@ -25,7 +24,6 @@ export const EDGE = {
   endMatch: 'end_match',
   finishMatch: 'finish_match',
   deleteMatch: 'delete_match',
-  deleteMatches: 'delete_matches',
   
   // Venues
   getVenues: 'get_venues',
