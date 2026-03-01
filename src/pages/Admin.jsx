@@ -11,13 +11,12 @@ import { checkIsAdmin } from "../components/supabase/services/adminService";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
-import { getVenues } from "../components/supabase/services/venuesService";
-import { getPublicMatches } from "../components/supabase/services/matchesService";
-import { getTeams } from "../components/supabase/services/teamsService";
+import { getVenues, deleteVenues } from "../components/supabase/services/venuesService";
+import { getPublicMatches, deleteMatchRest } from "../components/supabase/services/matchesService";
+import { getTeams, deleteTeamRest } from "../components/supabase/services/teamsService";
 import { searchPlayers } from "../components/supabase/services/playersService";
 import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
 import { getReports, handleReport } from "../components/supabase/services/reportsService";
-import { callEdgeFunction } from "../components/supabase/callEdgeFunction";
 
 import ModerationQueue from "../components/admin/ModerationQueue";
 import UserManagement from "../components/admin/UserManagement";
@@ -112,7 +111,7 @@ export default function AdminPage() {
     });
     if (!shouldDelete) return;
     try {
-      await callEdgeFunction('delete_match', { match_id: matchId });
+      await deleteMatchRest(matchId);
       await alert('Raderad', 'Matchen har raderats.', { type: 'success' });
       queryClient.invalidateQueries({ queryKey: ['admin-matches'] });
     } catch (error) {
@@ -126,11 +125,27 @@ export default function AdminPage() {
     });
     if (!shouldDelete) return;
     try {
-      await callEdgeFunction('delete_team', { team_id: teamId });
+      await deleteTeamRest(teamId);
       await alert('Raderat', 'Laget har raderats.', { type: 'success' });
       queryClient.invalidateQueries({ queryKey: ['admin-teams'] });
     } catch (error) {
       await alert('Fel', error.message || 'Kunde inte radera laget.', { type: 'alert' });
+    }
+  };
+
+  const handleDeleteDuplicateVenues = async (duplicateIds) => {
+    const shouldDelete = await confirm(
+      'Radera dubbletter',
+      `Radera ${duplicateIds.length} dubblett-planer? Behåller den första av varje.`,
+      { type: 'warning', confirmText: 'Ja, radera', cancelText: 'Avbryt' }
+    );
+    if (!shouldDelete) return;
+    try {
+      await deleteVenues(duplicateIds);
+      await alert('Klart', `${duplicateIds.length} dubbletter raderade.`, { type: 'success' });
+      queryClient.invalidateQueries({ queryKey: ['admin-venues'] });
+    } catch (error) {
+      await alert('Fel', error.message || 'Kunde inte radera dubbletter.', { type: 'alert' });
     }
   };
 
@@ -257,6 +272,7 @@ export default function AdminPage() {
               isLoading={venuesLoading}
               lastUpdated={venuesUpdatedAt}
               onRefresh={() => queryClient.invalidateQueries({ queryKey: ['admin-venues'] })}
+              onDeleteDuplicates={handleDeleteDuplicateVenues}
             />
           </TabsContent>
           <TabsContent value="reports">
