@@ -21,6 +21,7 @@ export default function MatchManagement({ matches = [], venues = [], isLoading, 
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [page, setPage] = useState(0);
+  const [deletingId, setDeletingId] = useState(null);
 
   const venueMap = useMemo(() => {
     const m = {};
@@ -138,10 +139,19 @@ export default function MatchManagement({ matches = [], venues = [], isLoading, 
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => onDelete(match.id, title)}
+                      disabled={deletingId === match.id}
+                      onClick={async () => {
+                        setDeletingId(match.id);
+                        await onDelete(match.id, title);
+                        setDeletingId(null);
+                      }}
                       className="h-8 px-3 bg-[#DC2626] hover:bg-[#B91C1C] text-white text-xs rounded-lg flex-shrink-0"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      {deletingId === match.id ? (
+                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Trash2 className="w-3.5 h-3.5" />
+                      )}
                     </Button>
                   </div>
                 </CardContent>

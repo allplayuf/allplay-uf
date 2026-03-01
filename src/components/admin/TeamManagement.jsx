@@ -12,6 +12,7 @@ export default function TeamManagement({ teams = [], isLoading, lastUpdated, onD
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [page, setPage] = useState(0);
+  const [deletingId, setDeletingId] = useState(null);
 
   const filtered = useMemo(() => {
     let list = teams.filter(t => t.is_active !== false);
@@ -115,10 +116,19 @@ export default function TeamManagement({ teams = [], isLoading, lastUpdated, onD
                   <Button
                     size="sm"
                     variant="destructive"
-                    onClick={() => onDelete(team.id, team.name)}
+                    disabled={deletingId === team.id}
+                    onClick={async () => {
+                      setDeletingId(team.id);
+                      await onDelete(team.id, team.name);
+                      setDeletingId(null);
+                    }}
                     className="h-8 px-3 bg-[#DC2626] hover:bg-[#B91C1C] text-white text-xs rounded-lg flex-shrink-0"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    {deletingId === team.id ? (
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Trash2 className="w-3.5 h-3.5" />
+                    )}
                   </Button>
                 </div>
               </CardContent>
