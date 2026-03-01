@@ -66,29 +66,22 @@ function normalizeLevel(level) {
 /**
  * Create a new match
  * 
- * @param {object} payload - Match data
- * @param {string} payload.pitch_id - External venue ID (Base44 pitch ID)
- * @param {string} payload.starts_at - ISO datetime string
- * @param {string} payload.level - Skill level (beginner/intermediate/advanced/pro)
- * @param {boolean} payload.is_public - Whether match is public
- * @param {string} [payload.format] - Match format (5v5/7v7/11v11)
- * @param {number} [payload.max_players] - Max players (null for spontaneous)
- * @param {string} [payload.title] - Match title
- * @param {string} [payload.notes] - Additional notes
- * @param {boolean} [payload.is_spontaneous] - Whether match is spontaneous
- * @returns {Promise<{match_id: string, message: string}>} - Created match ID and message
+ * The edge function `create_match` requires `external_id` (the venue's
+ * external identifier) — NOT the Supabase UUID `venue_id`.
+ * We look up the external_id via a REST query before calling the edge.
+ *
+ * @param {object} payload - Match data from CreateMatchForm
+ * @returns {Promise<{match_id: string, message: string}>}
  */
 export async function createMatch(payload) {
   // Check if payload is wrapped in { match: ... } from CreateMatchForm
   const matchData = payload.match || payload;
   
-  // Log incoming payload for debugging
-  if (IS_DEV) {
-    console.log('[matchesService] createMatch incoming:', { 
-      hasMatchWrapper: !!payload.match,
-      matchData 
-    });
-  }
+  console.log('[matchesService] createMatch incoming:', { 
+    hasMatchWrapper: !!payload.match,
+    venue_id: matchData.venue_id,
+    matchData 
+  });
   
   // Normalize level to valid DB value
   const rawLevel = matchData.skill_bracket || matchData.level;
@@ -99,14 +92,34 @@ export async function createMatch(payload) {
   if (!venueUuid) {
     throw new Error('Välj en plats/plan');
   }
-  
-  // Transform frontend format to backend format
-  // NOTE: pitch_id is NOT sent from frontend. The edge function (or DB trigger)
-  // resolves pitch_id from venues.external_id using venue_id.
+
+  // ── Look up external_id from Supabase venues table ──
+  const headers = await getAuthHeaders();
+  const venueRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/venues?id=eq.${encodeURIComponent(venueUuid)}&select=external_id&limit=1`,
+    { method: 'GET', headers }
+  );
+  if (!venueRes.ok) {
+    throw new Error(`Kunde inte hämta plan-info: ${venueRes.status}`);
+  }
+  const venueRows = await venueRes.json();
+  const externalId = venueRows?.[0]?.external_id;
+
+  if (!externalId) {
+    throw new Error('Plan saknar external_id. Kontakta admin.');
+  }
+
+  // Build starts_at
+  const startsAt = matchData.starts_at || (matchData.date && matchData.time ? `${matchData.date}T${matchData.time}:00` : null);
+  if (!startsAt) {
+    throw new Error('starts_at is required');
+  }
+
+  // Build backend payload — use external_id, NOT venue_id
   const backendPayload = {
-    request_id: matchData.request_id || null, // Idempotency key
-    venue_id: venueUuid,
-    starts_at: matchData.starts_at || (matchData.date && matchData.time ? `${matchData.date}T${matchData.time}:00` : null),
+    request_id: matchData.request_id || null,
+    external_id: externalId,
+    starts_at: startsAt,
     level,
     is_public: matchData.is_public !== false && !matchData.is_private,
     format: matchData.format || '5v5',
@@ -116,21 +129,13 @@ export async function createMatch(payload) {
     is_spontaneous: matchData.is_spontaneous || false
   };
   
-  // Log the full payload being sent to backend
-  if (IS_DEV) {
-    console.log('[matchesService] createMatch backendPayload:', JSON.stringify(backendPayload, null, 2));
-  }
-  
-  // Validate required fields before sending
-  if (!backendPayload.starts_at) {
-    throw new Error('starts_at is required');
-  }
-  
+  // Debug log right before invoke — verify external_id is present
+  console.log('[matchesService] createMatch → edge payload:', JSON.stringify(backendPayload, null, 2));
+  console.log('[matchesService] external_id present:', !!backendPayload.external_id);
+
   // Edge Function returns { match_id, message } on success
   const result = await callEdgeFunction(EDGE.createMatch, backendPayload);
-  if (IS_DEV) {
-    console.log('[matchesService] createMatch result:', result);
-  }
+  console.log('[matchesService] createMatch result:', result);
   return result;
 }
 
