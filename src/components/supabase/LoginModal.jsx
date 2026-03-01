@@ -92,23 +92,21 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
     setConsentLoading(true);
 
     try {
-      // Step 1: Get anon key
       const { base44 } = await import('@/api/base44Client');
-      let anonKey = '';
-      try {
-        const configResponse = await base44.functions.invoke('getSupabaseConfig');
-        anonKey = configResponse?.data?.anonKey || '';
-      } catch (e) {
-        console.error('Failed to get config:', e);
-      }
-
-      if (!anonKey) {
-        setConsentError('Kunde inte ansluta till servern. Försök igen.');
+      
+      // Step 1: Use hardcoded anon key — no backend function call needed
+      const { SUPABASE_ANON_KEY: anonKey, SUPABASE_URL: supaUrl } = await import('./config');
+      
+      if (!anonKey || anonKey.length < 20) {
+        console.error('[LoginModal] SUPABASE_ANON_KEY missing in build!', { length: anonKey?.length });
+        setConsentError('API-nyckel saknas i denna build. Kontakta support.');
         return;
       }
 
+      console.log('[LoginModal] signup using hardcoded anonKey:', anonKey.slice(0, 8) + '...', 'length:', anonKey.length);
+
       // Step 2: Create Supabase account
-      const response = await fetch('https://vqfjjokqmykqawjlgevj.supabase.co/auth/v1/signup', {
+      const response = await fetch(`${supaUrl}/auth/v1/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
