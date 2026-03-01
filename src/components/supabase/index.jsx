@@ -15,9 +15,9 @@
 export { getSupabaseConfig, getAuthHeaders, SUPABASE_URL, SUPABASE_FUNCTIONS_URL, SUPABASE_ANON_KEY } from './config';
 
 // =============================================================================
-// EDGE FUNCTION CALLER (use this for new Edge Function calls)
+// EDGE FUNCTION CALLER — SINGLE SOURCE OF TRUTH for all edge calls
 // =============================================================================
-export { callEdgeFunction, callPublicEdgeFunction } from './callEdgeFunction';
+export { callEdgeFunction, callPublicEdgeFunction, getStandardHeaders } from './callEdgeFunction';
 
 // =============================================================================
 // CLIENT & SESSION MANAGEMENT
