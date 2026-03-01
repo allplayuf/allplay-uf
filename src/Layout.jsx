@@ -248,7 +248,7 @@ function LayoutInner({ children }) {
         {/* Main Content */}
         <main className="flex-1 flex flex-col bg-[#0B0F0D] min-h-screen lg:min-h-0 overflow-hidden">
           {/* Mobile Header - always visible */}
-          <header className="lg:hidden sticky top-0 z-[100] bg-[#0B0F0D] border-b border-[#223029]" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+          <header className="lg:hidden fixed top-0 left-0 right-0 z-[100] bg-[#0B0F0D] border-b border-[#223029]" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
             <div className="flex items-center gap-3 px-4 py-3">
               {!isRootPage && (
                 <button
