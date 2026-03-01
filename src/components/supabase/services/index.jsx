@@ -42,7 +42,9 @@ export {
 export {
   upsertVenue,
   getVenueByExternalId,
-  getVenues
+  getVenues,
+  createVenue,
+  deleteVenue
 } from './venuesService';
 
 // Users
