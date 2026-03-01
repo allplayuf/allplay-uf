@@ -220,16 +220,8 @@ export default function Dashboard() {
         return;
       }
 
-      // Upsert venue first to ensure it exists in Supabase
-      if (selectedVenue?.id) {
-        try {
-          await upsertVenue(selectedVenue);
-        } catch (e) {
-          console.warn('[Dashboard] Venue upsert failed (may already exist):', e.message);
-        }
-      }
-
-      // Create match via Edge Function - returns { match_id, message }
+      // Venues are already in Supabase — no upsert needed.
+      // createMatch() looks up external_id from the venue UUID internally.
       const result = await supabaseCreateMatch(matchData);
 
       setShowCreateMatchModal(false);
