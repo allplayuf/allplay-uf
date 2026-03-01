@@ -15,7 +15,7 @@ const SUPABASE_FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
  * Supabase anon key — PUBLIC, safe for frontend.
  * If you rotate this key in Supabase Dashboard, update it here too.
  */
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxZmpqb2txbXlrcWF3amxnZXZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1NjMyMDMsImV4cCI6MjA1ODEzOTIwM30.xjOlBxFphYIjhMBLqjX6mRv5GUMqLRDJNQ_0FzSNrts';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxZmpqb2txbXlrcWF3amxnZXZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgzMjg2NDQsImV4cCI6MjA4MzkwNDY0NH0.xoSktW8SgwXwJSp_Rzi0lt1bw2wkS7Rz1sV7fVPMCNw';
 
 // Cached config object — always available synchronously after first access
 const CONFIG = {
