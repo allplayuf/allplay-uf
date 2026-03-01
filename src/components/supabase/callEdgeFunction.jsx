@@ -1,26 +1,25 @@
 /**
  * Supabase Edge Function Caller
  * 
- * Waits for authReady before making any call,
- * so tokens are always fresh on cold start.
+ * Central wrapper for ALL Edge Function calls.
+ * Guarantees both `apikey` and `Authorization` headers are present.
  */
 
-import { getSupabaseConfig, SUPABASE_FUNCTIONS_URL } from './config';
-import { sessionStore, waitForAuth } from './client';
+import { getAuthHeaders, SUPABASE_FUNCTIONS_URL } from './config';
+import { sessionStore } from './client';
 
 /**
- * Call a Supabase Edge Function
+ * Call a Supabase Edge Function.
+ * Headers are built via the shared getAuthHeaders() helper which
+ * waits for auth + config, so apikey is always populated.
  */
 export async function callEdgeFunction(name, body = {}, options = {}) {
-  // Wait for auth to be ready (token refreshed) before any call
-  await waitForAuth();
+  const headers = await getAuthHeaders({ includeAuth: true, json: true });
 
-  const config = await getSupabaseConfig();
   const url = `${SUPABASE_FUNCTIONS_URL}/${name}`;
 
-  const headers = { 'Content-Type': 'application/json' };
-  if (config.anonKey) headers['apikey'] = config.anonKey;
-  if (sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
+  // Debug: log header presence (not values) — helpful in TestFlight
+  console.log(`[EdgeFunction] ${name} → apikey=${headers.apikey ? 'present' : 'MISSING'}, auth=${headers.Authorization ? 'present' : 'MISSING'}`);
 
   let res;
   try {
@@ -57,7 +56,9 @@ export async function callEdgeFunction(name, body = {}, options = {}) {
       error.message = 'Du måste vara inloggad. Logga in och försök igen.';
       sessionStore.clear();
     } else if (res.status === 403) {
-      error.message = 'Du saknar behörighet att utföra denna åtgärd.';
+      error.message = data?.message?.includes('apikey')
+        ? 'API-nyckel saknas. Starta om appen och försök igen.'
+        : 'Du saknar behörighet att utföra denna åtgärd.';
     } else if (res.status === 400 || res.status === 409 || res.status === 404) {
       const raw = (data?.message || data?.error || '').toLowerCase();
       if (raw.includes('match is full') || raw.includes('full')) {

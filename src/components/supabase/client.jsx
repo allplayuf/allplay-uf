@@ -11,7 +11,7 @@
  * - All services must await waitForAuth() before making any network calls
  */
 
-import { getSupabaseConfig, SUPABASE_URL } from './config';
+import { SUPABASE_URL } from './config';
 
 // Session storage keys
 const STORAGE_KEYS = {
@@ -201,8 +201,9 @@ class SupabaseClient {
     // Load persisted session
     sessionStore.load();
 
-    // Get config
+    // Get config (lazy import to avoid circular dep)
     try {
+      const { getSupabaseConfig } = await import('./config');
       this._config = await getSupabaseConfig();
     } catch (e) {
       console.log('[SupabaseClient] Config failed, guest mode');
@@ -270,9 +271,15 @@ class SupabaseClient {
   }
 
   async _getHeaders(includeAuth = true) {
+    // Lazy-import to avoid circular dependency (config imports from client)
+    const { getSupabaseConfig } = await import('./config');
     const headers = { 'Content-Type': 'application/json' };
     if (!this._config) this._config = await getSupabaseConfig();
-    if (this._config?.anonKey) headers['apikey'] = this._config.anonKey;
+    if (this._config?.anonKey) {
+      headers['apikey'] = this._config.anonKey;
+    } else {
+      console.warn('[SupabaseClient._getHeaders] apikey is NULL');
+    }
     if (includeAuth && sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
     return headers;
   }
