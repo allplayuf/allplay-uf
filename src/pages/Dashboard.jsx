@@ -33,7 +33,6 @@ import InboxWidget from "../components/dashboard/InboxWidget";
 import { 
   createMatch as supabaseCreateMatch, 
   joinMatch as supabaseJoinMatch,
-  upsertVenue,
   getVenues,
   getMyProfile,
   getPublicMatches,

@@ -22,7 +22,6 @@ import {
   createMatch, 
   joinMatch,
   deleteMatch,
-  upsertVenue,
   getVenues,
   getMyProfile,
   getMyParticipantMatchIds,
