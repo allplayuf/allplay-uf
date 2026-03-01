@@ -349,3 +349,22 @@ export async function deleteMatch(matchId) {
     return callEdgeFunction(EDGE.deleteMatch, { match_id: matchId });
   }
 }
+
+/**
+ * Delete a match via REST API (admin — RLS enforced)
+ */
+export async function deleteMatchRest(matchId) {
+  if (!matchId) throw new Error('matchId is required');
+  const headers = await getAuthHeaders();
+
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/matches?id=eq.${encodeURIComponent(matchId)}`,
+    { method: 'DELETE', headers }
+  );
+
+  if (!res.ok) {
+    const err = await res.text().catch(() => '');
+    throw new Error(`Kunde inte radera match: ${res.status} ${err}`);
+  }
+  return { ok: true };
+}

@@ -20,6 +20,7 @@ export {
   leaveMatch,
   checkInMatch,
   deleteMatch,
+  deleteMatchRest,
   getPublicMatches,
   getMatchDetails,
   getMyParticipation,
