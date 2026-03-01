@@ -12,7 +12,7 @@
 // =============================================================================
 // CONFIGURATION
 // =============================================================================
-export { getSupabaseConfig, SUPABASE_URL, SUPABASE_FUNCTIONS_URL } from './config';
+export { getSupabaseConfig, getAuthHeaders, SUPABASE_URL, SUPABASE_FUNCTIONS_URL } from './config';
 
 // =============================================================================
 // EDGE FUNCTION CALLER (use this for new Edge Function calls)
