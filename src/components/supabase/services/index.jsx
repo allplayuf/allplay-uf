@@ -44,7 +44,8 @@ export {
   getVenueByExternalId,
   getVenues,
   createVenue,
-  deleteVenue
+  deleteVenue,
+  deleteVenues
 } from './venuesService';
 
 // Users
@@ -85,7 +86,8 @@ export {
   getTeamMembersWithProfiles,
   getMyTeams,
   getMyTeamMemberships,
-  createTeam as createSupabaseTeam
+  createTeam as createSupabaseTeam,
+  deleteTeamRest
 } from './teamsService';
 
 // Reports
