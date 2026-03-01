@@ -8,14 +8,14 @@
  * call failed silently and left apikey=null.
  */
 
-const SUPABASE_URL = 'https://vqfjjokqmykqawjlgevj.supabase.co';
-const SUPABASE_FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
+export const SUPABASE_URL = 'https://vqfjjokqmykqawjlgevj.supabase.co';
+export const SUPABASE_FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
 
 /**
  * Supabase anon key — PUBLIC, safe for frontend.
  * If you rotate this key in Supabase Dashboard, update it here too.
  */
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxZmpqb2txbXlrcWF3amxnZXZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgzMjg2NDQsImV4cCI6MjA4MzkwNDY0NH0.xoSktW8SgwXwJSp_Rzi0lt1bw2wkS7Rz1sV7fVPMCNw';
+export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxZmpqb2txbXlrcWF3amxnZXZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgzMjg2NDQsImV4cCI6MjA4MzkwNDY0NH0.xoSktW8SgwXwJSp_Rzi0lt1bw2wkS7Rz1sV7fVPMCNw';
 
 // Cached config object — always available synchronously after first access
 const CONFIG = {
@@ -60,4 +60,4 @@ export async function getAuthHeaders({ includeAuth = true, json = true } = {}) {
   return headers;
 }
 
-export { SUPABASE_URL, SUPABASE_FUNCTIONS_URL, SUPABASE_ANON_KEY };
+// All exports are inline (export const) above
