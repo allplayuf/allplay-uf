@@ -74,6 +74,66 @@ export async function getVenueByExternalId(externalId) {
 }
 
 /**
+ * Create a new venue directly in Supabase via REST API
+ * Used by admin panel to add venues
+ */
+export async function createVenue(venueData) {
+  const headers = await getAuthHeaders();
+  
+  const payload = {
+    name: venueData.name,
+    address: venueData.address || null,
+    city: venueData.city || null,
+    lat: venueData.latitude ?? venueData.lat ?? null,
+    lng: venueData.longitude ?? venueData.lng ?? null,
+    external_id: venueData.external_id || `admin_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    is_active: true,
+    is_verified: venueData.is_verified ?? true,
+    added_by_admin: true,
+    formats_supported: venueData.formats_supported || ['5v5'],
+    facilities: venueData.facilities || [],
+  };
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/venues`, {
+    method: 'POST',
+    headers: { ...headers, 'Prefer': 'return=representation' },
+    body: JSON.stringify(payload)
+  });
+
+  if (!res.ok) {
+    const err = await res.text().catch(() => '');
+    console.error('[venuesService] createVenue failed:', res.status, err);
+    throw new Error(`Kunde inte skapa plan: ${res.status}`);
+  }
+
+  const rows = await res.json();
+  return rows[0] || null;
+}
+
+/**
+ * Delete a venue from Supabase via REST API
+ * Used by admin panel
+ */
+export async function deleteVenue(venueId) {
+  if (!venueId) throw new Error('venueId is required');
+  
+  const headers = await getAuthHeaders();
+  
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/venues?id=eq.${encodeURIComponent(venueId)}`,
+    { method: 'DELETE', headers }
+  );
+
+  if (!res.ok) {
+    const err = await res.text().catch(() => '');
+    console.error('[venuesService] deleteVenue failed:', res.status, err);
+    throw new Error(`Kunde inte radera plan: ${res.status}`);
+  }
+  
+  return { ok: true };
+}
+
+/**
  * Get venues list from Supabase
  * Always include auth token - RLS decides what user can see
  */
