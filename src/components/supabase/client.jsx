@@ -272,15 +272,14 @@ class SupabaseClient {
 
   async _getHeaders(includeAuth = true) {
     // Lazy-import to avoid circular dependency (config imports from client)
-    const { getSupabaseConfig } = await import('./config');
-    const headers = { 'Content-Type': 'application/json' };
-    if (!this._config) this._config = await getSupabaseConfig();
-    if (this._config?.anonKey) {
-      headers['apikey'] = this._config.anonKey;
-    } else {
-      console.warn('[SupabaseClient._getHeaders] apikey is NULL');
+    const { SUPABASE_ANON_KEY } = await import('./config');
+    const headers = {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY  // Always present — hardcoded constant
+    };
+    if (includeAuth && sessionStore.accessToken) {
+      headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
     }
-    if (includeAuth && sessionStore.accessToken) headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
     return headers;
   }
 
