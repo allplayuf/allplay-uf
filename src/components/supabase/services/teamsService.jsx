@@ -169,6 +169,27 @@ export async function getMyTeamMemberships() {
 }
 
 /**
+ * Delete a team via Supabase REST API (admin only — RLS enforced)
+ */
+export async function deleteTeamRest(teamId) {
+  if (!teamId) throw new Error('teamId is required');
+  await waitForAuth();
+  const headers = await supabaseHeaders();
+
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/teams?id=eq.${encodeURIComponent(teamId)}`,
+    { method: 'DELETE', headers }
+  );
+
+  if (!res.ok) {
+    const err = await res.text().catch(() => '');
+    console.error('[teamsService] deleteTeamRest failed:', res.status, err);
+    throw new Error(`Kunde inte radera lag: ${res.status}`);
+  }
+  return { ok: true };
+}
+
+/**
  * Create a new team via Supabase Edge Function
  * Edge function handles: INSERT into teams + INSERT into team_members (owner row)
  */

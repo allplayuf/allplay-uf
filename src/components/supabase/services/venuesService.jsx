@@ -134,6 +134,26 @@ export async function deleteVenue(venueId) {
 }
 
 /**
+ * Delete multiple venues by IDs
+ */
+export async function deleteVenues(venueIds) {
+  if (!venueIds?.length) return { ok: true };
+  const headers = await getAuthHeaders();
+  
+  const idsParam = `(${venueIds.map(id => encodeURIComponent(id)).join(',')})`;
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/venues?id=in.${idsParam}`,
+    { method: 'DELETE', headers }
+  );
+
+  if (!res.ok) {
+    const err = await res.text().catch(() => '');
+    throw new Error(`Kunde inte radera planer: ${res.status} ${err}`);
+  }
+  return { ok: true };
+}
+
+/**
  * Get venues list from Supabase
  * Always include auth token - RLS decides what user can see
  */
