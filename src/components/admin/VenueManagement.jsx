@@ -175,10 +175,13 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
     setActionLoading(venueId);
     try {
       await deleteVenue(venueId);
+      // Force refetch to confirm deletion
       onRefresh();
     } catch (error) {
       console.error('[VenueManagement] Delete failed:', error);
-      window.alert('Kunde inte radera plan: ' + (error.message || 'Okänt fel'));
+      window.alert('Kunde inte radera plan: ' + (error.message || 'Okänt fel. Kolla om RLS tillåter DELETE för din roll.'));
+      // Still refetch to show current state
+      onRefresh();
     } finally {
       setActionLoading(null);
     }
