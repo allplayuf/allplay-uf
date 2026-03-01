@@ -3,23 +3,31 @@
  * 
  * Central wrapper for ALL Edge Function calls.
  * Guarantees both `apikey` and `Authorization` headers are present.
+ * 
+ * apikey is now a hardcoded constant — can NEVER be null/undefined.
  */
 
-import { getAuthHeaders, SUPABASE_FUNCTIONS_URL } from './config';
+import { getAuthHeaders, SUPABASE_FUNCTIONS_URL, SUPABASE_ANON_KEY } from './config';
 import { sessionStore } from './client';
 
 /**
  * Call a Supabase Edge Function.
- * Headers are built via the shared getAuthHeaders() helper which
- * waits for auth + config, so apikey is always populated.
+ * Headers always include apikey (hardcoded) + Authorization (if logged in).
  */
 export async function callEdgeFunction(name, body = {}, options = {}) {
   const headers = await getAuthHeaders({ includeAuth: true, json: true });
 
+  // HARD ASSERTION: apikey must never be missing.
+  // If getAuthHeaders somehow failed, inject it directly.
+  if (!headers.apikey) {
+    console.error(`[EdgeFunction] CRITICAL: apikey was missing after getAuthHeaders! Injecting fallback.`);
+    headers['apikey'] = SUPABASE_ANON_KEY;
+  }
+
   const url = `${SUPABASE_FUNCTIONS_URL}/${name}`;
 
-  // Debug: log header presence (not values) — helpful in TestFlight
-  console.log(`[EdgeFunction] ${name} → apikey=${headers.apikey ? 'present' : 'MISSING'}, auth=${headers.Authorization ? 'present' : 'MISSING'}`);
+  // Debug: log header presence (not values) — helpful in TestFlight / iOS debugging
+  console.log(`[EdgeFunction] → ${name} | apikey=${headers.apikey ? 'YES' : 'NO'} | auth=${headers.Authorization ? 'YES' : 'NO'} | url=${url}`);
 
   let res;
   try {
