@@ -68,7 +68,7 @@ function KeyboardHandler({ onKeyPress, isAddingMode }) {
   return null;
 }
 
-export default function VenueManagement({ venues: propVenues = [], isLoading, lastUpdated, onRefresh }) {
+export default function VenueManagement({ venues: propVenues = [], isLoading, lastUpdated, onRefresh, onDeleteDuplicates }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [activeTab, setActiveTab] = useState('list');
@@ -88,6 +88,24 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
       return true;
     });
   }, [propVenues]);
+
+  // Detect duplicates by name (case-insensitive, trimmed)
+  const duplicateGroups = useMemo(() => {
+    const nameMap = {};
+    venues.forEach(v => {
+      const key = (v.name || '').trim().toLowerCase();
+      if (!key) return;
+      if (!nameMap[key]) nameMap[key] = [];
+      nameMap[key].push(v);
+    });
+    // Only groups with 2+ venues are duplicates
+    return Object.values(nameMap).filter(group => group.length > 1);
+  }, [venues]);
+
+  // IDs to delete = all duplicates except first in each group
+  const duplicateIdsToDelete = useMemo(() => {
+    return duplicateGroups.flatMap(group => group.slice(1).map(v => v.id));
+  }, [duplicateGroups]);
 
   const filtered = useMemo(() => {
     let list = [...venues];
@@ -193,6 +211,37 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
           </SelectContent>
         </Select>
       </AdminSectionHeader>
+
+      {/* Duplicate warning */}
+      {duplicateGroups.length > 0 && (
+        <Card className="bg-[#F4743B]/10 border border-[#F4743B]/30 rounded-[16px]">
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="font-semibold text-[#F4F7F5] text-sm mb-1">
+                  ⚠️ {duplicateGroups.length} dubbletter hittade ({duplicateIdsToDelete.length} extra)
+                </h3>
+                <div className="space-y-1 text-xs text-[#B6C2BC]">
+                  {duplicateGroups.map((group, i) => (
+                    <div key={i}>
+                      <span className="text-[#F4F7F5] font-medium">{group[0].name}</span>
+                      {' – '}{group.length} st
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => onDeleteDuplicates(duplicateIdsToDelete)}
+                className="bg-[#DC2626] hover:bg-[#B91C1C] text-white text-xs rounded-lg flex-shrink-0"
+              >
+                <Trash2 className="w-3.5 h-3.5 mr-1" />
+                Radera {duplicateIdsToDelete.length} dubbletter
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="bg-[#121715] border border-[#223029] p-1 rounded-xl">
