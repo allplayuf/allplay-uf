@@ -201,12 +201,13 @@ class SupabaseClient {
     // Load persisted session
     sessionStore.load();
 
-    // Get config (lazy import to avoid circular dep)
+    // Config is now synchronous (hardcoded anon key) — no async fetch needed
     try {
       const { getSupabaseConfig } = await import('./config');
       this._config = await getSupabaseConfig();
+      console.log('[SupabaseClient] Config loaded, anonKey:', this._config?.anonKey ? 'present' : 'MISSING');
     } catch (e) {
-      console.log('[SupabaseClient] Config failed, guest mode');
+      console.warn('[SupabaseClient] Config import failed:', e.message);
     }
 
     // Handle token refresh BEFORE marking auth ready
