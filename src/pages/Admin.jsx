@@ -141,11 +141,23 @@ export default function AdminPage() {
     );
     if (!shouldDelete) return;
     try {
-      await deleteVenues(duplicateIds);
-      await alert('Klart', `${duplicateIds.length} dubbletter raderade.`, { type: 'success' });
-      queryClient.invalidateQueries({ queryKey: ['admin-venues'] });
+      const result = await deleteVenues(duplicateIds);
+      const deletedCount = result.deleted || 0;
+      const errorCount = result.errors?.length || 0;
+      
+      if (errorCount > 0 && deletedCount > 0) {
+        await alert('Delvis klart', `${deletedCount} raderade, ${errorCount} misslyckades (kolla RLS-behörighet).`, { type: 'warning' });
+      } else if (errorCount > 0) {
+        await alert('Fel', `Ingen plan raderades. RLS kanske blockerar DELETE för din användare. Kolla Supabase-policys.`, { type: 'alert' });
+      } else {
+        await alert('Klart', `${deletedCount} dubbletter raderade.`, { type: 'success' });
+      }
+      // Force refetch venues
+      await queryClient.refetchQueries({ queryKey: ['admin-venues'] });
     } catch (error) {
       await alert('Fel', error.message || 'Kunde inte radera dubbletter.', { type: 'alert' });
+      // Still refetch to show current state
+      await queryClient.refetchQueries({ queryKey: ['admin-venues'] });
     }
   };
 
