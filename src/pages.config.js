@@ -51,21 +51,21 @@ import AboutAllPlay from './pages/AboutAllPlay';
 import AccountSettings from './pages/AccountSettings';
 import Admin from './pages/Admin';
 import AdminCleanup from './pages/AdminCleanup';
-import Community from './pages/Community';
 import CreateCup from './pages/CreateCup';
 import CupDetail from './pages/CupDetail';
 import Cups from './pages/Cups';
-import Dashboard from './pages/Dashboard';
 import EditProfile from './pages/EditProfile';
 import Feedback from './pages/Feedback';
 import Home from './pages/Home';
 import LegalPolicy from './pages/LegalPolicy';
-import Map from './pages/Map';
 import MatchDetail from './pages/MatchDetail';
-import Matches from './pages/Matches';
-import Profile from './pages/Profile';
 import TeamOverview from './pages/TeamOverview';
 import TermsOfService from './pages/TermsOfService';
+import Community from './pages/Community';
+import Matches from './pages/Matches';
+import Profile from './pages/Profile';
+import Dashboard from './pages/Dashboard';
+import Map from './pages/Map';
 import __Layout from './Layout.jsx';
 
 
@@ -74,21 +74,21 @@ export const PAGES = {
     "AccountSettings": AccountSettings,
     "Admin": Admin,
     "AdminCleanup": AdminCleanup,
-    "Community": Community,
     "CreateCup": CreateCup,
     "CupDetail": CupDetail,
     "Cups": Cups,
-    "Dashboard": Dashboard,
     "EditProfile": EditProfile,
     "Feedback": Feedback,
     "Home": Home,
     "LegalPolicy": LegalPolicy,
-    "Map": Map,
     "MatchDetail": MatchDetail,
-    "Matches": Matches,
-    "Profile": Profile,
     "TeamOverview": TeamOverview,
     "TermsOfService": TermsOfService,
+    "Community": Community,
+    "Matches": Matches,
+    "Profile": Profile,
+    "Dashboard": Dashboard,
+    "Map": Map,
 }
 
 export const pagesConfig = {
