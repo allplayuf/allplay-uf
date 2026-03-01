@@ -279,8 +279,9 @@ function LayoutInner({ children }) {
 
           <div 
             ref={mainContentRef}
-            className="flex-1 overflow-y-auto lg:pb-0"
+            className="flex-1 overflow-y-auto lg:pb-0 lg:pt-0"
             style={{ 
+              paddingTop: 'calc(env(safe-area-inset-top) + 3.25rem)',
               paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))',
               WebkitOverflowScrolling: 'touch',
               overscrollBehaviorY: 'contain',
