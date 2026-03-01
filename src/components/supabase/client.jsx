@@ -11,7 +11,7 @@
  * - All services must await waitForAuth() before making any network calls
  */
 
-import { SUPABASE_URL } from './config';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config';
 
 // Session storage keys
 const STORAGE_KEYS = {
@@ -201,14 +201,9 @@ class SupabaseClient {
     // Load persisted session
     sessionStore.load();
 
-    // Config is now synchronous (hardcoded anon key) — no async fetch needed
-    try {
-      const { getSupabaseConfig } = await import('./config');
-      this._config = await getSupabaseConfig();
-      console.log('[SupabaseClient] Config loaded, anonKey:', this._config?.anonKey ? 'present' : 'MISSING');
-    } catch (e) {
-      console.warn('[SupabaseClient] Config import failed:', e.message);
-    }
+    // Config is hardcoded — no async fetch needed
+    this._config = { url: SUPABASE_URL, anonKey: SUPABASE_ANON_KEY };
+    console.log('[SupabaseClient] Config loaded, anonKey:', SUPABASE_ANON_KEY ? `${SUPABASE_ANON_KEY.slice(0, 8)}... (${SUPABASE_ANON_KEY.length} chars)` : 'MISSING');
 
     // Handle token refresh BEFORE marking auth ready
     if (sessionStore.accessToken) {
@@ -271,23 +266,27 @@ class SupabaseClient {
     }
   }
 
-  async _getHeaders(includeAuth = true) {
-    // Lazy-import to avoid circular dependency (config imports from client)
-    const { SUPABASE_ANON_KEY } = await import('./config');
+  _getHeaders(includeAuth = true) {
+    // No async needed — SUPABASE_ANON_KEY is a hardcoded constant import
     const headers = {
       'Content-Type': 'application/json',
-      'apikey': SUPABASE_ANON_KEY  // Always present — hardcoded constant
+      'apikey': SUPABASE_ANON_KEY
     };
     if (includeAuth && sessionStore.accessToken) {
       headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
     }
+    // Debug for iOS
+    console.log('[SupabaseClient._getHeaders]', {
+      apikey: SUPABASE_ANON_KEY ? `${SUPABASE_ANON_KEY.slice(0, 8)}...(${SUPABASE_ANON_KEY.length})` : 'MISSING',
+      auth: headers['Authorization'] ? 'present' : 'absent'
+    });
     return headers;
   }
 
   async _fetch(endpoint, options = {}) {
     const url = endpoint.startsWith('http') ? endpoint : `${SUPABASE_URL}${endpoint}`;
     try {
-      const headers = await this._getHeaders(options.includeAuth !== false);
+      const headers = this._getHeaders(options.includeAuth !== false);
       const response = await fetch(url, { ...options, headers: { ...headers, ...options.headers } });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
