@@ -299,7 +299,8 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative w-full max-w-md mx-4 bg-[#121715] border border-[#223029] rounded-2xl shadow-2xl overflow-hidden"
+            className="relative w-full max-w-md mx-4 bg-[#121715] border border-[#223029] rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh]"
+            style={{ maxHeight: 'calc(90vh - env(safe-area-inset-top) - env(safe-area-inset-bottom))' }}
           >
             {/* Header */}
             <div className="relative p-6 bg-gradient-to-br from-[#2BA84A]/20 to-[#0F2917]/20 border-b border-[#223029]">
