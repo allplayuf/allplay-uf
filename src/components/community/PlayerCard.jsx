@@ -20,7 +20,7 @@ export default function PlayerCard({ player, friendshipStatus = 'none', onAddFri
   const avatarUrl = getAvatarUrl(player);
   const skillConfig = SKILL_LEVEL_CONFIG[player.skill_level || 'intermediate'];
   const SkillIcon = skillConfig?.icon || Target;
-  const displayName = player.display_name || player.full_name || 'Okänd spelare';
+  const displayName = player.display_name || player.full_name || 'Ny spelare';
   const initials = displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
   return (
