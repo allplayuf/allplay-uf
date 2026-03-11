@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { CheckSquare, Square, ExternalLink, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
