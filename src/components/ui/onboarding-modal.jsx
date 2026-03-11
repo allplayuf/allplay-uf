@@ -107,6 +107,14 @@ export function OnboardingModal() {
       const isAuth = await base44.auth.isAuthenticated();
       if (isAuth) {
         await base44.auth.updateMe({ onboarding_completed: true });
+
+        // Send pending DOB to backend for verification
+        const pendingDob = localStorage.getItem('allplay_pending_dob');
+        if (pendingDob) {
+          base44.functions.invoke('verifyAge', { date_of_birth: pendingDob }).catch(() => {});
+          localStorage.removeItem('allplay_pending_dob');
+        }
+
         const pending = sessionStorage.getItem('pending_referral_code');
         if (pending) {
           const user = await base44.auth.me();
@@ -118,37 +126,51 @@ export function OnboardingModal() {
     setIsOpen(false);
   };
 
-  const verifyAge = async () => {
+  const verifyAge = () => {
+    // If fields are empty, skip (marked as optional)
     if (!birthDay || !birthMonth || !birthYear) {
       setAgeVerified(true);
       return true;
     }
-    setIsVerifyingAge(true);
+
     setAgeError('');
-    try {
-      const dob = `${birthYear}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`;
-      const response = await base44.functions.invoke('verifyAge', { date_of_birth: dob });
-      if (response.data?.allowed === false) {
-        setAgeError(response.data.message || 'Du måste vara minst 13 år.');
-        setIsVerifyingAge(false);
-        return false;
-      }
-      if (response.data?.success) {
-        setAgeVerified(true);
-        setIsVerifyingAge(false);
-        return true;
-      }
-    } catch (e) {
-      setAgeError('Kunde inte verifiera ålder.');
+
+    // Validate input
+    const day = parseInt(birthDay, 10);
+    const month = parseInt(birthMonth, 10);
+    const year = parseInt(birthYear, 10);
+
+    if (isNaN(day) || isNaN(month) || isNaN(year) || day < 1 || day > 31 || month < 1 || month > 12 || year < 1900 || year > new Date().getFullYear()) {
+      setAgeError('Ogiltigt datum. Kontrollera dag, månad och år.');
+      return false;
     }
-    setIsVerifyingAge(false);
-    return false;
+
+    // Calculate age locally
+    const birthDate = new Date(year, month - 1, day);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    if (age < 13) {
+      setAgeError('Du måste vara minst 13 år för att använda AllPlay.');
+      return false;
+    }
+
+    // Save DOB locally so we can send to backend after login
+    const dob = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    localStorage.setItem('allplay_pending_dob', dob);
+
+    setAgeVerified(true);
+    return true;
   };
 
-  const handleNext = async () => {
+  const handleNext = () => {
     const slide = SLIDES[currentSlide];
     if (slide.isAgeScreen && !ageVerified) {
-      const ok = await verifyAge();
+      const ok = verifyAge();
       if (!ok) return;
     }
     if (currentSlide < SLIDES.length - 1) {
