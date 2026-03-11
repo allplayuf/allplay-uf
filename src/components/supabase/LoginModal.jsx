@@ -121,7 +121,8 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
         body: JSON.stringify({
           email,
           password,
-          data: { full_name: fullName }
+          data: { full_name: fullName },
+          user_metadata: { full_name: fullName }
         })
       });
 
