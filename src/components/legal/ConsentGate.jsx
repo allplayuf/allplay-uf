@@ -98,7 +98,7 @@ export default function ConsentGate({ onAccept, onCancel, isSignup = false, isLo
               disabled={!canAccept}
               className="flex-1 h-11 bg-[#2BA84A] hover:bg-[#248232] text-white font-bold rounded-xl disabled:opacity-40 disabled:cursor-not-allowed text-sm"
             >
-              {isSignup ? "Acceptera & skapa konto" : "Acceptera & fortsätt"}
+              {isLoading ? "Skapar konto..." : isSignup ? "Acceptera & skapa konto" : "Acceptera & fortsätt"}
             </Button>
           </div>
 
