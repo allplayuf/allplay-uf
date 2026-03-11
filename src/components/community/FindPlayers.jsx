@@ -63,14 +63,16 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
       is_public: true,
     }));
 
-    // Merge: Supabase first, then Base44 users not already in Supabase set
-    const seen = new Set(supabasePlayers.map(p => p.id));
+    // Merge: Supabase always takes priority — also match by email to catch duplicates
+    const seenIds = new Set(supabasePlayers.map(p => p.id));
+    const seenEmails = new Set(supabasePlayers.map(p => p.email?.toLowerCase()).filter(Boolean));
     const merged = [...supabasePlayers];
     for (const p of b44Players) {
-      if (!seen.has(p.id)) {
-        seen.add(p.id);
-        merged.push(p);
-      }
+      const email = p.email?.toLowerCase();
+      if (seenIds.has(p.id) || (email && seenEmails.has(email))) continue;
+      seenIds.add(p.id);
+      if (email) seenEmails.add(email);
+      merged.push(p);
     }
 
     // Filter by search query for Base44 users (Supabase already filtered server-side)
