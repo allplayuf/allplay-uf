@@ -94,6 +94,17 @@ export async function searchPlayers({ search = '', limit = 50, offset = 0 } = {}
   }
 
   const raw = await res.json();
+  // DEBUG: Log raw REST response to identify why names are missing
+  if (raw.length > 0) {
+    console.log('[playersService] RAW REST response sample (first 3):', JSON.stringify(raw.slice(0, 3).map(r => ({
+      id: r.id,
+      full_name: r.full_name,
+      username: r.username,
+      email: r.email,
+      display_name: r.display_name,
+      _allKeys: Object.keys(r)
+    }))));
+  }
   const players = raw.map(normalizePlayer);
 
   // Parse total count from Content-Range header: "0-49/120"
