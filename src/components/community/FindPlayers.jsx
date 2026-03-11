@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Search, AlertCircle } from "lucide-react";
 import { debounce } from "lodash";
 import { searchPlayers } from "@/components/supabase/services/playersService";
-import { base44 } from "@/api/base44Client";
 import { applyPrivacy } from "@/components/utils/privacyMask";
 import PlayerCard from "./PlayerCard";
 
@@ -34,62 +33,16 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
     retry: (count, err) => err?.status !== 401 && count < 2,
   });
 
-  // Also fetch Base44 users to include legacy/migrated users
-  const { data: base44Users } = useQuery({
-    queryKey: ['base44-users'],
-    queryFn: () => base44.entities.User.list('-created_date', 500),
-    enabled: !!currentUser,
-    staleTime: 60 * 1000,
-  });
-
   const safeFriendships = Array.isArray(friendships) ? friendships : [];
 
-  // Merge Supabase + Base44 users, deduplicate by id, apply privacy & exclude self
+  // Apply privacy masking & exclude self, sort alphabetically
   const players = useMemo(() => {
-    const supabasePlayers = data?.players || [];
-    const b44Players = (base44Users || []).map(u => ({
-      id: u.id,
-      full_name: u.full_name || u.display_name || u.email?.split('@')[0] || 'Ny spelare',
-      display_name: u.display_name || u.full_name || u.email?.split('@')[0] || 'Ny spelare',
-      username: u.username || null,
-      avatar_url: u.avatar_url || u.profile_image_url || null,
-      profile_image_url: u.profile_image_url || u.avatar_url || null,
-      bio: u.bio || null,
-      city: u.city || null,
-      skill_level: u.skill_level || null,
-      elo_rating: u.elo_rating || null,
-      matches_played: u.matches_played || 0,
-      mvp_count: u.mvp_count || 0,
-      is_public: true,
-    }));
-
-    // Merge: Supabase always takes priority — also match by email to catch duplicates
-    const seenIds = new Set(supabasePlayers.map(p => p.id));
-    const seenEmails = new Set(supabasePlayers.map(p => p.email?.toLowerCase()).filter(Boolean));
-    const merged = [...supabasePlayers];
-    for (const p of b44Players) {
-      const email = p.email?.toLowerCase();
-      if (seenIds.has(p.id) || (email && seenEmails.has(email))) continue;
-      seenIds.add(p.id);
-      if (email) seenEmails.add(email);
-      merged.push(p);
-    }
-
-    // Filter by search query for Base44 users (Supabase already filtered server-side)
-    const q = debouncedQuery?.trim()?.toLowerCase();
-    return merged
+    const raw = data?.players || [];
+    return raw
       .filter(p => p.id !== currentUser?.id)
-      .filter(p => {
-        if (!q) return true;
-        // Supabase players already matched, only filter b44 additions
-        if (supabasePlayers.some(sp => sp.id === p.id)) return true;
-        return (p.full_name || '').toLowerCase().includes(q) ||
-               (p.username || '').toLowerCase().includes(q) ||
-               (p.city || '').toLowerCase().includes(q);
-      })
       .map(p => applyPrivacy(p, currentUser?.id))
       .sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''));
-  }, [data, base44Users, currentUser?.id, debouncedQuery]);
+  }, [data, currentUser?.id]);
 
   const totalCount = players.length;
   const displayedPlayers = players.slice(0, displayLimit);
