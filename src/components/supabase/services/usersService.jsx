@@ -12,7 +12,7 @@ import { callEdgeFunction } from '../callEdgeFunction';
 import { EDGE } from '../edgeNames';
 import { primeUsers } from './userCache';
 
-const USER_COLUMNS = 'id,full_name,username,avatar_url,bio,city,skill_level,elo_rating,matches_played,mvp_count,is_admin';
+const USER_COLUMNS = 'id,full_name,username,email,avatar_url,bio,city,skill_level,elo_rating,matches_played,mvp_count,is_admin';
 
 /**
  * Fetch users via REST (fallback when Edge fails)

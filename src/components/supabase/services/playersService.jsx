@@ -13,7 +13,7 @@ import { waitForAuth } from '../client';
  * Columns guaranteed to exist in the public.users view.
  * After the SQL migration more columns may exist, but these always work.
  */
-const SAFE_SELECT = 'id,full_name,username,avatar_url,elo_rating';
+const SAFE_SELECT = 'id,full_name,username,email,avatar_url,elo_rating';
 
 // Use shared header builder
 const buildHeaders = () => getAuthHeaders();

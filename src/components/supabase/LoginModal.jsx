@@ -75,13 +75,11 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
           onSuccess?.();
           onClose();
         } else {
-          const msg = result.error?.message || '';
-          if (msg.toLowerCase().includes('email not confirmed') || msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('credentials')) {
-            if (msg.toLowerCase().includes('email not confirmed')) {
-              setLocalError('Gå in i din e-post och verifiera ditt konto innan du loggar in.');
-            } else {
-              setLocalError('Felaktig e-post eller lösenord. Försök igen.');
-            }
+          const msg = (result.error?.message || '').toLowerCase();
+          if (msg.includes('email not confirmed') || msg.includes('email_not_confirmed')) {
+            setLocalError('📧 Du behöver verifiera din e-post först! Vi skickade ett mail till dig när du skapade kontot. Kolla din inkorg (och skräppost) och klicka på verifieringslänken.');
+          } else if (msg.includes('invalid') || msg.includes('credentials') || msg.includes('invalid login')) {
+            setLocalError('Felaktig e-post eller lösenord. Försök igen.');
           } else {
             setLocalError(msg || 'Inloggningen misslyckades. Försök igen.');
           }

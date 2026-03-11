@@ -295,7 +295,7 @@ class SupabaseClient {
           sessionStore.clear();
           return { error: { code: 401, message: 'Session expired. Please login again.' } };
         }
-        return { error: { code: response.status, message: data.message || data.error || 'Server error.' } };
+        return { error: { code: response.status, message: data.error_description || data.message || data.msg || data.error || 'Server error.' } };
       }
       return { data };
     } catch (e) {
