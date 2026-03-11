@@ -110,6 +110,16 @@ export async function fetchUsersMissing(userIds) {
         try {
           const response = await callEdgeFunction(EDGE.getUsersByIds, { user_ids: chunk });
           users = response?.users || [];
+          // DEBUG: Log edge function response
+          if (users.length > 0) {
+            console.log('[userCache] Edge response sample (first 3):', JSON.stringify(users.slice(0, 3).map(u => ({
+              id: u.id,
+              full_name: u.full_name,
+              username: u.username,
+              email: u.email,
+              _allKeys: Object.keys(u)
+            }))));
+          }
         } catch (edgeError) {
           console.warn('[userCache] Edge failed, trying REST:', edgeError.message);
         }
