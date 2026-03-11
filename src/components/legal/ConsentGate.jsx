@@ -72,15 +72,15 @@ export default function ConsentGate({ onAccept, onCancel, isSignup = false }) {
         </div>
       </div>
 
-      {/* Bottom action area */}
-      <div className="flex-shrink-0 border-t border-[#223029] bg-[#121715] px-4 py-4"
-        style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}>
-        <div className="max-w-2xl mx-auto space-y-3">
+      {/* Bottom action area - safe from nav bar */}
+      <div className="flex-shrink-0 border-t border-[#223029] bg-[#121715] px-4 py-3"
+        style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}>
+        <div className="max-w-2xl mx-auto space-y-2.5">
           {/* Checkbox */}
           <button
             onClick={() => hasScrolledToBottom && setCheckboxChecked(!checkboxChecked)}
             disabled={!hasScrolledToBottom}
-            className={`flex items-start gap-3 w-full text-left p-3 rounded-xl border transition-all ${
+            className={`flex items-start gap-3 w-full text-left p-2.5 rounded-xl border transition-all min-h-[44px] ${
               hasScrolledToBottom
                 ? checkboxChecked
                   ? "border-[#2BA84A]/40 bg-[#2BA84A]/5"
@@ -93,46 +93,46 @@ export default function ConsentGate({ onAccept, onCancel, isSignup = false }) {
             ) : (
               <Square className="w-5 h-5 text-[#9EAAA4] flex-shrink-0 mt-0.5" />
             )}
-            <span className="text-sm text-[#F4F7F5] leading-snug">
+            <span className="text-xs text-[#F4F7F5] leading-snug">
               Jag har läst och accepterar AllPlays Användarvillkor & Integritetspolicy ({CONSENT_VERSION}).
             </span>
           </button>
-
-          {/* Open as webpage link */}
-          <a
-            href="https://allplayuf.se/legalpolicy"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-xs text-[#2BA84A] hover:text-[#248232] transition-colors"
-          >
-            <ExternalLink className="w-3 h-3" />
-            Öppna som webbsida
-          </a>
 
           {/* Buttons */}
           <div className="flex gap-3">
             <Button
               onClick={onCancel}
               variant="outline"
-              className="flex-1 h-12 border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] rounded-xl"
+              className="flex-1 h-11 border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] rounded-xl text-sm"
             >
               Stäng
             </Button>
             <Button
               onClick={onAccept}
               disabled={!canAccept}
-              className="flex-1 h-12 bg-[#2BA84A] hover:bg-[#248232] text-white font-bold rounded-xl disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex-1 h-11 bg-[#2BA84A] hover:bg-[#248232] text-white font-bold rounded-xl disabled:opacity-40 disabled:cursor-not-allowed text-sm"
             >
-              {isSignup ? "Acceptera och skapa konto" : "Acceptera och fortsätt"}
+              {isSignup ? "Acceptera & skapa konto" : "Acceptera & fortsätt"}
             </Button>
           </div>
 
-          {/* Disclaimer */}
-          {isSignup && (
-            <p className="text-center text-xs text-[#9EAAA4]">
-              Du kan inte skapa konto utan att godkänna.
-            </p>
-          )}
+          {/* Links row */}
+          <div className="flex items-center justify-between">
+            <a
+              href="https://allplayuf.se/legalpolicy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-xs text-[#2BA84A] hover:text-[#248232] transition-colors"
+            >
+              <ExternalLink className="w-3 h-3" />
+              Öppna som webbsida
+            </a>
+            {isSignup && (
+              <p className="text-xs text-[#9EAAA4]">
+                Godkännande krävs för konto.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>
