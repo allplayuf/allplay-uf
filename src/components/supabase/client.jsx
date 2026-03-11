@@ -351,6 +351,68 @@ class SupabaseClient {
   }
 }
 
+  /**
+   * Sync user metadata (full_name etc.) from auth.users to public.users.
+   * Called after signup/login to ensure public.users has the display name.
+   */
+  async syncUserToPublicProfile(authUser) {
+    if (!authUser?.id) return;
+    
+    const fullName = authUser.user_metadata?.full_name 
+                  || authUser.raw_user_meta_data?.full_name 
+                  || null;
+    const email = authUser.email || null;
+    
+    if (!fullName && !email) return;
+    
+    try {
+      const headers = this._getHeaders(true);
+      headers['Prefer'] = 'resolution=merge-duplicates';
+      
+      // Upsert into public.users — sets full_name + display_name if missing
+      const body = { id: authUser.id };
+      if (fullName) {
+        body.full_name = fullName;
+        body.display_name = fullName;
+      }
+      if (email) body.email = email;
+      
+      // Use PATCH to only update if row exists
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/users?id=eq.${authUser.id}`,
+        { 
+          method: 'PATCH', 
+          headers,
+          body: JSON.stringify(body)
+        }
+      );
+      
+      if (!res.ok) {
+        console.warn('[SupabaseClient] syncUserToPublicProfile PATCH failed:', res.status);
+        // If no row exists, try INSERT
+        if (res.status === 404 || res.status === 406) {
+          body.username = email ? email.split('@')[0] : authUser.id.slice(0, 8);
+          const insertRes = await fetch(
+            `${SUPABASE_URL}/rest/v1/users`,
+            {
+              method: 'POST',
+              headers: { ...headers, 'Prefer': 'resolution=merge-duplicates' },
+              body: JSON.stringify(body)
+            }
+          );
+          if (!insertRes.ok) {
+            console.warn('[SupabaseClient] syncUserToPublicProfile INSERT also failed:', insertRes.status);
+          }
+        }
+      } else {
+        console.log('[SupabaseClient] syncUserToPublicProfile OK for', authUser.id, fullName);
+      }
+    } catch (e) {
+      console.warn('[SupabaseClient] syncUserToPublicProfile error:', e.message);
+    }
+  }
+}
+
 export const supabaseClient = new SupabaseClient();
 export const initSupabase = () => supabaseClient.init();
 export const login = (email, password) => supabaseClient.login(email, password);
