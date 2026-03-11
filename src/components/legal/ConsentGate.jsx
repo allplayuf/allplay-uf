@@ -45,20 +45,11 @@ export default function ConsentGate({ onAccept, onCancel, isSignup = false, isLo
       {/* Scrollable policy */}
       <div
         ref={scrollRef}
-        onScroll={handleScroll}
         className="flex-1 overflow-y-auto px-4 py-6"
+        style={{ WebkitOverflowScrolling: 'touch' }}
       >
         <div className="max-w-2xl mx-auto">
           <PolicyRenderer />
-          
-          {/* Scroll indicator at bottom */}
-          <div className="mt-8 py-4 text-center">
-            {hasScrolledToBottom ? (
-              <p className="text-sm text-[#2BA84A] font-medium">✓ Du har läst hela dokumentet</p>
-            ) : (
-              <p className="text-sm text-[#9EAAA4] animate-pulse">↓ Scrolla ner för att läsa hela dokumentet</p>
-            )}
-          </div>
         </div>
       </div>
 
