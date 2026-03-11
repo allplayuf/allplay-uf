@@ -143,14 +143,43 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
 
       // Step 3: Check if email confirmation needed
       if (data.user && !data.session) {
-        // Can't save consent yet since no session - save pending consent locally
-        // It will be checked on first login
+        // No session yet, but we CAN create the public.users row immediately
+        // using the anon key + user ID from the signup response
+        try {
+          const userRow = { id: data.user.id, email };
+          if (fullName) {
+            userRow.full_name = fullName;
+            userRow.display_name = fullName;
+          }
+          userRow.username = email ? email.split('@')[0] : data.user.id.slice(0, 8);
+          
+          await fetch(`${supaUrl}/rest/v1/users`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': anonKey,
+              'Authorization': `Bearer ${anonKey}`,
+              'Prefer': 'resolution=merge-duplicates'
+            },
+            body: JSON.stringify(userRow)
+          });
+          console.log('[LoginModal] Pre-created public.users row for', data.user.id, fullName);
+        } catch (syncErr) {
+          console.warn('[LoginModal] Failed to pre-create public.users row:', syncErr);
+        }
+
+        // Save pending consent locally — will be saved on first login
         try {
           localStorage.setItem('allplay_pending_consent', JSON.stringify({
             version: CONSENT_VERSION,
             doc: CONSENT_DOC,
             accepted_at: new Date().toISOString()
           }));
+        } catch (e) { /* ignore */ }
+        
+        // Also store the full_name locally so login sync can use it as fallback
+        try {
+          localStorage.setItem('allplay_pending_fullname', fullName);
         } catch (e) { /* ignore */ }
         
         setSuccessMessage('📧 Konto skapat! Vi har skickat ett verifieringsmail till ' + email + '. Du MÅSTE klicka på länken i mailet innan du kan logga in. Kolla även skräpposten!');
