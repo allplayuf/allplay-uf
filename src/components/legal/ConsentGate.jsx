@@ -16,21 +16,11 @@ import { createPageUrl } from "@/utils";
  * - isLoading: boolean - shows spinner on CTA
  * - error: string|null - shows error message
  */
-export default function ConsentGate({ onAccept, onCancel, isSignup = false }) {
-  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+export default function ConsentGate({ onAccept, onCancel, isSignup = false, isLoading = false, error = null }) {
   const [checkboxChecked, setCheckboxChecked] = useState(false);
   const scrollRef = useRef(null);
 
-  const handleScroll = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const scrollPercent = (el.scrollTop + el.clientHeight) / el.scrollHeight;
-    if (scrollPercent >= 0.95) {
-      setHasScrolledToBottom(true);
-    }
-  }, []);
-
-  const canAccept = hasScrolledToBottom && checkboxChecked;
+  const canAccept = checkboxChecked && !isLoading;
 
   return (
     <div className="fixed inset-0 z-[9999] bg-[#0F1513] flex flex-col" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
