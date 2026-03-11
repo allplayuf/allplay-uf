@@ -284,7 +284,7 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-[9998] flex items-center justify-center" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
