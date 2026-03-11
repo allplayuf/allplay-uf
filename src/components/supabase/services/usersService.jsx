@@ -113,6 +113,16 @@ function _flushBatch() {
       try {
         const result = await callEdgeFunction(EDGE.getUsersByIds, { user_ids: chunk });
         users = result?.users || [];
+        // DEBUG: Log edge function response
+        if (users.length > 0) {
+          console.log('[usersService] Edge response sample (first 3):', JSON.stringify(users.slice(0, 3).map(u => ({
+            id: u.id,
+            full_name: u.full_name,
+            username: u.username,
+            email: u.email,
+            _allKeys: Object.keys(u)
+          }))));
+        }
       } catch (e) {
         console.warn('[usersService] Edge failed, REST fallback:', e.message);
       }
