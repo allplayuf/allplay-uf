@@ -23,11 +23,15 @@ const buildHeaders = () => getAuthHeaders();
  * Safely handles both old and new view schemas.
  */
 function normalizePlayer(row) {
+  // Build a meaningful display name from whatever data is available
+  const emailPrefix = row.email ? row.email.split('@')[0] : null;
+  const name = row.full_name || row.display_name || row.username || emailPrefix || 'Ny spelare';
+
   return {
     id: row.id,
-    full_name: row.full_name || row.username || 'Spelare',
+    full_name: name,
     username: row.username || null,
-    display_name: row.display_name || row.full_name || row.username || 'Spelare',
+    display_name: name,
     avatar_url: row.avatar_url || row.profile_image_url || null,
     profile_image_url: row.profile_image_url || row.avatar_url || null,
     bio: row.bio || null,
