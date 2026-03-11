@@ -34,16 +34,60 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
     retry: (count, err) => err?.status !== 401 && count < 2,
   });
 
+  // Also fetch Base44 users to include legacy/migrated users
+  const { data: base44Users } = useQuery({
+    queryKey: ['base44-users'],
+    queryFn: () => base44.entities.User.list('-created_date', 500),
+    enabled: !!currentUser,
+    staleTime: 60 * 1000,
+  });
+
   const safeFriendships = Array.isArray(friendships) ? friendships : [];
 
-  // Apply privacy masking & exclude self, sort alphabetically
+  // Merge Supabase + Base44 users, deduplicate by id, apply privacy & exclude self
   const players = useMemo(() => {
-    const raw = data?.players || [];
-    return raw
+    const supabasePlayers = data?.players || [];
+    const b44Players = (base44Users || []).map(u => ({
+      id: u.id,
+      full_name: u.full_name || u.display_name || u.email?.split('@')[0] || 'Ny spelare',
+      display_name: u.display_name || u.full_name || u.email?.split('@')[0] || 'Ny spelare',
+      username: u.username || null,
+      avatar_url: u.avatar_url || u.profile_image_url || null,
+      profile_image_url: u.profile_image_url || u.avatar_url || null,
+      bio: u.bio || null,
+      city: u.city || null,
+      skill_level: u.skill_level || null,
+      elo_rating: u.elo_rating || null,
+      matches_played: u.matches_played || 0,
+      mvp_count: u.mvp_count || 0,
+      is_public: true,
+    }));
+
+    // Merge: Supabase first, then Base44 users not already in Supabase set
+    const seen = new Set(supabasePlayers.map(p => p.id));
+    const merged = [...supabasePlayers];
+    for (const p of b44Players) {
+      if (!seen.has(p.id)) {
+        seen.add(p.id);
+        merged.push(p);
+      }
+    }
+
+    // Filter by search query for Base44 users (Supabase already filtered server-side)
+    const q = debouncedQuery?.trim()?.toLowerCase();
+    return merged
       .filter(p => p.id !== currentUser?.id)
+      .filter(p => {
+        if (!q) return true;
+        // Supabase players already matched, only filter b44 additions
+        if (supabasePlayers.some(sp => sp.id === p.id)) return true;
+        return (p.full_name || '').toLowerCase().includes(q) ||
+               (p.username || '').toLowerCase().includes(q) ||
+               (p.city || '').toLowerCase().includes(q);
+      })
       .map(p => applyPrivacy(p, currentUser?.id))
       .sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''));
-  }, [data, currentUser?.id]);
+  }, [data, base44Users, currentUser?.id, debouncedQuery]);
 
   const totalCount = players.length;
   const displayedPlayers = players.slice(0, displayLimit);
