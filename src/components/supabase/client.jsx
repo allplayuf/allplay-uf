@@ -318,6 +318,9 @@ class SupabaseClient {
     // Mark auth ready if login happens after init
     markAuthReady();
 
+    // Sync full_name from auth metadata to public.users (in case it's missing)
+    this.syncUserToPublicProfile(user).catch(() => {});
+
     await this.fetchUserRoles();
     return { data: { user: sessionStore.user, roles: sessionStore.roles } };
   }
