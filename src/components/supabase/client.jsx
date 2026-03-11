@@ -356,9 +356,22 @@ class SupabaseClient {
   async syncUserToPublicProfile(authUser) {
     if (!authUser?.id) return;
     
-    const fullName = authUser.user_metadata?.full_name 
-                  || authUser.raw_user_meta_data?.full_name 
-                  || null;
+    // Try multiple sources for full_name
+    let fullName = authUser.user_metadata?.full_name 
+                || authUser.raw_user_meta_data?.full_name 
+                || null;
+    
+    // Fallback: check localStorage (set during signup when email verification is required)
+    if (!fullName) {
+      try {
+        const pendingName = localStorage.getItem('allplay_pending_fullname');
+        if (pendingName) {
+          fullName = pendingName;
+          localStorage.removeItem('allplay_pending_fullname');
+        }
+      } catch (e) { /* ignore */ }
+    }
+    
     const email = authUser.email || null;
     
     if (!fullName && !email) return;
