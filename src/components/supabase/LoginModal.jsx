@@ -153,7 +153,7 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
           }));
         } catch (e) { /* ignore */ }
         
-        setSuccessMessage('Konto skapat! Kolla din e-post för att verifiera kontot.');
+        setSuccessMessage('📧 Konto skapat! Vi har skickat ett verifieringsmail till ' + email + '. Du MÅSTE klicka på länken i mailet innan du kan logga in. Kolla även skräpposten!');
         setMode('login');
         setPassword('');
         setConfirmPassword('');
@@ -206,7 +206,7 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
         onSuccess?.();
         onClose();
       } else {
-        setSuccessMessage('Konto skapat! Logga in med dina uppgifter.');
+        setSuccessMessage('📧 Konto skapat! Kolla din e-post (' + email + ') och klicka på verifieringslänken innan du loggar in. Kolla även skräpposten!');
         // Save pending consent for first login
         try {
           localStorage.setItem('allplay_pending_consent', JSON.stringify({
