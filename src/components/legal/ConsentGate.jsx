@@ -57,17 +57,22 @@ export default function ConsentGate({ onAccept, onCancel, isSignup = false, isLo
       <div className="flex-shrink-0 border-t border-[#223029] bg-[#121715] px-4 py-3"
         style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}>
         <div className="max-w-2xl mx-auto space-y-2.5">
+          {/* Error message */}
+          {error && (
+            <div className="flex items-center gap-2 p-2.5 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs">
+              <span>{error}</span>
+            </div>
+          )}
+
           {/* Checkbox */}
           <button
-            onClick={() => hasScrolledToBottom && setCheckboxChecked(!checkboxChecked)}
-            disabled={!hasScrolledToBottom}
+            onClick={() => setCheckboxChecked(!checkboxChecked)}
+            disabled={isLoading}
             className={`flex items-start gap-3 w-full text-left p-2.5 rounded-xl border transition-all min-h-[44px] ${
-              hasScrolledToBottom
-                ? checkboxChecked
-                  ? "border-[#2BA84A]/40 bg-[#2BA84A]/5"
-                  : "border-[#223029] hover:border-[#2BA84A]/30"
-                : "border-[#223029] opacity-50 cursor-not-allowed"
-            }`}
+              checkboxChecked
+                ? "border-[#2BA84A]/40 bg-[#2BA84A]/5"
+                : "border-[#223029] hover:border-[#2BA84A]/30"
+            } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             {checkboxChecked ? (
               <CheckSquare className="w-5 h-5 text-[#2BA84A] flex-shrink-0 mt-0.5" />
