@@ -33,10 +33,10 @@ export default function ConsentGate({ onAccept, onCancel, isSignup = false }) {
   const canAccept = hasScrolledToBottom && checkboxChecked;
 
   return (
-    <div className="fixed inset-0 z-[200] bg-[#0F1513] flex flex-col">
+    <div className="fixed inset-0 z-[9999] bg-[#0F1513] flex flex-col" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
       {/* Header */}
-      <div className="flex-shrink-0 px-4 py-4 border-b border-[#223029] bg-[#121715]"
-        style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top))' }}>
+      <div className="flex-shrink-0 px-4 py-3 border-b border-[#223029] bg-[#121715]"
+        style={{ paddingTop: 'calc(0.75rem + env(safe-area-inset-top))' }}>
         <div className="max-w-2xl mx-auto flex items-center gap-3">
           <div className="w-10 h-10 bg-[#2BA84A]/10 rounded-xl flex items-center justify-center ring-1 ring-[#2BA84A]/20">
             <ShieldCheck className="w-5 h-5 text-[#2BA84A]" />
