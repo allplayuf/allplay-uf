@@ -64,6 +64,14 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
         const result = await login(email, password);
         
         if (result.success) {
+          // Send pending DOB from onboarding if exists
+          const pendingDob = localStorage.getItem('allplay_pending_dob');
+          if (pendingDob) {
+            import('@/api/base44Client').then(({ base44 }) => {
+              base44.functions.invoke('verifyAge', { date_of_birth: pendingDob }).catch(() => {});
+            }).catch(() => {});
+            localStorage.removeItem('allplay_pending_dob');
+          }
           onSuccess?.();
           onClose();
         } else {
