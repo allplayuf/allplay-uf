@@ -35,9 +35,9 @@ export function primeUsers(users) {
 function normalizeUser(user) {
   return {
     id: user.id,
-    full_name: user.full_name || user.username || 'Spelare',
+    full_name: user.full_name || user.username || (user.email ? user.email.split('@')[0] : 'Ny spelare'),
     username: user.username || null,
-    display_name: user.display_name || user.full_name || user.username || 'Spelare',
+    display_name: user.display_name || user.full_name || user.username || (user.email ? user.email.split('@')[0] : 'Ny spelare'),
     avatar_url: user.avatar_url || user.profile_image_url || null,
     profile_image_url: user.profile_image_url || user.avatar_url || null,
     bio: user.bio || null,
@@ -54,9 +54,9 @@ function normalizeUser(user) {
 function createFallbackUser(userId) {
   return {
     id: userId,
-    full_name: 'Spelare',
+    full_name: 'Ny spelare',
     username: null,
-    display_name: 'Spelare',
+    display_name: 'Ny spelare',
     avatar_url: null,
     profile_image_url: null,
     bio: null,
