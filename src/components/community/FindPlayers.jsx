@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Search, AlertCircle } from "lucide-react";
 import { debounce } from "lodash";
 import { searchPlayers } from "@/components/supabase/services/playersService";
+import { base44 } from "@/api/base44Client";
 import { applyPrivacy } from "@/components/utils/privacyMask";
 import PlayerCard from "./PlayerCard";
 
