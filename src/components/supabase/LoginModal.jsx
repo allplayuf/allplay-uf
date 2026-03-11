@@ -167,8 +167,8 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
         sessionStore.setUser(data.user);
         sessionStore.setAuthState(AUTH_STATES.AUTHENTICATED);
         
-        // Sync to Base44
-        await supabaseClient.syncUserToBase44(data.user);
+        // Sync full_name to public.users table
+        await supabaseClient.syncUserToPublicProfile(data.user);
 
         // Step 5: Save consent to user entity
         try {
