@@ -47,41 +47,29 @@
 
   /* Light mode override removed — AllPlay is always dark */
 
-  html, body, #root {
-    background-color: #0B0F0D;
+  html, body {
+    background-color: #0B0F0D !important;
     color: var(--color-text-primary);
     margin: 0;
     padding: 0;
-    overscroll-behavior: none;
-    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none !important;
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    scroll-behavior: smooth;
     /* Force dark color scheme for iOS */
     color-scheme: dark;
     -webkit-text-size-adjust: 100%;
-  }
-
-  /* Prevent iOS rubber-band showing white behind fixed elements */
-  html {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-  }
-
-  body {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
   }
 
   #root {
     width: 100%;
     height: 100%;
     overflow: hidden;
+    background-color: #0B0F0D;
   }
   
   /* Disable text selection and touch callouts on interactive elements */
