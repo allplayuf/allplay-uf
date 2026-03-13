@@ -214,23 +214,14 @@ class SupabaseClient {
           sessionStore.clear();
         }
       } else if (!sessionStore.isTokenExpired()) {
-        // Token looks valid, validate it
-        try {
-          const valid = await this.validateSession();
-          if (!valid && sessionStore.refreshToken) {
-            const refreshed = await this.refreshSession();
-            if (!refreshed) sessionStore.clear();
-          } else if (!valid) {
-            sessionStore.clear();
-          }
-        } catch (e) {
-          if (sessionStore.refreshToken) {
-            const refreshed = await this.refreshSession();
-            if (!refreshed) sessionStore.clear();
-          } else {
-            sessionStore.clear();
-          }
-        }
+        // Token not expired — trust it and keep the session.
+        // Validate in background (non-blocking) to refresh roles/user data.
+        sessionStore.setAuthState(AUTH_STATES.AUTHENTICATED);
+        this.validateSession().catch(() => {
+          // Network failures during background validation are non-fatal.
+          // Session will be refreshed on next API call if needed.
+          console.warn('[SupabaseClient] Background session validation failed, keeping session');
+        });
       } else {
         // Expired and no refresh token
         sessionStore.clear();
