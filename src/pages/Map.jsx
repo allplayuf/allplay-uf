@@ -172,10 +172,24 @@ export default function MapPage() {
         getVenues(),
         getPublicMatches({ status: 'upcoming' }),
       ]);
-      const matches = matchesRaw.map(transformMatchData);
+      const now = new Date();
+      const matches = matchesRaw
+        .map(transformMatchData)
+        .filter(m => {
+          if (!m || !m.date || !m.time) return false;
+          // Keep matches that haven't ended yet (start time + duration)
+          const matchStart = new Date(`${m.date}T${m.time}`);
+          const durationMs = (m.duration_minutes || 90) * 60 * 1000;
+          const matchEnd = new Date(matchStart.getTime() + durationMs);
+          return matchEnd > now;
+        });
       return { venues: venuesData, matches };
     },
-    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+    staleTime: 60 * 1000, // 1 minute — map data should be fresh
+    cacheTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true, // Refresh when user returns to app
+    refetchOnMount: true,
+    refetchInterval: 2 * 60 * 1000, // Poll every 2 minutes
   });
 
   // Fetch user's match IDs
