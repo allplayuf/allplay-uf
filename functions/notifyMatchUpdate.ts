@@ -125,20 +125,31 @@ Deno.serve(async (req) => {
 
     const title = `${config.emoji} ${config.title}`;
     const body = config.template(match, venueName);
-    const data = { match_id: matchId, click_action: `/MatchDetail?id=${matchId}` };
+    const notifData = { match_id: matchId, click_action: `/MatchDetail?id=${matchId}` };
 
-    // Call sendPushNotification via service role
+    // Call sendPushNotification directly via internal function invoke
     let pushResult;
     try {
-      pushResult = await base44.asServiceRole.functions.invoke('sendPushNotification', {
+      pushResult = await base44.functions.invoke('sendPushNotification', {
         user_ids: targetUserIds,
         title,
         body,
-        data
+        data: notifData
       });
     } catch (e) {
       console.error('Failed to invoke sendPushNotification:', e.message);
-      pushResult = { error: e.message };
+      // Fallback: try service role
+      try {
+        pushResult = await base44.asServiceRole.functions.invoke('sendPushNotification', {
+          user_ids: targetUserIds,
+          title,
+          body,
+          data: notifData
+        });
+      } catch (e2) {
+        console.error('Service role invoke also failed:', e2.message);
+        pushResult = { error: e2.message };
+      }
     }
 
     console.log(`[notifyMatchUpdate] ${eventType} for match ${matchId} → ${targetUserIds.length} users, result:`, JSON.stringify(pushResult));
