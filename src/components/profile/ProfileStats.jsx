@@ -3,7 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Trophy, Target, Flame, Calendar, Star, Award, Shield, Crown, Gem, TrendingUp } from "lucide-react";
-import { User } from "@/entities/User";
+import { useQueryClient } from "@tanstack/react-query";
+import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
+import { updateProfile } from "@/components/supabase/services";
 
 const skillLevelConfig = {
   beginner: {
@@ -42,16 +44,26 @@ const skillLevelConfig = {
 
 export default function ProfileStats({ user, isOwnProfile = true }) {
   const [isEditingSkill, setIsEditingSkill] = React.useState(false);
+  const [isSavingSkill, setIsSavingSkill] = React.useState(false);
   const [selectedSkill, setSelectedSkill] = React.useState(user?.skill_level || 'intermediate');
+  const queryClient = useQueryClient();
+  const { user: authUser } = useSupabaseAuth();
 
   const handleSkillUpdate = async () => {
+    setIsSavingSkill(true);
     try {
-      await User.updateMyUserData({ skill_level: selectedSkill });
+      await updateProfile({ skill_level: selectedSkill });
+      // Optimistic update
+      queryClient.setQueryData(['supabase-userProfile', authUser?.id], old => ({
+        ...old,
+        skill_level: selectedSkill,
+      }));
+      queryClient.invalidateQueries({ queryKey: ['supabase-userProfile'] });
       setIsEditingSkill(false);
-      window.location.reload();
     } catch (error) {
       console.error("Error updating skill level:", error);
-      alert("Kunde inte uppdatera nivå. Försök igen.");
+    } finally {
+      setIsSavingSkill(false);
     }
   };
 
