@@ -379,6 +379,7 @@ export default function MapPage() {
                 allParticipants={allParticipants}
                 selectedVenue={selectedVenue}
                 userLocation={userLocation}
+                recenterFlag={recenterFlag}
                 onVenueSelect={handleVenueClick}
                 onShowDetails={handleShowDetails}
                 onMatchClick={handleMatchClick}
@@ -494,6 +495,7 @@ export default function MapPage() {
             allParticipants={allParticipants}
             selectedVenue={selectedVenue}
             userLocation={userLocation}
+            recenterFlag={recenterFlag}
             onVenueSelect={handleVenueClick}
             onShowDetails={handleShowDetails}
             onMatchClick={handleMatchClick}
