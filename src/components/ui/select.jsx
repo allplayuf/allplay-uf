@@ -3,6 +3,7 @@ import { Check, ChevronDown } from "lucide-react"
 
 const SelectContext = React.createContext({
   value: '',
+  label: '',
   onValueChange: () => {},
   open: false,
   setOpen: () => {}
@@ -11,12 +12,20 @@ const SelectContext = React.createContext({
 const Select = ({ children, value, onValueChange, defaultValue }) => {
   const [open, setOpen] = React.useState(false)
   const [internalValue, setInternalValue] = React.useState(defaultValue || value || '')
+  const [labelMap, setLabelMap] = React.useState({})
 
   React.useEffect(() => {
     if (value !== undefined) {
       setInternalValue(value)
     }
   }, [value])
+
+  const registerLabel = React.useCallback((itemValue, itemLabel) => {
+    setLabelMap(prev => {
+      if (prev[itemValue] === itemLabel) return prev;
+      return { ...prev, [itemValue]: itemLabel };
+    });
+  }, []);
 
   const handleValueChange = (newValue) => {
     setInternalValue(newValue)
@@ -29,7 +38,9 @@ const Select = ({ children, value, onValueChange, defaultValue }) => {
   return (
     <SelectContext.Provider value={{ 
       value: internalValue, 
+      label: labelMap[internalValue] || '',
       onValueChange: handleValueChange,
+      registerLabel,
       open,
       setOpen
     }}>
@@ -43,11 +54,11 @@ const SelectGroup = ({ children }) => {
 }
 
 const SelectValue = ({ placeholder }) => {
-  const { value } = React.useContext(SelectContext)
+  const { value, label } = React.useContext(SelectContext)
   
   return (
     <span className="block truncate">
-      {value || placeholder}
+      {value ? (label || value) : placeholder}
     </span>
   )
 }
@@ -113,8 +124,15 @@ const SelectLabel = ({ className, ...props }) => (
 SelectLabel.displayName = "SelectLabel"
 
 const SelectItem = ({ className, children, value, ...props }) => {
-  const { value: selectedValue, onValueChange } = React.useContext(SelectContext)
+  const { value: selectedValue, onValueChange, registerLabel } = React.useContext(SelectContext)
   const isSelected = selectedValue === value
+
+  // Register the label text for this value
+  React.useEffect(() => {
+    if (registerLabel && typeof children === 'string') {
+      registerLabel(value, children);
+    }
+  }, [value, children, registerLabel]);
 
   return (
     <div
