@@ -178,6 +178,19 @@ function isValidLatLng(lat, lng) {
     lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
 }
 
+/* ─── SAFE FLY/PAN ─── */
+// flyTo crashes with NaN when map container has 0 size (not rendered yet).
+// Fall back to setView which doesn't use the projection math that fails.
+function safeFlyTo(map, latlng, zoom, options) {
+  if (!map || !isValidLatLng(latlng[0], latlng[1])) return;
+  const size = map.getSize();
+  if (size && size.x > 0 && size.y > 0) {
+    map.flyTo(latlng, zoom, options);
+  } else {
+    map.setView(latlng, zoom, { animate: false });
+  }
+}
+
 /* ─── MAP CENTER CONTROLLER ─── */
 function MapCenterController({ center, zoom, selectedVenue, recenterFlag }) {
   const map = useMap();
