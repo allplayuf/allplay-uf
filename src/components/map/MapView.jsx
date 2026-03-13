@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import MapVenuePreview from './MapVenuePreview';
 
 /* ─── STATUS HELPERS ─── */
@@ -427,7 +427,12 @@ export default function MapView({
       </AnimatePresence>
 
       {/* Legend */}
-      <div className="absolute bottom-3 left-3 z-[2] flex items-center gap-2 bg-[#121715]/92 backdrop-blur-md rounded-xl px-2.5 py-1.5 border border-[#223029] shadow-lg flex-wrap">
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: mapVisible ? 1 : 0, y: mapVisible ? 0 : 10 }}
+        transition={{ duration: 0.4, delay: 0.3, ease: "easeOut" }}
+        className="absolute bottom-3 left-3 z-[2] flex items-center gap-2 bg-[#121715]/92 backdrop-blur-md rounded-xl px-2.5 py-1.5 border border-[#223029] shadow-lg flex-wrap"
+      >
         <div className="flex items-center gap-1">
           <svg width="10" height="14" viewBox="0 0 10 14"><path d="M5 13C5 13 2.5 8.5 1.5 5.5a4 4 0 117 0C7.5 8.5 5 13 5 13z" fill="#0D2818" stroke="#2BA84A" strokeWidth="1.2" strokeLinejoin="round"/><circle cx="5" cy="5" r="1.5" fill="#4ADE80"/></svg>
           <span className="text-[9px] font-medium text-[#9EAAA4]">Plan</span>
@@ -452,7 +457,7 @@ export default function MapView({
           <svg width="10" height="14" viewBox="0 0 10 14"><path d="M5 13C5 13 2.5 8.5 1.5 5.5a4 4 0 117 0C7.5 8.5 5 13 5 13z" fill="#2A1F08" stroke="#F59E0B" strokeWidth="1.2" strokeLinejoin="round"/><circle cx="5" cy="5" r="1.5" fill="#FDE68A"/></svg>
           <span className="text-[9px] font-medium text-[#9EAAA4]">Live</span>
         </div>
-      </div>
+      </motion.div>
 
       <style>{`
         /* GPU-accelerate the entire map container for silky panning/zooming */
