@@ -202,20 +202,20 @@ function MapCenterController({ center, zoom, selectedVenue, recenterFlag }) {
   useEffect(() => {
     if (selectedVenue?.latitude != null && selectedVenue?.longitude != null &&
         isValidLatLng(selectedVenue.latitude, selectedVenue.longitude)) {
-      map.flyTo([selectedVenue.latitude, selectedVenue.longitude], 16, { duration: 0.8, easeLinearity: 0.25 });
+      safeFlyTo(map, [selectedVenue.latitude, selectedVenue.longitude], 16, { duration: 0.8, easeLinearity: 0.25 });
       prevVenueRef.current = selectedVenue;
     } else if (prevVenueRef.current) {
       prevVenueRef.current = null;
     } else if (recenterFlag > lastRecenterFlag.current && isValidLatLng(center?.lat, center?.lng)) {
       lastRecenterFlag.current = recenterFlag;
-      map.flyTo([center.lat, center.lng], 14, { duration: 1.0, easeLinearity: 0.25 });
+      safeFlyTo(map, [center.lat, center.lng], 14, { duration: 1.0, easeLinearity: 0.25 });
     } else if (isValidLatLng(center?.lat, center?.lng)) {
       const centerChanged = !prevCenterRef.current || 
         prevCenterRef.current.lat !== center.lat || 
         prevCenterRef.current.lng !== center.lng;
       
       if (!hasReceivedRealLocation.current && centerChanged) {
-        map.flyTo([center.lat, center.lng], zoom, { duration: 1.2, easeLinearity: 0.25 });
+        safeFlyTo(map, [center.lat, center.lng], zoom, { duration: 1.2, easeLinearity: 0.25 });
         const isDefaultStockholm = Math.abs(center.lat - 59.3293) < 0.001 && Math.abs(center.lng - 18.0686) < 0.001;
         if (!isDefaultStockholm) {
           hasReceivedRealLocation.current = true;
@@ -301,9 +301,7 @@ function ClusteredMarkers({ venues, venueStatuses, selectedVenue, onMarkerClick,
           const icon = createClusterIcon(clusterVenues.length, hasAnyMatch);
           const marker = L.marker([avgLat, avgLng], { icon });
           marker.on('click', () => {
-            if (isValidLatLng(avgLat, avgLng)) {
-              map.flyTo([avgLat, avgLng], zoom + 2, { duration: 0.6, easeLinearity: 0.25 });
-            }
+            safeFlyTo(map, [avgLat, avgLng], zoom + 2, { duration: 0.6, easeLinearity: 0.25 });
           });
           group.addLayer(marker);
         }
