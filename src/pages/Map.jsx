@@ -400,7 +400,7 @@ export default function MapPage() {
                 Hitta planer
               </h1>
               <button 
-                onClick={getUserLocation}
+                onClick={() => getUserLocation(true)}
                 className="h-9 w-9 flex items-center justify-center bg-[#2BA84A]/12 border border-[#2BA84A]/25 hover:bg-[#2BA84A]/20 text-[#2BA84A] rounded-full transition-all shadow-[0_0_12px_rgba(43,168,74,0.15)]"
               >
                 <Navigation className="w-4 h-4" />
