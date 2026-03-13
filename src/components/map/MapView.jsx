@@ -181,8 +181,8 @@ function MapCenterController({ center, zoom, selectedVenue, recenterFlag }) {
 
   useEffect(() => {
     if (selectedVenue?.latitude != null && selectedVenue?.longitude != null) {
-      // Pan to selected venue
-      map.setView([selectedVenue.latitude, selectedVenue.longitude], 16, { animate: true, duration: 0.8 });
+      // Fly to selected venue with smooth animation
+      map.flyTo([selectedVenue.latitude, selectedVenue.longitude], 16, { duration: 0.8, easeLinearity: 0.25 });
       prevVenueRef.current = selectedVenue;
     } else if (prevVenueRef.current) {
       // Venue was deselected (close button) — stay where we are, don't re-center
@@ -190,16 +190,15 @@ function MapCenterController({ center, zoom, selectedVenue, recenterFlag }) {
     } else if (recenterFlag > lastRecenterFlag.current && center?.lat && center?.lng) {
       // Green button pressed — fly to user location
       lastRecenterFlag.current = recenterFlag;
-      map.setView([center.lat, center.lng], 14, { animate: true, duration: 0.8 });
+      map.flyTo([center.lat, center.lng], 14, { duration: 1.0, easeLinearity: 0.25 });
     } else if (center?.lat && center?.lng) {
       const centerChanged = !prevCenterRef.current || 
         prevCenterRef.current.lat !== center.lat || 
         prevCenterRef.current.lng !== center.lng;
       
       if (!hasReceivedRealLocation.current && centerChanged) {
-        // Center on user location when it first arrives (or on fallback)
-        map.setView([center.lat, center.lng], zoom, { animate: true, duration: 0.5 });
-        // Mark as received after we get a non-default location (not Stockholm fallback)
+        // Smooth fly to user location when it first arrives
+        map.flyTo([center.lat, center.lng], zoom, { duration: 1.2, easeLinearity: 0.25 });
         const isDefaultStockholm = Math.abs(center.lat - 59.3293) < 0.001 && Math.abs(center.lng - 18.0686) < 0.001;
         if (!isDefaultStockholm) {
           hasReceivedRealLocation.current = true;
@@ -312,6 +311,7 @@ export default function MapView({
   userMatchIds = []
 }) {
   const [mapReady, setMapReady] = useState(false);
+  const [mapVisible, setMapVisible] = useState(false);
   const mapRef = useRef(null);
 
   const venueStatuses = useMemo(() => {
@@ -351,7 +351,7 @@ export default function MapView({
   }, [onVenueSelect]);
 
   return (
-    <div className="w-full h-full relative">
+    <div className={`w-full h-full relative transition-opacity duration-500 ease-out ${mapVisible ? 'opacity-100' : 'opacity-0'}`}>
       <MapContainer
         center={[defaultCenter.lat, defaultCenter.lng]}
         zoom={13}
@@ -362,17 +362,35 @@ export default function MapView({
         dragging={true}
         tap={true}
         ref={mapRef}
-        whenReady={() => setMapReady(true)}
+        whenReady={() => {
+          setMapReady(true);
+          // Slight delay for tiles to render before fade-in
+          requestAnimationFrame(() => {
+            setTimeout(() => setMapVisible(true), 80);
+          });
+        }}
         preferCanvas={true}
-        updateWhenIdle={true}
-        updateWhenZooming={false}
+        updateWhenIdle={false}
+        updateWhenZooming={true}
+        fadeAnimation={true}
+        zoomAnimation={true}
+        markerZoomAnimation={true}
+        inertia={true}
+        inertiaDeceleration={3000}
+        inertiaMaxSpeed={1500}
+        easeLinearity={0.2}
+        zoomSnap={0.5}
+        zoomDelta={0.5}
+        wheelPxPerZoomLevel={120}
       >
         <TileLayer
           attribution='&copy; <a href="https://carto.com/">CARTO</a>'
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           maxZoom={20}
-          keepBuffer={2}
-          updateInterval={200}
+          keepBuffer={4}
+          updateInterval={100}
+          tileSize={256}
+          detectRetina={true}
         />
 
         {mapReady && <MapCenterController center={defaultCenter} zoom={13} selectedVenue={selectedVenue} recenterFlag={recenterFlag} />}
