@@ -687,9 +687,9 @@ export default function ProfilePage() {
                 className="relative flex-shrink-0"
               >
                 <div className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-[#FFFFFF]/30 shadow-[0_20px_60px_rgba(43,168,74,0.4)] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm flex items-center justify-center">
-                  {displayUser?.profile_image_url ? (
+                  {(displayUser?.profile_image_url || displayUser?.avatar_url) ? (
                     <img
-                      src={displayUser.profile_image_url}
+                      src={displayUser.profile_image_url || displayUser.avatar_url}
                       alt="Profile"
                       className="w-full h-full object-cover"
                       loading="eager"
