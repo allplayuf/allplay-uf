@@ -5,6 +5,7 @@ import { createPageUrl } from "@/utils";
 import { supabaseClient } from "@/components/supabase/client";
 import { clearAdminCache } from "@/components/supabase/services/adminService";
 import { Edit, QrCode, X, FileText } from "lucide-react";
+import NotificationToggle from "@/components/firebase/NotificationToggle";
 
 export default function SettingsSheet({ onClose, onShowQR }) {
   return (
