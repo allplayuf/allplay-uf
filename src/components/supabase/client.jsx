@@ -281,8 +281,8 @@ class SupabaseClient {
       const response = await fetch(url, { ...options, headers: { ...headers, ...options.headers } });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        if (response.status === 401 && endpoint.includes('/auth/')) {
-          // Only clear session for Supabase auth endpoints, not REST API 401s
+        if (response.status === 401 && endpoint.includes('/auth/v1/token')) {
+          // Only clear session for actual token refresh/login failures
           sessionStore.clear();
           return { error: { code: 401, message: 'Session expired. Please login again.' } };
         }
