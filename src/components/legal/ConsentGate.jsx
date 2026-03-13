@@ -55,7 +55,7 @@ export default function ConsentGate({ onAccept, onCancel, isSignup = false, isLo
 
       {/* Bottom action area - safe from nav bar */}
       <div className="flex-shrink-0 border-t border-[#223029] bg-[#121715] px-4 py-3"
-        style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}>
+        style={{ paddingBottom: 'max(1.5rem, calc(1.5rem + env(safe-area-inset-bottom)))' }}>
         <div className="max-w-2xl mx-auto space-y-2.5">
           {/* Error message */}
           {error && (
