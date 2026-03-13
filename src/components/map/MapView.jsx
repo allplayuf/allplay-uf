@@ -171,6 +171,13 @@ function createUserLocationIcon() {
   });
 }
 
+/* ─── COORDINATE VALIDATION ─── */
+function isValidLatLng(lat, lng) {
+  return typeof lat === 'number' && typeof lng === 'number' &&
+    !isNaN(lat) && !isNaN(lng) && isFinite(lat) && isFinite(lng) &&
+    lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+}
+
 /* ─── MAP CENTER CONTROLLER ─── */
 function MapCenterController({ center, zoom, selectedVenue, recenterFlag }) {
   const map = useMap();
@@ -180,24 +187,21 @@ function MapCenterController({ center, zoom, selectedVenue, recenterFlag }) {
   const prevCenterRef = useRef(null);
 
   useEffect(() => {
-    if (selectedVenue?.latitude != null && selectedVenue?.longitude != null) {
-      // Fly to selected venue with smooth animation
+    if (selectedVenue?.latitude != null && selectedVenue?.longitude != null &&
+        isValidLatLng(selectedVenue.latitude, selectedVenue.longitude)) {
       map.flyTo([selectedVenue.latitude, selectedVenue.longitude], 16, { duration: 0.8, easeLinearity: 0.25 });
       prevVenueRef.current = selectedVenue;
     } else if (prevVenueRef.current) {
-      // Venue was deselected (close button) — stay where we are, don't re-center
       prevVenueRef.current = null;
-    } else if (recenterFlag > lastRecenterFlag.current && center?.lat && center?.lng) {
-      // Green button pressed — fly to user location
+    } else if (recenterFlag > lastRecenterFlag.current && isValidLatLng(center?.lat, center?.lng)) {
       lastRecenterFlag.current = recenterFlag;
       map.flyTo([center.lat, center.lng], 14, { duration: 1.0, easeLinearity: 0.25 });
-    } else if (center?.lat && center?.lng) {
+    } else if (isValidLatLng(center?.lat, center?.lng)) {
       const centerChanged = !prevCenterRef.current || 
         prevCenterRef.current.lat !== center.lat || 
         prevCenterRef.current.lng !== center.lng;
       
       if (!hasReceivedRealLocation.current && centerChanged) {
-        // Smooth fly to user location when it first arrives
         map.flyTo([center.lat, center.lng], zoom, { duration: 1.2, easeLinearity: 0.25 });
         const isDefaultStockholm = Math.abs(center.lat - 59.3293) < 0.001 && Math.abs(center.lng - 18.0686) < 0.001;
         if (!isDefaultStockholm) {
