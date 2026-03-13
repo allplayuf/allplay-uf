@@ -172,10 +172,11 @@ function createUserLocationIcon() {
 }
 
 /* ─── MAP CENTER CONTROLLER ─── */
-function MapCenterController({ center, zoom, selectedVenue }) {
+function MapCenterController({ center, zoom, selectedVenue, recenterFlag }) {
   const map = useMap();
   const hasInitialized = useRef(false);
   const prevVenueRef = useRef(null);
+  const lastRecenterFlag = useRef(0);
 
   useEffect(() => {
     if (selectedVenue?.latitude != null && selectedVenue?.longitude != null) {
@@ -185,12 +186,16 @@ function MapCenterController({ center, zoom, selectedVenue }) {
     } else if (prevVenueRef.current) {
       // Venue was deselected (close button) — stay where we are, don't re-center
       prevVenueRef.current = null;
+    } else if (recenterFlag > lastRecenterFlag.current && center?.lat && center?.lng) {
+      // Green button pressed — fly to user location
+      lastRecenterFlag.current = recenterFlag;
+      map.setView([center.lat, center.lng], 14, { animate: true, duration: 0.8 });
     } else if (!hasInitialized.current && center?.lat && center?.lng) {
-      // Initial map center only
+      // Initial map center on first load
       map.setView([center.lat, center.lng], zoom, { animate: true, duration: 0.5 });
       hasInitialized.current = true;
     }
-  }, [center, zoom, selectedVenue, map]);
+  }, [center, zoom, selectedVenue, recenterFlag, map]);
   return null;
 }
 
