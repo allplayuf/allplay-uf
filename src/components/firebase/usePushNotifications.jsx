@@ -5,7 +5,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/components/supabase/config';
 import { toast } from 'sonner';
 
 // IMPORTANT: Replace with your real VAPID key from Firebase Console → Cloud Messaging → Web Push certificates
-const VAPID_KEY = 'DIN_VAPID_KEY_HÄR';
+const VAPID_KEY = 'BEhDB-55Fu25URHYBsldVjalW_7lPb-8s5fhQstpiLzojjnOI2t_Jp_kPVIskNz_IdvNBVf5HkNNX8P2BNF8iGQ';
 
 export function usePushNotifications() {
   const unsubscribeRef = useRef(null);
