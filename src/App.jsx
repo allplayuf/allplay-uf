@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import './App.css'
 import VisualEditAgent from '@/lib/VisualEditAgent'
 import NavigationTracker from '@/lib/NavigationTracker'
@@ -64,6 +65,12 @@ const AuthenticatedApp = () => {
 
 
 function App() {
+  useEffect(() => {
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+      viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, viewport-fit=cover');
+    }
+  }, []);
 
   return (
     <AuthProvider>
