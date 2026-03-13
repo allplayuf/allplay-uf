@@ -293,6 +293,7 @@ export default function MapView({
   allParticipants = [],
   selectedVenue,
   userLocation,
+  recenterFlag = 0,
   onVenueSelect,
   onShowDetails,
   onMatchClick,
@@ -362,7 +363,7 @@ export default function MapView({
           updateInterval={200}
         />
 
-        {mapReady && <MapCenterController center={defaultCenter} zoom={13} selectedVenue={selectedVenue} />}
+        {mapReady && <MapCenterController center={defaultCenter} zoom={13} selectedVenue={selectedVenue} recenterFlag={recenterFlag} />}
 
         {userLocation?.lat && userLocation?.lng && (
           <Marker position={[userLocation.lat, userLocation.lng]} icon={createUserLocationIcon()} />
