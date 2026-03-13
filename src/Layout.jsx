@@ -33,6 +33,21 @@ function GuestBannerWrapper() {
 // Initialize Supabase on app load
 initSupabase().catch(console.error);
 
+// === iOS SAFE AREA FIX ===
+if (typeof window !== 'undefined') {
+  (function() {
+    // Set viewport-fit=cover
+    const meta = document.querySelector('meta[name="viewport"]');
+    if (meta) {
+      meta.setAttribute('content', 'width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no');
+    }
+    // Force background color on everything
+    const bg = '#0B0F0D';
+    document.documentElement.style.cssText += 'background:' + bg + ' !important;';
+    document.body.style.cssText += 'background:' + bg + ' !important;';
+  })();
+}
+
 // Prevent iOS from stealing audio focus from background music (Spotify, Apple Music, etc.)
 // By creating a silent AudioContext with "ambient" mixing, iOS won't pause other apps' audio.
 if (typeof window !== 'undefined') {
