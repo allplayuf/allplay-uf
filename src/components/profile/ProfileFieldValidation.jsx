@@ -112,6 +112,20 @@ export function validateField(field, value) {
       return null;
     }
 
+    case 'date_of_birth': {
+      if (!trimmed) return null; // Optional
+      const dob = new Date(trimmed);
+      if (isNaN(dob.getTime())) {
+        return 'Ogiltigt datum';
+      }
+      const currentYear = new Date().getFullYear();
+      const dobYear = dob.getFullYear();
+      if (dobYear < 1930 || dobYear > currentYear - 5) {
+        return `Födelsedatum måste vara mellan 1930 och ${currentYear - 5}`;
+      }
+      return null;
+    }
+
     default:
       return null;
   }
@@ -123,7 +137,7 @@ export function validateField(field, value) {
  */
 export function validateAllFields(data) {
   const errors = {};
-  const fieldsToValidate = ['display_name', 'bio', 'username', 'city', 'skill_level', 'birth_year'];
+  const fieldsToValidate = ['display_name', 'bio', 'username', 'city', 'skill_level', 'birth_year', 'date_of_birth'];
 
   for (const field of fieldsToValidate) {
     const error = validateField(field, data[field]);
