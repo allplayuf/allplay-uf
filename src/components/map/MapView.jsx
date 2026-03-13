@@ -174,9 +174,10 @@ function createUserLocationIcon() {
 /* ─── MAP CENTER CONTROLLER ─── */
 function MapCenterController({ center, zoom, selectedVenue, recenterFlag }) {
   const map = useMap();
-  const hasInitialized = useRef(false);
+  const hasReceivedRealLocation = useRef(false);
   const prevVenueRef = useRef(null);
   const lastRecenterFlag = useRef(0);
+  const prevCenterRef = useRef(null);
 
   useEffect(() => {
     if (selectedVenue?.latitude != null && selectedVenue?.longitude != null) {
@@ -190,10 +191,21 @@ function MapCenterController({ center, zoom, selectedVenue, recenterFlag }) {
       // Green button pressed — fly to user location
       lastRecenterFlag.current = recenterFlag;
       map.setView([center.lat, center.lng], 14, { animate: true, duration: 0.8 });
-    } else if (!hasInitialized.current && center?.lat && center?.lng) {
-      // Initial map center on first load
-      map.setView([center.lat, center.lng], zoom, { animate: true, duration: 0.5 });
-      hasInitialized.current = true;
+    } else if (center?.lat && center?.lng) {
+      const centerChanged = !prevCenterRef.current || 
+        prevCenterRef.current.lat !== center.lat || 
+        prevCenterRef.current.lng !== center.lng;
+      
+      if (!hasReceivedRealLocation.current && centerChanged) {
+        // Center on user location when it first arrives (or on fallback)
+        map.setView([center.lat, center.lng], zoom, { animate: true, duration: 0.5 });
+        // Mark as received after we get a non-default location (not Stockholm fallback)
+        const isDefaultStockholm = Math.abs(center.lat - 59.3293) < 0.001 && Math.abs(center.lng - 18.0686) < 0.001;
+        if (!isDefaultStockholm) {
+          hasReceivedRealLocation.current = true;
+        }
+      }
+      prevCenterRef.current = { lat: center.lat, lng: center.lng };
     }
   }, [center, zoom, selectedVenue, recenterFlag, map]);
   return null;
