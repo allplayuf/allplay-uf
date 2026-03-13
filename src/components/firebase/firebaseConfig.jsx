@@ -16,7 +16,7 @@ const firebaseConfig = {
 
 // VAPID key for push notifications
 // Get it from: Firebase Console → Project Settings → Cloud Messaging → Web Push certificates
-export const VAPID_KEY = "BEhDB-55Fu25URHYBsldVjalW_7lPb-8s5fhQstpiLzojjnOI2t_Jp_kPVIskNz_IdvNBVf5HkNNX8P2BNF8iGQ";
+export const VAPID_KEY = "YOUR_VAPID_KEY";
 
 let _messaging = null;
 let _initPromise = null;

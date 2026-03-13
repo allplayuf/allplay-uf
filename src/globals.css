@@ -61,8 +61,6 @@
     /* Force dark color scheme for iOS */
     color-scheme: dark;
     -webkit-text-size-adjust: 100%;
-    min-height: 100dvh;
-    min-height: -webkit-fill-available;
   }
 
   /* Prevent iOS rubber-band showing white behind fixed elements */
@@ -71,7 +69,6 @@
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background-color: #0B0F0D;
   }
 
   body {
@@ -79,7 +76,6 @@
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background-color: #0B0F0D;
   }
 
   #root {
