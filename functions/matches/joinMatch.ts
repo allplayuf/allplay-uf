@@ -1,8 +1,5 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
-
-function isGuest(user) {
-  return !user || user.is_guest === true;
-}
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { can, ACTIONS, CONTEXTS, isGuest, requireAuth } from '../utils/permissions.js';
 
 Deno.serve(async (req) => {
   try {
@@ -15,19 +12,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Du måste vara inloggad för att gå med i matcher' }, { status: 401 });
     }
 
-    // Check if match exists
+    // Check permission
+    if (!can(user, ACTIONS.JOIN, CONTEXTS.MATCH)) {
+      return Response.json({ error: 'Du har inte behörighet att gå med i matcher' }, { status: 403 });
+    }
+
+    // Check if match is full
     const match = await base44.entities.Match.get(match_id);
     if (!match) return Response.json({ error: 'Match not found' }, { status: 404 });
 
     const participants = await base44.entities.MatchParticipant.filter({ match_id });
     
-    // Check if already joined
-    if (participants.some(p => p.user_id === user.id)) {
-      return Response.json({ error: 'Already a participant' }, { status: 400 });
-    }
-
     if (!match.is_spontaneous && participants.length >= match.max_players) {
-      return Response.json({ error: 'Match is full' }, { status: 400 });
+        return Response.json({ error: 'Match is full' }, { status: 400 });
     }
 
     // Join
@@ -44,15 +41,18 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Send push notification - Non-blocking
-    try {
-      await base44.asServiceRole.functions.invoke('notifyMatchUpdate', {
-        type: 'player_joined',
-        match_id: match_id,
-        user_ids: null
-      });
-    } catch (pushError) {
-      console.error("Failed to send push notification:", pushError);
+    // Notify Organizer (if not self) - Non-blocking
+    if (match.organizer_id !== user.id) {
+      try {
+        await base44.integrations.Core.SendEmail({
+            to: "notifications@allplay.com", 
+            subject: `Ny spelare: ${user.full_name}`,
+            body: `${user.full_name} har gått med i din match "${match.title}"!`
+        });
+      } catch (emailError) {
+        console.error("Failed to send join notification email:", emailError);
+        // Continue execution, don't fail the join request
+      }
     }
 
     return Response.json({ success: true });

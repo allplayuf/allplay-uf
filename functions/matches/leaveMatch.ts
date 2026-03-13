@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
 Deno.serve(async (req) => {
   try {
@@ -26,17 +26,6 @@ Deno.serve(async (req) => {
                 current_players: Math.max(0, allParticipants.length)
             });
         }
-    }
-
-    // Send push notification - Non-blocking
-    try {
-      await base44.asServiceRole.functions.invoke('notifyMatchUpdate', {
-        type: 'player_left',
-        match_id: match_id,
-        user_ids: null
-      });
-    } catch (pushError) {
-      console.error("Failed to send push notification:", pushError);
     }
 
     return Response.json({ success: true });

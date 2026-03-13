@@ -4,6 +4,17 @@
  * Supports two call modes:
  * 1. Frontend: { type: string, match_id: string, user_ids?: string[] }
  * 2. Entity automation: { event: { type, entity_name, entity_id }, data: {...}, old_data: {...} }
+ * 
+ * Supported types:
+ * - new_match: Ny match skapad
+ * - match_updated: Match ändrad
+ * - player_joined: Spelare gick med
+ * - player_left: Spelare lämnade
+ * - match_cancelled: Match inställd
+ * - match_reminder: Påminnelse
+ * - match_full: Matchen full
+ * - invitation: Matchinbjudan
+ * - nearby: Match nära dig
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
@@ -21,125 +32,31 @@ const EVENT_CONFIG = {
   nearby:          { emoji: '📍', title: 'Match nära dig!',     template: (m, v) => `"${m.title}" spelas på ${v}, ${m.date} kl ${m.time}. Häng med!` },
 };
 
-// === Inline FCM sending (no cross-function calls needed) ===
-
-function toBase64Url(str) {
-  return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+async function fetchJson(url, headers) {
+  const res = await fetch(url, { headers });
+  return res.ok ? await res.json() : [];
 }
-
-async function getFirebaseAccessToken() {
-  const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT');
-  if (!serviceAccountJson) throw new Error('FIREBASE_SERVICE_ACCOUNT secret not set');
-
-  const sa = JSON.parse(serviceAccountJson);
-  const header = toBase64Url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
-  const now = Math.floor(Date.now() / 1000);
-  const claimSet = toBase64Url(JSON.stringify({
-    iss: sa.client_email,
-    scope: 'https://www.googleapis.com/auth/firebase.messaging',
-    aud: 'https://oauth2.googleapis.com/token',
-    exp: now + 3600,
-    iat: now
-  }));
-
-  const signInput = `${header}.${claimSet}`;
-  const pemContent = sa.private_key.replace('-----BEGIN PRIVATE KEY-----', '').replace('-----END PRIVATE KEY-----', '').replace(/\n/g, '');
-  const binaryKey = Uint8Array.from(atob(pemContent), c => c.charCodeAt(0));
-  
-  const key = await crypto.subtle.importKey('pkcs8', binaryKey, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']);
-  const signature = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, new TextEncoder().encode(signInput));
-  const sig = toBase64Url(String.fromCharCode(...new Uint8Array(signature)));
-
-  const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${header}.${claimSet}.${sig}`
-  });
-
-  const tokenData = await tokenRes.json();
-  if (!tokenData.access_token) throw new Error('Failed to get Firebase access token');
-  return { accessToken: tokenData.access_token, projectId: sa.project_id };
-}
-
-async function sendPushToUsers(userIds, title, body, data) {
-  const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY');
-  const dbHeaders = {
-    'apikey': supabaseKey,
-    'Authorization': `Bearer ${supabaseKey}`,
-    'Content-Type': 'application/json'
-  };
-
-  // Fetch tokens
-  const tokenRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/push_tokens?user_id=in.(${userIds.join(',')})&select=fcm_token,user_id`,
-    { headers: dbHeaders }
-  );
-
-  if (!tokenRes.ok) {
-    console.error('Failed to fetch push tokens:', tokenRes.status);
-    return { sent: 0, error: 'Failed to fetch tokens' };
-  }
-
-  const tokens = await tokenRes.json();
-  if (!Array.isArray(tokens) || tokens.length === 0) {
-    console.log(`[sendPush] No tokens for ${userIds.length} users`);
-    return { sent: 0, message: 'No push tokens found' };
-  }
-
-  const { accessToken, projectId } = await getFirebaseAccessToken();
-  let sent = 0;
-  let failed = 0;
-  const staleTokens = [];
-
-  for (const { fcm_token } of tokens) {
-    const res = await fetch(`https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: {
-          token: fcm_token,
-          notification: { title, body },
-          data: Object.fromEntries(Object.entries(data || {}).map(([k, v]) => [k, String(v)])),
-          webpush: { notification: { icon: '/icons/allplay-icon-192.png' } }
-        }
-      })
-    });
-
-    if (res.ok) {
-      sent++;
-    } else {
-      failed++;
-      const err = await res.json().catch(() => ({}));
-      if (err?.error?.code === 404 || err?.error?.details?.[0]?.errorCode === 'UNREGISTERED') {
-        staleTokens.push(fcm_token);
-      }
-    }
-  }
-
-  // Cleanup stale tokens
-  for (const token of staleTokens) {
-    await fetch(`${SUPABASE_URL}/rest/v1/push_tokens?fcm_token=eq.${encodeURIComponent(token)}`, {
-      method: 'DELETE', headers: dbHeaders
-    }).catch(() => {});
-  }
-
-  console.log(`[sendPush] Sent: ${sent}, Failed: ${failed}, Stale: ${staleTokens.length}`);
-  return { sent, failed, stale_cleaned: staleTokens.length };
-}
-
-// === Main handler ===
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const payload = await req.json();
 
+    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const dbHeaders = {
+      'apikey': supabaseKey,
+      'Authorization': `Bearer ${supabaseKey}`,
+      'Content-Type': 'application/json'
+    };
+
+    // Determine if this is an entity automation call or a frontend call
     let eventType, matchId, providedUserIds, triggerUserId;
 
     if (payload.event?.entity_name) {
+      // Entity automation trigger
       const { event, data, old_data } = payload;
       matchId = event.entity_id || data?.id;
-      triggerUserId = data?.organizer_id || data?.created_by;
+      triggerUserId = data?.organizer_id;
 
       if (event.type === 'create') {
         eventType = 'new_match';
@@ -159,8 +76,11 @@ Deno.serve(async (req) => {
         return Response.json({ ok: true, skipped: true, reason: 'delete event' });
       }
     } else {
+      // Frontend call - requires auth
       const user = await base44.auth.me();
-      if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      if (!user) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      }
       triggerUserId = user.id;
       eventType = payload.type || payload.event_type;
       matchId = payload.match_id;
@@ -176,37 +96,38 @@ Deno.serve(async (req) => {
       return Response.json({ error: `Unknown event type: ${eventType}` }, { status: 400 });
     }
 
-    // Fetch match — try SDK first, fall back to automation payload
-    let match;
-    try {
-      match = await base44.asServiceRole.entities.Match.get(matchId);
-    } catch (e) {
-      console.warn('SDK match fetch failed, using payload data:', e.message);
-      if (payload.data?.title) match = payload.data;
+    // Fetch match details
+    const matches = await fetchJson(
+      `${SUPABASE_URL}/rest/v1/matches?id=eq.${matchId}&select=*`,
+      dbHeaders
+    );
+    const match = matches?.[0];
+    if (!match) {
+      return Response.json({ error: 'Match not found' }, { status: 404 });
     }
-    if (!match) return Response.json({ error: 'Match not found' }, { status: 404 });
 
     // Fetch venue name
     let venueName = 'Okänd plats';
     if (match.venue_id) {
-      try {
-        const venue = await base44.asServiceRole.entities.Venue.get(match.venue_id);
-        if (venue?.name) venueName = venue.name;
-      } catch (e) { /* ok */ }
+      const venues = await fetchJson(
+        `${SUPABASE_URL}/rest/v1/venues?id=eq.${match.venue_id}&select=name`,
+        dbHeaders
+      );
+      if (venues?.[0]?.name) venueName = venues[0].name;
     }
 
     // Determine target users
     let targetUserIds = providedUserIds || [];
+
     if (targetUserIds.length === 0) {
-      try {
-        const participants = await base44.asServiceRole.entities.MatchParticipant.filter({ match_id: matchId });
-        targetUserIds = (participants || [])
-          .filter(p => p.status === 'registered' || p.status === 'confirmed')
-          .map(p => p.user_id)
-          .filter(id => id && id !== triggerUserId);
-      } catch (e) {
-        console.warn('Failed to fetch participants:', e.message);
-      }
+      // For most events, notify all match participants except the trigger user
+      const participants = await fetchJson(
+        `${SUPABASE_URL}/rest/v1/match_participants?match_id=eq.${matchId}&status=in.(registered,confirmed)&select=user_id`,
+        dbHeaders
+      );
+      targetUserIds = (participants || [])
+        .map(p => p.user_id)
+        .filter(id => id !== triggerUserId); // Don't notify the person who triggered it
     }
 
     if (targetUserIds.length === 0) {
@@ -215,19 +136,24 @@ Deno.serve(async (req) => {
 
     const title = `${config.emoji} ${config.title}`;
     const body = config.template(match, venueName);
-    const notifData = { match_id: matchId, click_action: `/MatchDetail?id=${matchId}` };
+    const data = { match_id: matchId, click_action: `/MatchDetail?id=${matchId}` };
 
-    // Send push notifications directly (no cross-function invoke needed)
-    const pushResult = await sendPushToUsers(targetUserIds, title, body, notifData);
+    // Call sendPushNotification
+    const result = await base44.asServiceRole.functions.invoke('sendPushNotification', {
+      user_ids: targetUserIds,
+      title,
+      body,
+      data
+    });
 
-    console.log(`[notifyMatchUpdate] ${eventType} for match ${matchId} → ${targetUserIds.length} users, push:`, JSON.stringify(pushResult));
+    console.log(`[notifyMatchUpdate] ${eventType} for match ${matchId} → ${targetUserIds.length} users`);
 
     return Response.json({
       ok: true,
       event_type: eventType,
       match_id: matchId,
       target_users: targetUserIds.length,
-      push_result: pushResult
+      push_result: result
     });
   } catch (error) {
     console.error('notifyMatchUpdate error:', error);

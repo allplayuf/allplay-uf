@@ -68,7 +68,7 @@ self.addEventListener('notificationclick', function(event) {
 
       const swBlob = new Blob([swCode], { type: 'application/javascript' });
       const swUrl = URL.createObjectURL(swBlob);
-      const registration = await navigator.serviceWorker.register(swUrl);
+      const registration = await navigator.serviceWorker.register(swUrl, { scope: '/' });
       await navigator.serviceWorker.ready;
 
       const token = await getToken(messaging, {
