@@ -455,14 +455,44 @@ export default function MapView({
       </div>
 
       <style>{`
-        /* Pin base — isolated, no inheritance from global styles */
+        /* GPU-accelerate the entire map container for silky panning/zooming */
+        .leaflet-container {
+          will-change: transform;
+          -webkit-transform: translateZ(0);
+          transform: translateZ(0);
+        }
+        .leaflet-tile-container {
+          will-change: transform;
+          -webkit-transform: translateZ(0);
+          transform: translateZ(0);
+        }
+        .leaflet-tile {
+          will-change: opacity;
+          -webkit-backface-visibility: hidden;
+          backface-visibility: hidden;
+        }
+        .leaflet-zoom-anim .leaflet-zoom-animated {
+          will-change: transform;
+          transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+        }
+        .leaflet-fade-anim .leaflet-popup {
+          transition: opacity 0.2s ease-out !important;
+        }
+        .leaflet-marker-pane {
+          will-change: transform;
+        }
+
+        /* Pin base — smooth spring transitions */
         .ap-pin {
-          transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
+          transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease-out;
           cursor: pointer;
           display: block;
           line-height: 0;
           font-size: 0;
           box-sizing: content-box;
+          will-change: transform;
+          -webkit-backface-visibility: hidden;
+          backface-visibility: hidden;
         }
         .ap-pin svg {
           display: block;
@@ -480,6 +510,9 @@ export default function MapView({
           transform: scale(1.18) translateY(-4px);
           z-index: 1000 !important;
         }
+        .ap-cluster {
+          transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+        }
         .ap-cluster:hover {
           transform: scale(1.2);
         }
@@ -493,6 +526,7 @@ export default function MapView({
           border: none !important;
           filter: none !important;
           image-rendering: auto;
+          transition: opacity 0.15s ease-out;
         }
         .leaflet-marker-icon img {
           max-width: none !important;
@@ -533,6 +567,7 @@ export default function MapView({
           border: none !important;
           box-shadow: none !important;
           padding: 0 !important;
+          transition: opacity 0.2s ease-out !important;
         }
         .ap-tooltip::before { display: none !important; }
 
@@ -549,6 +584,7 @@ export default function MapView({
           border: 1px solid #223029 !important;
           width: 36px !important; height: 36px !important;
           line-height: 36px !important; font-size: 16px !important;
+          transition: background 0.15s ease, color 0.15s ease !important;
         }
         .leaflet-control-zoom a:hover {
           background: #18221E !important;
