@@ -5,7 +5,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/components/supabase/config';
 import { toast } from 'sonner';
 
 // IMPORTANT: Replace with your real VAPID key from Firebase Console → Cloud Messaging → Web Push certificates
-const VAPID_KEY = 'BEhDB-55Fu25URHYBsldVjalW_7lPb-8s5fhQstpiLzojjnOI2t_Jp_kPVIskNz_IdvNBVf5HkNNX8P2BNF8iGQ';
+const VAPID_KEY = 'DIN_VAPID_KEY_HÄR';
 
 export function usePushNotifications() {
   const unsubscribeRef = useRef(null);
@@ -23,52 +23,7 @@ export function usePushNotifications() {
         return null;
       }
 
-      const swCode = `
-importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
-
-firebase.initializeApp({
-  apiKey: "AIzaSyCKKXnprBnL2JmPjmCixfEYJjVGWahnKnE",
-  authDomain: "allplay-se.firebaseapp.com",
-  projectId: "allplay-se",
-  storageBucket: "allplay-se.firebasestorage.app",
-  messagingSenderId: "489338885498",
-  appId: "1:489338885498:web:0028c82da13fefbb9297dc"
-});
-
-const messaging = firebase.messaging();
-
-messaging.onBackgroundMessage(function(payload) {
-  var data = payload.data || {};
-  self.registration.showNotification(payload.notification?.title || 'Allplay', {
-    body: payload.notification?.body || 'Du har en ny notis',
-    icon: '/icons/allplay-icon-192.png',
-    tag: data.match_id || 'allplay-general',
-    data: { click_action: data.click_action || '/', match_id: data.match_id }
-  });
-});
-
-self.addEventListener('notificationclick', function(event) {
-  event.notification.close();
-  var url = event.notification.data?.click_action || '/';
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(windowClients) {
-      for (var i = 0; i < windowClients.length; i++) {
-        if (windowClients[i].url.includes(self.location.origin) && 'focus' in windowClients[i]) {
-          windowClients[i].focus();
-          if (url !== '/') windowClients[i].navigate(url);
-          return;
-        }
-      }
-      return clients.openWindow(url);
-    })
-  );
-});
-`;
-
-      const swBlob = new Blob([swCode], { type: 'application/javascript' });
-      const swUrl = URL.createObjectURL(swBlob);
-      const registration = await navigator.serviceWorker.register(swUrl, { scope: '/' });
+      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
       await navigator.serviceWorker.ready;
 
       const token = await getToken(messaging, {
