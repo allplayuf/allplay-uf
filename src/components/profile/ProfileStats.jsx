@@ -110,9 +110,10 @@ export default function ProfileStats({ user, isOwnProfile = true }) {
               <div className="flex gap-3 mt-4">
                 <button
                   onClick={handleSkillUpdate}
-                  className="flex-1 inline-flex h-11 items-center justify-center gap-2 rounded-[14px] bg-[#2BA84A]/16 px-5 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30 transition-all hover:bg-[#2BA84A]/24 hover:ring-[#2BA84A]/45 font-semibold"
+                  disabled={isSavingSkill}
+                  className="flex-1 inline-flex h-11 items-center justify-center gap-2 rounded-[14px] bg-[#2BA84A]/16 px-5 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30 transition-all hover:bg-[#2BA84A]/24 hover:ring-[#2BA84A]/45 font-semibold disabled:opacity-50"
                 >
-                  Spara
+                  {isSavingSkill ? 'Sparar...' : 'Spara'}
                 </button>
                 <button
                   onClick={() => setIsEditingSkill(false)}

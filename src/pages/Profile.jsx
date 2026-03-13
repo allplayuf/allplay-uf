@@ -936,6 +936,7 @@ export default function ProfilePage() {
                           {friends.map((friend, index) => {
                             const friendSkill = SKILL_LEVEL_CONFIG[friend.skill_level || 'intermediate'];
                             const FriendSkillIcon = friendSkill.icon;
+                            const friendAvatar = friend.profile_image_url || friend.avatar_url;
                             
                             return (
                               <motion.div
@@ -952,8 +953,8 @@ export default function ProfilePage() {
                                       <div className="p-4">
                                         <div className="flex items-center gap-3 mb-3">
                                           <div className="w-11 h-11 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                            {friend.profile_image_url ? 
-                                              <img src={friend.profile_image_url} alt={friend.full_name} className="w-full h-full object-cover" loading="lazy" /> :
+                                            {friendAvatar ? 
+                                              <img src={friendAvatar} alt={friend.full_name} className="w-full h-full object-cover" loading="lazy" /> :
                                               <span className="text-[#FFFFFF] font-semibold text-base">{friend.full_name?.[0] || 'U'}</span>
                                             }
                                           </div>
