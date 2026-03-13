@@ -19,7 +19,6 @@ import { triggerHaptic } from "@/components/utils/motionTokens";
 import ConsentChecker from "@/components/legal/ConsentChecker";
 import { NavigationProvider } from "@/components/navigation/NavigationProvider";
 import EdgeFunctionDebugPanel from "@/components/supabase/EdgeFunctionDebugPanel";
-import { usePushNotifications } from "@/components/firebase/usePushNotifications";
 
 // Guest banner wrapper that uses Supabase auth state
 // Must be rendered INSIDE SupabaseAuthProvider (it's in LayoutInner)
@@ -114,16 +113,6 @@ function LayoutInner({ children }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminCheckDone, setAdminCheckDone] = useState(false);
   const mainContentRef = React.useRef(null);
-
-  // Auto-register push notifications for authenticated users
-  const { registerPush } = usePushNotifications();
-  const { isAuthenticated: isSupabaseAuth2, isLoading: isSupabaseLoading2 } = useSupabaseAuth();
-  
-  useEffect(() => {
-    if (!isSupabaseLoading2 && isSupabaseAuth2) {
-      registerPush();
-    }
-  }, [isSupabaseLoading2, isSupabaseAuth2, registerPush]);
   
   // Track current path per tab for stack preservation
   const [tabPaths, setTabPaths] = useState({

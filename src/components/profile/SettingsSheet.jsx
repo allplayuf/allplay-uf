@@ -5,7 +5,6 @@ import { createPageUrl } from "@/utils";
 import { supabaseClient } from "@/components/supabase/client";
 import { clearAdminCache } from "@/components/supabase/services/adminService";
 import { Edit, QrCode, X, FileText } from "lucide-react";
-import NotificationToggle from "@/components/firebase/NotificationToggle";
 
 export default function SettingsSheet({ onClose, onShowQR }) {
   return (
@@ -29,8 +28,6 @@ export default function SettingsSheet({ onClose, onShowQR }) {
           </div>
 
           <div className="space-y-2">
-            <NotificationToggle />
-
             <Link to={createPageUrl("EditProfile")} onClick={onClose}>
               <button className="w-full h-14 px-4 flex items-center justify-between text-[#F4F7F5] bg-[#18221E] rounded-xl border border-[#223029] hover:border-[#2BA84A] transition-all duration-150">
                 <span className="flex items-center gap-3">
