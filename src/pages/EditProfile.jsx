@@ -31,7 +31,7 @@ const EMPTY_FORM = {
   bio: '',
   skill_level: '',
   city: '',
-  birth_year: '',
+  date_of_birth: '',
   avatar_url: '',
 };
 
@@ -65,7 +65,7 @@ export default function EditProfile() {
       bio: src.bio || '',
       skill_level: src.skill_level || '',
       city: src.city || '',
-      birth_year: src.birth_year ? String(src.birth_year) : '',
+      date_of_birth: src.date_of_birth || '',
       avatar_url: src.avatar_url || src.profile_image_url || authUser?.avatar_url || '',
     };
     setFormData(data);
@@ -130,8 +130,8 @@ export default function EditProfile() {
     if (formData.city !== initialData.city) {
       payload.city = formData.city.trim() || undefined;
     }
-    if (formData.birth_year !== initialData.birth_year) {
-      payload.birth_year = formData.birth_year ? parseInt(formData.birth_year, 10) : null;
+    if (formData.date_of_birth !== initialData.date_of_birth) {
+      payload.date_of_birth = formData.date_of_birth || null;
     }
     if (formData.avatar_url !== initialData.avatar_url) {
       payload.avatar_url = formData.avatar_url || null;
@@ -361,27 +361,24 @@ export default function EditProfile() {
                 )}
               </div>
 
-              {/* Birth Year */}
+              {/* Date of Birth */}
               <div className="space-y-2">
-                <Label htmlFor="birth_year" className="text-[#F4F7F5]">
-                  Födelseår <span className="text-[#9EAAA4] text-xs font-normal">(frivilligt)</span>
+                <Label htmlFor="date_of_birth" className="text-[#F4F7F5]">
+                  Födelsedatum <span className="text-[#9EAAA4] text-xs font-normal">(frivilligt)</span>
                 </Label>
                 <Input
-                  id="birth_year"
-                  type="number"
-                  value={formData.birth_year}
-                  onChange={(e) => handleChange('birth_year', e.target.value)}
-                  onBlur={() => handleBlur('birth_year')}
-                  placeholder="T.ex. 2000"
-                  min={1930}
-                  max={new Date().getFullYear() - 5}
+                  id="date_of_birth"
+                  type="date"
+                  value={formData.date_of_birth}
+                  onChange={(e) => handleChange('date_of_birth', e.target.value)}
+                  max={new Date(new Date().getFullYear() - 5, 11, 31).toISOString().split('T')[0]}
                   className="bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#9EAAA4]"
                   disabled={isSubmitting}
                 />
-                {errors.birth_year && (
+                {errors.date_of_birth && (
                   <p className="text-[#F4743B] text-xs flex items-center gap-1">
                     <AlertCircle className="w-3 h-3" />
-                    {errors.birth_year}
+                    {errors.date_of_birth}
                   </p>
                 )}
               </div>

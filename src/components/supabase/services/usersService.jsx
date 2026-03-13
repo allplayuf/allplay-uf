@@ -12,7 +12,7 @@ import { callEdgeFunction } from '../callEdgeFunction';
 import { EDGE } from '../edgeNames';
 import { primeUsers } from './userCache';
 
-const USER_COLUMNS = 'id,full_name,username,email,avatar_url,bio,city,skill_level,birth_year,elo_rating,matches_played,mvp_count,is_admin';
+const USER_COLUMNS = 'id,full_name,username,email,avatar_url,bio,city,skill_level,birth_year,date_of_birth,elo_rating,matches_played,mvp_count,is_admin';
 
 /**
  * Fetch users via REST (fallback when Edge fails)
@@ -187,7 +187,7 @@ export async function getUserById(id) {
 
 export async function updateProfile(data) {
   const payload = {};
-  const ALLOWED_FIELDS = ['full_name', 'username', 'avatar_url', 'bio', 'skill_level', 'city', 'birth_year'];
+  const ALLOWED_FIELDS = ['full_name', 'username', 'avatar_url', 'bio', 'skill_level', 'city', 'birth_year', 'date_of_birth'];
   for (const key of ALLOWED_FIELDS) {
     if (data[key] !== undefined) payload[key] = data[key];
   }
