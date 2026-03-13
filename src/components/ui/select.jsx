@@ -100,12 +100,11 @@ const SelectContent = ({ className, children, position = "popper", ...props }) =
     }
   }, [open, setOpen])
 
-  if (!open) return null
-
+  // Always render children so SelectItems can register labels, but hide when closed
   return (
     <div
       ref={contentRef}
-      className={`absolute z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border border-[#223029] bg-[#121715] text-[#F4F7F5] shadow-md animate-in fade-in-0 zoom-in-95 ${className}`}
+      className={`absolute z-50 max-h-96 min-w-[8rem] w-full overflow-hidden rounded-md border border-[#223029] bg-[#121715] text-[#F4F7F5] shadow-md ${open ? 'animate-in fade-in-0 zoom-in-95' : 'hidden'} ${className}`}
       style={{ marginTop: '4px' }}
       {...props}
     >
