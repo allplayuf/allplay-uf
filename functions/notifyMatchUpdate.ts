@@ -76,13 +76,16 @@ Deno.serve(async (req) => {
       return Response.json({ error: `Unknown event type: ${eventType}` }, { status: 400 });
     }
 
-    // Use service role for all DB reads (works for both automation and frontend calls)
+    // Use service role for all DB reads, fall back to automation payload data
     let match;
     try {
       match = await base44.asServiceRole.entities.Match.get(matchId);
     } catch (e) {
-      console.error('Failed to fetch match:', e.message);
-      return Response.json({ error: 'Match not found' }, { status: 404 });
+      console.warn('Failed to fetch match via SDK:', e.message);
+      // For entity automations, use the data from the payload
+      if (payload.data && payload.data.title) {
+        match = payload.data;
+      }
     }
 
     if (!match) {
