@@ -6,19 +6,11 @@
  * 2. Entity automation: { event: { type, entity_name, entity_id }, data: {...}, old_data: {...} }
  * 
  * Supported types:
- * - new_match: Ny match skapad
- * - match_updated: Match ändrad
- * - player_joined: Spelare gick med
- * - player_left: Spelare lämnade
- * - match_cancelled: Match inställd
- * - match_reminder: Påminnelse
- * - match_full: Matchen full
- * - invitation: Matchinbjudan
- * - nearby: Match nära dig
+ * - new_match, match_updated, player_joined, player_left
+ * - match_cancelled, match_reminder, match_full
+ * - invitation, nearby
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
-
-const SUPABASE_URL = 'https://vqfjjokqmykqawjlgevj.supabase.co';
 
 const EVENT_CONFIG = {
   new_match:       { emoji: '⚽', title: 'Ny match!',           template: (m, v) => `"${m.title}" på ${v}, ${m.date} kl ${m.time}` },
@@ -32,31 +24,19 @@ const EVENT_CONFIG = {
   nearby:          { emoji: '📍', title: 'Match nära dig!',     template: (m, v) => `"${m.title}" spelas på ${v}, ${m.date} kl ${m.time}. Häng med!` },
 };
 
-async function fetchJson(url, headers) {
-  const res = await fetch(url, { headers });
-  return res.ok ? await res.json() : [];
-}
-
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const payload = await req.json();
 
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY');
-    const dbHeaders = {
-      'apikey': supabaseKey,
-      'Authorization': `Bearer ${supabaseKey}`,
-      'Content-Type': 'application/json'
-    };
-
     // Determine if this is an entity automation call or a frontend call
     let eventType, matchId, providedUserIds, triggerUserId;
 
     if (payload.event?.entity_name) {
-      // Entity automation trigger
+      // Entity automation trigger — no user auth available
       const { event, data, old_data } = payload;
       matchId = event.entity_id || data?.id;
-      triggerUserId = data?.organizer_id;
+      triggerUserId = data?.organizer_id || data?.created_by;
 
       if (event.type === 'create') {
         eventType = 'new_match';
@@ -96,12 +76,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: `Unknown event type: ${eventType}` }, { status: 400 });
     }
 
-    // Fetch match details
-    const matches = await fetchJson(
-      `${SUPABASE_URL}/rest/v1/matches?id=eq.${matchId}&select=*`,
-      dbHeaders
-    );
-    const match = matches?.[0];
+    // Use service role for all DB reads (works for both automation and frontend calls)
+    let match;
+    try {
+      match = await base44.asServiceRole.entities.Match.get(matchId);
+    } catch (e) {
+      console.error('Failed to fetch match:', e.message);
+      return Response.json({ error: 'Match not found' }, { status: 404 });
+    }
+
     if (!match) {
       return Response.json({ error: 'Match not found' }, { status: 404 });
     }
@@ -109,28 +92,31 @@ Deno.serve(async (req) => {
     // Fetch venue name
     let venueName = 'Okänd plats';
     if (match.venue_id) {
-      const venues = await fetchJson(
-        `${SUPABASE_URL}/rest/v1/venues?id=eq.${match.venue_id}&select=name`,
-        dbHeaders
-      );
-      if (venues?.[0]?.name) venueName = venues[0].name;
+      try {
+        const venue = await base44.asServiceRole.entities.Venue.get(match.venue_id);
+        if (venue?.name) venueName = venue.name;
+      } catch (e) {
+        console.warn('Failed to fetch venue:', e.message);
+      }
     }
 
     // Determine target users
     let targetUserIds = providedUserIds || [];
 
     if (targetUserIds.length === 0) {
-      // For most events, notify all match participants except the trigger user
-      const participants = await fetchJson(
-        `${SUPABASE_URL}/rest/v1/match_participants?match_id=eq.${matchId}&status=in.(registered,confirmed)&select=user_id`,
-        dbHeaders
-      );
-      targetUserIds = (participants || [])
-        .map(p => p.user_id)
-        .filter(id => id !== triggerUserId); // Don't notify the person who triggered it
+      try {
+        const participants = await base44.asServiceRole.entities.MatchParticipant.filter({ match_id: matchId });
+        targetUserIds = (participants || [])
+          .filter(p => p.status === 'registered' || p.status === 'confirmed')
+          .map(p => p.user_id)
+          .filter(id => id && id !== triggerUserId);
+      } catch (e) {
+        console.warn('Failed to fetch participants:', e.message);
+      }
     }
 
     if (targetUserIds.length === 0) {
+      console.log(`[notifyMatchUpdate] No target users for ${eventType} on match ${matchId}`);
       return Response.json({ ok: true, sent: 0, message: 'No target users' });
     }
 
@@ -138,22 +124,28 @@ Deno.serve(async (req) => {
     const body = config.template(match, venueName);
     const data = { match_id: matchId, click_action: `/MatchDetail?id=${matchId}` };
 
-    // Call sendPushNotification
-    const result = await base44.asServiceRole.functions.invoke('sendPushNotification', {
-      user_ids: targetUserIds,
-      title,
-      body,
-      data
-    });
+    // Call sendPushNotification via service role
+    let pushResult;
+    try {
+      pushResult = await base44.asServiceRole.functions.invoke('sendPushNotification', {
+        user_ids: targetUserIds,
+        title,
+        body,
+        data
+      });
+    } catch (e) {
+      console.error('Failed to invoke sendPushNotification:', e.message);
+      pushResult = { error: e.message };
+    }
 
-    console.log(`[notifyMatchUpdate] ${eventType} for match ${matchId} → ${targetUserIds.length} users`);
+    console.log(`[notifyMatchUpdate] ${eventType} for match ${matchId} → ${targetUserIds.length} users, result:`, JSON.stringify(pushResult));
 
     return Response.json({
       ok: true,
       event_type: eventType,
       match_id: matchId,
       target_users: targetUserIds.length,
-      push_result: result
+      push_result: pushResult
     });
   } catch (error) {
     console.error('notifyMatchUpdate error:', error);
