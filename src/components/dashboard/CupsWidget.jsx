@@ -45,6 +45,8 @@ export default function CupsWidget() {
       return allCups
         .filter(cup => {
           if (cup.is_public === false) return false;
+          // NEVER show completed cups on dashboard
+          if (cup.status === 'completed') return false;
           // Only show cups whose start_date hasn't passed yet, or are currently ongoing
           if (cup.status === 'ongoing') return true;
           if (cup.start_date && cup.start_date < today && cup.status !== 'ongoing') return false;
