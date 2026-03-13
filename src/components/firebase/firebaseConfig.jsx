@@ -1,12 +1,9 @@
 /**
- * Firebase Configuration
+ * Firebase Configuration (Lazy-loaded)
  * 
  * Replace these placeholder values with your actual Firebase project credentials.
  * Get them from: Firebase Console → Project Settings → General → Your apps → Web app
  */
-
-import { initializeApp } from 'firebase/app';
-import { getMessaging } from 'firebase/messaging';
 
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
@@ -21,14 +18,31 @@ const firebaseConfig = {
 // Get it from: Firebase Console → Project Settings → Cloud Messaging → Web Push certificates
 export const VAPID_KEY = "YOUR_VAPID_KEY";
 
-const app = initializeApp(firebaseConfig);
+let _messaging = null;
+let _initPromise = null;
 
-let messaging = null;
-try {
-  messaging = getMessaging(app);
-  console.log('[Firebase] Messaging initialized');
-} catch (e) {
-  console.warn('[Firebase] Messaging not supported in this browser:', e.message);
+/**
+ * Lazily initialize Firebase Messaging.
+ * Dynamic import prevents firebase from being bundled eagerly,
+ * which avoids duplicate-React issues in Vite.
+ */
+export async function getFirebaseMessaging() {
+  if (_messaging) return _messaging;
+  if (_initPromise) return _initPromise;
+
+  _initPromise = (async () => {
+    try {
+      const { initializeApp } = await import('firebase/app');
+      const { getMessaging } = await import('firebase/messaging');
+      const app = initializeApp(firebaseConfig);
+      _messaging = getMessaging(app);
+      console.log('[Firebase] Messaging initialized (lazy)');
+      return _messaging;
+    } catch (e) {
+      console.warn('[Firebase] Messaging not supported:', e.message);
+      return null;
+    }
+  })();
+
+  return _initPromise;
 }
-
-export { app, messaging };

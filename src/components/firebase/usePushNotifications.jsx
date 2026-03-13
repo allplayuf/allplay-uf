@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getToken } from 'firebase/messaging';
-import { messaging, VAPID_KEY } from './firebaseConfig';
+import { getFirebaseMessaging, VAPID_KEY } from './firebaseConfig';
 import { useSupabaseAuth } from '@/components/supabase';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/components/supabase/config';
 import { sessionStore, waitForAuth } from '@/components/supabase/client';
@@ -44,12 +43,15 @@ async function upsertToken(userId, fcmToken) {
 
 export function usePushNotifications() {
   const { user, isAuthenticated } = useSupabaseAuth();
-  const [permissionState, setPermissionState] = useState(Notification.permission);
+  const [permissionState, setPermissionState] = useState(
+    typeof Notification !== 'undefined' ? Notification.permission : 'default'
+  );
   const [isEnabled, setIsEnabled] = useState(() => {
     try { return localStorage.getItem(PUSH_PERMISSION_KEY) === 'true'; } catch { return false; }
   });
 
   const requestPermissionAndToken = useCallback(async () => {
+    const messaging = await getFirebaseMessaging();
     if (!messaging) {
       console.warn('[Push] Firebase Messaging not available');
       return null;
@@ -66,6 +68,7 @@ export function usePushNotifications() {
     }
 
     console.log('[Push] Getting FCM token with VAPID key...');
+    const { getToken } = await import('firebase/messaging');
     const token = await getToken(messaging, { vapidKey: VAPID_KEY });
     console.log('[Push] FCM token received:', token ? `${token.slice(0, 20)}...` : 'null');
 
@@ -87,14 +90,16 @@ export function usePushNotifications() {
   // Auto-register on mount if already enabled + authenticated
   useEffect(() => {
     if (!isAuthenticated || !user?.id || !isEnabled) return;
-    if (permissionState === 'granted' && messaging) {
-      console.log('[Push] Auto-refreshing FCM token for authenticated user');
-      getToken(messaging, { vapidKey: VAPID_KEY })
-        .then(token => {
-          if (token) upsertToken(user.id, token);
-        })
-        .catch(err => console.error('[Push] Auto-refresh failed:', err));
-    }
+    if (permissionState !== 'granted') return;
+
+    console.log('[Push] Auto-refreshing FCM token for authenticated user');
+    (async () => {
+      const messaging = await getFirebaseMessaging();
+      if (!messaging) return;
+      const { getToken } = await import('firebase/messaging');
+      const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+      if (token) upsertToken(user.id, token);
+    })().catch(err => console.error('[Push] Auto-refresh failed:', err));
   }, [isAuthenticated, user?.id, isEnabled, permissionState]);
 
   return {
@@ -102,6 +107,6 @@ export function usePushNotifications() {
     permissionState,
     requestPermissionAndToken,
     disable,
-    isSupported: !!messaging
+    isSupported: typeof Notification !== 'undefined'
   };
 }
