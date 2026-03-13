@@ -174,11 +174,21 @@ function createUserLocationIcon() {
 /* ─── MAP CENTER CONTROLLER ─── */
 function MapCenterController({ center, zoom, selectedVenue }) {
   const map = useMap();
+  const hasInitialized = useRef(false);
+  const prevVenueRef = useRef(null);
+
   useEffect(() => {
     if (selectedVenue?.latitude != null && selectedVenue?.longitude != null) {
+      // Pan to selected venue
       map.setView([selectedVenue.latitude, selectedVenue.longitude], 16, { animate: true, duration: 0.8 });
-    } else if (center?.lat && center?.lng) {
+      prevVenueRef.current = selectedVenue;
+    } else if (prevVenueRef.current) {
+      // Venue was deselected (close button) — stay where we are, don't re-center
+      prevVenueRef.current = null;
+    } else if (!hasInitialized.current && center?.lat && center?.lng) {
+      // Initial map center only
       map.setView([center.lat, center.lng], zoom, { animate: true, duration: 0.5 });
+      hasInitialized.current = true;
     }
   }, [center, zoom, selectedVenue, map]);
   return null;
