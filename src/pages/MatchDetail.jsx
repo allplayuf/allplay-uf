@@ -639,13 +639,7 @@ export default function MatchDetailPage() {
 
         {/* Desktop Back Button */}
         <button
-          onClick={() => {
-            if (isCupMatch && cupMatch?.cup_id) {
-              navigate(`${createPageUrl("CupDetail")}?cup_id=${cupMatch.cup_id}`);
-            } else {
-              navigate(createPageUrl("Matches"));
-            }
-          }}
+          onClick={() => navigate(-1)}
           className="hidden lg:inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border border-[#223029] px-4 text-[#F4F7F5] hover:bg-[#18221E] transition-all font-semibold"
         >
           <ArrowLeft className="w-4 h-4" />
