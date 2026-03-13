@@ -37,6 +37,7 @@ export default function MapPage() {
     sortBy: "distance"
   });
   const [userLocation, setUserLocation] = useState({ lat: 59.3293, lng: 18.0686 });
+  const [recenterFlag, setRecenterFlag] = useState(0);
   const [showVenueModal, setShowVenueModal] = useState(false);
   const [selectedVenueForModal, setSelectedVenueForModal] = useState(null);
   const { user: authUser, isAuthenticated } = useSupabaseAuth();
@@ -223,21 +224,22 @@ export default function MapPage() {
     applyFilters();
   }, [applyFilters]);
 
-  const getUserLocation = () => {
+  const getUserLocation = (recenter = false) => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
           
-          console.log('User location obtained:', { lat, lng });
-          
           if (!isNaN(lat) && !isNaN(lng) && 
               lat >= -90 && lat <= 90 && 
               lng >= -180 && lng <= 180) {
             setUserLocation({ lat, lng });
+            if (recenter) {
+              setSelectedVenue(null);
+              setRecenterFlag(f => f + 1);
+            }
           } else {
-            console.error('Invalid coordinates from geolocation:', { lat, lng });
             setUserLocation({ lat: 59.3293, lng: 18.0686 });
           }
         },
@@ -251,9 +253,6 @@ export default function MapPage() {
           maximumAge: 0
         }
       );
-    } else {
-      console.log('Geolocation not supported');
-      setUserLocation({ lat: 59.3293, lng: 18.0686 });
     }
   };
 
