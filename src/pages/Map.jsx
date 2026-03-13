@@ -278,7 +278,12 @@ export default function MapPage() {
   return (
     <div className="bg-[#0F1513]">
       <div className="lg:hidden flex flex-col" style={{ height: 'calc(100dvh - env(safe-area-inset-top) - 3.5rem - 5rem - env(safe-area-inset-bottom))' }}>
-        <div className="sticky top-0 z-[50] bg-[#121715]/95 backdrop-blur-xl border-b border-[#223029]/60 p-3 space-y-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="sticky top-0 z-[50] bg-[#121715]/95 backdrop-blur-xl border-b border-[#223029]/60 p-3 space-y-2.5 shadow-[0_4px_20px_rgba(0,0,0,0.3)]"
+        >
           
           <div className="flex items-center gap-2">
             <div className="flex gap-1 bg-[#18221E]/80 rounded-full p-1 border border-[#223029]/60">
@@ -331,9 +336,14 @@ export default function MapPage() {
               {filteredVenues.length} planer · {filters.distance}km
             </span>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="flex-1 overflow-hidden relative">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
+          className="flex-1 overflow-hidden relative"
+        >
           {viewMode === "list" ? (
             <div className="h-full overflow-y-auto p-3 space-y-3">
               <AnimatePresence mode="popLayout">
@@ -387,7 +397,7 @@ export default function MapPage() {
               />
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
 
       <div className="hidden lg:flex h-screen">
