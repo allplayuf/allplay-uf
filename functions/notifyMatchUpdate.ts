@@ -4,13 +4,10 @@
  * Supports two call modes:
  * 1. Frontend: { type: string, match_id: string, user_ids?: string[] }
  * 2. Entity automation: { event: { type, entity_name, entity_id }, data: {...}, old_data: {...} }
- * 
- * Supported types:
- * - new_match, match_updated, player_joined, player_left
- * - match_cancelled, match_reminder, match_full
- * - invitation, nearby
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+
+const SUPABASE_URL = 'https://vqfjjokqmykqawjlgevj.supabase.co';
 
 const EVENT_CONFIG = {
   new_match:       { emoji: '⚽', title: 'Ny match!',           template: (m, v) => `"${m.title}" på ${v}, ${m.date} kl ${m.time}` },
@@ -24,16 +21,122 @@ const EVENT_CONFIG = {
   nearby:          { emoji: '📍', title: 'Match nära dig!',     template: (m, v) => `"${m.title}" spelas på ${v}, ${m.date} kl ${m.time}. Häng med!` },
 };
 
+// === Inline FCM sending (no cross-function calls needed) ===
+
+function toBase64Url(str) {
+  return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function getFirebaseAccessToken() {
+  const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT');
+  if (!serviceAccountJson) throw new Error('FIREBASE_SERVICE_ACCOUNT secret not set');
+
+  const sa = JSON.parse(serviceAccountJson);
+  const header = toBase64Url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
+  const now = Math.floor(Date.now() / 1000);
+  const claimSet = toBase64Url(JSON.stringify({
+    iss: sa.client_email,
+    scope: 'https://www.googleapis.com/auth/firebase.messaging',
+    aud: 'https://oauth2.googleapis.com/token',
+    exp: now + 3600,
+    iat: now
+  }));
+
+  const signInput = `${header}.${claimSet}`;
+  const pemContent = sa.private_key.replace('-----BEGIN PRIVATE KEY-----', '').replace('-----END PRIVATE KEY-----', '').replace(/\n/g, '');
+  const binaryKey = Uint8Array.from(atob(pemContent), c => c.charCodeAt(0));
+  
+  const key = await crypto.subtle.importKey('pkcs8', binaryKey, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']);
+  const signature = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, new TextEncoder().encode(signInput));
+  const sig = toBase64Url(String.fromCharCode(...new Uint8Array(signature)));
+
+  const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${header}.${claimSet}.${sig}`
+  });
+
+  const tokenData = await tokenRes.json();
+  if (!tokenData.access_token) throw new Error('Failed to get Firebase access token');
+  return { accessToken: tokenData.access_token, projectId: sa.project_id };
+}
+
+async function sendPushToUsers(userIds, title, body, data) {
+  const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY');
+  const dbHeaders = {
+    'apikey': supabaseKey,
+    'Authorization': `Bearer ${supabaseKey}`,
+    'Content-Type': 'application/json'
+  };
+
+  // Fetch tokens
+  const tokenRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/push_tokens?user_id=in.(${userIds.join(',')})&select=fcm_token,user_id`,
+    { headers: dbHeaders }
+  );
+
+  if (!tokenRes.ok) {
+    console.error('Failed to fetch push tokens:', tokenRes.status);
+    return { sent: 0, error: 'Failed to fetch tokens' };
+  }
+
+  const tokens = await tokenRes.json();
+  if (!Array.isArray(tokens) || tokens.length === 0) {
+    console.log(`[sendPush] No tokens for ${userIds.length} users`);
+    return { sent: 0, message: 'No push tokens found' };
+  }
+
+  const { accessToken, projectId } = await getFirebaseAccessToken();
+  let sent = 0;
+  let failed = 0;
+  const staleTokens = [];
+
+  for (const { fcm_token } of tokens) {
+    const res = await fetch(`https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: {
+          token: fcm_token,
+          notification: { title, body },
+          data: Object.fromEntries(Object.entries(data || {}).map(([k, v]) => [k, String(v)])),
+          webpush: { notification: { icon: '/icons/allplay-icon-192.png' } }
+        }
+      })
+    });
+
+    if (res.ok) {
+      sent++;
+    } else {
+      failed++;
+      const err = await res.json().catch(() => ({}));
+      if (err?.error?.code === 404 || err?.error?.details?.[0]?.errorCode === 'UNREGISTERED') {
+        staleTokens.push(fcm_token);
+      }
+    }
+  }
+
+  // Cleanup stale tokens
+  for (const token of staleTokens) {
+    await fetch(`${SUPABASE_URL}/rest/v1/push_tokens?fcm_token=eq.${encodeURIComponent(token)}`, {
+      method: 'DELETE', headers: dbHeaders
+    }).catch(() => {});
+  }
+
+  console.log(`[sendPush] Sent: ${sent}, Failed: ${failed}, Stale: ${staleTokens.length}`);
+  return { sent, failed, stale_cleaned: staleTokens.length };
+}
+
+// === Main handler ===
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const payload = await req.json();
 
-    // Determine if this is an entity automation call or a frontend call
     let eventType, matchId, providedUserIds, triggerUserId;
 
     if (payload.event?.entity_name) {
-      // Entity automation trigger — no user auth available
       const { event, data, old_data } = payload;
       matchId = event.entity_id || data?.id;
       triggerUserId = data?.organizer_id || data?.created_by;
@@ -56,11 +159,8 @@ Deno.serve(async (req) => {
         return Response.json({ ok: true, skipped: true, reason: 'delete event' });
       }
     } else {
-      // Frontend call - requires auth
       const user = await base44.auth.me();
-      if (!user) {
-        return Response.json({ error: 'Unauthorized' }, { status: 401 });
-      }
+      if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
       triggerUserId = user.id;
       eventType = payload.type || payload.event_type;
       matchId = payload.match_id;
@@ -76,21 +176,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: `Unknown event type: ${eventType}` }, { status: 400 });
     }
 
-    // Use service role for all DB reads, fall back to automation payload data
+    // Fetch match — try SDK first, fall back to automation payload
     let match;
     try {
       match = await base44.asServiceRole.entities.Match.get(matchId);
     } catch (e) {
-      console.warn('Failed to fetch match via SDK:', e.message);
-      // For entity automations, use the data from the payload
-      if (payload.data && payload.data.title) {
-        match = payload.data;
-      }
+      console.warn('SDK match fetch failed, using payload data:', e.message);
+      if (payload.data?.title) match = payload.data;
     }
-
-    if (!match) {
-      return Response.json({ error: 'Match not found' }, { status: 404 });
-    }
+    if (!match) return Response.json({ error: 'Match not found' }, { status: 404 });
 
     // Fetch venue name
     let venueName = 'Okänd plats';
@@ -98,14 +192,11 @@ Deno.serve(async (req) => {
       try {
         const venue = await base44.asServiceRole.entities.Venue.get(match.venue_id);
         if (venue?.name) venueName = venue.name;
-      } catch (e) {
-        console.warn('Failed to fetch venue:', e.message);
-      }
+      } catch (e) { /* ok */ }
     }
 
     // Determine target users
     let targetUserIds = providedUserIds || [];
-
     if (targetUserIds.length === 0) {
       try {
         const participants = await base44.asServiceRole.entities.MatchParticipant.filter({ match_id: matchId });
@@ -119,7 +210,6 @@ Deno.serve(async (req) => {
     }
 
     if (targetUserIds.length === 0) {
-      console.log(`[notifyMatchUpdate] No target users for ${eventType} on match ${matchId}`);
       return Response.json({ ok: true, sent: 0, message: 'No target users' });
     }
 
@@ -127,32 +217,10 @@ Deno.serve(async (req) => {
     const body = config.template(match, venueName);
     const notifData = { match_id: matchId, click_action: `/MatchDetail?id=${matchId}` };
 
-    // Call sendPushNotification directly via internal function invoke
-    let pushResult;
-    try {
-      pushResult = await base44.functions.invoke('sendPushNotification', {
-        user_ids: targetUserIds,
-        title,
-        body,
-        data: notifData
-      });
-    } catch (e) {
-      console.error('Failed to invoke sendPushNotification:', e.message);
-      // Fallback: try service role
-      try {
-        pushResult = await base44.asServiceRole.functions.invoke('sendPushNotification', {
-          user_ids: targetUserIds,
-          title,
-          body,
-          data: notifData
-        });
-      } catch (e2) {
-        console.error('Service role invoke also failed:', e2.message);
-        pushResult = { error: e2.message };
-      }
-    }
+    // Send push notifications directly (no cross-function invoke needed)
+    const pushResult = await sendPushToUsers(targetUserIds, title, body, notifData);
 
-    console.log(`[notifyMatchUpdate] ${eventType} for match ${matchId} → ${targetUserIds.length} users, result:`, JSON.stringify(pushResult));
+    console.log(`[notifyMatchUpdate] ${eventType} for match ${matchId} → ${targetUserIds.length} users, push:`, JSON.stringify(pushResult));
 
     return Response.json({
       ok: true,
