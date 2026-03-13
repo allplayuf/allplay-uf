@@ -283,7 +283,7 @@ function ClusteredMarkers({ venues, venueStatuses, selectedVenue, onMarkerClick,
           const hasAnyMatch = clusterVenues.some(v => (venueStatuses[v.id]?.matchCount || 0) > 0);
           const icon = createClusterIcon(clusterVenues.length, hasAnyMatch);
           const marker = L.marker([avgLat, avgLng], { icon });
-          marker.on('click', () => map.setView([avgLat, avgLng], zoom + 2, { animate: true }));
+          marker.on('click', () => map.flyTo([avgLat, avgLng], zoom + 2, { duration: 0.6, easeLinearity: 0.25 }));
           group.addLayer(marker);
         }
       });
