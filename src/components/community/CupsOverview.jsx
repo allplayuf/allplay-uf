@@ -1,20 +1,17 @@
-import React, { useState } from "react";
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  Trophy, Calendar, MapPin, Users, Search, 
-  CheckCircle, Clock, Flame, Award, ArrowRight,
-  Target, TrendingUp, Plus, Star, Zap
+  Trophy, Calendar, MapPin, Users,
+  CheckCircle, Clock, Flame, Award,
+  Plus, Zap
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { CUPS_QUERY_KEY } from "../dashboard/CupsWidget";
 
 // Golden/Yellow accent theme for cups - matching elite level
 const STATUS_CONFIG = {
@@ -136,68 +133,7 @@ export default function CupsOverview({ user }) {
         )}
       </Card>
 
-      {/* Filters - Enhanced Design */}
-      <Card className="bg-[#121715] border border-[#223029] rounded-[20px] p-4 shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
-        <div className="space-y-4">
-          {/* Search with icon */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#7B8A83]" />
-            <Input
-              placeholder="Sök turnering eller plats..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-[#18221E] border-[#223029] text-[#F4F7F5] rounded-[14px] h-11 focus:border-[#F59E0B] focus:ring-1 focus:ring-[#F59E0B]/30"
-            />
-          </div>
 
-          {/* Filter Row */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-11">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alla</SelectItem>
-                <SelectItem value="registration_open">Anmälan öppen</SelectItem>
-                <SelectItem value="ongoing">Pågående</SelectItem>
-                <SelectItem value="upcoming">Kommande</SelectItem>
-                <SelectItem value="completed">Avslutade</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={formatFilter} onValueChange={setFormatFilter}>
-              <SelectTrigger className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-11">
-                <SelectValue placeholder="Format" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alla format</SelectItem>
-                <SelectItem value="5v5">5v5</SelectItem>
-                <SelectItem value="7v7">7v7</SelectItem>
-                <SelectItem value="11v11">11v11</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={cityFilter} onValueChange={setCityFilter}>
-              <SelectTrigger className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-11">
-                <SelectValue placeholder="Stad" />
-              </SelectTrigger>
-              <SelectContent>
-                {cities.map(city => (
-                  <SelectItem key={city} value={city}>
-                    {city === 'all' ? 'Alla städer' : city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <div className="flex items-center justify-center p-3 bg-[#18221E] rounded-xl border border-[#223029]">
-              <span className="text-sm text-[#B6C2BC] font-semibold">
-                {filteredCups.length} turneringar
-              </span>
-            </div>
-          </div>
-        </div>
-      </Card>
 
       {/* Live Cups Section */}
       {liveCups.length > 0 && (
@@ -245,24 +181,26 @@ export default function CupsOverview({ user }) {
         </div>
       )}
 
-      {/* Filtered Results */}
-      {(searchQuery || statusFilter !== 'all' || formatFilter !== 'all' || cityFilter !== 'all') && (
+      {/* Completed Cups Section */}
+      {completedCups.length > 0 && (
         <div>
-          <h3 className="text-lg font-bold text-[#F4F7F5] mb-4">Sökresultat</h3>
-          
-          {filteredCups.length === 0 ? (
-            <Card className="bg-[#121715] border border-[#223029] rounded-[20px] p-12 text-center">
-              <Trophy className="w-16 h-16 text-[#7B8A83] mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-[#F4F7F5] mb-2">Inga turneringar hittades</h3>
-              <p className="text-[#B6C2BC]">Prova att justera dina sökkriterier</p>
-            </Card>
-          ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredCups.map((cup, index) => (
-                <CupCard key={cup.id} cup={cup} index={index} />
-              ))}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6B7280]/20 to-[#4B5563]/10 flex items-center justify-center">
+                <Award className="w-5 h-5 text-[#9CA3AF]" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-[#F4F7F5]">Avslutade turneringar</h3>
+                <p className="text-xs text-[#B6C2BC]">Tidigare turneringar</p>
+              </div>
             </div>
-          )}
+          </div>
+          
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {completedCups.map((cup, index) => (
+              <CupCard key={cup.id} cup={cup} index={index} />
+            ))}
+          </div>
         </div>
       )}
 
