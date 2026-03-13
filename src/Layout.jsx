@@ -193,7 +193,18 @@ function LayoutInner({ children }) {
         {/* Consent check - blocks authenticated users without valid consent */}
         <ConsentChecker>
 
-        <div className="h-screen flex w-full bg-[#0B0F0D] overflow-hidden">
+        {/* iOS fixed layout — position:fixed top/left/right/bottom:0 */}
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          backgroundColor: '#0B0F0D',
+          overflow: 'hidden'
+        }}>
         <Toaster 
           position="bottom-center"
           theme="dark"
@@ -208,9 +219,18 @@ function LayoutInner({ children }) {
             bottom: 'calc(5rem + env(safe-area-inset-bottom))',
           }}
         />
-        
+
+        {/* Safe area top spacer (mobile) */}
+        <div className="lg:hidden" style={{
+          paddingTop: 'env(safe-area-inset-top)',
+          backgroundColor: '#0B0F0D',
+          flexShrink: 0
+        }} />
+
+        {/* Desktop layout wrapper */}
+        <div className="hidden lg:flex flex-1 overflow-hidden">
         {/* Desktop Sidebar */}
-        <aside className="hidden lg:flex w-64 bg-[#121715] border-r border-[#223029] flex-col">
+        <aside className="flex w-64 bg-[#121715] border-r border-[#223029] flex-col">
           <div className="p-6 border-b border-[#223029]">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden bg-transparent">
@@ -284,10 +304,35 @@ function LayoutInner({ children }) {
           </div>
         </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 flex flex-col bg-[#0B0F0D] min-h-screen lg:min-h-0 overflow-hidden">
-          {/* Mobile Header - always visible */}
-          <header className="lg:hidden sticky top-0 z-[100] bg-[#0B0F0D] border-b border-[#223029]" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+        {/* Desktop main content */}
+        <div 
+          ref={mainContentRef}
+          className="flex-1"
+          style={{
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            overscrollBehavior: 'none',
+            WebkitOverflowScrolling: 'touch',
+            minHeight: 0,
+            backgroundColor: '#0B0F0D'
+          }}
+        >
+          <NavigationProvider mainContentRef={mainContentRef}>
+            <RouteGuard currentRoute={location.pathname}>
+              <PageTransition pageKey={location.pathname}>
+                <Suspense fallback={<PageLoadingSkeleton />}>
+                  {children}
+                </Suspense>
+              </PageTransition>
+            </RouteGuard>
+          </NavigationProvider>
+        </div>
+        </div>
+
+        {/* Mobile layout */}
+        <div className="lg:hidden flex flex-col flex-1 overflow-hidden" style={{ minHeight: 0 }}>
+          {/* Mobile Header */}
+          <header style={{ flexShrink: 0, backgroundColor: '#0B0F0D' }} className="border-b border-[#223029] z-[100]">
             <div className="flex items-center gap-3 px-4 py-3">
               {!isRootPage && (
                 <button
@@ -314,15 +359,17 @@ function LayoutInner({ children }) {
             </div>
           </header>
 
-          {/* PREVIEW BANNER REMOVED */}
-
+          {/* ONLY scrollable area on mobile */}
           <div 
             ref={mainContentRef}
-            className="flex-1 overflow-y-auto lg:pb-0"
-            style={{ 
-              paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))',
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              overscrollBehavior: 'none',
               WebkitOverflowScrolling: 'touch',
-              overscrollBehaviorY: 'contain',
+              minHeight: 0,
+              backgroundColor: '#0B0F0D'
             }}
           >
             <NavigationProvider mainContentRef={mainContentRef}>
@@ -336,8 +383,9 @@ function LayoutInner({ children }) {
             </NavigationProvider>
           </div>
 
-          <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-[100] bg-[#0B0F0D] border-t border-[#223029]">
-            <div className="flex items-center justify-around" style={{ paddingLeft: 'calc(0.5rem + env(safe-area-inset-left))', paddingRight: 'calc(0.5rem + env(safe-area-inset-right))', paddingTop: '0.5rem', paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
+          {/* Bottom navigation - NOT fixed, part of flex flow */}
+          <nav style={{ flexShrink: 0, backgroundColor: '#0B0F0D' }} className="border-t border-[#223029] z-[100]">
+            <div className="flex items-center justify-around" style={{ paddingLeft: 'calc(0.5rem + env(safe-area-inset-left))', paddingRight: 'calc(0.5rem + env(safe-area-inset-right))', paddingTop: '0.5rem', paddingBottom: '0.5rem' }}>
               {navigationItems.map((item) => {
                 const isActive = location.pathname === item.url;
                 return (
@@ -357,7 +405,15 @@ function LayoutInner({ children }) {
               })}
             </div>
           </nav>
-        </main>
+        </div>
+
+        {/* Safe area bottom spacer (mobile) */}
+        <div className="lg:hidden" style={{
+          paddingBottom: 'env(safe-area-inset-bottom)',
+          backgroundColor: '#0B0F0D',
+          flexShrink: 0
+        }} />
+
         </div>
         </ConsentChecker>
     </ErrorBoundary>

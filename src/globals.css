@@ -47,41 +47,43 @@
 
   /* Light mode override removed — AllPlay is always dark */
 
-  html, body, #root {
-    background-color: #0B0F0D;
-    color: var(--color-text-primary);
-    margin: 0;
-    padding: 0;
-    overscroll-behavior: none;
+  html {
+    background-color: #0B0F0D !important;
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
+    height: -webkit-fill-available !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overscroll-behavior: none !important;
     -webkit-overflow-scrolling: touch;
+    color: var(--color-text-primary);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    scroll-behavior: smooth;
-    /* Force dark color scheme for iOS */
     color-scheme: dark;
     -webkit-text-size-adjust: 100%;
   }
 
-  /* Prevent iOS rubber-band showing white behind fixed elements */
-  html {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-  }
-
   body {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
+    background-color: #0B0F0D !important;
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
+    height: -webkit-fill-available !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overscroll-behavior: none !important;
   }
 
   #root {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
+    background-color: #0B0F0D !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    position: relative !important;
   }
   
   /* Disable text selection and touch callouts on interactive elements */
