@@ -114,6 +114,16 @@ function LayoutInner({ children }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminCheckDone, setAdminCheckDone] = useState(false);
   const mainContentRef = React.useRef(null);
+
+  // Auto-register push notifications for authenticated users
+  const { registerPush } = usePushNotifications();
+  const { isAuthenticated: isSupabaseAuth2, isLoading: isSupabaseLoading2 } = useSupabaseAuth();
+  
+  useEffect(() => {
+    if (!isSupabaseLoading2 && isSupabaseAuth2) {
+      registerPush();
+    }
+  }, [isSupabaseLoading2, isSupabaseAuth2, registerPush]);
   
   // Track current path per tab for stack preservation
   const [tabPaths, setTabPaths] = useState({
