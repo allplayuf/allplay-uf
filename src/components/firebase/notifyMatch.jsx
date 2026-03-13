@@ -1,29 +1,44 @@
 /**
  * Frontend helper to trigger match push notifications.
+ * Calls the Supabase Edge Function notify-match-update directly.
  * 
  * Usage:
  *   import { notifyMatch } from '@/components/firebase/notifyMatch';
- *   await notifyMatch(matchId, 'player_joined');
- *   await notifyMatch(matchId, 'invitation', [userId1, userId2]);
+ *   notifyMatch(matchId, 'player_joined');  // fire-and-forget
  */
-import { notifyMatchUpdate } from '@/functions/notifyMatchUpdate';
+import { sessionStore } from '@/components/supabase/client';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/components/supabase/config';
 
-export async function notifyMatch(matchId, eventType, userIds = null) {
+export async function notifyMatch(matchId, eventType = 'match_update') {
+  if (!matchId) {
+    console.warn('[NOTIFY] Inget matchId — skippar notis');
+    return;
+  }
+
   try {
-    const payload = {
-      match_id: matchId,
-      type: eventType,
-    };
-    if (userIds) {
-      payload.user_ids = userIds;
+    console.log('[NOTIFY] Skickar notis för match:', matchId, 'event:', eventType);
+
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/notify-match-update`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${sessionStore.accessToken}`,
+      },
+      body: JSON.stringify({
+        match_id: matchId,
+        event_type: eventType,
+      }),
+    });
+
+    if (!res.ok) {
+      console.error('[NOTIFY] Edge function error:', res.status, await res.text().catch(() => ''));
+    } else {
+      const data = await res.json().catch(() => ({}));
+      console.log('[NOTIFY] Notis skickad:', data);
     }
-    
-    const response = await notifyMatchUpdate(payload);
-    console.log(`[notifyMatch] ${eventType} for ${matchId}:`, response?.data);
-    return response?.data;
   } catch (err) {
-    // Non-blocking — notifications should never break app flow
-    console.error('[notifyMatch] Push notification error:', err);
-    return null;
+    // Notiser ska ALDRIG blocka huvudflödet
+    console.error('[NOTIFY] Fetch error:', err);
   }
 }

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getUsersByIds } from '@/components/supabase/services/usersService';
+import { notifyMatch } from '@/components/firebase/notifyMatch';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SKILL_LEVEL_CONFIG = {
@@ -103,6 +104,7 @@ export default function InviteFriendsModal({ match, currentUser, onClose, onInvi
       );
 
       await Promise.all(invitationPromises);
+      notifyMatch(match.id, 'match_invite');
 
       alert(`${selectedFriends.length} inbjudningar skickade!`);
       if (onInvitesSent) onInvitesSent();

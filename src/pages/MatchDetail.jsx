@@ -41,6 +41,7 @@ import {
 import { getVenues, getUsersByIds, getMyProfile } from "../components/supabase/services";
 import { getCachedUser, fetchUsersMissing } from "../components/supabase/services";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
+import { notifyMatch } from "@/components/firebase/notifyMatch";
 
 // CONSISTENT SKILL LEVEL CONFIG - WCAG AA compliant colors
 const SKILL_LEVEL_CONFIG = {
@@ -355,6 +356,7 @@ export default function MatchDetailPage() {
     },
     onSuccess: () => {
       alert('Du är med i matchen! ⚽', `Du har anmält dig till "${match?.title || 'matchen'}". Vi ses där!`, { type: 'success' });
+      notifyMatch(matchId, 'player_joined');
     },
     onSettled: () => {
       setIsActionLoading(false);
@@ -393,6 +395,7 @@ export default function MatchDetailPage() {
       try {
         await leaveMatch(matchId);
         console.log('[MatchDetail] leaveMatch success');
+        notifyMatch(matchId, 'player_left');
       } catch (error) {
         // Rollback optimistic update on failure
         console.error('[MatchDetail] leaveMatch failed, rolling back:', error);
