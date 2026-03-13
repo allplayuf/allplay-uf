@@ -287,7 +287,11 @@ function ClusteredMarkers({ venues, venueStatuses, selectedVenue, onMarkerClick,
           const hasAnyMatch = clusterVenues.some(v => (venueStatuses[v.id]?.matchCount || 0) > 0);
           const icon = createClusterIcon(clusterVenues.length, hasAnyMatch);
           const marker = L.marker([avgLat, avgLng], { icon });
-          marker.on('click', () => map.flyTo([avgLat, avgLng], zoom + 2, { duration: 0.6, easeLinearity: 0.25 }));
+          marker.on('click', () => {
+            if (isValidLatLng(avgLat, avgLng)) {
+              map.flyTo([avgLat, avgLng], zoom + 2, { duration: 0.6, easeLinearity: 0.25 });
+            }
+          });
           group.addLayer(marker);
         }
       });
@@ -346,7 +350,7 @@ export default function MapView({
   }, [venues]);
 
   const defaultCenter = useMemo(() => {
-    if (userLocation?.lat && userLocation?.lng) return userLocation;
+    if (isValidLatLng(userLocation?.lat, userLocation?.lng)) return userLocation;
     return { lat: 59.3293, lng: 18.0686 };
   }, [userLocation?.lat, userLocation?.lng]);
 
