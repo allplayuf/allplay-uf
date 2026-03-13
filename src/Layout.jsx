@@ -32,6 +32,41 @@ function GuestBannerWrapper() {
 // Initialize Supabase on app load
 initSupabase().catch(console.error);
 
+// Prevent iOS from stealing audio focus from background music (Spotify, Apple Music, etc.)
+// By creating a silent AudioContext with "ambient" mixing, iOS won't pause other apps' audio.
+if (typeof window !== 'undefined') {
+  const preventAudioInterruption = () => {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        const ctx = new AudioCtx();
+        // Create a silent oscillator to establish ambient audio session
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        gain.gain.value = 0; // completely silent
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.001); // stop immediately
+        // Suspend context so it doesn't hold resources
+        if (ctx.state === 'running') {
+          ctx.suspend();
+        }
+      }
+    } catch (e) {
+      // Silently ignore — non-critical
+    }
+  };
+  // Run after first user interaction on iOS
+  const runOnce = () => {
+    preventAudioInterruption();
+    window.removeEventListener('touchstart', runOnce);
+    window.removeEventListener('click', runOnce);
+  };
+  window.addEventListener('touchstart', runOnce, { once: true, passive: true });
+  window.addEventListener('click', runOnce, { once: true, passive: true });
+}
+
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Map = lazy(() => import("@/pages/Map"));
 const Matches = lazy(() => import("@/pages/Matches"));
