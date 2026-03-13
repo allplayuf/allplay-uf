@@ -3,10 +3,13 @@
  * 
  * Sends FCM push notifications to specific users.
  * Expects payload: { user_ids: string[], title: string, body: string, data?: object }
+ * 
+ * Can be called directly or via service role from other functions.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
-// Firebase Admin SDK - uses service account from environment
+const SUPABASE_URL = 'https://vqfjjokqmykqawjlgevj.supabase.co';
+
 async function getAccessToken() {
   const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT');
   if (!serviceAccountJson) {
@@ -28,7 +31,6 @@ async function getAccessToken() {
 
   const signInput = `${header}.${claimSet}`;
   
-  // Import the private key
   const pemContent = sa.private_key
     .replace('-----BEGIN PRIVATE KEY-----', '')
     .replace('-----END PRIVATE KEY-----', '')
@@ -55,7 +57,6 @@ async function getAccessToken() {
 
   const jwt = `${header}.${claimSet}.${sig}`;
 
-  // Exchange JWT for access token
   const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -99,39 +100,34 @@ async function sendFCM(accessToken, projectId, fcmToken, title, body, data = {})
 
   const result = await res.json();
   if (!res.ok) {
-    console.error('FCM send failed:', result);
+    console.error('FCM send failed for token:', fcmToken.substring(0, 20), result);
+    // If token is invalid, we should clean it up
+    if (result?.error?.code === 404 || result?.error?.details?.[0]?.errorCode === 'UNREGISTERED') {
+      return { ok: false, unregistered: true, result };
+    }
   }
   return { ok: res.ok, result };
 }
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { user_ids, title, body, data } = await req.json();
 
     if (!user_ids?.length || !title || !body) {
       return Response.json({ error: 'Missing required fields: user_ids, title, body' }, { status: 400 });
     }
 
-    // Get FCM tokens for target users from Supabase
-    const supabaseUrl = Deno.env.get('https://vqfjjokqmykqawjlgevj.supabase.co') || 'https://vqfjjokqmykqawjlgevj.supabase.co';
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const dbHeaders = {
+      'apikey': supabaseKey,
+      'Authorization': `Bearer ${supabaseKey}`,
+      'Content-Type': 'application/json'
+    };
 
-    // Fetch tokens in batches
+    // Fetch tokens for target users
     const tokenRes = await fetch(
-      `${supabaseUrl}/rest/v1/push_tokens?user_id=in.(${user_ids.join(',')})&select=fcm_token,user_id`,
-      {
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`,
-          'Content-Type': 'application/json'
-        }
-      }
+      `${SUPABASE_URL}/rest/v1/push_tokens?user_id=in.(${user_ids.join(',')})&select=fcm_token,user_id`,
+      { headers: dbHeaders }
     );
 
     const tokens = await tokenRes.json();
@@ -145,19 +141,33 @@ Deno.serve(async (req) => {
     // Send to all tokens
     let sent = 0;
     let failed = 0;
-    const errors = [];
+    const staleTokens = [];
 
-    for (const { fcm_token } of tokens) {
+    for (const { fcm_token, user_id } of tokens) {
       const result = await sendFCM(accessToken, projectId, fcm_token, title, body, data || {});
       if (result.ok) {
         sent++;
       } else {
         failed++;
-        errors.push(result.result);
+        if (result.unregistered) {
+          staleTokens.push(fcm_token);
+        }
       }
     }
 
-    return Response.json({ sent, failed, total_tokens: tokens.length });
+    // Clean up stale/unregistered tokens
+    if (staleTokens.length > 0) {
+      for (const token of staleTokens) {
+        await fetch(
+          `${SUPABASE_URL}/rest/v1/push_tokens?fcm_token=eq.${encodeURIComponent(token)}`,
+          { method: 'DELETE', headers: dbHeaders }
+        ).catch(() => {});
+      }
+      console.log(`Cleaned up ${staleTokens.length} stale tokens`);
+    }
+
+    console.log(`[sendPush] Sent: ${sent}, Failed: ${failed}, Stale cleaned: ${staleTokens.length}`);
+    return Response.json({ sent, failed, total_tokens: tokens.length, stale_cleaned: staleTokens.length });
   } catch (error) {
     console.error('sendPushNotification error:', error);
     return Response.json({ error: error.message }, { status: 500 });
