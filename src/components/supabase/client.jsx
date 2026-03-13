@@ -325,13 +325,22 @@ class SupabaseClient {
   async validateSession() {
     if (!sessionStore.accessToken) return false;
     const result = await this._fetch('/functions/v1/me', { method: 'POST' });
-    if (result.error || !result.data?.ok) return false;
+    if (result.error) {
+      // Network/server error (code 0 or 5xx) — don't invalidate session
+      // Only treat 401 as definitive "session invalid"
+      if (result.error.code === 401) {
+        return false;
+      }
+      // For network errors or server errors, keep current session alive
+      console.warn('[SupabaseClient] validateSession non-fatal error:', result.error.code, result.error.message);
+      return true; // Treat as "still valid" to avoid clearing on transient failures
+    }
+    if (!result.data?.ok) return false;
     const userData = result.data.user || sessionStore.user || null;
     const roles = Array.isArray(result.data.roles) ? result.data.roles : [];
     sessionStore.setUser(userData);
     sessionStore.setRoles(roles);
     sessionStore.setAuthState(AUTH_STATES.AUTHENTICATED);
-    // Session validated via Supabase only — no Base44 sync
     return true;
   }
 
