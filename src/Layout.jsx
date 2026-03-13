@@ -19,6 +19,7 @@ import { triggerHaptic } from "@/components/utils/motionTokens";
 import ConsentChecker from "@/components/legal/ConsentChecker";
 import { NavigationProvider } from "@/components/navigation/NavigationProvider";
 import EdgeFunctionDebugPanel from "@/components/supabase/EdgeFunctionDebugPanel";
+import PushNotificationInit from "@/components/firebase/PushNotificationInit";
 
 // Guest banner wrapper that uses Supabase auth state
 // Must be rendered INSIDE SupabaseAuthProvider (it's in LayoutInner)
@@ -181,6 +182,7 @@ function LayoutInner({ children }) {
   return (
     <ErrorBoundary>
         <EdgeFunctionDebugPanel />
+        <PushNotificationInit />
         <RouteProgress />
         <OnboardingModal />
         <OfflineDetector />

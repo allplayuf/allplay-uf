@@ -5,6 +5,7 @@ import { createPageUrl } from "@/utils";
 import { supabaseClient } from "@/components/supabase/client";
 import { clearAdminCache } from "@/components/supabase/services/adminService";
 import { Edit, QrCode, X, FileText } from "lucide-react";
+import NotificationToggle from "@/components/profile/NotificationToggle";
 
 export default function SettingsSheet({ onClose, onShowQR }) {
   return (
@@ -56,6 +57,8 @@ export default function SettingsSheet({ onClose, onShowQR }) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
+
+            <NotificationToggle />
 
             <a
               href="https://allplayuf.se/aboutallplay/anvandarpolicy"
