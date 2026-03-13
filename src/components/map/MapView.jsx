@@ -332,7 +332,7 @@ export default function MapView({
   const defaultCenter = useMemo(() => {
     if (userLocation?.lat && userLocation?.lng) return userLocation;
     return { lat: 59.3293, lng: 18.0686 };
-  }, [userLocation]);
+  }, [userLocation?.lat, userLocation?.lng]);
 
   const handleMarkerClick = useCallback((venue) => {
     if (onVenueSelect) onVenueSelect(venue);
