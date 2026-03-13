@@ -4,11 +4,15 @@
  * Sends FCM push notifications to specific users.
  * Expects payload: { user_ids: string[], title: string, body: string, data?: object }
  * 
- * Can be called directly or via service role from other functions.
+ * Called via base44.asServiceRole.functions.invoke() from other backend functions.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 const SUPABASE_URL = 'https://vqfjjokqmykqawjlgevj.supabase.co';
+
+function toBase64Url(str) {
+  return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
 
 async function getAccessToken() {
   const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT');
@@ -18,10 +22,10 @@ async function getAccessToken() {
 
   const sa = JSON.parse(serviceAccountJson);
   
-  // Create JWT for Google OAuth2
-  const header = btoa(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
+  // Create JWT for Google OAuth2 using URL-safe base64
+  const header = toBase64Url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
   const now = Math.floor(Date.now() / 1000);
-  const claimSet = btoa(JSON.stringify({
+  const claimSet = toBase64Url(JSON.stringify({
     iss: sa.client_email,
     scope: 'https://www.googleapis.com/auth/firebase.messaging',
     aud: 'https://oauth2.googleapis.com/token',
@@ -52,8 +56,7 @@ async function getAccessToken() {
     new TextEncoder().encode(signInput)
   );
 
-  const sig = btoa(String.fromCharCode(...new Uint8Array(signature)))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const sig = toBase64Url(String.fromCharCode(...new Uint8Array(signature)));
 
   const jwt = `${header}.${claimSet}.${sig}`;
 
@@ -65,7 +68,8 @@ async function getAccessToken() {
 
   const tokenData = await tokenRes.json();
   if (!tokenData.access_token) {
-    throw new Error('Failed to get Firebase access token: ' + JSON.stringify(tokenData));
+    console.error('Firebase token exchange failed:', JSON.stringify(tokenData));
+    throw new Error('Failed to get Firebase access token');
   }
   
   return { accessToken: tokenData.access_token, projectId: sa.project_id };
@@ -100,17 +104,17 @@ async function sendFCM(accessToken, projectId, fcmToken, title, body, data = {})
 
   const result = await res.json();
   if (!res.ok) {
-    console.error('FCM send failed for token:', fcmToken.substring(0, 20), result);
-    // If token is invalid, we should clean it up
+    console.error('FCM send failed for token:', fcmToken.substring(0, 20), JSON.stringify(result));
     if (result?.error?.code === 404 || result?.error?.details?.[0]?.errorCode === 'UNREGISTERED') {
-      return { ok: false, unregistered: true, result };
+      return { ok: false, unregistered: true };
     }
   }
-  return { ok: res.ok, result };
+  return { ok: res.ok };
 }
 
 Deno.serve(async (req) => {
   try {
+    const base44 = createClientFromRequest(req);
     const { user_ids, title, body, data } = await req.json();
 
     if (!user_ids?.length || !title || !body) {
@@ -130,10 +134,19 @@ Deno.serve(async (req) => {
       { headers: dbHeaders }
     );
 
+    if (!tokenRes.ok) {
+      const errText = await tokenRes.text().catch(() => '');
+      console.error('Failed to fetch push tokens:', tokenRes.status, errText);
+      return Response.json({ sent: 0, error: 'Failed to fetch tokens' });
+    }
+
     const tokens = await tokenRes.json();
     if (!Array.isArray(tokens) || tokens.length === 0) {
+      console.log(`[sendPush] No tokens found for ${user_ids.length} users`);
       return Response.json({ sent: 0, message: 'No push tokens found for users' });
     }
+
+    console.log(`[sendPush] Found ${tokens.length} tokens for ${user_ids.length} users`);
 
     // Get Firebase access token
     const { accessToken, projectId } = await getAccessToken();
