@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 import { can, ACTIONS, CONTEXTS, isGuest, requireAuth } from '../utils/permissions.js';
 
 Deno.serve(async (req) => {
@@ -41,18 +41,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Notify Organizer (if not self) - Non-blocking
-    if (match.organizer_id !== user.id) {
-      try {
-        await base44.integrations.Core.SendEmail({
-            to: "notifications@allplay.com", 
-            subject: `Ny spelare: ${user.full_name}`,
-            body: `${user.full_name} har gått med i din match "${match.title}"!`
-        });
-      } catch (emailError) {
-        console.error("Failed to send join notification email:", emailError);
-        // Continue execution, don't fail the join request
-      }
+    // Send push notification - Non-blocking
+    try {
+      await base44.asServiceRole.functions.invoke('notifyMatchUpdate', {
+        type: 'player_joined',
+        match_id: match_id,
+        user_ids: null // Let notifyMatchUpdate figure out participants
+      });
+    } catch (pushError) {
+      console.error("Failed to send push notification:", pushError);
     }
 
     return Response.json({ success: true });
