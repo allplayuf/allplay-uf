@@ -1,24 +1,29 @@
 /**
- * Frontend helper to trigger match push notifications via Supabase Edge Function.
+ * Frontend helper to trigger match push notifications.
  * 
- * Usage (fire-and-forget, no await):
+ * Usage:
  *   import { notifyMatch } from '@/components/firebase/notifyMatch';
- *   notifyMatch(matchId, 'player_joined');
- *   notifyMatch(matchId, 'match_invite', [userId1, userId2]);
+ *   await notifyMatch(matchId, 'player_joined');
+ *   await notifyMatch(matchId, 'invitation', [userId1, userId2]);
  */
-import { callEdgeFunction } from '@/components/supabase/callEdgeFunction';
+import { notifyMatchUpdate } from '@/functions/notifyMatchUpdate';
 
-export function notifyMatch(matchId, eventType, userIds = null) {
-  const payload = {
-    match_id: matchId,
-    event_type: eventType,
-  };
-  if (userIds) {
-    payload.user_ids = userIds;
+export async function notifyMatch(matchId, eventType, userIds = null) {
+  try {
+    const payload = {
+      match_id: matchId,
+      type: eventType,
+    };
+    if (userIds) {
+      payload.user_ids = userIds;
+    }
+    
+    const response = await notifyMatchUpdate(payload);
+    console.log(`[notifyMatch] ${eventType} for ${matchId}:`, response?.data);
+    return response?.data;
+  } catch (err) {
+    // Non-blocking — notifications should never break app flow
+    console.error('[notifyMatch] Push notification error:', err);
+    return null;
   }
-
-  // Fire-and-forget — never block the UI
-  callEdgeFunction('notify-match-update', payload)
-    .then(res => console.log(`[notifyMatch] ${eventType} for ${matchId}:`, res))
-    .catch(err => console.error('[notifyMatch] Push notification error (non-blocking):', err.message));
 }
