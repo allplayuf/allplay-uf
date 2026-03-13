@@ -88,23 +88,40 @@ const SelectContent = ({ className, children, position = "popper", ...props }) =
   const contentRef = React.useRef(null)
 
   React.useEffect(() => {
+    if (!open) return;
+
     const handleClickOutside = (event) => {
-      if (contentRef.current && !contentRef.current.contains(event.target)) {
-        setOpen(false)
-      }
+      // Don't close if clicking inside the content
+      if (contentRef.current && contentRef.current.contains(event.target)) return;
+      // Don't close if clicking the trigger (it handles its own toggle)
+      const trigger = contentRef.current?.parentElement?.querySelector('button');
+      if (trigger && trigger.contains(event.target)) return;
+      setOpen(false);
     }
 
-    if (open) {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
+    // Use timeout to avoid catching the opening click
+    const timer = setTimeout(() => {
+      document.addEventListener('pointerdown', handleClickOutside)
+    }, 0);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('pointerdown', handleClickOutside);
     }
   }, [open, setOpen])
 
-  // Always render children so SelectItems can register labels, but hide when closed
+  if (!open) {
+    // Render hidden so items register labels
+    return (
+      <div style={{ display: 'none' }}>
+        {children}
+      </div>
+    );
+  }
+
   return (
     <div
       ref={contentRef}
-      className={`absolute z-50 max-h-96 min-w-[8rem] w-full overflow-hidden rounded-md border border-[#223029] bg-[#121715] text-[#F4F7F5] shadow-md ${open ? 'animate-in fade-in-0 zoom-in-95' : 'hidden'} ${className}`}
+      className={`absolute z-50 max-h-96 min-w-[8rem] w-full overflow-hidden rounded-md border border-[#223029] bg-[#121715] text-[#F4F7F5] shadow-md animate-in fade-in-0 zoom-in-95 ${className}`}
       style={{ marginTop: '4px' }}
       {...props}
     >
