@@ -51,14 +51,9 @@ const STATUS_CONFIG = {
 };
 
 export default function CupsOverview({ user }) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [formatFilter, setFormatFilter] = useState('all');
-  const [cityFilter, setCityFilter] = useState('all');
-
-  // Use shared query key for platform-wide sync
+  // Use separate query key so CupsOverview and CupsWidget don't share cached data
   const { data: allCups = [], isLoading } = useQuery({
-    queryKey: CUPS_QUERY_KEY,
+    queryKey: ['cups-overview-list'],
     queryFn: async () => {
       const cups = await base44.entities.Cup.list('-created_date');
       return cups.filter(c => c.is_public !== false);
@@ -67,32 +62,12 @@ export default function CupsOverview({ user }) {
     cacheTime: 5 * 60 * 1000,
   });
 
-  // Categorize cups - Always include Futsal Fiesta 2025
+  // Strict categorization — completed cups NEVER appear in upcoming/live
   const upcomingCups = allCups.filter(c => 
-    c.name === 'Futsal Fiesta 2025' ||
-    c.status === 'upcoming' || c.status === 'registration_open'
+    c.status === 'upcoming' || c.status === 'registration_open' || c.status === 'registration_closed'
   );
-  const liveCups = allCups.filter(c => 
-    c.name === 'Futsal Fiesta 2025' ||
-    c.status === 'ongoing'
-  );
+  const liveCups = allCups.filter(c => c.status === 'ongoing');
   const completedCups = allCups.filter(c => c.status === 'completed');
-
-  // Get unique cities
-  const cities = ['all', ...new Set(allCups.map(c => c.location).filter(Boolean))];
-
-  // Filter cups
-  const filteredCups = allCups.filter(cup => {
-    const matchesSearch = !searchQuery || 
-      cup.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      cup.location?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesFormat = formatFilter === 'all' || cup.format === formatFilter;
-    const matchesCity = cityFilter === 'all' || cup.location === cityFilter;
-    const matchesStatus = statusFilter === 'all' || cup.status === statusFilter;
-    
-    return matchesSearch && matchesFormat && matchesCity && matchesStatus;
-  });
 
   const isAdmin = user?.role === 'admin';
 

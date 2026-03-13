@@ -100,15 +100,10 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
         />
       </div>
 
-      {/* Count */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-[#B6C2BC]">
-          {isLoading ? 'Söker...' : `${totalCount} spelare hittade`}
-        </p>
-        {displayedPlayers.length < totalCount && (
-          <p className="text-sm text-[#7B8A83]">Visar {displayedPlayers.length} av {totalCount}</p>
-        )}
-      </div>
+      {/* Loading indicator */}
+      {isLoading && (
+        <p className="text-sm text-[#B6C2BC]">Söker...</p>
+      )}
 
       {/* Loading */}
       {isLoading && (
