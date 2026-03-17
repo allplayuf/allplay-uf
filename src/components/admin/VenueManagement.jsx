@@ -366,15 +366,16 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
                         >
                           <Star className={`w-3.5 h-3.5 ${venue.is_allplay ? 'fill-current' : ''}`} />
                         </Button>
-                        {/* Schedule button (only for AllPlay venues) */}
+                        {/* Schedule button for AllPlay venues */}
                         {venue.is_allplay && (
                           <Button
                             size="sm" variant="outline"
                             onClick={() => setScheduleVenue(venue)}
-                            className="h-8 px-2 text-xs rounded-lg border-[#223029] text-[#9EAAA4] hover:text-[#F4743B] hover:border-[#F4743B]/40"
-                            title="Redigera schema"
+                            className="h-8 px-2 text-xs rounded-lg border-[#F4743B]/30 text-[#F4743B] hover:bg-[#F4743B]/10 hover:border-[#F4743B]/50"
+                            title="Redigera bokningsschema"
                           >
-                            <Clock className="w-3.5 h-3.5" />
+                            <Clock className="w-3.5 h-3.5 mr-1" />
+                            <span className="hidden sm:inline">Schema</span>
                           </Button>
                         )}
                         <Button
