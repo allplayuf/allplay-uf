@@ -89,6 +89,7 @@ export async function createVenue(venueData) {
     external_id: venueData.external_id || `admin_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     is_active: true,
     is_verified: venueData.is_verified ?? true,
+    is_allplay: venueData.is_allplay ?? false,
     added_by_admin: true,
     formats_supported: venueData.formats_supported || ['5v5'],
     facilities: venueData.facilities || [],
