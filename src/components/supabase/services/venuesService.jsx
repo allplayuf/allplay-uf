@@ -199,6 +199,7 @@ export async function getVenues() {
       ...v,
       latitude: v.latitude ?? v.lat ?? null,
       longitude: v.longitude ?? v.lng ?? null,
+      is_allplay: v.is_allplay ?? false,
     }));
     
     // Debug: log first raw venue to see actual DB columns
