@@ -8,9 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   MapPin, Plus, Trash2, Save, X, CheckCircle,
-  Map as MapIcon, List, Keyboard, Filter, RefreshCw
+  Map as MapIcon, List, Keyboard, Filter, RefreshCw, Star, Clock
 } from "lucide-react";
 import { createVenue, deleteVenue } from "../supabase/services/venuesService";
+import { getAuthHeaders, SUPABASE_URL } from '../supabase/config';
+import VenueAvailabilityEditor from './VenueAvailabilityEditor';
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -78,6 +80,8 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
   const [pendingPosition, setPendingPosition] = useState(null);
   const [page, setPage] = useState(0);
   const [actionLoading, setActionLoading] = useState(null);
+  const [scheduleVenue, setScheduleVenue] = useState(null);
+  const [filterAllplay, setFilterAllplay] = useState('all'); // 'all' | 'allplay' | 'other'
 
   // Deduplicate venues by id (Supabase is source of truth)
   const venues = useMemo(() => {
@@ -107,8 +111,30 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
     return duplicateGroups.flatMap(group => group.slice(1).map(v => v.id));
   }, [duplicateGroups]);
 
+  const handleToggleAllplay = async (venueId, currentValue) => {
+    setActionLoading(venueId + '_allplay');
+    try {
+      const headers = await getAuthHeaders();
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/venues?id=eq.${encodeURIComponent(venueId)}`,
+        {
+          method: 'PATCH',
+          headers: { ...headers, 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ is_allplay: !currentValue })
+        }
+      );
+      onRefresh();
+    } catch (error) {
+      console.error('[VenueManagement] Toggle allplay failed:', error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const filtered = useMemo(() => {
     let list = [...venues];
+    if (filterAllplay === 'allplay') list = list.filter(v => v.is_allplay);
+    if (filterAllplay === 'other') list = list.filter(v => !v.is_allplay);
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
       list = list.filter(v =>
@@ -202,8 +228,19 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
         lastUpdated={lastUpdated}
         onRefresh={onRefresh}
       >
+        <Select value={filterAllplay} onValueChange={setFilterAllplay}>
+          <SelectTrigger className="w-36 h-10 bg-[#18221E] border-[#223029] text-[#F4F7F5] rounded-xl text-sm">
+            <Star className="w-3.5 h-3.5 mr-1" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-[#121715] border-[#223029]">
+            <SelectItem value="all" className="text-[#F4F7F5]">Alla planer</SelectItem>
+            <SelectItem value="allplay" className="text-[#2BA84A]">AllPlay</SelectItem>
+            <SelectItem value="other" className="text-[#9EAAA4]">Övriga</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-32 h-10 bg-[#18221E] border-[#223029] text-[#F4F7F5] rounded-xl text-sm">
+          <SelectTrigger className="w-28 h-10 bg-[#18221E] border-[#223029] text-[#F4F7F5] rounded-xl text-sm">
             <Filter className="w-3.5 h-3.5 mr-1" />
             <SelectValue />
           </SelectTrigger>
@@ -298,36 +335,61 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
           ) : (
             <div className="space-y-2">
               {paginated.map(venue => (
-                <Card key={venue.id} className="bg-[#121715] border border-[#223029] hover:border-[#9370DB]/20 rounded-[14px] transition-colors">
+                <Card key={venue.id} className={`bg-[#121715] border rounded-[14px] transition-colors ${venue.is_allplay ? 'border-[#2BA84A]/30 hover:border-[#2BA84A]/50' : 'border-[#223029] hover:border-[#9370DB]/20'}`}>
                   <CardContent className="p-3 sm:p-4">
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap mb-1">
                           <span className="font-semibold text-[#F4F7F5] text-sm truncate">{venue.name}</span>
                           {venue.is_verified && <CheckCircle className="w-3.5 h-3.5 text-[#2BA84A]" />}
+                          {venue.is_allplay && (
+                            <Badge className="text-[10px] bg-[#2BA84A]/20 text-[#2BA84A] border border-[#2BA84A]/30">
+                              <Star className="w-2.5 h-2.5 mr-0.5 fill-current" /> AllPlay
+                            </Badge>
+                          )}
                           <Badge className={`text-[10px] ${venue.is_active !== false ? 'bg-[#2BA84A]/15 text-[#2BA84A]' : 'bg-[#6B7280]/15 text-[#6B7280]'}`}>
                             {venue.is_active !== false ? 'Aktiv' : 'Inaktiv'}
                           </Badge>
                         </div>
                         <div className="flex items-center gap-3 text-xs text-[#7B8A83]">
                           <span>{[venue.address, venue.city].filter(Boolean).join(', ')}</span>
-                          {venue.external_id && (
-                            <span className="text-[10px] font-mono text-[#9EAAA4]">ext:{venue.external_id.slice(0, 12)}</span>
-                          )}
                         </div>
                       </div>
-                      <Button
-                        size="sm" variant="destructive"
-                        onClick={() => handleDeleteVenue(venue.id)}
-                        disabled={actionLoading === venue.id}
-                        className="h-8 px-3 bg-[#DC2626] hover:bg-[#B91C1C] text-white text-xs rounded-lg flex-shrink-0"
-                      >
-                        {actionLoading === venue.id ? (
-                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <Trash2 className="w-3.5 h-3.5" />
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        {/* AllPlay toggle */}
+                        <Button
+                          size="sm" variant="outline"
+                          onClick={() => handleToggleAllplay(venue.id, venue.is_allplay)}
+                          disabled={actionLoading === venue.id + '_allplay'}
+                          className={`h-8 px-2 text-xs rounded-lg ${venue.is_allplay ? 'border-[#2BA84A]/40 text-[#2BA84A] hover:bg-[#2BA84A]/10' : 'border-[#223029] text-[#9EAAA4] hover:text-[#2BA84A]'}`}
+                          title={venue.is_allplay ? 'Ta bort AllPlay-status' : 'Markera som AllPlay-plan'}
+                        >
+                          <Star className={`w-3.5 h-3.5 ${venue.is_allplay ? 'fill-current' : ''}`} />
+                        </Button>
+                        {/* Schedule button (only for AllPlay venues) */}
+                        {venue.is_allplay && (
+                          <Button
+                            size="sm" variant="outline"
+                            onClick={() => setScheduleVenue(venue)}
+                            className="h-8 px-2 text-xs rounded-lg border-[#223029] text-[#9EAAA4] hover:text-[#F4743B] hover:border-[#F4743B]/40"
+                            title="Redigera schema"
+                          >
+                            <Clock className="w-3.5 h-3.5" />
+                          </Button>
                         )}
-                      </Button>
+                        <Button
+                          size="sm" variant="destructive"
+                          onClick={() => handleDeleteVenue(venue.id)}
+                          disabled={actionLoading === venue.id}
+                          className="h-8 px-2 bg-[#DC2626] hover:bg-[#B91C1C] text-white text-xs rounded-lg"
+                        >
+                          {actionLoading === venue.id ? (
+                            <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Trash2 className="w-3.5 h-3.5" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -386,6 +448,14 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Availability Editor Modal */}
+      {scheduleVenue && (
+        <VenueAvailabilityEditor
+          venue={scheduleVenue}
+          onClose={() => setScheduleVenue(null)}
+        />
+      )}
     </div>
   );
 }
