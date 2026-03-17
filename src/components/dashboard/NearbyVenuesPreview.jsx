@@ -18,7 +18,7 @@ export default function NearbyVenuesPreview({ venues = [], userLocation }) {
               <div className="w-10 h-10 bg-[#2BA84A]/20 rounded-xl flex items-center justify-center ring-2 ring-[#2BA84A]/30">
                 <Navigation className="w-5 h-5 text-[#2BA84A]" strokeWidth={2.5} />
               </div>
-              <h3 className="text-lg font-bold text-[#F4F7F5]">Planer Nära Dig</h3>
+              <h3 className="text-lg font-bold text-[#F4F7F5]">AllPlay-planer Nära Dig</h3>
             </div>
             <Link to={createPageUrl("Map")} className="text-sm font-semibold text-[#2BA84A] hover:text-[#CFE8D6] flex items-center gap-1">
               Karta
