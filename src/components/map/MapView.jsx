@@ -561,6 +561,12 @@ export default function MapView({
           transform: scale(1.18) translateY(-4px);
           z-index: 1000 !important;
         }
+        .ap-pin-dim {
+          opacity: 0.55;
+        }
+        .ap-pin-dim:hover {
+          opacity: 0.85;
+        }
         .ap-cluster {
           transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
         }
