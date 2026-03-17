@@ -436,6 +436,8 @@ export default function MapPage() {
               />
             </div>
 
+            <AllPlayToggle showOtherVenues={showOtherVenues} onToggle={() => setShowOtherVenues(v => !v)} />
+
             <div className="flex gap-2">
               <Select value={filters.format} onValueChange={(value) => setFilters(prev => ({ ...prev, format: value }))}>
                 <SelectTrigger className="h-10 flex-1 bg-[#18221E]/80 border border-[#223029]/60 text-[#F4F7F5] rounded-full text-xs uppercase tracking-wide">

@@ -35,13 +35,18 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
   const [requestId] = useState(() => crypto.randomUUID()); // Generate once per form instance
 
   const filteredVenues = venues.filter(venue => {
-    if (!venueSearch) return true; // Show all venues when no search
+    if (!venueSearch) return true;
     const search = venueSearch.toLowerCase();
     return (
       (venue.name || '').toLowerCase().includes(search) ||
       (venue.city || '').toLowerCase().includes(search) ||
       (venue.address || '').toLowerCase().includes(search)
     );
+  }).sort((a, b) => {
+    // AllPlay venues first
+    if (a.is_allplay && !b.is_allplay) return -1;
+    if (!a.is_allplay && b.is_allplay) return 1;
+    return (a.name || '').localeCompare(b.name || '');
   });
 
   const selectedVenue = venues.find(v => v.id === formData.venue_id);
@@ -191,7 +196,14 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
                         onClick={() => handleVenueSelect(venue)}
                         className="w-full px-4 py-3 text-left hover:bg-[#18221E] transition-colors border-b border-[#223029] last:border-b-0"
                       >
-                        <div className="font-semibold text-[#F4F7F5] text-sm mb-1">{venue.name}</div>
+                        <div className="font-semibold text-[#F4F7F5] text-sm mb-1 flex items-center gap-2">
+                          {venue.name}
+                          {venue.is_allplay && (
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[#2BA84A]/15 text-[10px] font-bold text-[#2BA84A] ring-1 ring-[#2BA84A]/25">
+                              ★ AllPlay
+                            </span>
+                          )}
+                        </div>
                         <div className="text-[13px] leading-[18px] text-[#B6C2BC] flex items-center gap-2">
                           <MapPin className="w-3 h-3" />
                           {[venue.address, venue.city].filter(Boolean).join(', ') || 'Ingen adress'}

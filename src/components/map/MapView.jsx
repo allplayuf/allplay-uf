@@ -251,6 +251,8 @@ function ClusteredMarkers({ venues, venueStatuses, selectedVenue, onMarkerClick,
           const bestMatch = venueMatches[0];
           const status = bestMatch ? getMatchStatus(bestMatch) : 'later';
           icon = createMatchPin(st.matchCount, status, isSelected, st.hasUserMatch);
+        } else if (!venue.is_allplay) {
+          icon = createDimmedVenuePin(isSelected);
         } else {
           icon = createVenuePin(isSelected, false, false);
         }
@@ -317,6 +319,31 @@ function ClusteredMarkers({ venues, venueStatuses, selectedVenue, onMarkerClick,
 }
 
 /* ─── MAIN COMPONENT ─── */
+/* ─── DIMMED VENUE PIN (for non-AllPlay tier 2 venues) ─── */
+function createDimmedVenuePin(isSelected) {
+  const w = isSelected ? 32 : 24;
+  const h = isSelected ? 40 : 30;
+  const cx = w / 2;
+  const r = w / 2 - 2;
+  const cy = r + 2;
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <path d="M${cx} ${h-1} C${cx} ${h-1} ${cx-r*0.6} ${cy+r*0.8} ${cx-r} ${cy}
+             a${r} ${r} 0 1 1 ${r*2} 0
+             C${cx+r*0.6} ${cy+r*0.8} ${cx} ${h-1} ${cx} ${h-1}Z"
+          fill="#1A1E1C" stroke="#3A4A42" stroke-width="1.2" stroke-linejoin="round" opacity="0.6"/>
+    <circle cx="${cx}" cy="${cy}" r="${r*0.3}" fill="#5A6A62" opacity="0.7"/>
+  </svg>`;
+
+  return L.divIcon({
+    html: `<div class="ap-pin ap-pin-dim${isSelected ? ' ap-sel' : ''}">${svg}</div>`,
+    className: '',
+    iconSize: [w, h],
+    iconAnchor: [cx, h - 1],
+    popupAnchor: [0, -h + 4],
+  });
+}
+
 export default function MapView({
   venues = [],
   matches = [],
