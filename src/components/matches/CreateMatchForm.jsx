@@ -12,6 +12,8 @@ import { GuestOverlay } from "@/components/ui/guest-blocker";
 import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
 import { MobileSelect } from "@/components/ui/mobile-select";
 import VenueAvailabilityBadge from "@/components/venues/VenueAvailabilityBadge";
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 
 export default function CreateMatchForm({ venues, user, onSubmit, onCancel, preselectedVenueId }) {
   const { isGuest } = useSupabaseAuth();
@@ -51,6 +53,18 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
   });
 
   const selectedVenue = venues.find(v => v.id === formData.venue_id);
+
+  // Fetch booked slots for the selected AllPlay venue + date
+  const { data: bookedSlots = [] } = useQuery({
+    queryKey: ['venue-booked-slots', formData.venue_id, formData.date],
+    queryFn: () => base44.entities.VenueAvailability.filter(
+      { venue_id: formData.venue_id, date: formData.date, slot_type: 'booked' },
+      'start_time',
+      50
+    ),
+    enabled: !!formData.venue_id && !!formData.date && !!selectedVenue?.is_allplay,
+    staleTime: 60000,
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -310,9 +324,10 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
             <DateTimePicker
               date={formData.date}
               time={formData.time}
-              onDateChange={(date) => setFormData(prev => ({ ...prev, date }))}
+              onDateChange={(date) => setFormData(prev => ({ ...prev, date, time: '' }))}
               onTimeChange={(time) => setFormData(prev => ({ ...prev, time }))}
               minDate={today}
+              bookedSlots={selectedVenue?.is_allplay ? bookedSlots : []}
             />
           </div>
 
