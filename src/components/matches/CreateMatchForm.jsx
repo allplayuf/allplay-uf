@@ -11,6 +11,7 @@ import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { GuestOverlay } from "@/components/ui/guest-blocker";
 import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
 import { MobileSelect } from "@/components/ui/mobile-select";
+import VenueAvailabilityBadge from "@/components/venues/VenueAvailabilityBadge";
 
 export default function CreateMatchForm({ venues, user, onSubmit, onCancel, preselectedVenueId }) {
   const { isGuest } = useSupabaseAuth();
@@ -230,6 +231,13 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
             <p className="text-[11px] leading-[16px] text-[#9EAAA4]">
               Sök efter planens namn, stad eller adress
             </p>
+            {/* Availability badge for AllPlay venues */}
+            <VenueAvailabilityBadge
+              venueId={formData.venue_id}
+              date={formData.date}
+              time={formData.time}
+              isAllplay={selectedVenue?.is_allplay}
+            />
           </div>
 
           {/* Match Type Selection - ADJUSTED ICON POSITIONING */}
