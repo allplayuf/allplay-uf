@@ -20,6 +20,7 @@ import MapView from "../components/map/MapView";
 import VenueCard from "../components/map/VenueCard";
 import VenueDetailModal from "../components/map/VenueDetailModal";
 import FilterSheet from "../components/map/FilterSheet";
+import AllPlayToggle from "../components/map/AllPlayToggle";
 
 export default function MapPage() {
   const navigate = useNavigate();
@@ -40,6 +41,7 @@ export default function MapPage() {
   const [recenterFlag, setRecenterFlag] = useState(0);
   const [showVenueModal, setShowVenueModal] = useState(false);
   const [selectedVenueForModal, setSelectedVenueForModal] = useState(null);
+  const [showOtherVenues, setShowOtherVenues] = useState(false);
   const { user: authUser, isAuthenticated } = useSupabaseAuth();
 
   const formatLabels = {
@@ -81,6 +83,11 @@ export default function MapPage() {
     let filtered = venues.filter(venue => {
       if (venue.latitude == null || venue.longitude == null ||
           isNaN(parseFloat(venue.latitude)) || isNaN(parseFloat(venue.longitude))) {
+        return false;
+      }
+
+      // AllPlay filter: only show non-allplay venues if toggle is on
+      if (!showOtherVenues && !venue.is_allplay) {
         return false;
       }
 
@@ -163,7 +170,7 @@ export default function MapPage() {
     });
 
     setFilteredVenues(filtered);
-  }, [venues, matches, filters, searchQuery, userLocation, calculateDistance]);
+  }, [venues, matches, filters, searchQuery, userLocation, calculateDistance, showOtherVenues]);
 
   // Fetch map data from Supabase
   const { data: mapData } = useQuery({
@@ -322,7 +329,8 @@ export default function MapPage() {
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <AllPlayToggle showOtherVenues={showOtherVenues} onToggle={() => setShowOtherVenues(v => !v)} />
             <FilterSheet filters={filters} onFilterChange={setFilters} />
             
             <button 
