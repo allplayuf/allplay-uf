@@ -26,7 +26,7 @@ import CreateMatchForm from "../components/matches/CreateMatchForm";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import CupsWidget from "../components/dashboard/CupsWidget";
 import NearbyMatchesWidget from "../components/dashboard/NearbyMatchesWidget";
-import NearbyVenuesPreview from "../components/dashboard/NearbyVenuesPreview";
+
 import MatchCard from "../components/matches/MatchCard";
 import NotificationsSlider from "../components/dashboard/NotificationsSlider";
 import NextMatchCard from "../components/dashboard/NextMatchCard";
@@ -798,26 +798,6 @@ export default function Dashboard() {
               )}
               
             </motion.div>
-
-            {/* Nearby AllPlay Venues */}
-            {userLocation && (
-              <motion.div variants={VARIANTS.item}>
-                <NearbyVenuesPreview
-                  venues={
-                    venues
-                      .filter(v => v.is_allplay && v.latitude && v.longitude)
-                      .map(v => ({
-                        ...v,
-                        distance: calculateDistance(userLocation.lat, userLocation.lng, parseFloat(v.latitude), parseFloat(v.longitude))
-                      }))
-                      .filter(v => v.distance < 20)
-                      .sort((a, b) => a.distance - b.distance)
-                      .slice(0, 5)
-                  }
-                  userLocation={userLocation}
-                />
-              </motion.div>
-            )}
 
             {/* Nearby Matches Widget */}
             <motion.div variants={VARIANTS.item}>
