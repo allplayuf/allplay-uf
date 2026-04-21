@@ -7,7 +7,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Camera, Loader2, X } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { UploadFile } from '@/components/supabase/integrations';
 
 export default function AvatarUpload({ currentImageUrl, onUploaded }) {
   const [preview, setPreview] = useState(null);
@@ -39,7 +39,7 @@ export default function AvatarUpload({ currentImageUrl, onUploaded }) {
     // Upload
     setIsUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const { file_url } = await UploadFile({ file });
       // Save to localStorage for instant display everywhere
       if (file_url) {
         localStorage.setItem('allplay_profile_image', file_url);

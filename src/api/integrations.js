@@ -1,24 +1,21 @@
-import { base44 } from './base44Client';
+/**
+ * Integrations facade — now backed by Supabase edge functions.
+ *
+ * Legacy import path kept so existing callsites don't break.
+ * Prefer importing directly from '@/components/supabase/integrations'
+ * in new code.
+ */
 
+export {
+  Core,
+  UploadFile,
+  InvokeLLM,
+  SendEmail,
+  GenerateImage,
+  ExtractDataFromUploadedFile,
+} from '@/components/supabase/integrations';
 
-
-
-export const Core = base44.integrations.Core;
-
-export const InvokeLLM = base44.integrations.Core.InvokeLLM;
-
-export const SendEmail = base44.integrations.Core.SendEmail;
-
-export const SendSMS = base44.integrations.Core.SendSMS;
-
-export const UploadFile = base44.integrations.Core.UploadFile;
-
-export const GenerateImage = base44.integrations.Core.GenerateImage;
-
-export const ExtractDataFromUploadedFile = base44.integrations.Core.ExtractDataFromUploadedFile;
-
-
-
-
-
-
+// `SendSMS` was never implemented — stub kept so old imports don't crash.
+export async function SendSMS() {
+  throw new Error('SendSMS is not implemented.');
+}
