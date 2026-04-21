@@ -52,7 +52,7 @@ class ErrorBoundary extends React.Component {
                 Vi beklagar, men något oväntat inträffade. Prova att ladda om sidan eller gå tillbaka till startsidan.
               </p>
 
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {import.meta.env.DEV && this.state.error && (
                 <details className="mb-6 text-left">
                   <summary className="cursor-pointer text-[12px] text-[#7B8A83] mb-2">
                     Teknisk information (endast synlig i utvecklingsläge)

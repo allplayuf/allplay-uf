@@ -28,7 +28,6 @@ import CupsWidget from "../components/dashboard/CupsWidget";
 import NearbyMatchesWidget from "../components/dashboard/NearbyMatchesWidget";
 
 import MatchCard from "../components/matches/MatchCard";
-import NotificationsSlider from "../components/dashboard/NotificationsSlider";
 import NextMatchCard from "../components/dashboard/NextMatchCard";
 import InboxWidget from "../components/dashboard/InboxWidget";
 import { 
@@ -53,7 +52,6 @@ const QUERY_KEYS = {
 
 export default function Dashboard() {
   const [userLocation, setUserLocation] = useState(null);
-  const [friendsInUpcomingMatchesCount, setFriendsInUpcomingMatchesCount] = useState(0);
   const [errorMessage, setErrorMessage] = useState(null);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [showCreateMatchModal, setShowCreateMatchModal] = useState(false);
@@ -128,8 +126,6 @@ export default function Dashboard() {
   const allParticipants = feedData?.participants ?? [];
   const matchesLoading = feedLoading;
   const venuesLoading = feedLoading;
-
-  const adminNotifications = [];
 
   useEffect(() => {
     getUserLocation();
@@ -327,35 +323,6 @@ export default function Dashboard() {
     mvps: weeklyMvps,
     goal: 5
   };
-
-  // Räkna tid till nästa match
-  const timeUntilMatch = myUpcomingMatches.length > 0 ? 
-    (new Date(`${myUpcomingMatches[0].date}T${myUpcomingMatches[0].time}`) - new Date()) / (1000 * 60) : Infinity;
-
-  // Prepare notifications
-  const notifications = [
-    ...adminNotifications,
-    ...(nearbyMatches.length > 0 ? [{
-      type: 'match',
-      title: 'Ny match skapad nära dig!',
-      subtitle: `${nearbyMatches[0].title} på ${nearbyMatches[0].venue?.name}`
-    }] : []),
-    ...(friendsInUpcomingMatchesCount > 0 ? [{
-      type: 'social',
-      title: `${friendsInUpcomingMatchesCount} ${friendsInUpcomingMatchesCount === 1 ? 'vän' : 'vänner'} spelar snart`,
-      subtitle: 'Gå med i deras matcher'
-    }] : []),
-    ...(myUpcomingMatches.length > 0 && timeUntilMatch < 24 * 60 ? [{
-      type: 'reminder',
-      title: 'Din match är snart!',
-      subtitle: `${myUpcomingMatches[0].title} börjar om ${Math.floor(timeUntilMatch / 60)}h`
-    }] : []),
-    ...(weeklyStats.mvps >= 2 ? [{
-      type: 'achievement',
-      title: 'Du är på gång!',
-      subtitle: `${weeklyStats.mvps} MVPs denna vecka 🔥`
-    }] : [])
-  ];
 
   // Handle rate limit errors gracefully
   useEffect(() => {
@@ -715,13 +682,6 @@ export default function Dashboard() {
         {isAuthenticated && (
           <motion.div variants={VARIANTS.item}>
             <InboxWidget />
-          </motion.div>
-        )}
-
-        {/* Notifications Slider */}
-        {notifications.length > 0 && (
-          <motion.div variants={VARIANTS.item}>
-            <NotificationsSlider notifications={notifications} />
           </motion.div>
         )}
 

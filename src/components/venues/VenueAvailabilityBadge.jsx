@@ -14,8 +14,6 @@ import { Clock, Ban, CheckCircle } from 'lucide-react';
  * - If "available" slots exist → show GREEN with open times
  */
 export default function VenueAvailabilityBadge({ venueId, date, time, isAllplay }) {
-  if (!isAllplay || !venueId || !date) return null;
-
   const { data: slots = [] } = useQuery({
     queryKey: ['venue-availability-check', venueId, date],
     queryFn: () => base44.entities.VenueAvailability.filter(
@@ -24,9 +22,10 @@ export default function VenueAvailabilityBadge({ venueId, date, time, isAllplay 
       50
     ),
     staleTime: 60000,
-    enabled: !!venueId && !!date,
+    enabled: !!isAllplay && !!venueId && !!date,
   });
 
+  if (!isAllplay || !venueId || !date) return null;
   if (slots.length === 0) return null;
 
   const bookedSlots = slots.filter(s => s.slot_type === 'booked');
