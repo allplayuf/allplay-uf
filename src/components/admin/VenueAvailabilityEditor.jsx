@@ -6,7 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2, Clock, X, CalendarDays, ChevronLeft, ChevronRight, Copy, AlertCircle } from "lucide-react";
-import { base44 } from '@/api/base44Client';
+import {
+  listVenueAvailability,
+  createVenueAvailability,
+  bulkCreateVenueAvailability,
+  deleteVenueAvailability,
+} from '@/components/supabase/services/venueAvailabilityService';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const DAYS = ['Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör', 'Sön'];
@@ -85,17 +90,18 @@ export default function VenueAvailabilityEditor({ venue, onClose }) {
     queryFn: async () => {
       const startDate = formatDate(weekDates[0]);
       const endDate = formatDate(weekDates[6]);
-      return base44.entities.VenueAvailability.filter(
-        { venue_id: venue.id, date: { $gte: startDate, $lte: endDate } },
-        'date',
-        200
-      );
+      return listVenueAvailability({
+        venue_id: venue.id,
+        date_from: startDate,
+        date_to: endDate,
+        limit: 200,
+      });
     },
     staleTime: 30000,
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.VenueAvailability.create(data),
+    mutationFn: (data) => createVenueAvailability(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['venue-availability', venue.id] });
       setShowAddForm(false);
@@ -104,7 +110,7 @@ export default function VenueAvailabilityEditor({ venue, onClose }) {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.VenueAvailability.delete(id),
+    mutationFn: (id) => deleteVenueAvailability(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['venue-availability', venue.id] }),
   });
 
@@ -142,7 +148,7 @@ export default function VenueAvailabilityEditor({ venue, onClose }) {
       };
     });
 
-    await base44.entities.VenueAvailability.bulkCreate(newSlots);
+    await bulkCreateVenueAvailability(newSlots);
     queryClient.invalidateQueries({ queryKey: ['venue-availability', venue.id] });
     setCopyWeekLoading(false);
   };

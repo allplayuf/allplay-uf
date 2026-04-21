@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { listVenueAvailability } from '@/components/supabase/services/venueAvailabilityService';
 import { Clock, Ban, CheckCircle } from 'lucide-react';
 
 /**
@@ -16,11 +16,7 @@ import { Clock, Ban, CheckCircle } from 'lucide-react';
 export default function VenueAvailabilityBadge({ venueId, date, time, isAllplay }) {
   const { data: slots = [] } = useQuery({
     queryKey: ['venue-availability-check', venueId, date],
-    queryFn: () => base44.entities.VenueAvailability.filter(
-      { venue_id: venueId, date },
-      'start_time',
-      50
-    ),
+    queryFn: () => listVenueAvailability({ venue_id: venueId, date, limit: 50 }),
     staleTime: 60000,
     enabled: !!isAllplay && !!venueId && !!date,
   });

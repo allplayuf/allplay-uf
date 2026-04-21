@@ -105,3 +105,11 @@ export {
   clearAdminCache,
   getCachedAdminStatus
 } from './adminService';
+
+// Venue Availability
+export {
+  listVenueAvailability,
+  createVenueAvailability,
+  bulkCreateVenueAvailability,
+  deleteVenueAvailability
+} from './venueAvailabilityService';
