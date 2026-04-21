@@ -1,21 +1,7 @@
 /**
- * Integrations facade — now backed by Supabase edge functions.
+ * Integrations facade — backed by Supabase edge functions.
  *
- * Legacy import path kept so existing callsites don't break.
- * Prefer importing directly from '@/components/supabase/integrations'
- * in new code.
+ * Only UploadFile is supported. AI/email integrations were removed.
  */
 
-export {
-  Core,
-  UploadFile,
-  InvokeLLM,
-  SendEmail,
-  GenerateImage,
-  ExtractDataFromUploadedFile,
-} from '@/components/supabase/integrations';
-
-// `SendSMS` was never implemented — stub kept so old imports don't crash.
-export async function SendSMS() {
-  throw new Error('SendSMS is not implemented.');
-}
+export { Core, UploadFile } from '@/components/supabase/integrations';
