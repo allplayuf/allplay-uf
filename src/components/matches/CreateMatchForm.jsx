@@ -156,18 +156,39 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
   return (
     <GuestOverlay message="Du måste vara inloggad för att skapa matcher">
     <div className="flex flex-col h-full bg-[#121715] rounded-t-[20px] lg:rounded-[20px] overflow-hidden">
-      {/* Header */}
-      <div className="flex-shrink-0 flex items-center justify-between p-4 lg:p-6 border-b border-[#223029] bg-gradient-to-br from-[#2BA84A]/10 to-[#0F2917]/10">
-        <div>
-          <h2 className="text-xl lg:text-2xl font-bold text-[#F4F7F5]">Skapa match</h2>
-          <p className="text-xs text-[#B6C2BC] font-medium mt-0.5">Fyll i detaljerna för att skapa en match</p>
+      {/* Header — premium with glow */}
+      <div className="flex-shrink-0 relative overflow-hidden border-b border-white/[0.06]">
+        {/* Ambient glow */}
+        <div className="absolute -top-16 -right-12 w-48 h-48 bg-[#2BA84A]/18 rounded-full blur-3xl pointer-events-none" />
+        <div
+          className="absolute inset-x-0 top-0 h-px pointer-events-none"
+          style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.16), transparent)' }}
+        />
+
+        <div className="relative flex items-center justify-between p-4 lg:p-5">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center ring-1 ring-[#2BA84A]/30 flex-shrink-0"
+              style={{ background: 'rgba(43,168,74,0.14)' }}
+            >
+              <Zap className="w-5 h-5 text-[#86EFAC]" strokeWidth={2.4} />
+            </div>
+            <div>
+              <div className="inline-flex items-center gap-1.5 mb-0.5 px-1.5 py-0.5 rounded-full bg-[#2BA84A]/12 ring-1 ring-[#2BA84A]/25">
+                <span className="w-1 h-1 rounded-full bg-[#34C257]" />
+                <span className="text-[9px] font-bold text-[#86EFAC] uppercase tracking-wider">Ny match</span>
+              </div>
+              <h2 className="text-[18px] lg:text-[20px] leading-tight font-black text-white tracking-tight">Skapa match</h2>
+            </div>
+          </div>
+          <button
+            onClick={onCancel}
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-white/[0.05] hover:bg-white/[0.1] ring-1 ring-white/10 text-[#C2CEC8] hover:text-white transition-colors"
+            aria-label="Stäng"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
-        <button
-          onClick={onCancel}
-          className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#18221E] hover:bg-[#223029] text-[#B6C2BC] transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
       </div>
 
       {/* DISCLAIMER BOX REMOVED */}

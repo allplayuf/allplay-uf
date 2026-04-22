@@ -29,24 +29,57 @@ export default function FriendsList({ friends, incomingRequests, onAcceptRequest
 
   if (uniqueFriends.length === 0) {
     return (
-      <Card className="relative overflow-hidden bg-gradient-to-br from-[#2BA84A] to-[#0F2917] rounded-[16px] lg:rounded-[20px] p-8 sm:p-12 lg:p-16 shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029]">
-        <div className="absolute top-[-30px] right-[-30px] w-28 h-28 bg-[#2BA84A]/40 rounded-full"></div>
-        <div className="absolute bottom-[-40px] left-[-40px] w-32 h-32 bg-[#0F2917]/60 rounded-full"></div>
-        
-        <div className="relative z-10 text-center">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-[#FFFFFF]/15 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6 border border-[#FFFFFF]/25">
-            <UserPlus className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-[#EAF6EE]" />
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="relative overflow-hidden rounded-[24px] border border-white/[0.06] p-8 sm:p-12"
+        style={{
+          background: 'linear-gradient(135deg, #151B18 0%, #111613 55%, #0C100E 100%)',
+          boxShadow: '0 20px 48px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
+        }}
+      >
+        {/* Ambient glow */}
+        <div className="absolute -top-20 -right-16 w-56 h-56 bg-[#2BA84A]/14 rounded-full blur-3xl pointer-events-none" />
+        <div
+          className="absolute inset-x-0 top-0 h-px pointer-events-none"
+          style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)' }}
+        />
+
+        <div className="relative z-10 text-center max-w-sm mx-auto">
+          <div className="relative inline-flex mb-5">
+            <div className="absolute -inset-3 bg-[#2BA84A]/20 rounded-full blur-xl" />
+            <div
+              className="relative w-16 h-16 rounded-2xl flex items-center justify-center ring-1 ring-[#2BA84A]/30"
+              style={{ background: 'rgba(43,168,74,0.12)' }}
+            >
+              <UserPlus className="w-7 h-7 text-[#86EFAC]" strokeWidth={2.2} />
+            </div>
           </div>
-          <h3 className="text-[20px] leading-[28px] sm:text-[28px] sm:leading-[34px] font-semibold text-[#EAF6EE] mb-3">Inga vänner än</h3>
-          <p className="text-[14px] leading-[20px] text-[#CFE8D6] mb-8 max-w-md mx-auto">
-            Börja spela matcher för att träffa nya spelare och bygga ditt nätverk!
+
+          <h3 className="text-[20px] leading-[26px] font-black text-white tracking-tight mb-2">
+            Bygg ditt nätverk
+          </h3>
+          <p className="text-[13px] leading-[19px] text-[#B6C2BC] mb-6">
+            Spela matcher för att möta nya spelare och bygga din vänlista.
           </p>
-          <button className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#FFFFFF]/16 px-6 text-[#EAF6EE] ring-1 ring-[#FFFFFF]/30 transition-all hover:bg-[#FFFFFF]/24 hover:ring-[#FFFFFF]/45 hover:scale-[1.02] font-semibold">
-            <UserPlus className="w-5 h-5" />
-            Utforska spelare
-          </button>
+
+          <div className="flex flex-col gap-2 text-left">
+            {[
+              { num: '1', text: 'Gå med i en match nära dig' },
+              { num: '2', text: 'Lägg till spelare som vänner' },
+              { num: '3', text: 'Bjud in dem till nästa spel' },
+            ].map((step, i) => (
+              <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] ring-1 ring-white/5">
+                <div className="w-6 h-6 rounded-full bg-[#2BA84A]/20 ring-1 ring-[#2BA84A]/30 flex items-center justify-center flex-shrink-0">
+                  <span className="text-[11px] font-black text-[#86EFAC]">{step.num}</span>
+                </div>
+                <span className="text-[12px] text-[#C2CEC8] font-medium">{step.text}</span>
+              </div>
+            ))}
+          </div>
         </div>
-      </Card>
+      </motion.div>
     );
   }
 

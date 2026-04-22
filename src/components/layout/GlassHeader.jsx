@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Settings, LogIn } from "lucide-react";
 import { motion } from "framer-motion";
+import { createPageUrl } from "@/utils";
 import { triggerHaptic } from "@/components/utils/motionTokens";
 import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
-import SettingsSheet from "@/components/profile/SettingsSheet";
 import QRModal from "@/components/profile/QRModal";
 import { LoginModal } from "@/components/supabase";
 
@@ -17,7 +17,6 @@ import { LoginModal } from "@/components/supabase";
 export default function GlassHeader({ showBack }) {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useSupabaseAuth();
-  const [showSettings, setShowSettings] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
 
@@ -28,7 +27,7 @@ export default function GlassHeader({ showBack }) {
 
   const handleSettingsClick = () => {
     triggerHaptic("light");
-    setShowSettings(true);
+    navigate(createPageUrl("AccountSettings"));
   };
 
   const handleLoginClick = () => {
@@ -124,17 +123,6 @@ export default function GlassHeader({ showBack }) {
           </div>
         </motion.header>
       </div>
-
-      {/* Settings sheet */}
-      {showSettings && (
-        <SettingsSheet
-          onClose={() => setShowSettings(false)}
-          onShowQR={() => {
-            setShowSettings(false);
-            setShowQR(true);
-          }}
-        />
-      )}
 
       {/* QR modal */}
       {showQR && user && (

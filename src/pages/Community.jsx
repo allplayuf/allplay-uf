@@ -496,176 +496,124 @@ export default function CommunityPage() {
           <HeroSkeleton />
         ) : (
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative overflow-hidden rounded-3xl shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7),0_0_40px_0px_rgba(43,168,74,0.1)] border border-[#2BA84A]/20 bg-[#0A0D0B]"
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="relative overflow-hidden rounded-[28px] border border-white/[0.06]"
+          style={{
+            background: 'linear-gradient(135deg, #151B18 0%, #111613 55%, #0C100E 100%)',
+            boxShadow: '0 24px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)',
+          }}
         >
-          {/* Dark gradient base */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#1A1A1A] via-[#0F1513] to-[#0A0D0B]"></div>
-          
-          {/* Green animated overlay */}
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/25 via-[#248232]/15 to-transparent"
-            animate={{
-              opacity: [0.4, 0.6, 0.4]
-            }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+          {/* Ambient glows — subtle, not bombastic */}
+          <div className="absolute -top-24 -right-24 w-72 h-72 bg-[#2BA84A]/18 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-28 -left-20 w-64 h-64 bg-[#F4743B]/10 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Hairline top highlight */}
+          <div
+            className="absolute inset-x-0 top-0 h-px pointer-events-none"
+            style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent)' }}
           />
 
-          {/* Simplified Background Effects */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] lg:w-[700px] lg:h-[700px] rounded-full border border-[#2BA84A]/15" />
-
-          {/* Static Ambient Orbs */}
-          <div className="absolute top-10 lg:top-20 right-10 lg:right-20 w-32 h-32 lg:w-48 lg:h-48 bg-[#2BA84A]/20 rounded-full blur-3xl opacity-40" />
-          <div className="absolute bottom-10 lg:bottom-20 left-10 lg:left-20 w-40 h-40 lg:w-56 lg:h-56 bg-[#1A6029]/15 rounded-full blur-3xl opacity-30" />
-
-          <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-14">
-            {/* Enhanced Header with Logo - Aligned horizontally */}
-            <div className="flex items-center gap-4 sm:gap-6 mb-6 sm:mb-8 lg:mb-10">
-              
-              {/* Simplified Logo */}
+          <div className="relative z-10 px-5 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-10">
+            {/* Header row — compact & premium */}
+            <div className="flex items-center gap-4 sm:gap-5 mb-6 sm:mb-7">
               <div className="relative flex-shrink-0">
-                {/* Static Glow */}
-                <div className="absolute -inset-6 bg-gradient-to-r from-[#2BA84A]/40 via-[#248232]/40 to-[#2BA84A]/40 rounded-full blur-3xl opacity-60" />
-
-                {/* Logo Frame */}
-                <div className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-40 lg:h-40 rounded-3xl overflow-hidden border-2 border-[#FFFFFF]/30 shadow-[0_20px_60px_rgba(43,168,74,0.4)] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm flex items-center justify-center">
+                <div className="absolute -inset-2 bg-[#2BA84A]/25 rounded-full blur-lg pointer-events-none" />
+                <div className="relative w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-2xl overflow-hidden ring-1 ring-white/10 bg-gradient-to-br from-[#1A201D] to-[#0F1513] flex items-center justify-center shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
                   {user?.profile_image_url ? (
-                    <img 
-                      src={user.profile_image_url} 
-                      alt="Profile" 
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={user.profile_image_url} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
-                    <img 
-                      src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png" 
-                      alt="AllPlay" 
+                    <img
+                      src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png"
+                      alt="AllPlay"
                       className="w-3/4 h-3/4 object-contain"
                     />
                   )}
-                  </div>
-                  </div>
+                </div>
+              </div>
 
-              {/* Title Section - Aligned with logo */}
               <div className="flex-1 min-w-0">
-                <motion.h1
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="text-2xl sm:text-3xl lg:text-5xl font-black text-white tracking-tight mb-1 sm:mb-2 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)]"
-                >
-                  Community 🤝
-                </motion.h1>
-                
-                <motion.p
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="text-white/90 text-xs sm:text-sm lg:text-xl font-medium leading-relaxed"
-                >
-                  Hitta spelare, bygg lag och väx tillsammans
-                </motion.p>
+                <div className="inline-flex items-center gap-1.5 mb-1.5 px-2 py-0.5 rounded-full bg-[#2BA84A]/12 ring-1 ring-[#2BA84A]/25">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34C257]" />
+                  <span className="text-[10px] sm:text-[11px] font-bold text-[#86EFAC] uppercase tracking-wider">Community</span>
+                </div>
+                <h1 className="text-[22px] sm:text-[26px] lg:text-[34px] leading-[1.1] font-black text-white tracking-tight">
+                  Hitta din nästa lagkamrat
+                </h1>
+                <p className="text-[12px] sm:text-[13px] lg:text-[14px] text-[#B6C2BC] font-medium mt-1.5 leading-relaxed">
+                  Spelare, lag och vänner — på ett ställe
+                </p>
               </div>
             </div>
 
-            {/* Premium Stats Grid - Centered numbers and fixed icon positions */}
+            {/* Stats row — refined */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className={`grid ${isCupsEnabled() ? 'grid-cols-3' : 'grid-cols-2'} gap-2 sm:gap-3 lg:gap-5 mb-4 sm:mb-6 lg:mb-8`}
+              transition={{ delay: 0.15 }}
+              className={`grid ${isCupsEnabled() ? 'grid-cols-3' : 'grid-cols-2'} gap-2 sm:gap-3 mb-5`}
             >
-              <motion.div 
-                whileHover={{ y: -6, scale: 1.03 }}
-                whileTap={{ scale: 0.98 }}
-                className="relative group"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/30 to-[#248232]/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-[#1A201D]/60 backdrop-blur-md rounded-2xl p-4 sm:p-5 lg:p-6 border border-[#2BA84A]/20 hover:border-[#2BA84A]/50 shadow-[0_8px_24px_rgba(0,0,0,0.3)] transition-all">
-                  <div className="flex flex-col items-center text-center space-y-2">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl bg-[#2BA84A]/20 flex items-center justify-center ring-2 ring-[#2BA84A]/30 flex-shrink-0">
-                      <Heart className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#86EFAC]" strokeWidth={2.5} />
-                    </div>
-                    <div className="space-y-0.5">
-                      <p className="text-white font-black text-2xl sm:text-3xl lg:text-4xl drop-shadow-lg leading-none">
-                        {friendsAccepted.length}
-                      </p>
-                      <span className="text-white/70 text-[10px] sm:text-xs lg:text-sm font-bold uppercase tracking-wider block">Vänner</span>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.div 
-                whileHover={{ y: -6, scale: 1.03 }}
-                whileTap={{ scale: 0.98 }}
-                className="relative group"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-[#9370DB]/30 to-[#7C3AED]/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-[#1F1829]/60 backdrop-blur-md rounded-2xl p-4 sm:p-5 lg:p-6 border border-[#9370DB]/20 hover:border-[#9370DB]/50 shadow-[0_8px_24px_rgba(0,0,0,0.3)] transition-all">
-                  <div className="flex flex-col items-center text-center space-y-2">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl bg-[#9370DB]/20 flex items-center justify-center ring-2 ring-[#9370DB]/30 flex-shrink-0">
-                      <Users className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#DDD6FE]" strokeWidth={2.5} />
-                    </div>
-                    <div className="space-y-0.5">
-                      <p className="text-white font-black text-2xl sm:text-3xl lg:text-4xl drop-shadow-lg leading-none">
-                        {myTeams.length}
-                      </p>
-                      <span className="text-white/70 text-[10px] sm:text-xs lg:text-sm font-bold uppercase tracking-wider block">Lag</span>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-
-              {isCupsEnabled() && (
-                <motion.div 
-                  whileHover={{ y: -6, scale: 1.03 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="relative group"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#F59E0B]/30 to-[#D97706]/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="relative bg-[#2A2208]/60 backdrop-blur-md rounded-2xl p-4 sm:p-5 lg:p-6 border border-[#F59E0B]/20 hover:border-[#F59E0B]/50 shadow-[0_8px_24px_rgba(0,0,0,0.3)] transition-all">
-                    <div className="flex flex-col items-center text-center space-y-2">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl bg-[#F59E0B]/20 flex items-center justify-center ring-2 ring-[#F59E0B]/30 flex-shrink-0">
-                        <Trophy className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#FCD34D]" strokeWidth={2.5} />
+              {[
+                { icon: Heart, value: friendsAccepted.length, label: 'Vänner', tint: 'rgba(43,168,74,0.12)', ring: 'rgba(43,168,74,0.25)', text: '#86EFAC' },
+                { icon: Users, value: myTeams.length, label: 'Lag', tint: 'rgba(147,112,219,0.12)', ring: 'rgba(147,112,219,0.25)', text: '#DDD6FE' },
+                ...(isCupsEnabled() ? [{ icon: Trophy, value: cupsCount, label: 'Cuper', tint: 'rgba(245,158,11,0.12)', ring: 'rgba(245,158,11,0.25)', text: '#FCD34D' }] : []),
+              ].map((stat, idx) => {
+                const Icon = stat.icon;
+                return (
+                  <motion.div
+                    key={idx}
+                    whileTap={{ scale: 0.97 }}
+                    className="relative rounded-2xl p-3 sm:p-4 ring-1 ring-white/5 bg-[#0F1513]/70 backdrop-blur-sm"
+                    style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)' }}
+                  >
+                    <div className="flex items-center gap-2.5 sm:gap-3">
+                      <div
+                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{ background: stat.tint, boxShadow: `inset 0 0 0 1px ${stat.ring}` }}
+                      >
+                        <Icon className="w-4 h-4 sm:w-[18px] sm:h-[18px]" style={{ color: stat.text }} strokeWidth={2.4} />
                       </div>
-                      <div className="space-y-0.5">
-                        <p className="text-white font-black text-2xl sm:text-3xl lg:text-4xl drop-shadow-lg leading-none">
-                          {cupsCount}
-                        </p>
-                        <span className="text-white/70 text-[10px] sm:text-xs lg:text-sm font-bold uppercase tracking-wider block">Cuper</span>
+                      <div className="min-w-0">
+                        <div className="text-[20px] sm:text-[22px] font-black text-white leading-none tabular-nums">
+                          {stat.value}
+                        </div>
+                        <div className="text-[10px] sm:text-[11px] text-[#8FA097] font-semibold uppercase tracking-wider mt-0.5">
+                          {stat.label}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              )}
+                  </motion.div>
+                );
+              })}
             </motion.div>
 
-            {/* Action Buttons - Mobile Optimized */}
+            {/* Action pills — smaller, refined */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
-              className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4"
+              transition={{ delay: 0.25 }}
+              className="grid grid-cols-2 gap-2 sm:gap-3"
             >
               <motion.button
-                whileHover={{ y: -4, scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={() => { triggerHaptic('light'); setActiveTab('find'); }}
-                className="h-12 sm:h-12 lg:h-14 w-full bg-gradient-to-r from-[#FFFFFF]/20 to-[#FFFFFF]/10 hover:from-[#FFFFFF]/30 hover:to-[#FFFFFF]/20 backdrop-blur-xl border border-white/30 hover:border-white/50 rounded-2xl flex items-center justify-center gap-1.5 sm:gap-2 text-white font-black text-sm sm:text-sm lg:text-base transition-all shadow-xl"
+                className="h-11 sm:h-12 rounded-xl flex items-center justify-center gap-2 text-white text-[13px] sm:text-[14px] font-bold transition-colors"
+                style={{
+                  background: 'linear-gradient(180deg, #34C257 0%, #2BA84A 55%, #248232 100%)',
+                  boxShadow: '0 6px 18px rgba(43,168,74,0.32), inset 0 1px 0 rgba(255,255,255,0.18)',
+                }}
               >
-                <UserPlus className="w-4 h-4 lg:w-5 lg:h-5" strokeWidth={2.5} />
+                <UserPlus className="w-4 h-4" strokeWidth={2.4} />
                 <span>Hitta spelare</span>
               </motion.button>
               <motion.button
-                whileHover={{ y: -4, scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={() => { triggerHaptic('light'); setActiveTab('teams'); }}
-                className="h-12 sm:h-12 lg:h-14 w-full bg-gradient-to-r from-[#FFFFFF]/20 to-[#FFFFFF]/10 hover:from-[#FFFFFF]/30 hover:to-[#FFFFFF]/20 backdrop-blur-xl border border-white/30 hover:border-white/50 rounded-2xl flex items-center justify-center gap-1.5 sm:gap-2 text-white font-black text-sm sm:text-sm lg:text-base transition-all shadow-xl"
+                className="h-11 sm:h-12 rounded-xl flex items-center justify-center gap-2 text-[#F5F8F6] text-[13px] sm:text-[14px] font-bold bg-white/[0.06] ring-1 ring-white/10 hover:bg-white/[0.09] transition-colors"
               >
-                <Target className="w-4 h-4 lg:w-5 lg:h-5" strokeWidth={2.5} />
-                <span>Mina Lag</span>
+                <Target className="w-4 h-4" strokeWidth={2.4} />
+                <span>Mina lag</span>
               </motion.button>
             </motion.div>
           </div>

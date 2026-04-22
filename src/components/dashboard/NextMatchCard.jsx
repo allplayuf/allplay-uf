@@ -83,39 +83,50 @@ export default function NextMatchCard({ match, venue, participants = [] }) {
         )}
       </AnimatePresence>
 
-      <Card className="bg-[#121715] rounded-2xl border border-[#223029] overflow-hidden relative">
-        {/* Top accent gradient */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#2BA84A] via-[#248232] to-[#2BA84A]/50" />
+      <Card
+        className="rounded-[22px] border border-white/[0.06] overflow-hidden relative"
+        style={{
+          background: 'linear-gradient(135deg, #151B18 0%, #111613 55%, #0C100E 100%)',
+          boxShadow: '0 18px 42px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)',
+        }}
+      >
+        {/* Ambient green glow */}
+        <div className="absolute -top-20 -right-16 w-52 h-52 bg-[#2BA84A]/14 rounded-full blur-3xl pointer-events-none" />
+        <div
+          className="absolute inset-x-0 top-0 h-px pointer-events-none"
+          style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent)' }}
+        />
 
-        <CardContent className="p-0">
+        <CardContent className="p-0 relative">
           {/* Header */}
           <div className="flex items-center justify-between px-4 pt-4 pb-3">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 bg-[#2BA84A]/15 rounded-xl flex items-center justify-center ring-1 ring-[#2BA84A]/25">
-                <Zap className="w-4.5 h-4.5 text-[#2BA84A]" strokeWidth={2.5} />
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#2BA84A]/12 ring-1 ring-[#2BA84A]/25">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#34C257] animate-pulse" />
+                <span className="text-[10px] font-bold text-[#86EFAC] uppercase tracking-wider">Nästa match</span>
               </div>
-              <h3 className="text-sm font-bold text-[#F4F7F5]">Din Nästa Match</h3>
             </div>
             <button
               onClick={(e) => { e.preventDefault(); setShowShareModal(true); }}
-              className="w-8 h-8 rounded-lg bg-[#18221E] hover:bg-[#223029] flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] ring-1 ring-white/10 flex items-center justify-center transition-colors"
+              aria-label="Dela match"
             >
-              <Share2 className="w-3.5 h-3.5 text-[#9EAAA4]" />
+              <Share2 className="w-3.5 h-3.5 text-[#C2CEC8]" />
             </button>
           </div>
 
-          {/* Countdown */}
-          <div className="mx-4 mb-3 bg-[#18221E] rounded-xl p-3 border border-[#223029]">
-            <p className="text-[10px] font-bold text-[#9EAAA4] uppercase tracking-wider mb-2 text-center">Startar om</p>
+          {/* Countdown — refined */}
+          <div className="mx-4 mb-3 rounded-xl p-3 ring-1 ring-white/5 bg-white/[0.02]">
+            <p className="text-[10px] font-bold text-[#8FA097] uppercase tracking-wider mb-2 text-center">Startar om</p>
             <div className="grid grid-cols-3 gap-2">
               {[
                 { label: 'Dagar', value: timeLeft.days },
                 { label: 'Timmar', value: timeLeft.hours },
                 { label: 'Min', value: timeLeft.minutes }
               ].map((item, i) => (
-                <div key={i} className="bg-[#121715] rounded-lg p-2 text-center border border-[#223029]">
-                  <div className="text-xl font-black text-[#2BA84A] tabular-nums">{item.value}</div>
-                  <div className="text-[9px] text-[#9EAAA4] font-medium">{item.label}</div>
+                <div key={i} className="rounded-lg p-2 text-center bg-[#0F1513] ring-1 ring-white/5">
+                  <div className="text-xl font-black text-[#86EFAC] tabular-nums leading-none">{item.value}</div>
+                  <div className="text-[9px] text-[#8FA097] font-semibold uppercase tracking-wider mt-1">{item.label}</div>
                 </div>
               ))}
             </div>
@@ -186,12 +197,15 @@ export default function NextMatchCard({ match, venue, participants = [] }) {
           <div className="px-4 pb-4">
             <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`}>
               <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full h-10 bg-gradient-to-r from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center gap-2 text-white font-bold text-sm transition-all hover:shadow-[0_0_20px_rgba(43,168,74,0.3)]"
+                whileTap={{ scale: 0.97 }}
+                className="w-full h-11 rounded-xl flex items-center justify-center gap-2 text-white font-bold text-sm transition-colors"
+                style={{
+                  background: 'linear-gradient(180deg, #34C257 0%, #2BA84A 55%, #248232 100%)',
+                  boxShadow: '0 6px 18px rgba(43,168,74,0.32), inset 0 1px 0 rgba(255,255,255,0.18)',
+                }}
               >
-                <span>Visa Match</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>Visa match</span>
+                <ArrowRight className="w-4 h-4" strokeWidth={2.4} />
               </motion.button>
             </Link>
           </div>

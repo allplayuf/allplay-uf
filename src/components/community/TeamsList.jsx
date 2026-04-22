@@ -125,34 +125,59 @@ export default function TeamsList({ teams = [], myTeams = [], teamInvites = [], 
 
       {/* Empty state */}
       {displayTeams.length === 0 && (
-        <Card className="relative overflow-hidden bg-gradient-to-br from-[#2BA84A] to-[#0F2917] rounded-[16px] lg:rounded-[20px] p-8 sm:p-12 shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029]">
-          <div className="absolute top-[-30px] right-[-30px] w-28 h-28 bg-[#2BA84A]/40 rounded-full"></div>
-          <div className="absolute bottom-[-40px] left-[-40px] w-32 h-32 bg-[#0F2917]/60 rounded-full"></div>
-          
-          <div className="relative z-10 text-center">
-            <div className="w-16 h-16 bg-[#FFFFFF]/15 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6 border border-[#FFFFFF]/25">
-              <Shield className="w-8 h-8 text-[#EAF6EE]" />
-            </div>
-            <h3 className="text-[20px] font-semibold text-[#EAF6EE] mb-3">
-              {view === 'mine' ? 'Du har inga lag ännu' : 'Inga lag hittades'}
-            </h3>
-            <p className="text-[14px] text-[#CFE8D6] mb-8 max-w-md mx-auto">
-              {view === 'mine' 
-                ? 'Skapa ett nytt lag för att tävla tillsammans och bygga något större!'
-                : 'Inga lag att visa just nu.'
-              }
-            </p>
-            {view === 'mine' && (
-              <button 
-                onClick={onCreateTeam}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#FFFFFF]/16 px-6 text-[#EAF6EE] ring-1 ring-[#FFFFFF]/30 transition-all hover:bg-[#FFFFFF]/24 hover:ring-[#FFFFFF]/45 hover:scale-[1.02] font-semibold"
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="relative overflow-hidden rounded-[24px] border border-white/[0.06] p-8 sm:p-12"
+          style={{
+            background: 'linear-gradient(135deg, #151B18 0%, #111613 55%, #0C100E 100%)',
+            boxShadow: '0 20px 48px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
+          }}
+        >
+          {/* Ambient glow */}
+          <div className="absolute -top-20 -right-16 w-56 h-56 bg-[#9370DB]/14 rounded-full blur-3xl pointer-events-none" />
+          <div
+            className="absolute inset-x-0 top-0 h-px pointer-events-none"
+            style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)' }}
+          />
+
+          <div className="relative z-10 text-center max-w-sm mx-auto">
+            <div className="relative inline-flex mb-5">
+              <div className="absolute -inset-3 bg-[#9370DB]/20 rounded-full blur-xl" />
+              <div
+                className="relative w-16 h-16 rounded-2xl flex items-center justify-center ring-1 ring-[#9370DB]/30"
+                style={{ background: 'rgba(147,112,219,0.12)' }}
               >
-                <Plus className="w-5 h-5" />
+                <Shield className="w-7 h-7 text-[#DDD6FE]" strokeWidth={2.2} />
+              </div>
+            </div>
+
+            <h3 className="text-[20px] leading-[26px] font-black text-white tracking-tight mb-2">
+              {view === 'mine' ? 'Starta ditt eget lag' : 'Inga lag hittades'}
+            </h3>
+            <p className="text-[13px] leading-[19px] text-[#B6C2BC] mb-6">
+              {view === 'mine'
+                ? 'Skapa ett lag, bjud in vänner och tävla tillsammans mot andra lag.'
+                : 'Det finns inga lag att visa just nu. Kom tillbaka senare!'}
+            </p>
+
+            {view === 'mine' && (
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={onCreateTeam}
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-white font-bold text-[14px]"
+                style={{
+                  background: 'linear-gradient(180deg, #A78BFA 0%, #9370DB 55%, #7C3AED 100%)',
+                  boxShadow: '0 6px 18px rgba(147,112,219,0.38), inset 0 1px 0 rgba(255,255,255,0.18)',
+                }}
+              >
+                <Plus className="w-4 h-4" strokeWidth={2.4} />
                 Skapa ditt första lag
-              </button>
+              </motion.button>
             )}
           </div>
-        </Card>
+        </motion.div>
       )}
 
       {/* Team grid */}

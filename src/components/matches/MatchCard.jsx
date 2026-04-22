@@ -42,7 +42,7 @@ const getSkillBracketColor = (bracket) => {
 
 const getStatusBadge = (status) => {
   const statusConfig = {
-    upcoming: { label: 'Kommande', color: 'bg-[#4169E1]/20 text-[#A8C5F5]' },
+    upcoming: { label: 'Kommande', color: 'bg-[#F4743B]/20 text-[#FDE3D2]' },
     ongoing: { label: 'Pågår nu', color: 'bg-[#2BA84A]/20 text-[#CFE8D6] animate-pulse' },
     completed: { label: 'Avslutad', color: 'bg-[#18221E] text-[#9EAAA4]' },
     cancelled: { label: 'Inställd', color: 'bg-[#F4743B]/20 text-[#FDE3D2]' }
@@ -182,7 +182,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
                   <span
                     className={`w-2 h-2 rounded-full flex-shrink-0 ${
                       match.status === 'ongoing' ? 'bg-[#34C257] animate-pulse' :
-                      match.status === 'upcoming' ? 'bg-[#4169E1]' :
+                      match.status === 'upcoming' ? 'bg-[#F4743B]' :
                       match.status === 'cancelled' ? 'bg-[#DC2626]' :
                       'bg-[#6B7280]'
                     }`}
