@@ -11,6 +11,16 @@ import { getAuthHeaders, SUPABASE_URL } from '../config';
 import { sessionStore, waitForAuth } from '../client';
 import { fetchUsersMissing } from './userCache';
 
+// Statuses that mean the user is NO LONGER in the match.
+// Backend soft-deletes via status change instead of row removal.
+const INACTIVE_STATUSES = new Set(['left', 'cancelled', 'removed', 'kicked', 'no_show']);
+
+function isActiveParticipant(p) {
+  const status = (p?.status || '').toLowerCase();
+  if (!status) return true; // no status field → treat as active
+  return !INACTIVE_STATUSES.has(status);
+}
+
 /**
  * Get current user's participant match IDs
  * Returns array of match_ids the user is registered for
@@ -23,7 +33,7 @@ export async function getMyParticipantMatchIds() {
   
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/match_participants?user_id=eq.${sessionStore.user.id}&select=match_id`,
+      `${SUPABASE_URL}/rest/v1/match_participants?user_id=eq.${sessionStore.user.id}&select=match_id,status`,
       { method: 'GET', headers }
     );
     
@@ -32,7 +42,8 @@ export async function getMyParticipantMatchIds() {
     }
     
     const data = await res.json();
-    return data.map(p => p.match_id);
+    // Filter out matches the user has left/been removed from
+    return data.filter(isActiveParticipant).map(p => p.match_id);
   } catch (e) {
     console.error('[participantsService] Failed to fetch participant match IDs:', e);
     return [];
@@ -61,7 +72,9 @@ export async function getParticipantsForMatches(matchIds) {
       throw new Error(`Failed to fetch participants: ${res.status}`);
     }
     
-    const participants = await res.json();
+    const participantsRaw = await res.json();
+    // Exclude users that have left/been removed
+    const participants = participantsRaw.filter(isActiveParticipant);
     
     // Bulk-fetch user data for all participants
     const userIds = [...new Set(participants.map(p => p.user_id).filter(Boolean))];
@@ -94,7 +107,8 @@ export async function getAllParticipants() {
       throw new Error(`Failed to fetch all participants: ${res.status}`);
     }
     
-    const participants = await res.json();
+    const participantsRaw = await res.json();
+    const participants = participantsRaw.filter(isActiveParticipant);
     
     // Bulk-fetch user data for all participants
     const userIds = [...new Set(participants.map(p => p.user_id).filter(Boolean))];

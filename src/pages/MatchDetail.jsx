@@ -402,11 +402,13 @@ export default function MatchDetailPage() {
         throw error;
       }
 
-      // Invalidate all related caches
+      // Invalidate all related caches so player count + "Anmäld ✓" badge update everywhere
       queryClient.invalidateQueries({ queryKey: ['supabase-matchParticipants', matchId] });
       queryClient.invalidateQueries({ queryKey: ['supabase-match', matchId] });
       queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
       queryClient.invalidateQueries({ queryKey: ['supabase-participantMatchIds'] });
+      queryClient.invalidateQueries({ queryKey: ['supabase-myParticipantMatchIds'] });
+      queryClient.invalidateQueries({ queryKey: ['supabase-participantsForMatches'] });
 
       await alert('Match lämnad', 'Du har lämnat matchen', { type: 'info' });
 
