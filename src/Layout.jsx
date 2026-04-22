@@ -295,8 +295,8 @@ function LayoutInner({ children }) {
             ref={mainContentRef}
             className="flex-1 overflow-y-auto main-scroll-area"
             style={{ 
-              paddingTop: 'calc(env(safe-area-inset-top) + 72px)',
-              paddingBottom: 'calc(6rem + env(safe-area-inset-bottom))',
+              paddingTop: 'calc(env(safe-area-inset-top) + 60px)',
+              paddingBottom: 'calc(5.5rem + env(safe-area-inset-bottom))',
               WebkitOverflowScrolling: 'touch',
               overscrollBehaviorY: 'contain',
             }}
