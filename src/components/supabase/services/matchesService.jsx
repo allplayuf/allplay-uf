@@ -283,24 +283,29 @@ export async function getMatchParticipants(matchId) {
   const result = await callPublicEdgeFunction(EDGE.getMatchParticipants, { match_id: matchId });
   
   // CRITICAL: Ensure result is array
-  if (!result) return [];
-  if (Array.isArray(result)) return result;
-  
-  // If wrapped in { participants: [...] }
-  if (result.participants && Array.isArray(result.participants)) {
-    return result.participants;
+  let list = [];
+  if (!result) list = [];
+  else if (Array.isArray(result)) list = result;
+  else if (result.participants && Array.isArray(result.participants)) list = result.participants;
+  else {
+    if (IS_DEV) {
+      console.warn('[matchesService] getMatchParticipants unexpected format:', {
+        type: typeof result,
+        isArray: Array.isArray(result),
+        keys: Object.keys(result || {})
+      });
+    }
+    return [];
   }
   
-  // Log unexpected format
-  if (IS_DEV) {
-    console.warn('[matchesService] getMatchParticipants unexpected format:', {
-      type: typeof result,
-      isArray: Array.isArray(result),
-      keys: Object.keys(result || {})
-    });
-  }
-  
-  return [];
+  // Filter out participants that have left/cancelled — backend soft-deletes via status
+  // Keep rows where status is active/registered/confirmed/checked_in OR status is missing
+  const INACTIVE_STATUSES = new Set(['left', 'cancelled', 'removed', 'kicked', 'no_show']);
+  return list.filter(p => {
+    const status = (p?.status || '').toLowerCase();
+    if (!status) return true; // no status field → treat as active
+    return !INACTIVE_STATUSES.has(status);
+  });
 }
 
 /**
