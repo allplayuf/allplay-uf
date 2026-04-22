@@ -4,63 +4,110 @@
 
 @layer base {
   :root {
-    --color-background: #131816;
-    --color-surface: #121715;
-    --color-surface-hover: #18221E;
-    --color-border: #223029;
-    --color-text-primary: #F4F7F5;
-    --color-text-secondary: #B6C2BC;
-    --color-text-muted: #9EAAA4;
+    /* ─── Premium AllPlay palette (refined dark-green system) ─── */
+    --color-background: #0D1210;
+    --color-surface: #141917;         /* slightly lifted for better card contrast */
+    --color-surface-raised: #1A201D;  /* elevated surface (modals, hovered cards) */
+    --color-surface-hover: #1E2724;
+    --color-border: #243029;
+    --color-border-strong: #2E3D34;
+    --color-text-primary: #F5F8F6;
+    --color-text-secondary: #C2CEC8;  /* slightly brighter for AA+ on dark */
+    --color-text-muted: #8FA097;
     --color-primary: #2BA84A;
-    --color-primary-hover: #248232;
+    --color-primary-hover: #34C257;
+    --color-primary-glow: rgba(43, 168, 74, 0.35);
     --color-primary-light: #EAF6EE;
     --color-accent: #F4743B;
-    --color-accent-hover: #E5683A;
+    --color-accent-hover: #FF8A4D;
+    --color-accent-glow: rgba(244, 116, 59, 0.32);
 
     /* Scrollbar tokens */
-    --scrollbar-track: #131816;
-    --scrollbar-thumb: #223029;
+    --scrollbar-track: #0D1210;
+    --scrollbar-thumb: #243029;
     --scrollbar-thumb-hover: #2BA84A;
 
-    /* === shadcn/ui semantic tokens (dark theme) === */
-    --background: 156 30% 7%;         /* #131816 */
-    --foreground: 144 14% 96%;        /* #F4F7F5 */
-    --card: 150 18% 8%;               /* #121715 */
-    --card-foreground: 144 14% 96%;   /* #F4F7F5 */
-    --popover: 150 18% 8%;            /* #121715 */
-    --popover-foreground: 144 14% 96%;/* #F4F7F5 */
+    /* ─── Premium shadows (layered depth) ─── */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.32), 0 1px 2px rgba(0, 0, 0, 0.24);
+    --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.38), 0 2px 6px rgba(0, 0, 0, 0.22);
+    --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.48), 0 4px 12px rgba(0, 0, 0, 0.26);
+    --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.55), 0 8px 20px rgba(0, 0, 0, 0.3);
+    --shadow-glow-primary: 0 0 0 1px rgba(43, 168, 74, 0.25), 0 8px 24px rgba(43, 168, 74, 0.22);
+    --shadow-glow-accent: 0 0 0 1px rgba(244, 116, 59, 0.22), 0 8px 24px rgba(244, 116, 59, 0.2);
+
+    /* Inner highlight (gives cards a "lifted" top edge) */
+    --ring-hairline: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+    /* === shadcn/ui semantic tokens (refined premium dark) === */
+    --background: 150 15% 6%;         /* #0D1210 */
+    --foreground: 144 14% 97%;        /* #F5F8F6 */
+    --card: 155 12% 9%;               /* #141917 */
+    --card-foreground: 144 14% 97%;
+    --popover: 156 13% 11%;           /* #1A201D */
+    --popover-foreground: 144 14% 97%;
     --primary: 138 56% 41%;           /* #2BA84A */
-    --primary-foreground: 0 0% 100%;  /* #FFFFFF */
-    --secondary: 156 18% 11%;         /* #18221E */
-    --secondary-foreground: 144 14% 96%; /* #F4F7F5 */
-    --muted: 156 18% 11%;             /* #18221E */
-    --muted-foreground: 150 8% 64%;   /* #9EAAA4 – bumped from #7B8A83 for AA */
-    --accent: 156 18% 11%;            /* #18221E */
-    --accent-foreground: 144 14% 96%; /* #F4F7F5 */
-    --destructive: 0 72% 51%;         /* #DC2626 */
-    --destructive-foreground: 0 0% 100%; /* #FFFFFF */
-    --border: 155 17% 16%;            /* #223029 */
-    --input: 155 17% 16%;             /* #223029 */
-    --ring: 138 56% 41%;              /* #2BA84A */
-    --radius: 0.75rem;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 156 14% 12%;         /* #1E2724 */
+    --secondary-foreground: 144 14% 97%;
+    --muted: 156 14% 12%;
+    --muted-foreground: 150 10% 72%;  /* brighter muted for readability */
+    --accent: 156 14% 12%;
+    --accent-foreground: 144 14% 97%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 150 14% 17%;            /* #243029 */
+    --input: 150 14% 17%;
+    --ring: 138 56% 41%;
+    --radius: 0.875rem;               /* slightly rounder — more premium */
   }
 
   /* Light mode override removed — AllPlay is always dark */
 
   html, body, #root {
-    background-color: #0B0F0D;
+    background-color: #0A0E0C;
     color: var(--color-text-primary);
     margin: 0;
     padding: 0;
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    /* Premium typography: OpenType features for sharper numerals & letterforms */
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01", "ss02", "tnum", "calt";
+    font-variant-ligatures: common-ligatures contextual;
+    letter-spacing: -0.003em;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
     scroll-behavior: smooth;
     /* Force dark color scheme for iOS */
     color-scheme: dark;
     -webkit-text-size-adjust: 100%;
+  }
+
+  /* Subtle ambient gradient wash behind everything — adds depth without distraction */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(43, 168, 74, 0.06), transparent 60%),
+      radial-gradient(900px 500px at 100% 110%, rgba(244, 116, 59, 0.04), transparent 55%);
+  }
+
+  /* Tighter, more confident headings */
+  h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
+    font-feature-settings: "ss01", "ss02", "cv11";
+  }
+
+  /* Tabular numerals everywhere — stats, scores, timers stay aligned */
+  .tabular-nums,
+  [class*="font-mono"],
+  time, .score, .stat-number {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
   }
 
   /* Prevent iOS rubber-band showing white behind fixed elements */
@@ -196,4 +243,136 @@
 .flex-1.overflow-auto {
   will-change: scroll-position;
   contain: layout style;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PREMIUM DESIGN UTILITIES
+   Opt-in classes that elevate existing components without
+   refactoring. Add them where a card/button should feel premium.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Elevated surfaces — layered shadows + hairline highlight */
+.surface-premium {
+  background: linear-gradient(180deg, #161C19 0%, #131816 100%);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md), var(--ring-hairline);
+  border-radius: 20px;
+}
+
+.surface-raised {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg), var(--ring-hairline);
+}
+
+/* Upgrade every shadcn Card globally — keeps existing markup, adds depth */
+[class*="rounded-[16px]"],
+[class*="rounded-[20px]"],
+[class*="rounded-[24px]"] {
+  box-shadow: var(--shadow-sm), var(--ring-hairline);
+}
+
+.bg-\[\#121715\],
+.bg-\[\#141917\] {
+  /* Subtle gradient in cards to prevent flatness */
+  background-image: linear-gradient(180deg, rgba(255,255,255,0.012), rgba(0,0,0,0) 40%);
+}
+
+/* Premium border — brighter hairline on hoverable surfaces */
+.border-\[\#223029\] {
+  border-color: var(--color-border) !important;
+}
+
+/* Glow rings for primary/accent CTAs and active states */
+.glow-primary {
+  box-shadow: var(--shadow-glow-primary);
+}
+.glow-accent {
+  box-shadow: var(--shadow-glow-accent);
+}
+
+/* Polished primary button look — keeps #2BA84A but adds depth */
+.bg-\[\#2BA84A\] {
+  background-image: linear-gradient(180deg, #34C257 0%, #2BA84A 55%, #248232 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.14) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.22) inset,
+    0 8px 20px rgba(43, 168, 74, 0.28);
+}
+.bg-\[\#2BA84A\]:hover {
+  background-image: linear-gradient(180deg, #3BD163 0%, #2BA84A 55%, #1F6E2A 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.18) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.24) inset,
+    0 10px 26px rgba(43, 168, 74, 0.4);
+}
+
+/* Accent button polish */
+.bg-\[\#F4743B\] {
+  background-image: linear-gradient(180deg, #FF8A4D 0%, #F4743B 55%, #D95D26 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.14) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.22) inset,
+    0 8px 20px rgba(244, 116, 59, 0.28);
+}
+
+/* Glass morphism surface (modals, floating panels) */
+.glass-panel {
+  background: rgba(20, 25, 23, 0.72);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: var(--shadow-xl), var(--ring-hairline);
+}
+
+/* Hover lift — subtle, premium, not gimmicky */
+.hover-lift {
+  transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+              border-color 180ms ease;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg), var(--ring-hairline);
+  border-color: var(--color-border-strong);
+}
+
+/* Gradient text for premium section titles */
+.text-gradient-primary {
+  background: linear-gradient(135deg, #F5F8F6 0%, #B8F0C6 55%, #34C257 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Divider with soft fade on the edges — feels less "box-like" */
+.divider-soft {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-border) 20%, var(--color-border) 80%, transparent);
+}
+
+/* Focus ring — slightly richer than default */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary-glow), 0 0 0 4px rgba(43, 168, 74, 0.18);
+  border-radius: inherit;
+}
+
+/* Nicer link underline (not used broadly, opt-in) */
+.link-underline {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.link-underline:hover {
+  background-size: 100% 1px;
+}
+
+/* Image treatment — subtle inner ring on photos/avatars for crispness */
+img.avatar-crisp,
+.avatar-crisp img {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
 }
