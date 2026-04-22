@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { debounce } from "lodash";
+import { Search, AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, AlertCircle } from "lucide-react";
-import { debounce } from "lodash";
 import { searchPlayers } from "@/components/supabase/services/playersService";
 import { applyPrivacy } from "@/components/utils/privacyMask";
 import PlayerCard from "./PlayerCard";
