@@ -23,6 +23,7 @@ import { AuthGateModal } from "../components/ui/auth-gate-modal";
 import { LoginModal } from "../components/supabase";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { getMyProfile, getTeams, getMyTeams, createSupabaseTeam } from "../components/supabase/services";
+import { isCupsEnabled } from "../lib/featureFlags";
 
 /**
  * Supabase REST helpers — inline since these tables (friendships, team_members,
@@ -108,7 +109,9 @@ export default function CommunityPage() {
   const navigate = useNavigate();
   const locationHook = useLocation();
   const urlParams = new URLSearchParams(locationHook.search);
-  const initialTab = urlParams.get('tab') || 'friends';
+  const rawInitialTab = urlParams.get('tab') || 'friends';
+  // If cups are disabled, redirect any 'cups' tab request to 'friends'
+  const initialTab = (!isCupsEnabled() && rawInitialTab === 'cups') ? 'friends' : rawInitialTab;
   
   const [activeTab, setActiveTab] = useState(initialTab);
   const [showCreateTeamForm, setShowCreateTeamForm] = useState(false);
@@ -122,7 +125,12 @@ export default function CommunityPage() {
   useEffect(() => {
     const tab = urlParams.get('tab');
     if (tab && tab !== activeTab) {
-      setActiveTab(tab);
+      // Block cups tab when disabled
+      if (!isCupsEnabled() && tab === 'cups') {
+        setActiveTab('friends');
+      } else {
+        setActiveTab(tab);
+      }
     }
   }, [locationHook.search, activeTab, urlParams]);
 
@@ -227,6 +235,7 @@ export default function CommunityPage() {
   });
 
   // Fetch cups count using shared query key with OPTIMIZED caching
+  // Disabled while CUPS_ENABLED is false — avoids unnecessary network calls.
   const { data: cupsData = [] } = useQuery({
     queryKey: CUPS_QUERY_KEY,
     queryFn: async () => {
@@ -234,7 +243,7 @@ export default function CommunityPage() {
       return cups.filter(c => c.is_public !== false);
     },
     ...CACHE_STRATEGIES.STATIC,
-    enabled: !!user,
+    enabled: !!user && isCupsEnabled(),
   });
 
   const cupsCount = cupsData.length;
@@ -565,7 +574,7 @@ export default function CommunityPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-5 mb-4 sm:mb-6 lg:mb-8"
+              className={`grid ${isCupsEnabled() ? 'grid-cols-3' : 'grid-cols-2'} gap-2 sm:gap-3 lg:gap-5 mb-4 sm:mb-6 lg:mb-8`}
             >
               <motion.div 
                 whileHover={{ y: -6, scale: 1.03 }}
@@ -609,26 +618,28 @@ export default function CommunityPage() {
                 </div>
               </motion.div>
 
-              <motion.div 
-                whileHover={{ y: -6, scale: 1.03 }}
-                whileTap={{ scale: 0.98 }}
-                className="relative group"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-[#F59E0B]/30 to-[#D97706]/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-[#2A2208]/60 backdrop-blur-md rounded-2xl p-4 sm:p-5 lg:p-6 border border-[#F59E0B]/20 hover:border-[#F59E0B]/50 shadow-[0_8px_24px_rgba(0,0,0,0.3)] transition-all">
-                  <div className="flex flex-col items-center text-center space-y-2">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl bg-[#F59E0B]/20 flex items-center justify-center ring-2 ring-[#F59E0B]/30 flex-shrink-0">
-                      <Trophy className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#FCD34D]" strokeWidth={2.5} />
-                    </div>
-                    <div className="space-y-0.5">
-                      <p className="text-white font-black text-2xl sm:text-3xl lg:text-4xl drop-shadow-lg leading-none">
-                        {cupsCount}
-                      </p>
-                      <span className="text-white/70 text-[10px] sm:text-xs lg:text-sm font-bold uppercase tracking-wider block">Cuper</span>
+              {isCupsEnabled() && (
+                <motion.div 
+                  whileHover={{ y: -6, scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="relative group"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#F59E0B]/30 to-[#D97706]/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="relative bg-[#2A2208]/60 backdrop-blur-md rounded-2xl p-4 sm:p-5 lg:p-6 border border-[#F59E0B]/20 hover:border-[#F59E0B]/50 shadow-[0_8px_24px_rgba(0,0,0,0.3)] transition-all">
+                    <div className="flex flex-col items-center text-center space-y-2">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-xl bg-[#F59E0B]/20 flex items-center justify-center ring-2 ring-[#F59E0B]/30 flex-shrink-0">
+                        <Trophy className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#FCD34D]" strokeWidth={2.5} />
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className="text-white font-black text-2xl sm:text-3xl lg:text-4xl drop-shadow-lg leading-none">
+                          {cupsCount}
+                        </p>
+                        <span className="text-white/70 text-[10px] sm:text-xs lg:text-sm font-bold uppercase tracking-wider block">Cuper</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </motion.div>
+                </motion.div>
+              )}
             </motion.div>
 
             {/* Action Buttons - Mobile Optimized */}
@@ -663,7 +674,7 @@ export default function CommunityPage() {
 
         {/* Tabs - Dynamic colors based on active tab */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-4 gap-2 bg-transparent border-0 p-0">
+          <TabsList className={`grid ${isCupsEnabled() ? 'grid-cols-4' : 'grid-cols-3'} gap-2 bg-transparent border-0 p-0`}>
             <TabsTrigger 
               value="friends" 
               className={`gap-1.5 h-12 rounded-2xl transition-all duration-200 font-semibold text-xs sm:text-sm ${
@@ -691,15 +702,17 @@ export default function CommunityPage() {
               <Search className={`w-4 h-4 ${activeTab === 'find' ? TAB_COLORS.find.icon : ''}`} />
               <span>Hitta</span>
             </TabsTrigger>
-            <TabsTrigger 
-              value="cups" 
-              className={`gap-1.5 h-12 rounded-2xl transition-all duration-200 font-semibold text-xs sm:text-sm ${
-                activeTab === 'cups' ? TAB_COLORS.cups.active : TAB_COLORS.cups.inactive
-              }`}
-            >
-              <Trophy className={`w-4 h-4 ${activeTab === 'cups' ? TAB_COLORS.cups.icon : ''}`} />
-              <span>Cuper</span>
-            </TabsTrigger>
+            {isCupsEnabled() && (
+              <TabsTrigger 
+                value="cups" 
+                className={`gap-1.5 h-12 rounded-2xl transition-all duration-200 font-semibold text-xs sm:text-sm ${
+                  activeTab === 'cups' ? TAB_COLORS.cups.active : TAB_COLORS.cups.inactive
+                }`}
+              >
+                <Trophy className={`w-4 h-4 ${activeTab === 'cups' ? TAB_COLORS.cups.icon : ''}`} />
+                <span>Cuper</span>
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="friends">
@@ -757,18 +770,20 @@ export default function CommunityPage() {
             </motion.div>
           </TabsContent>
 
-          <TabsContent value="cups">
-            <motion.div
-              key="cups-content"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={TRANSITIONS.tab}
-            >
-              <Suspense fallback={<TabSkeleton rows={3} />}>
-                <CupsOverview user={user} />
-              </Suspense>
-            </motion.div>
-          </TabsContent>
+          {isCupsEnabled() && (
+            <TabsContent value="cups">
+              <motion.div
+                key="cups-content"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={TRANSITIONS.tab}
+              >
+                <Suspense fallback={<TabSkeleton rows={3} />}>
+                  <CupsOverview user={user} />
+                </Suspense>
+              </motion.div>
+            </TabsContent>
+          )}
         </Tabs>
       </div>
 

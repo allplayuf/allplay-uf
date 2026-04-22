@@ -26,6 +26,7 @@ import CreateMatchForm from "../components/matches/CreateMatchForm";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import CupsWidget from "../components/dashboard/CupsWidget";
 import NearbyMatchesWidget from "../components/dashboard/NearbyMatchesWidget";
+import { isCupsEnabled } from "../lib/featureFlags";
 
 import MatchCard from "../components/matches/MatchCard";
 import NextMatchCard from "../components/dashboard/NextMatchCard";
@@ -787,16 +788,20 @@ export default function Dashboard() {
             )}
 
             {/* Cups Widget in sidebar on desktop */}
-            <div className="hidden lg:block">
-              <CupsWidget />
-            </div>
+            {isCupsEnabled() && (
+              <div className="hidden lg:block">
+                <CupsWidget />
+              </div>
+            )}
           </motion.div>
         </div>
 
         {/* Cups Widget on mobile - between matches and about section */}
-        <motion.div variants={VARIANTS.item} className="lg:hidden">
-          <CupsWidget />
-        </motion.div>
+        {isCupsEnabled() && (
+          <motion.div variants={VARIANTS.item} className="lg:hidden">
+            <CupsWidget />
+          </motion.div>
+        )}
 
         {/* About AllPlay Card */}
         <motion.div variants={VARIANTS.item}>
