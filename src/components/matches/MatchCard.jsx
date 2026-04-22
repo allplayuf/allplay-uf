@@ -153,7 +153,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
       isOpen={showAuthGate}
       onClose={() => setShowAuthGate(false)}
       onLogin={() => setShowLoginModal(true)}
-      feature="anmäla dig till matcher"
+      feature="se matchdetaljer, spelare och anmäla dig"
     />
     
     {/* Login Modal */}
@@ -166,8 +166,8 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
       }}
     />
     
-    <div>
-      <Card className={`bg-[#121715] border border-[#243029] rounded-[20px] shadow-[0_10px_28px_rgba(0,0,0,0.38)] hover:shadow-[0_14px_36px_rgba(0,0,0,0.45),0_0_0_1px_rgba(43,168,74,0.25)] hover:border-[#2BA84A]/40 hover:-translate-y-0.5 transition-[transform,box-shadow,border-color] duration-200 h-full flex flex-col overflow-hidden group ${
+    <div className="h-full">
+      <Card className={`bg-[#121715] border border-[#243029] rounded-[20px] shadow-[0_10px_28px_rgba(0,0,0,0.38)] hover:shadow-[0_14px_36px_rgba(0,0,0,0.45),0_0_0_1px_rgba(43,168,74,0.25)] hover:border-[#2BA84A]/40 hover:-translate-y-0.5 transition-[transform,box-shadow,border-color] duration-200 h-full min-h-[280px] flex flex-col overflow-hidden group ${
         match.status === 'completed' ? 'opacity-75' : ''
       }`}
       style={{ boxShadow: '0 10px 28px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.04)' }}
@@ -228,108 +228,94 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
                 ))}
             </div>
 
-            {/* Progress Bar - SYNCED WITH PARTICIPANTS (standard matches) */}
-            {!match.is_spontaneous && (
-              <div className="space-y-2 mt-auto">
-                <div className="flex items-center justify-between text-xs text-[#B6C2BC]">
-                  <span>Spelare</span>
-                  <span className="text-white font-medium tabular-nums">
-                    {actualParticipantCount}/{match.max_players}
-                  </span>
-                </div>
-                <div className="h-1.5 bg-[#18221E] rounded-full overflow-hidden border border-[#223029]">
-                  <div 
-                    style={{ width: `${progressPercentage}%` }}
-                    className={`h-full rounded-full transition-[width] duration-500 ease-out ${
-                      progressPercentage >= 90 
-                        ? 'bg-[#F4743B]'
-                        : 'bg-[#2BA84A]'
-                    }`}
-                  />
-                </div>
-                {participantUsers.length > 0 && (
-                  <div className="flex items-center gap-2 pt-1">
-                    <div className="flex -space-x-2">
-                      {(participantUsers.length > 0 ? participantUsers : participants.slice(0, 5)).slice(0, 5).map((participant, i) => {
-                        const pUser = participantUsers[i];
-                        const avatarSrc = pUser?.avatar_url || pUser?.profile_image_url;
-                        const name = pUser?.display_name || pUser?.full_name || 'S';
-                        return (
-                          <div key={participant?.id || participant?.user_id || i} className="border border-[#121715] rounded-full">
-                            <AvatarImage 
-                              src={avatarSrc}
-                              name={name}
-                              className="w-6 h-6"
-                              textClassName="text-[9px]"
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {actualParticipantCount > 5 && (
-                      <span className="text-[10px] leading-[14px] text-[#B6C2BC]">+{actualParticipantCount - 5}</span>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Spontaneous match — premium design matching standard cards */}
-            {match.is_spontaneous && (
-              <div className="space-y-2 mt-auto">
-                <div className="flex items-center justify-between text-xs">
+            {/* Players section — unified fixed height across all card types */}
+            <div className="space-y-2 mt-auto min-h-[68px] flex flex-col justify-end">
+              {/* Header row: label + count */}
+              <div className="flex items-center justify-between text-xs">
+                {match.is_spontaneous ? (
                   <span className="inline-flex items-center gap-1.5 text-[#FDE3D2]">
                     <Zap className="w-3.5 h-3.5 text-[#F4743B]" />
                     <span className="font-semibold">Spontan • Obegränsat</span>
                   </span>
+                ) : (
+                  <span className="text-[#B6C2BC]">Spelare</span>
+                )}
+                {/* Hide exact count for guests — shows "app feels empty" otherwise */}
+                {isGuest ? (
+                  <span className="text-[#8FA097] text-[11px] font-medium">Logga in</span>
+                ) : (
                   <span className="text-white font-medium tabular-nums">
-                    {actualParticipantCount} {actualParticipantCount === 1 ? 'spelare' : 'spelare'}
+                    {match.is_spontaneous
+                      ? `${actualParticipantCount} ${actualParticipantCount === 1 ? 'spelare' : 'spelare'}`
+                      : `${actualParticipantCount}/${match.max_players}`}
                   </span>
-                </div>
-                {/* Animated gradient bar instead of progress — indicates "open" */}
-                <div className="h-1.5 bg-[#18221E] rounded-full overflow-hidden border border-[#F4743B]/20 relative">
+                )}
+              </div>
+
+              {/* Bar — animated gradient for guests + spontaneous, solid progress for standard */}
+              {(isGuest || match.is_spontaneous) ? (
+                <div className={`h-1.5 bg-[#18221E] rounded-full overflow-hidden border relative ${isGuest ? 'border-[#2BA84A]/20' : 'border-[#F4743B]/20'}`}>
                   <motion.div
                     className="absolute inset-y-0 w-1/3 rounded-full"
                     style={{
-                      background:
-                        'linear-gradient(90deg, transparent, rgba(244,116,59,0.75), transparent)',
+                      background: isGuest
+                        ? 'linear-gradient(90deg, transparent, rgba(52,194,87,0.65), transparent)'
+                        : 'linear-gradient(90deg, transparent, rgba(244,116,59,0.75), transparent)',
                     }}
                     animate={{ x: ['-100%', '300%'] }}
                     transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
                   />
                 </div>
-                {/* Participant avatars — identical layout to standard matches */}
-                {participantUsers.length > 0 ? (
-                  <div className="flex items-center gap-2 pt-1">
-                    <div className="flex -space-x-2">
-                      {(participantUsers.length > 0 ? participantUsers : participants.slice(0, 5)).slice(0, 5).map((participant, i) => {
-                        const pUser = participantUsers[i];
-                        const avatarSrc = pUser?.avatar_url || pUser?.profile_image_url;
-                        const name = pUser?.display_name || pUser?.full_name || 'S';
-                        return (
-                          <div key={participant?.id || participant?.user_id || i} className="border border-[#121715] rounded-full">
-                            <AvatarImage 
-                              src={avatarSrc}
-                              name={name}
-                              className="w-6 h-6"
-                              textClassName="text-[9px]"
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {actualParticipantCount > 5 && (
-                      <span className="text-[10px] leading-[14px] text-[#B6C2BC]">+{actualParticipantCount - 5}</span>
-                    )}
+              ) : (
+                <div className="h-1.5 bg-[#18221E] rounded-full overflow-hidden border border-[#223029]">
+                  <div
+                    style={{ width: `${progressPercentage}%` }}
+                    className={`h-full rounded-full transition-[width] duration-500 ease-out ${
+                      progressPercentage >= 90 ? 'bg-[#F4743B]' : 'bg-[#2BA84A]'
+                    }`}
+                  />
+                </div>
+              )}
+
+              {/* Footer row: guest CTA, avatars, or "be first" hint */}
+              {isGuest ? (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowAuthGate(true); }}
+                  className="flex items-center gap-2 pt-1 text-[11px] text-[#34C257] hover:text-[#86EFAC] transition-colors font-semibold"
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Logga in för att se spelare</span>
+                </button>
+              ) : participantUsers.length > 0 ? (
+                <div className="flex items-center gap-2 pt-1">
+                  <div className="flex -space-x-2">
+                    {participantUsers.slice(0, 5).map((pUser, i) => {
+                      const avatarSrc = pUser?.avatar_url || pUser?.profile_image_url;
+                      const name = pUser?.display_name || pUser?.full_name || 'S';
+                      return (
+                        <div key={pUser?.id || i} className="border border-[#121715] rounded-full">
+                          <AvatarImage
+                            src={avatarSrc}
+                            name={name}
+                            className="w-6 h-6"
+                            textClassName="text-[9px]"
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
-                ) : (
-                  <div className="flex items-center gap-2 pt-1 text-[11px] text-[#8FA097]">
-                    <Users className="w-3.5 h-3.5" />
-                    <span>Var först att gå med!</span>
-                  </div>
-                )}
-              </div>
-            )}
+                  {actualParticipantCount > 5 && (
+                    <span className="text-[10px] leading-[14px] text-[#B6C2BC]">+{actualParticipantCount - 5}</span>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 pt-1 text-[11px] text-[#8FA097]">
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Var först att gå med!</span>
+                </div>
+              )}
+            </div>
 
             {/* Actions - ALWAYS show Info button, conditionally show Join */}
             <div className="flex gap-2.5 pt-3 mt-auto">
@@ -389,13 +375,23 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
                 </div>
               )}
 
-              {/* Info button - ALWAYS visible */}
-              <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`} className={canJoin ? "flex-shrink-0" : "flex-1"}>
-                <button className={`h-12 border border-[#243029] hover:bg-[#18221E] hover:border-[#2BA84A]/40 text-[#F5F8F6] text-sm font-bold rounded-[14px] transition-colors flex items-center justify-center gap-1 ${canJoin ? 'px-4' : 'w-full'}`}>
+              {/* Info button — navigates to detail for auth users, opens login gate for guests */}
+              {isGuest ? (
+                <button
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowAuthGate(true); }}
+                  className={`h-12 border border-[#243029] hover:bg-[#18221E] hover:border-[#2BA84A]/40 text-[#F5F8F6] text-sm font-bold rounded-[14px] transition-colors flex items-center justify-center gap-1 ${canJoin ? 'flex-shrink-0 px-4' : 'flex-1 w-full'}`}
+                >
                   Info
                   <ChevronRight className="w-4 h-4" />
                 </button>
-              </Link>
+              ) : (
+                <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`} className={canJoin ? "flex-shrink-0" : "flex-1"}>
+                  <button className={`h-12 border border-[#243029] hover:bg-[#18221E] hover:border-[#2BA84A]/40 text-[#F5F8F6] text-sm font-bold rounded-[14px] transition-colors flex items-center justify-center gap-1 ${canJoin ? 'px-4' : 'w-full'}`}>
+                    Info
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </Link>
+              )}
             </div>
           </div>
         </CardContent>
