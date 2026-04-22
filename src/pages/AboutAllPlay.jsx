@@ -79,8 +79,8 @@ function PolicyBlock() {
 
 export default function AboutAllPlay() {
   return (
-    <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+    <div className="min-h-screen bg-[#0A0E0C] pb-24 lg:pb-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-7">
         
         {/* Back Button */}
         <Link to={createPageUrl("Dashboard")}>
@@ -94,29 +94,70 @@ export default function AboutAllPlay() {
           </motion.button>
         </Link>
 
-        {/* Hero Section */}
+        {/* Hero Section — Premium cinematic */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="relative overflow-hidden rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.4)] border border-[#223029]"
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="relative overflow-hidden rounded-[28px] border border-white/10"
+          style={{
+            boxShadow:
+              '0 28px 72px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06)',
+          }}
         >
-          <div className="relative h-64 sm:h-80 lg:h-96">
-            <img 
+          {/* Cinematic image with layered gradients */}
+          <div className="relative h-72 sm:h-[420px] lg:h-[520px] overflow-hidden">
+            <motion.img 
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/afd97d702_P10905801.jpg"
               alt="AllPlay Team"
               className="w-full h-full object-cover"
+              initial={{ scale: 1.08 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0F1513] via-[#0F1513]/60 to-transparent" />
+            {/* Bottom fade for readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0E0C] via-[#0A0E0C]/60 to-transparent" />
+            {/* Green accent wash */}
+            <div className="pointer-events-none absolute -top-24 -right-24 w-96 h-96 rounded-full blur-3xl"
+              style={{ background: 'rgba(43,168,74,0.28)' }}
+            />
+            {/* Orange accent wash */}
+            <div className="pointer-events-none absolute -bottom-20 -left-20 w-80 h-80 rounded-full blur-3xl"
+              style={{ background: 'rgba(244,116,59,0.20)' }}
+            />
+
+            {/* Floating eyebrow */}
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="absolute top-6 left-6 sm:top-8 sm:left-8"
+            >
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-xl ring-1 ring-white/15 text-[11px] font-extrabold uppercase tracking-[0.16em] text-white/95">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#34C257] animate-pulse" />
+                Om AllPlay
+              </span>
+            </motion.div>
           </div>
           
-          <div className="relative -mt-20 px-6 pb-8 sm:px-8 sm:pb-10">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-4 drop-shadow-[0_8px_16px_rgba(0,0,0,0.8)]">
-              Om AllPlay
-            </h1>
-            <p className="text-base sm:text-lg text-white/90 leading-relaxed max-w-2xl drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]">
-              AllPlay är en app som gör spontanfotboll enkel, trygg och tillgänglig. På några sekunder kan du hitta planer, skapa matcher och gå med i spel i ditt närområde.
-            </p>
+          {/* Title overlay */}
+          <div className="relative -mt-36 sm:-mt-44 px-6 pb-8 sm:px-10 sm:pb-12">
+            <motion.h1
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="text-[42px] sm:text-[64px] lg:text-[76px] font-black text-white leading-[0.95] tracking-[-0.03em] mb-4 drop-shadow-[0_10px_30px_rgba(0,0,0,0.7)]"
+            >
+              Fotboll, <span className="text-[#34C257]">för alla.</span>
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45, duration: 0.5 }}
+              className="text-[15px] sm:text-lg text-white/85 leading-relaxed max-w-2xl drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]"
+            >
+              AllPlay gör spontanfotboll enkel, trygg och tillgänglig. Hitta planer, skapa matcher och gå med i spel i ditt närområde — på några sekunder.
+            </motion.p>
           </div>
         </motion.div>
 

@@ -749,13 +749,30 @@ export default function MatchDetailPage() {
             </CardContent>
           </Card>
         ) : (
-        <Card className="bg-gradient-to-br from-[#2BA84A] to-[#0F2917] rounded-[20px] shadow-[0_6px_18px_rgba(0,0,0,0.22)] border border-[#223029] relative overflow-hidden">
-          
-          <div className="absolute top-[-50px] right-[-50px] w-64 h-64 bg-white/5 rounded-full blur-3xl animate-pulse pointer-events-none"></div>
-          <div className="absolute bottom-[-50px] left-[-50px] w-48 h-48 bg-[#248232]/30 rounded-full blur-2xl animate-pulse pointer-events-none" style={{ animationDelay: '1s' }}></div>
-          
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-white/5 rounded-full pointer-events-none animate-[spin_20s_linear_infinite]"></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] border border-white/10 rounded-full pointer-events-none animate-[spin_15s_linear_infinite_reverse]"></div>
+        <Card className="rounded-[24px] border border-white/10 relative overflow-hidden"
+          style={{
+            background:
+              'linear-gradient(135deg, #2BA84A 0%, #1E7A36 45%, #0F2917 100%)',
+            boxShadow:
+              '0 24px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)',
+          }}
+        >
+          {/* Ambient glows */}
+          <div className="absolute -top-16 -right-16 w-72 h-72 bg-[#34C257]/40 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute -bottom-20 -left-16 w-64 h-64 bg-[#F4743B]/25 rounded-full blur-3xl pointer-events-none"></div>
+
+          {/* Soft vignette for depth */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 35%, rgba(0,0,0,0.3) 100%)',
+            }}
+          />
+
+          {/* Decorative rings */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-white/5 rounded-full pointer-events-none animate-[spin_30s_linear_infinite]"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] border border-white/10 rounded-full pointer-events-none animate-[spin_22s_linear_infinite_reverse]"></div>
 
           <CardContent className="p-6 lg:p-8 relative z-10">
             <div className="flex flex-col lg:flex-row gap-6">
@@ -779,7 +796,7 @@ export default function MatchDetailPage() {
                   )}
                 </div>
 
-                <h1 className="text-[28px] leading-[34px] lg:text-[32px] lg:leading-[40px] font-semibold text-[#EAF6EE] mb-6">
+                <h1 className="text-[30px] leading-[36px] lg:text-[40px] lg:leading-[44px] font-black text-white tracking-tight mb-6 drop-shadow-[0_6px_16px_rgba(0,0,0,0.45)]">
                   {match.title}
                 </h1>
 

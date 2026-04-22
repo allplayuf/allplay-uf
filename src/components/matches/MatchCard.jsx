@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Clock, Users, Target, ChevronRight, Shield, Zap, TrendingUp, Crown } from "lucide-react";
+import { MapPin, Clock, Users, Target, ChevronRight, Shield, Zap, TrendingUp, Crown, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { triggerHaptic } from "@/components/utils/motionTokens";
@@ -166,57 +167,65 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
     />
     
     <div>
-      <Card className={`bg-[#121715] border border-[#223029] rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_0_24px_rgba(43,168,74,0.15)] hover:border-[#2BA84A]/40 transition-shadow transition-colors h-full flex flex-col ${
+      <Card className={`bg-[#121715] border border-[#243029] rounded-[20px] shadow-[0_10px_28px_rgba(0,0,0,0.38)] hover:shadow-[0_14px_36px_rgba(0,0,0,0.45),0_0_0_1px_rgba(43,168,74,0.25)] hover:border-[#2BA84A]/40 hover:-translate-y-0.5 transition-[transform,box-shadow,border-color] duration-200 h-full flex flex-col overflow-hidden group ${
         match.status === 'completed' ? 'opacity-75' : ''
-      }`}>
+      }`}
+      style={{ boxShadow: '0 10px 28px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.04)' }}
+      >
         <CardContent className="p-4 flex flex-col h-full">
           <div className="space-y-3 flex flex-col h-full">
-            {/* Header */}
+            {/* Header — status dot + title + one compact chip */}
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="text-base font-semibold text-white truncate pr-2">
-                  {match.title || 'Namnlös match'}
-                </h3>
+              <div className="flex items-start justify-between gap-2 mb-1.5">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  {/* Tiny status dot */}
+                  <span
+                    className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                      match.status === 'ongoing' ? 'bg-[#34C257] animate-pulse' :
+                      match.status === 'upcoming' ? 'bg-[#4169E1]' :
+                      match.status === 'cancelled' ? 'bg-[#DC2626]' :
+                      'bg-[#6B7280]'
+                    }`}
+                    aria-hidden
+                  />
+                  <h3 className="text-[15px] font-bold text-white truncate tracking-tight">
+                    {match.title || 'Namnlös match'}
+                  </h3>
+                </div>
                 {isOrganizer && match.status === 'upcoming' && (
-                  <Badge variant="outline" className="text-[10px] border-[#F4743B]/30 text-[#FDE3D2] h-5 px-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#FDE3D2] bg-[#F4743B]/15 ring-1 ring-[#F4743B]/30 h-5 px-2 rounded-md flex items-center flex-shrink-0">
                     Din
-                  </Badge>
+                  </span>
                 )}
               </div>
-              
-              <div className="flex items-center gap-3 text-[#B6C2BC] text-xs sm:text-sm mt-1">
+
+              <div className="flex items-center gap-3 text-[#B6C2BC] text-[12px] sm:text-[13px]">
                  <span className="flex items-center gap-1.5 min-w-0 flex-1">
-                    <MapPin className="w-4 h-4 flex-shrink-0 text-[#2BA84A]" />
+                    <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-[#34C257]" />
                     <span className="truncate">{venue?.name || 'Okänd'}</span>
                  </span>
-                 <span className="flex items-center gap-1.5 flex-shrink-0">
-                    <Clock className="w-4 h-4 flex-shrink-0 text-[#F4743B]" />
+                 <span className="flex items-center gap-1.5 flex-shrink-0 tabular-nums">
+                    <Clock className="w-3.5 h-3.5 flex-shrink-0 text-[#F4743B]" />
                     <span>{match.date} • {match.time}</span>
                  </span>
               </div>
             </div>
 
-            {/* Tags */}
+            {/* Compact meta row — format + optional skill/team (max 2 chips) */}
             <div className="flex flex-wrap gap-1.5">
-                <span className={`inline-flex h-6 items-center rounded-md px-2 text-[11px] font-medium ${statusBadge.color} ring-1 ring-inset ring-white/10`}>
-                  {statusBadge.label}
-                </span>
-
-                <span className="inline-flex h-6 items-center rounded-md px-2 text-[11px] font-medium bg-[#18221E] border border-[#223029] text-[#B6C2BC]">
+                <span className="inline-flex h-6 items-center rounded-md px-2 text-[11px] font-semibold bg-[#18221E] border border-[#243029] text-[#C2CEC8]">
                   {match.format || '5v5'}
                 </span>
-                
-                {match.is_team_match && (
-                    <span className="inline-flex h-6 items-center rounded-md px-2 text-[11px] font-medium bg-[#9B59B6]/20 text-[#DDA5E8] ring-1 ring-[#9B59B6]/30">
-                      Lag
-                    </span>
-                )}
-                
-                {!match.is_team_match && match.skill_bracket && SkillIcon && (
-                  <span className={`inline-flex h-6 items-center rounded-md px-2 text-[11px] font-medium border border-[#223029] ${getSkillBracketColor(match.skill_bracket)}`}>
+
+                {match.is_team_match ? (
+                  <span className="inline-flex h-6 items-center rounded-md px-2 text-[11px] font-semibold bg-[#9B59B6]/18 text-[#DDA5E8] ring-1 ring-[#9B59B6]/30">
+                    Lag
+                  </span>
+                ) : (match.skill_bracket && SkillIcon && (
+                  <span className={`inline-flex h-6 items-center rounded-md px-2 text-[11px] font-semibold ${getSkillBracketColor(match.skill_bracket)}`}>
                     {getSkillBracketLabel(match.skill_bracket)}
                   </span>
-                )}
+                ))}
             </div>
 
             {/* Progress Bar - SYNCED WITH PARTICIPANTS */}
@@ -275,35 +284,66 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
             )}
 
             {/* Actions - ALWAYS show Info button, conditionally show Join */}
-            <div className="flex gap-3 pt-3 mt-auto">
-              {/* Join button - show if joinable and user can join */}
+            <div className="flex gap-2.5 pt-3 mt-auto">
+              {/* Join button — premium pulsing CTA */}
               {canJoin && (
-                <button
+                <motion.button
                   onClick={handleJoinClick}
-                  className="flex-1 bg-[#F4743B] hover:bg-[#E5683A] active:scale-95 text-white text-base font-extrabold uppercase tracking-wide h-12 rounded-2xl transition-transform flex items-center justify-center gap-1.5 shadow-[0_0_20px_rgba(244,116,59,0.4)] hover:shadow-[0_0_25px_rgba(244,116,59,0.6)] border border-[#F4743B]/50"
+                  whileTap={{ scale: 0.96 }}
+                  animate={{
+                    boxShadow: [
+                      '0 8px 22px rgba(244,116,59,0.38), inset 0 1px 0 rgba(255,255,255,0.18)',
+                      '0 10px 28px rgba(244,116,59,0.55), inset 0 1px 0 rgba(255,255,255,0.22)',
+                      '0 8px 22px rgba(244,116,59,0.38), inset 0 1px 0 rgba(255,255,255,0.18)',
+                    ],
+                  }}
+                  transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+                  className="flex-1 relative overflow-hidden text-white text-[15px] font-extrabold uppercase tracking-wide h-12 rounded-[14px] flex items-center justify-center gap-2 ring-1 ring-white/10"
+                  style={{
+                    background:
+                      'linear-gradient(180deg, #FF8A4D 0%, #F4743B 55%, #D95D26 100%)',
+                  }}
                 >
-                  Gå med
-                </button>
+                  {/* Shimmer sweep */}
+                  <motion.span
+                    aria-hidden
+                    initial={{ x: '-120%' }}
+                    animate={{ x: '180%' }}
+                    transition={{ duration: 2.4, repeat: Infinity, repeatDelay: 1.4, ease: 'easeInOut' }}
+                    className="absolute top-0 bottom-0 w-1/3 pointer-events-none"
+                    style={{
+                      background:
+                        'linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent)',
+                      filter: 'blur(6px)',
+                    }}
+                  />
+                  <span className="relative z-10">Gå med</span>
+                  <motion.span
+                    className="relative z-10 inline-flex"
+                    animate={{ x: [0, 3, 0] }}
+                    transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+                  >
+                    <ArrowRight className="w-4 h-4" strokeWidth={2.6} />
+                  </motion.span>
+                </motion.button>
               )}
 
               {/* Status badges for non-joinable states */}
               {match.status === 'completed' && (
-                <div className="flex-1 h-12 flex items-center justify-center border border-[#223029] rounded-xl bg-[#18221E]">
+                <div className="flex-1 h-12 flex items-center justify-center border border-[#243029] rounded-[14px] bg-[#18221E]">
                   <span className="text-sm font-bold text-[#9EAAA4]">Avslutad</span>
                 </div>
               )}
-              
-
 
               {hasJoined && match.status !== 'completed' && (
-                <div className="flex-1 h-12 flex items-center justify-center border border-[#2BA84A]/30 rounded-xl bg-[#2BA84A]/10">
-                  <span className="text-sm font-bold text-[#2BA84A]">Anmäld ✓</span>
+                <div className="flex-1 h-12 flex items-center justify-center border border-[#2BA84A]/30 rounded-[14px] bg-[#2BA84A]/10">
+                  <span className="text-sm font-bold text-[#34C257]">Anmäld ✓</span>
                 </div>
               )}
 
               {/* Info button - ALWAYS visible */}
               <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`} className={canJoin ? "flex-shrink-0" : "flex-1"}>
-                <button className={`h-12 border-2 border-[#223029] hover:bg-[#18221E] hover:border-[#2BA84A]/50 text-[#F4F7F5] text-sm font-bold rounded-2xl transition-all flex items-center justify-center gap-1 ${canJoin ? 'px-5' : 'w-full'}`}>
+                <button className={`h-12 border border-[#243029] hover:bg-[#18221E] hover:border-[#2BA84A]/40 text-[#F5F8F6] text-sm font-bold rounded-[14px] transition-colors flex items-center justify-center gap-1 ${canJoin ? 'px-4' : 'w-full'}`}>
                   Info
                   <ChevronRight className="w-4 h-4" />
                 </button>

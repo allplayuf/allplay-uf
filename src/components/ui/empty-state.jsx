@@ -1,83 +1,34 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import PremiumEmptyState from "@/components/ui/premium-empty-state";
 
-export function EmptyState({ 
-  icon: Icon, 
-  title, 
-  description, 
-  actionLabel, 
+/**
+ * EmptyState — unified premium empty state.
+ * Wraps PremiumEmptyState so existing callers keep working.
+ */
+export function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  actionLabel,
   onAction,
   secondaryActionLabel,
   onSecondaryAction,
-  variant = 'default' // 'default', 'compact', 'inline'
+  variant = 'default',
+  accent = 'green'
 }) {
-  const variants = {
-    default: {
-      container: "p-12 text-center",
-      iconSize: "w-20 h-20",
-      titleSize: "text-2xl",
-      descSize: "text-base"
-    },
-    compact: {
-      container: "p-8 text-center",
-      iconSize: "w-16 h-16",
-      titleSize: "text-xl",
-      descSize: "text-sm"
-    },
-    inline: {
-      container: "p-6 text-center",
-      iconSize: "w-12 h-12",
-      titleSize: "text-lg",
-      descSize: "text-sm"
-    }
-  };
-
-  const config = variants[variant] || variants.default;
+  const iconSize = variant === 'inline' ? 'w-6 h-6' : variant === 'compact' ? 'w-8 h-8' : 'w-9 h-9';
 
   return (
-    <Card className="bg-gradient-to-br from-[#121715] to-[#0F2917]/20 border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-2xl">
-      <CardContent className={config.container}>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-        >
-          <div className={`${config.iconSize} bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-[#2BA84A]/20`}>
-            <Icon className={`${config.iconSize === 'w-20 h-20' ? 'w-10 h-10' : config.iconSize === 'w-16 h-16' ? 'w-8 h-8' : 'w-6 h-6'} text-[#2BA84A]`} />
-          </div>
-          <h3 className={`${config.titleSize} font-bold text-[#F4F7F5] mb-3`}>
-            {title}
-          </h3>
-          <p className={`${config.descSize} text-[#B6C2BC] mb-6 max-w-md mx-auto`}>
-            {description}
-          </p>
-          
-          {(actionLabel || secondaryActionLabel) && (
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              {actionLabel && (
-                <Button
-                  onClick={onAction}
-                  className="bg-[#2BA84A] hover:bg-[#248232] text-[#FFFFFF] h-11 px-6 rounded-2xl font-semibold"
-                >
-                  {actionLabel}
-                </Button>
-              )}
-              {secondaryActionLabel && (
-                <Button
-                  onClick={onSecondaryAction}
-                  variant="outline"
-                  className="border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] hover:text-[#F4F7F5] h-11 px-6 rounded-2xl font-semibold"
-                >
-                  {secondaryActionLabel}
-                </Button>
-              )}
-            </div>
-          )}
-        </motion.div>
-      </CardContent>
-    </Card>
+    <PremiumEmptyState
+      icon={Icon ? <Icon className={iconSize} /> : null}
+      title={title}
+      description={description}
+      actionLabel={actionLabel}
+      onAction={onAction}
+      secondaryLabel={secondaryActionLabel}
+      onSecondary={onSecondaryAction}
+      accent={accent}
+    />
   );
 }
 

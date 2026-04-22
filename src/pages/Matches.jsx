@@ -18,6 +18,9 @@ import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import { NoMatchesFound } from "../components/ui/empty-state";
 import { PullToRefresh } from "../components/ui/pull-to-refresh";
 import { MobileSelect } from "../components/ui/mobile-select";
+import PremiumHero from "../components/ui/premium-hero";
+import { FilterPanel, FilterField } from "../components/ui/filter-panel";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { 
   createMatch, 
   joinMatch,
@@ -402,16 +405,14 @@ export default function MatchesPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Simple Title Bar */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="mb-6"
-        >
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#F4F7F5] mb-1">Matcher</h1>
-          <p className="text-sm text-[#B6C2BC]">Hitta eller skapa din nästa fotbollsmatch</p>
-        </motion.div>
+        {/* Premium Hero */}
+        <PremiumHero
+          icon={<CalendarIcon className="w-7 h-7 text-white" strokeWidth={2.4} />}
+          eyebrow="Matcher"
+          title="Hitta din nästa match"
+          subtitle="Gå med i spontana matcher eller skapa en egen på 10 sekunder."
+          accent="green"
+        />
 
         {/* Tabs with Background */}
         <motion.div
@@ -471,69 +472,47 @@ export default function MatchesPage() {
               </motion.button>
             </div>
 
-            {/* Filter Toggle Button */}
+            {/* Premium Filter Panel */}
             {activeTab === 'browse' && (
-              <motion.button
-                onClick={() => setShowFilters(!showFilters)}
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-                className="w-full flex items-center justify-between p-3 bg-[#18221E] border border-[#223029] rounded-xl text-[#F4F7F5] hover:border-[#2BA84A]/30 transition-all"
-              >
-                <div className="flex items-center gap-2">
-                  <SlidersHorizontal className="w-4 h-4 text-[#9FC9AC]" />
-                  <span className="text-sm font-medium">Filtrera och sortera</span>
-                </div>
-                {showFilters ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </motion.button>
-            )}
-
-            {/* Filters Content */}
-            {activeTab === 'browse' && (
-              <AnimatePresence>
-                {showFilters && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.25, ease: "easeOut" }}
-                    className="overflow-hidden mt-3"
-                  >
-                    <div className="flex gap-3 p-3 bg-[#18221E]/50 rounded-[12px] border border-[#223029]">
-                      <div className="flex-1">
-                        <label className="text-xs text-[#B6C2BC] mb-2 block font-medium">Filter</label>
-                        <MobileSelect
-                          value={sortBy}
-                          onValueChange={setSortBy}
-                          placeholder="Filter"
-                          label="Filtrera matcher"
-                          className="w-full bg-[#18221E] border border-[#223029] text-[#F4F7F5] rounded-[12px] h-10 px-3 flex items-center"
-                          options={[
-                            { value: 'all', label: 'Alla matcher' },
-                            { value: 'my_level', label: 'Min nivå' },
-                            { value: 'today', label: 'Idag' }
-                          ]}
-                        />
-                      </div>
-
-                      <div className="flex-1">
-                        <label className="text-xs text-[#B6C2BC] mb-2 block font-medium">Sortera</label>
-                        <MobileSelect
-                          value={matchSort}
-                          onValueChange={setMatchSort}
-                          placeholder="Sortera"
-                          label="Sortera matcher"
-                          className="w-full bg-[#18221E] border border-[#223029] text-[#F4F7F5] rounded-[12px] h-10 px-3 flex items-center"
-                          options={[
-                            { value: 'nearest', label: 'Närmast' },
-                            { value: 'earliest', label: 'Tidigast' },
-                            { value: 'fullest', label: 'Mest fyllda' }
-                          ]}
-                        />
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <div className="mt-1">
+                <FilterPanel
+                  open={showFilters}
+                  onToggle={() => setShowFilters(!showFilters)}
+                  summary={`${sortByLabels[sortBy]} • ${matchSortLabels[matchSort]}`}
+                  activeCount={(sortBy !== 'all' ? 1 : 0) + (matchSort !== 'nearest' ? 1 : 0)}
+                >
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <FilterField label="Filter">
+                      <MobileSelect
+                        value={sortBy}
+                        onValueChange={setSortBy}
+                        placeholder="Filter"
+                        label="Filtrera matcher"
+                        className="w-full bg-[#141917] border border-[#243029] text-[#F5F8F6] rounded-xl h-11 px-3 flex items-center"
+                        options={[
+                          { value: 'all', label: 'Alla matcher' },
+                          { value: 'my_level', label: 'Min nivå' },
+                          { value: 'today', label: 'Idag' }
+                        ]}
+                      />
+                    </FilterField>
+                    <FilterField label="Sortera">
+                      <MobileSelect
+                        value={matchSort}
+                        onValueChange={setMatchSort}
+                        placeholder="Sortera"
+                        label="Sortera matcher"
+                        className="w-full bg-[#141917] border border-[#243029] text-[#F5F8F6] rounded-xl h-11 px-3 flex items-center"
+                        options={[
+                          { value: 'nearest', label: 'Närmast' },
+                          { value: 'earliest', label: 'Tidigast' },
+                          { value: 'fullest', label: 'Mest fyllda' }
+                        ]}
+                      />
+                    </FilterField>
+                  </div>
+                </FilterPanel>
+              </div>
             )}
           </Card>
         </motion.div>

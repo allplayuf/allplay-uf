@@ -27,6 +27,7 @@ import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import CupsWidget from "../components/dashboard/CupsWidget";
 import NearbyMatchesWidget from "../components/dashboard/NearbyMatchesWidget";
 import { isCupsEnabled } from "../lib/featureFlags";
+import PremiumEmptyState from "../components/ui/premium-empty-state";
 
 import MatchCard from "../components/matches/MatchCard";
 import NextMatchCard from "../components/dashboard/NextMatchCard";
@@ -714,33 +715,16 @@ export default function Dashboard() {
               {matchesLoading || venuesLoading ? (
                 <MatchGridSkeleton count={2} />
               ) : myUpcomingMatches.length === 0 ? (
-                <div className="p-8 sm:p-10 text-center bg-gradient-to-br from-[#121715] to-[#0F2917]/20 border border-[#223029] rounded-2xl shadow-[0_6px_18px_rgba(0,0,0,0.22)]">
-                  <div className="w-16 h-16 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-4 ring-1 ring-[#2BA84A]/20">
-                    <Calendar className="w-8 h-8 text-[#2BA84A]" />
-                  </div>
-                  <h3 className="text-lg font-bold text-[#F4F7F5] mb-2">
-                    {isGuest ? 'Inga matcher just nu' : 'Du har inga kommande matcher'}
-                  </h3>
-                  <p className="text-[#B6C2BC] text-sm mb-5 max-w-xs mx-auto">
-                    {isGuest ? 'Logga in för att hitta och gå med i matcher nära dig.' : 'Hitta en match att gå med i eller skapa en egen på 10 sekunder!'}
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                    <Link to={createPageUrl("Matches")}>
-                      <button className="inline-flex items-center justify-center h-11 px-6 text-sm font-semibold rounded-2xl bg-[#2BA84A] hover:bg-[#248232] text-white transition-colors">
-                        {isGuest ? 'Se alla matcher' : 'Hitta matcher'}
-                      </button>
-                    </Link>
-                    {!isGuest && (
-                      <button
-                        onClick={() => { triggerHaptic('medium'); setShowCreateMatchModal(true); }}
-                        className="inline-flex items-center justify-center h-11 px-6 text-sm font-semibold rounded-2xl border border-[#223029] text-[#F4F7F5] hover:bg-[#18221E] transition-colors"
-                      >
-                        <Plus className="w-4 h-4 mr-1.5" />
-                        Skapa match
-                      </button>
-                    )}
-                  </div>
-                </div>
+                <PremiumEmptyState
+                  icon={<Calendar className="w-9 h-9" strokeWidth={2} />}
+                  title={isGuest ? 'Inga matcher just nu' : 'Du har inga kommande matcher'}
+                  description={isGuest ? 'Logga in för att hitta och gå med i matcher nära dig.' : 'Hitta en match att gå med i eller skapa en egen på 10 sekunder!'}
+                  actionLabel={isGuest ? 'Se alla matcher' : 'Hitta matcher'}
+                  onAction={() => { triggerHaptic('light'); window.location.href = createPageUrl('Matches'); }}
+                  secondaryLabel={!isGuest ? 'Skapa match' : null}
+                  onSecondary={!isGuest ? (() => { triggerHaptic('medium'); setShowCreateMatchModal(true); }) : null}
+                  accent="green"
+                />
               ) : (
                 <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
                   {myUpcomingMatches.map((match, index) => (
@@ -803,38 +787,66 @@ export default function Dashboard() {
           </motion.div>
         )}
 
-        {/* About AllPlay Card */}
+        {/* About AllPlay Card — Premium */}
         <motion.div variants={VARIANTS.item}>
           <Link to={createPageUrl("AboutAllPlay")}>
             <motion.div
-              whileHover={{ scale: 1.01, y: -2 }}
-              whileTap={{ scale: 0.99 }}
-              className="relative overflow-hidden rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.3)] border border-[#223029] bg-gradient-to-br from-[#121715] to-[#0F1513] hover:border-[#2BA84A]/30 transition-all cursor-pointer"
+              whileHover={{ y: -3 }}
+              whileTap={{ scale: 0.995 }}
+              transition={{ type: "spring", stiffness: 300, damping: 24 }}
+              className="relative overflow-hidden rounded-[24px] border border-white/10 cursor-pointer group"
+              style={{
+                background:
+                  'linear-gradient(135deg, #141917 0%, #0F1513 100%)',
+                boxShadow:
+                  '0 20px 48px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)',
+              }}
             >
-              <div className="flex flex-col sm:flex-row items-center sm:items-stretch gap-4 p-5 sm:p-6">
-                <div className="w-full sm:w-40 h-40 sm:h-auto rounded-xl overflow-hidden flex-shrink-0">
-                  <img 
+              {/* Ambient green glow */}
+              <div className="pointer-events-none absolute -top-20 -right-20 w-72 h-72 rounded-full blur-3xl opacity-50 group-hover:opacity-80 transition-opacity"
+                style={{ background: 'rgba(43,168,74,0.22)' }}
+              />
+
+              <div className="flex flex-col sm:flex-row items-stretch gap-0 relative z-10">
+                {/* Image with overlay */}
+                <div className="relative w-full sm:w-[42%] h-48 sm:h-auto flex-shrink-0 overflow-hidden">
+                  <motion.img
                     src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/afd97d702_P10905801.jpg"
                     alt="AllPlay Team"
                     className="w-full h-full object-cover"
+                    whileHover={{ scale: 1.04 }}
+                    transition={{ duration: 0.6, ease: 'easeOut' }}
                   />
+                  {/* Readability gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#0F1513] opacity-70 hidden sm:block" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0F1513] via-transparent to-transparent sm:hidden" />
+
+                  {/* Eyebrow badge */}
+                  <div className="absolute top-4 left-4">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-md ring-1 ring-white/15 text-[10px] font-extrabold uppercase tracking-[0.14em] text-white/90">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#34C257] animate-pulse" />
+                      Om oss
+                    </span>
+                  </div>
                 </div>
-                <div className="flex-1 flex flex-col justify-between min-w-0 text-center sm:text-left">
+
+                {/* Content */}
+                <div className="flex-1 flex flex-col justify-center gap-4 p-5 sm:p-7">
                   <div>
-                    <h3 className="text-xl font-bold text-[#F4F7F5] mb-2">
-                      Lär känna AllPlay
+                    <h3 className="text-[22px] sm:text-[24px] font-black text-white tracking-tight mb-2 leading-tight">
+                      Lär känna <span className="text-[#34C257]">AllPlay</span>
                     </h3>
-                    <p className="text-sm text-[#B6C2BC] leading-relaxed">
+                    <p className="text-[14px] sm:text-[15px] text-[#B6C2BC] leading-relaxed">
                       Vi bygger AllPlay för att göra spontanfotboll enkel, trygg och tillgänglig. Läs om varför appen finns, hur den funkar och vilka som står bakom.
                     </p>
                   </div>
-                  <motion.button
+                  <motion.div
                     whileHover={{ x: 4 }}
-                    className="mt-4 inline-flex items-center justify-center sm:justify-start gap-2 text-[#2BA84A] font-semibold text-sm"
+                    className="inline-flex items-center gap-2 text-[#34C257] font-bold text-[14px] self-start"
                   >
-                    <span>Om AllPlay</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </motion.button>
+                    <span>Läs vår story</span>
+                    <ChevronRight className="w-4 h-4" strokeWidth={2.6} />
+                  </motion.div>
                 </div>
               </div>
             </motion.div>

@@ -245,6 +245,14 @@
   contain: layout style;
 }
 
+/* Desktop: floating header/nav are mobile-only — reset top/bottom padding */
+@media (min-width: 1024px) {
+  .main-scroll-area {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════
    PREMIUM DESIGN UTILITIES
    Opt-in classes that elevate existing components without
