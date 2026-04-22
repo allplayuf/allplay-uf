@@ -1,37 +1,24 @@
-import { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
-import { useAuth } from '@/lib/AuthContext';
-import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import { useSupabaseAuth } from '@/components/supabase';
 
 const DefaultFallback = () => (
-  <div className="fixed inset-0 flex items-center justify-center">
-    <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+  <div className="fixed inset-0 flex items-center justify-center bg-[#0B0F0D]">
+    <div className="w-8 h-8 border-4 border-[#223029] border-t-[#2BA84A] rounded-full animate-spin"></div>
   </div>
 );
 
-export default function ProtectedRoute({ fallback = <DefaultFallback />, unauthenticatedElement }) {
-  const { isAuthenticated, isLoadingAuth, authChecked, authError, checkUserAuth } = useAuth();
+/**
+ * ProtectedRoute — gates child routes behind Supabase authentication.
+ *
+ * Replaces the previous Base44-based implementation. Authorization (roles,
+ * admin, etc.) is enforced by Supabase RLS / edge functions; this component
+ * only guards against *unauthenticated* access at the UI level.
+ */
+export default function ProtectedRoute({ fallback = <DefaultFallback />, unauthenticatedElement = null }) {
+  const { isAuthenticated, isLoading } = useSupabaseAuth();
 
-  useEffect(() => {
-    if (!authChecked && !isLoadingAuth) {
-      checkUserAuth();
-    }
-  }, [authChecked, isLoadingAuth, checkUserAuth]);
-
-  if (isLoadingAuth || !authChecked) {
-    return fallback;
-  }
-
-  if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    }
-    return unauthenticatedElement;
-  }
-
-  if (!isAuthenticated) {
-    return unauthenticatedElement;
-  }
+  if (isLoading) return fallback;
+  if (!isAuthenticated) return unauthenticatedElement;
 
   return <Outlet />;
 }

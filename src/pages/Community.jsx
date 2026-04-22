@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { SUPABASE_URL, getAuthHeaders } from "@/components/supabase";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,42 @@ import { AuthGateModal } from "../components/ui/auth-gate-modal";
 import { LoginModal } from "../components/supabase";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { getMyProfile, getTeams, getMyTeams, createSupabaseTeam } from "../components/supabase/services";
+
+/**
+ * Supabase REST helpers — inline since these tables (friendships, team_members,
+ * cups) don't yet have dedicated service files. Same logic as before, just
+ * using Supabase REST instead of Base44 SDK.
+ */
+async function restGet(path) {
+  const headers = await getAuthHeaders();
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { method: 'GET', headers });
+  if (!res.ok) throw new Error(`REST GET ${path} failed: ${res.status}`);
+  return res.json();
+}
+async function restPatch(path, body) {
+  const headers = await getAuthHeaders();
+  headers['Prefer'] = 'return=representation';
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { method: 'PATCH', headers, body: JSON.stringify(body) });
+  if (!res.ok) throw new Error(`REST PATCH ${path} failed: ${res.status}`);
+  return res.json();
+}
+async function restPost(path, body) {
+  const headers = await getAuthHeaders();
+  headers['Prefer'] = 'return=representation';
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { method: 'POST', headers, body: JSON.stringify(body) });
+  if (!res.ok) {
+    const err = new Error(`REST POST ${path} failed: ${res.status}`);
+    err.status = res.status;
+    throw err;
+  }
+  return res.json();
+}
+async function restDelete(path) {
+  const headers = await getAuthHeaders();
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { method: 'DELETE', headers });
+  if (!res.ok) throw new Error(`REST DELETE ${path} failed: ${res.status}`);
+  return true;
+}
 
 const FriendsList = lazy(() => import("../components/community/FriendsList"));
 const FindPlayers = lazy(() => import("../components/community/FindPlayers"));
@@ -157,8 +193,8 @@ export default function CommunityPage() {
     queryFn: async () => {
       // Optimization: Fetch only relevant friendships instead of listing all
       const [sent, received] = await Promise.all([
-        base44.entities.Friendship.filter({ requester_id: user.id }),
-        base44.entities.Friendship.filter({ addressee_id: user.id })
+        restGet(`friendships?requester_id=eq.${user.id}&select=*`),
+        restGet(`friendships?addressee_id=eq.${user.id}&select=*`)
       ]);
       
       // Combine and deduplicate by ID
@@ -184,10 +220,7 @@ export default function CommunityPage() {
   const { data: teamInvites = [], isLoading: invitesLoading } = useQuery({
     queryKey: QUERY_KEYS.teamInvites(user?.id),
     queryFn: async () => {
-      return await base44.entities.TeamMember.filter({ 
-        user_id: user.id, 
-        status: 'pending' 
-      });
+      return await restGet(`team_members?user_id=eq.${user.id}&status=eq.pending&select=*`);
     },
     ...CACHE_STRATEGIES.REALTIME,
     enabled: !!user,
@@ -197,7 +230,7 @@ export default function CommunityPage() {
   const { data: cupsData = [] } = useQuery({
     queryKey: CUPS_QUERY_KEY,
     queryFn: async () => {
-      const cups = await base44.entities.Cup.list('-created_date');
+      const cups = await restGet(`cups?select=*&order=created_date.desc`);
       return cups.filter(c => c.is_public !== false);
     },
     ...CACHE_STRATEGIES.STATIC,
@@ -244,7 +277,7 @@ export default function CommunityPage() {
               { type: 'confirm', confirmText: 'Acceptera', cancelText: 'Senare' }
             );
             if (shouldAccept) {
-              await base44.entities.Friendship.update(existing.id, { status: 'accepted' });
+              await restPatch(`friendships?id=eq.${existing.id}`, { status: 'accepted' });
               queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
               
               await alert(
@@ -258,7 +291,7 @@ export default function CommunityPage() {
         }
       }
 
-      await base44.entities.Friendship.create({
+      await restPost(`friendships`, {
         requester_id: user.id,
         addressee_id: targetId,
         status: 'pending'
@@ -282,7 +315,7 @@ export default function CommunityPage() {
 
   const handleAcceptFriend = async (requestId) => {
     try {
-      await base44.entities.Friendship.update(requestId, { status: 'accepted' });
+      await restPatch(`friendships?id=eq.${requestId}`, { status: 'accepted' });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
       
       await alert('Nya vänner! 🎉', 'Ni är nu vänner!', { type: 'success' });
@@ -302,7 +335,7 @@ export default function CommunityPage() {
     if (!shouldDecline) return;
 
     try {
-      await base44.entities.Friendship.delete(requestId);
+      await restDelete(`friendships?id=eq.${requestId}`);
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
     } catch (error) {
       console.error("Error declining friend:", error);
@@ -344,7 +377,7 @@ export default function CommunityPage() {
 
   const handleAcceptTeamInvite = async (inviteId) => {
     try {
-      await base44.entities.TeamMember.update(inviteId, { status: 'active' });
+      await restPatch(`team_members?id=eq.${inviteId}`, { status: 'active' });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamInvites(user.id) });
       
       await alert('Välkommen till laget! 🎉', 'Du är nu medlem i laget!', { type: 'success' });

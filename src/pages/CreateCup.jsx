@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { getVenues } from "@/components/supabase/services/venuesService";
+import { callEdgeFunction } from "@/components/supabase/callEdgeFunction";
+import { UploadFile } from "@/components/supabase/integrations";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,7 +61,7 @@ export default function CreateCupPage() {
   // Fetch venues
   const { data: venues = [] } = useQuery({
     queryKey: ['venues'],
-    queryFn: () => base44.entities.Venue.list(),
+    queryFn: () => getVenues(),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -88,7 +90,7 @@ export default function CreateCupPage() {
 
     setUploadingLogo(true);
     try {
-      const uploadResult = await base44.integrations.Core.UploadFile({ file });
+      const uploadResult = await UploadFile({ file });
       setFormData(prev => ({ ...prev, logo_url: uploadResult.file_url }));
     } catch (error) {
       console.error('Error uploading logo:', error);
@@ -123,7 +125,7 @@ export default function CreateCupPage() {
 
     setUploadingDetailLogo(true);
     try {
-      const uploadResult = await base44.integrations.Core.UploadFile({ file });
+      const uploadResult = await UploadFile({ file });
       setFormData(prev => ({ ...prev, detail_logo_url: uploadResult.file_url }));
     } catch (error) {
       console.error('Error uploading detail logo:', error);
@@ -136,18 +138,17 @@ export default function CreateCupPage() {
   // Create cup mutation
   const createCupMutation = useMutation({
     mutationFn: async (data) => {
-      const response = await base44.functions.invoke('cups/createCup', data);
-      return response.data;
+      return await callEdgeFunction('cups_create_cup', data);
     },
     onSuccess: (data) => {
-      if (data.success) {
+      if (data?.success) {
         alert('Turnering skapad! 🏆', 'Din turnering har skapats framgångsrikt!', { type: 'success' });
         navigate(`${createPageUrl("CupDetail")}?cup_id=${data.cup.id}`);
       }
     },
     onError: (error) => {
       console.error('Error creating cup:', error);
-      alert('Ett fel uppstod', error.response?.data?.error || error.message || 'Kunde inte skapa turneringen.', { type: 'alert' });
+      alert('Ett fel uppstod', error?.data?.error || error.message || 'Kunde inte skapa turneringen.', { type: 'alert' });
     }
   });
 

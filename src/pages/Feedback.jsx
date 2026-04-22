@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
+import { callEdgeFunction } from "@/components/supabase/callEdgeFunction";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -51,23 +52,20 @@ export default function FeedbackPage() {
   const { confirm, alert, DialogContainer } = useCustomDialog();
   const queryClient = useQueryClient();
 
-  // Fetch user
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    queryFn: () => base44.auth.me(),
-    staleTime: 5 * 60 * 1000,
-  });
+  // Supabase auth is the source of truth for the current user
+  const { user: authUser, isAuthenticated } = useSupabaseAuth();
+  const user = isAuthenticated ? authUser : null;
 
   // Fetch posts
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ['feedbackPosts', activeTab, selectedCategory, selectedStatus],
     queryFn: async () => {
-      const response = await base44.functions.invoke('feedback/getPosts', {
+      const response = await callEdgeFunction('feedback_get_posts', {
         sort: activeTab,
         category: selectedCategory,
         status: selectedStatus
       });
-      return response.data.posts || [];
+      return response?.posts || [];
     },
     enabled: !!user,
     staleTime: 30 * 1000,
@@ -76,10 +74,7 @@ export default function FeedbackPage() {
   // Vote mutation
   const voteMutation = useMutation({
     mutationFn: async (postId) => {
-      const response = await base44.functions.invoke('feedback/votePost', {
-        postId
-      });
-      return response.data;
+      return await callEdgeFunction('feedback_vote_post', { postId });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['feedbackPosts'] });

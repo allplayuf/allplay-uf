@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
+import { SUPABASE_URL, getAuthHeaders } from "@/components/supabase";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -49,20 +50,23 @@ export default function CupsPage() {
   const [formatFilter, setFormatFilter] = useState('all');
   const [signupTypeFilter, setSignupTypeFilter] = useState('all');
 
-  // Fetch user
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    queryFn: () => base44.auth.me(),
-    staleTime: 10 * 60 * 1000,
-  });
+  // Supabase auth is the source of truth for the current user
+  const { user: authUser, isAuthenticated } = useSupabaseAuth();
+  const user = isAuthenticated ? authUser : null;
 
-  // Fetch cups
+  // Fetch cups directly from Supabase REST (RLS enforced)
   const { data: cupsData, isLoading } = useQuery({
     queryKey: ['cups', statusFilter],
     queryFn: async () => {
-      const queryParams = statusFilter !== 'all' ? `?status=${statusFilter}` : '';
-      const response = await base44.functions.invoke('cups/getCups', queryParams);
-      return response.data;
+      const headers = await getAuthHeaders();
+      let path = `cups?select=*&order=start_date.asc`;
+      if (statusFilter !== 'all') {
+        path += `&status=eq.${statusFilter}`;
+      }
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { method: 'GET', headers });
+      if (!res.ok) throw new Error(`Failed to fetch cups: ${res.status}`);
+      const cups = await res.json();
+      return { cups };
     },
     staleTime: 60 * 1000,
   });

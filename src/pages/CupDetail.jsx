@@ -1,6 +1,7 @@
 import React, { useState, Suspense, lazy } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
+import { callEdgeFunction } from "@/components/supabase/callEdgeFunction";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -50,17 +51,14 @@ export default function CupDetailPage() {
   const urlParams = new URLSearchParams(location.search);
   const cupId = urlParams.get('cup_id');
 
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    queryFn: () => base44.auth.me(),
-    staleTime: 10 * 60 * 1000,
-  });
+  // Supabase auth is the source of truth for the current user
+  const { user: authUser, isAuthenticated } = useSupabaseAuth();
+  const user = isAuthenticated ? authUser : null;
 
   const { data: cupData, isLoading } = useQuery({
     queryKey: ['cupDetails', cupId],
     queryFn: async () => {
-      const response = await base44.functions.invoke('cups/getCupDetails', { cup_id: cupId });
-      return response.data;
+      return await callEdgeFunction('get_cup_details', { cup_id: cupId });
     },
     enabled: !!cupId,
     staleTime: 30 * 1000,
@@ -68,8 +66,7 @@ export default function CupDetailPage() {
 
   const deleteCupMutation = useMutation({
     mutationFn: async () => {
-      const response = await base44.functions.invoke('cups/deleteCup', { cup_id: cupId });
-      return response.data;
+      return await callEdgeFunction('cups_delete_cup', { cup_id: cupId });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CUPS_QUERY_KEY });
@@ -77,7 +74,7 @@ export default function CupDetailPage() {
       navigate(createPageUrl("Community") + "?tab=cups");
     },
     onError: (error) => {
-      alert('Ett fel uppstod', error.response?.data?.error || 'Kunde inte ta bort turneringen.', { type: 'alert' });
+      alert('Ett fel uppstod', error?.data?.error || 'Kunde inte ta bort turneringen.', { type: 'alert' });
     }
   });
 
@@ -88,18 +85,17 @@ export default function CupDetailPage() {
 
   const approveSignupMutation = useMutation({
     mutationFn: async (participantId) => {
-      const response = await base44.functions.invoke('cups/manageSignup', {
+      return await callEdgeFunction('cups_manage_signup', {
         participant_id: participantId,
         action: 'approve'
       });
-      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cupDetails', cupId] });
       alert('Anmälan godkänd! ✅', 'Laget har godkänts för cupen.', { type: 'success' });
     },
     onError: (error) => {
-      alert('Fel', error.response?.data?.error || 'Kunde inte godkänna anmälan.', { type: 'alert' });
+      alert('Fel', error?.data?.error || 'Kunde inte godkänna anmälan.', { type: 'alert' });
     }
   });
 
@@ -109,18 +105,17 @@ export default function CupDetailPage() {
 
   const declineSignupMutation = useMutation({
     mutationFn: async (participantId) => {
-      const response = await base44.functions.invoke('cups/manageSignup', {
+      return await callEdgeFunction('cups_manage_signup', {
         participant_id: participantId,
         action: 'reject'
       });
-      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cupDetails', cupId] });
       alert('Anmälan nekad', 'Laget har nekats plats i cupen.', { type: 'info' });
     },
     onError: (error) => {
-      alert('Fel', error.response?.data?.error || 'Kunde inte neka anmälan.', { type: 'alert' });
+      alert('Fel', error?.data?.error || 'Kunde inte neka anmälan.', { type: 'alert' });
     }
   });
 
@@ -137,19 +132,18 @@ export default function CupDetailPage() {
 
   const joinTeamMutation = useMutation({
     mutationFn: async ({ cup_id, team_id }) => {
-      const response = await base44.functions.invoke('cups/joinCupTeam', { cup_id, team_id });
-      return response.data;
+      return await callEdgeFunction('cups_join_cup_team', { cup_id, team_id });
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['cupDetails', cupId] });
-      if (data.needs_approval) {
+      if (data?.needs_approval) {
         alert('Förfrågan skickad! ⏳', 'Lagkaptenen måste godkänna din förfrågan innan du kan delta.', { type: 'info' });
       } else {
         alert('Gick med i laget! 🎉', 'Du har lagts till i laget.', { type: 'success' });
       }
     },
     onError: (error) => {
-      alert('Ett fel uppstod', error.response?.data?.error || 'Kunde inte gå med i laget.', { type: 'alert' });
+      alert('Ett fel uppstod', error?.data?.error || 'Kunde inte gå med i laget.', { type: 'alert' });
     }
   });
 

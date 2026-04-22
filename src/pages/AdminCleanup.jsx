@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { callEdgeFunction } from "@/components/supabase/callEdgeFunction";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,8 +36,8 @@ export default function AdminCleanupPage() {
     setResults(null);
 
     try {
-      const response = await base44.functions.invoke('cups/cleanupOldCups', { dryRun });
-      setResults(response.data);
+      const response = await callEdgeFunction('cups_cleanup_old_cups', { dryRun });
+      setResults(response);
       
       if (!dryRun) {
         await alert('Cleanup genomförd! 🗑️', 'Alla cuper och relaterad data har tagits bort.', { type: 'success' });
