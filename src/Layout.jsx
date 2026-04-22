@@ -143,6 +143,7 @@ function LayoutInner({ children }) {
   // No manual scrollTop = 0 here — that would fight scroll-position persistence.
   
   // Handle tab click - navigate to root if already active, else to last path
+  // ALWAYS scroll to top when switching tabs (native app feel)
   const handleTabClick = (item) => {
     triggerHaptic('light');
     
@@ -153,6 +154,13 @@ function LayoutInner({ children }) {
     } else {
       navigate(tabPaths[item.title] || item.url);
     }
+    
+    // Always scroll main container to top on tab switch
+    requestAnimationFrame(() => {
+      if (mainContentRef.current) {
+        mainContentRef.current.scrollTo({ top: 0, behavior: 'auto' });
+      }
+    });
   };
 
   // Use Supabase auth state for admin check
@@ -288,6 +296,13 @@ function LayoutInner({ children }) {
 
         {/* Main Content */}
         <main className="flex-1 flex flex-col bg-[#0A0E0C] min-h-screen lg:min-h-0 overflow-hidden">
+          {/* Safe-area backdrop — matches app bg so the notch/status bar isn't a different color */}
+          <div
+            className="lg:hidden fixed top-0 left-0 right-0 z-[90] pointer-events-none bg-[#0A0E0C]"
+            style={{ height: 'env(safe-area-inset-top)' }}
+            aria-hidden
+          />
+          
           {/* Floating Glass Header (mobile only) */}
           <GlassHeader showBack={!isRootPage} />
 

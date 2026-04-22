@@ -403,17 +403,8 @@ export default function MatchesPage() {
         )}
       </AnimatePresence>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-5">
         
-        {/* Premium Hero */}
-        <PremiumHero
-          icon={<CalendarIcon className="w-7 h-7 text-white" strokeWidth={2.4} />}
-          eyebrow="Matcher"
-          title="Hitta din nästa match"
-          subtitle="Gå med i spontana matcher eller skapa en egen på 10 sekunder."
-          accent="green"
-        />
-
         {/* Tabs with Background */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

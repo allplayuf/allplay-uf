@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SlidersHorizontal, ChevronDown } from "lucide-react";
 
@@ -9,8 +9,26 @@ import { SlidersHorizontal, ChevronDown } from "lucide-react";
  * Designed to be used as a drop-in wrapper around existing select/label pairs.
  */
 export function FilterPanel({ open, onToggle, children, summary, activeCount = 0 }) {
+  const panelRef = useRef(null);
+
+  // When opened, scroll the panel into view so the content isn't
+  // hidden behind the floating bottom nav on mobile.
+  useEffect(() => {
+    if (open && panelRef.current) {
+      // Wait for the expand animation to progress a bit before scrolling
+      const t = setTimeout(() => {
+        panelRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'nearest',
+        });
+      }, 260);
+      return () => clearTimeout(t);
+    }
+  }, [open]);
+
   return (
-    <div className="relative">
+    <div className="relative" ref={panelRef}>
       {/* Toggle button — looks like a pill */}
       <motion.button
         onClick={onToggle}
@@ -53,12 +71,13 @@ export function FilterPanel({ open, onToggle, children, summary, activeCount = 0
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
-            className="overflow-hidden"
+            className="overflow-visible"
           >
-            <div className="mt-3 p-4 rounded-2xl border border-white/5 bg-white/[0.03] backdrop-blur-xl"
+            <div
+              className="mt-3 p-4 rounded-2xl border border-white/5 bg-[#141917]/90 backdrop-blur-xl relative z-[5]"
               style={{
                 boxShadow:
-                  "inset 0 1px 0 rgba(255,255,255,0.04), 0 8px 24px rgba(0,0,0,0.34)",
+                  "inset 0 1px 0 rgba(255,255,255,0.04), 0 12px 32px rgba(0,0,0,0.55)",
               }}
             >
               {children}

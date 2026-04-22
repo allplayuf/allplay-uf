@@ -29,7 +29,7 @@ export function GuestBanner() {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="sticky top-0 z-50 bg-gradient-to-r from-[#2BA84A] to-[#248232] border-b border-[#2BA84A]/30 px-4 py-3"
+      className="hidden lg:block sticky top-0 z-50 bg-gradient-to-r from-[#2BA84A] to-[#248232] border-b border-[#2BA84A]/30 px-4 py-3"
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 flex-1 min-w-0">

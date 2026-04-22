@@ -228,12 +228,12 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
                 ))}
             </div>
 
-            {/* Progress Bar - SYNCED WITH PARTICIPANTS */}
+            {/* Progress Bar - SYNCED WITH PARTICIPANTS (standard matches) */}
             {!match.is_spontaneous && (
               <div className="space-y-2 mt-auto">
                 <div className="flex items-center justify-between text-xs text-[#B6C2BC]">
                   <span>Spelare</span>
-                  <span className="text-white font-medium">
+                  <span className="text-white font-medium tabular-nums">
                     {actualParticipantCount}/{match.max_players}
                   </span>
                 </div>
@@ -250,7 +250,6 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
                 {participantUsers.length > 0 && (
                   <div className="flex items-center gap-2 pt-1">
                     <div className="flex -space-x-2">
-                      {/* Always render placeholder circles for expected count, fill with real data progressively */}
                       {(participantUsers.length > 0 ? participantUsers : participants.slice(0, 5)).slice(0, 5).map((participant, i) => {
                         const pUser = participantUsers[i];
                         const avatarSrc = pUser?.avatar_url || pUser?.profile_image_url;
@@ -275,11 +274,60 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
               </div>
             )}
 
-            {/* Spontaneous match indicator */}
+            {/* Spontaneous match — premium design matching standard cards */}
             {match.is_spontaneous && (
-              <div className="mt-auto flex items-center gap-2 text-xs font-medium text-[#F4743B] bg-[#F4743B]/10 p-2 rounded-lg border border-[#F4743B]/20">
-                <Zap className="w-3.5 h-3.5" />
-                <span>Spontan ({actualParticipantCount} anmälda)</span>
+              <div className="space-y-2 mt-auto">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="inline-flex items-center gap-1.5 text-[#FDE3D2]">
+                    <Zap className="w-3.5 h-3.5 text-[#F4743B]" />
+                    <span className="font-semibold">Spontan • Obegränsat</span>
+                  </span>
+                  <span className="text-white font-medium tabular-nums">
+                    {actualParticipantCount} {actualParticipantCount === 1 ? 'spelare' : 'spelare'}
+                  </span>
+                </div>
+                {/* Animated gradient bar instead of progress — indicates "open" */}
+                <div className="h-1.5 bg-[#18221E] rounded-full overflow-hidden border border-[#F4743B]/20 relative">
+                  <motion.div
+                    className="absolute inset-y-0 w-1/3 rounded-full"
+                    style={{
+                      background:
+                        'linear-gradient(90deg, transparent, rgba(244,116,59,0.75), transparent)',
+                    }}
+                    animate={{ x: ['-100%', '300%'] }}
+                    transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+                  />
+                </div>
+                {/* Participant avatars — identical layout to standard matches */}
+                {participantUsers.length > 0 ? (
+                  <div className="flex items-center gap-2 pt-1">
+                    <div className="flex -space-x-2">
+                      {(participantUsers.length > 0 ? participantUsers : participants.slice(0, 5)).slice(0, 5).map((participant, i) => {
+                        const pUser = participantUsers[i];
+                        const avatarSrc = pUser?.avatar_url || pUser?.profile_image_url;
+                        const name = pUser?.display_name || pUser?.full_name || 'S';
+                        return (
+                          <div key={participant?.id || participant?.user_id || i} className="border border-[#121715] rounded-full">
+                            <AvatarImage 
+                              src={avatarSrc}
+                              name={name}
+                              className="w-6 h-6"
+                              textClassName="text-[9px]"
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {actualParticipantCount > 5 && (
+                      <span className="text-[10px] leading-[14px] text-[#B6C2BC]">+{actualParticipantCount - 5}</span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 pt-1 text-[11px] text-[#8FA097]">
+                    <Users className="w-3.5 h-3.5" />
+                    <span>Var först att gå med!</span>
+                  </div>
+                )}
               </div>
             )}
 
