@@ -76,10 +76,10 @@ export const CACHE_STRATEGIES = {
 
   // Highly dynamic data (chat, notifications) - Fresh data needed
   DYNAMIC: {
-    staleTime: 45 * 1000, // 45 seconds (increased from 30)
-    cacheTime: 3 * 60 * 1000, // 3 minutes (increased from 2)
+    staleTime: 45 * 1000, // 45 seconds
+    cacheTime: 3 * 60 * 1000, // 3 minutes
     refetchOnWindowFocus: true,
-    refetchOnMount: 'always',
+    refetchOnMount: false, // Rely on staleTime + focus refetch to avoid unnecessary network on nav
   },
 
   // Realtime data (match participants, live scores) - Always fresh
