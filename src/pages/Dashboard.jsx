@@ -30,6 +30,7 @@ import { isCupsEnabled } from "../lib/featureFlags";
 
 import NextMatchCard from "../components/dashboard/NextMatchCard";
 import InboxWidget from "../components/dashboard/InboxWidget";
+import DashboardHero from "../components/dashboard/DashboardHero";
 import { 
   createMatch as supabaseCreateMatch, 
   joinMatch as supabaseJoinMatch,
@@ -418,220 +419,22 @@ export default function Dashboard() {
         {(isAuthenticated && userLoading) ? (
           <HeroSkeleton />
         ) : (
-        <motion.div
-          variants={VARIANTS.item}
-          className="relative overflow-hidden rounded-[22px] sm:rounded-[26px] lg:rounded-[28px] border border-white/[0.08]"
-          style={{
-            background: "linear-gradient(145deg, #070D09 0%, #0C1C12 35%, #103A1E 70%, #081410 100%)",
-            boxShadow: "0 24px 60px rgba(0,0,0,0.6), 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)",
-          }}
-        >
-          {/* Pitch pattern — cinematic depth */}
-          <svg className="absolute inset-0 w-full h-full opacity-[0.045] pointer-events-none" viewBox="0 0 400 300" preserveAspectRatio="none" aria-hidden>
-            <rect x="10" y="20" width="380" height="260" fill="none" stroke="white" strokeWidth="2" />
-            <circle cx="200" cy="150" r="45" fill="none" stroke="white" strokeWidth="2" />
-            <line x1="200" y1="20" x2="200" y2="280" stroke="white" strokeWidth="2" />
-            <rect x="10" y="90" width="80" height="120" fill="none" stroke="white" strokeWidth="2" />
-            <rect x="310" y="90" width="80" height="120" fill="none" stroke="white" strokeWidth="2" />
-          </svg>
-
-          {/* Grain for depth */}
-          <div
-            className="absolute inset-0 opacity-[0.04] pointer-events-none mix-blend-overlay"
-            style={{
-              backgroundImage:
-                "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
-            }}
-          />
-
-          {/* Ambient orbs — responsive sizing */}
-          <motion.div
-            animate={{ scale: [1, 1.08, 1], opacity: [0.55, 0.75, 0.55] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -top-16 -right-14 sm:-top-24 sm:-right-20 w-56 h-56 sm:w-72 sm:h-72 lg:w-96 lg:h-96 rounded-full blur-3xl pointer-events-none"
-            style={{ background: "radial-gradient(circle, rgba(52,194,87,0.38) 0%, transparent 70%)" }}
-          />
-          <motion.div
-            animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.55, 0.4] }}
-            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-            className="absolute -bottom-16 -left-10 sm:-bottom-24 sm:-left-16 w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80 rounded-full blur-3xl pointer-events-none"
-            style={{ background: "radial-gradient(circle, rgba(244,116,59,0.18) 0%, transparent 70%)" }}
-          />
-
-          {/* Hairline top highlight */}
-          <div className="absolute inset-x-0 top-0 h-px pointer-events-none"
-            style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.16), transparent)" }}
-          />
-
-          {/* Deep bottom vignette */}
-          <div className="absolute inset-0 pointer-events-none"
-            style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(0,0,0,0.45) 100%)" }}
-          />
-
-          <div className="relative z-10 px-4 py-5 sm:px-6 sm:py-7 lg:px-9 lg:py-9">
-            {/* Eyebrow */}
-            <div className="inline-flex items-center gap-1.5 mb-3 sm:mb-4 px-2.5 py-1 rounded-full bg-white/[0.08] ring-1 ring-white/15 backdrop-blur-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34C257] animate-pulse" />
-              <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.14em] text-[#86EFAC]">Dashboard</span>
-            </div>
-
-            <div className="flex items-center gap-3 sm:gap-4 lg:gap-5 mb-4 sm:mb-5 lg:mb-6">
-              {/* Avatar — responsive, cleaner */}
-              <div className="relative flex-shrink-0">
-                <div className="absolute -inset-1 sm:-inset-1.5 bg-white/10 rounded-[20px] blur-md pointer-events-none" />
-                <div className="relative w-14 h-14 sm:w-[68px] sm:h-[68px] lg:w-[76px] lg:h-[76px] rounded-2xl overflow-hidden ring-1 ring-white/15 bg-gradient-to-br from-white/8 to-black/30 backdrop-blur-sm flex items-center justify-center shadow-[0_10px_24px_rgba(0,0,0,0.5)]">
-                  {user?.profile_image_url ? (
-                    <img src={user.profile_image_url} alt="Profile" className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-xl sm:text-2xl lg:text-[28px] font-black text-white">{(user?.display_name || user?.full_name)?.[0] || 'U'}</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <h1 className="text-[20px] sm:text-[26px] lg:text-[34px] leading-[1.1] font-black text-white tracking-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)] truncate">
-                  <span className="sm:hidden">Hej, {(user?.display_name || user?.full_name)?.split(' ')[0]}! 👋</span>
-                  <span className="hidden sm:inline">Välkommen, {(user?.display_name || user?.full_name)?.split(' ')[0]}!</span>
-                </h1>
-                <p className="mt-1 sm:mt-1.5 text-[12px] sm:text-[13px] lg:text-[14px] text-white/75 leading-snug sm:leading-relaxed">
-                  Dags att dominera planen idag 🔥
-                </p>
-              </div>
-            </div>
-
-            {/* Action Buttons Grid */}
-            <motion.div
-              variants={VARIANTS.item}
-              className="grid grid-cols-3 gap-2.5 sm:gap-4 lg:gap-6 mb-5 sm:mb-8 lg:mb-10"
-            >
-              <Link to={createPageUrl('Map')}>
-                <motion.div 
-                  whileHover={{ y: -6, scale: 1.03 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="relative group"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/30 to-[#248232]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="relative bg-[#1A201D]/60 backdrop-blur-md border border-[#2BA84A]/20 rounded-2xl p-3 sm:p-5 lg:p-6 hover:bg-[#1A201D]/80 transition-all h-[92px] sm:h-32 lg:h-36 flex flex-col items-center justify-center gap-1.5 sm:gap-3 group-hover:border-[#2BA84A]/40 group-hover:shadow-[0_8px_24px_rgba(43,168,74,0.15)]">
-                    <div className="w-9 h-9 sm:w-12 sm:h-12 lg:w-16 lg:h-16 rounded-xl bg-[#2BA84A]/30 flex items-center justify-center ring-2 ring-[#2BA84A]/40 flex-shrink-0">
-                      <MapPin className="w-4 h-4 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-[#86EFAC]" strokeWidth={2.5} />
-                    </div>
-                    <span className="text-[10px] sm:text-xs lg:text-sm font-bold text-white text-center leading-tight">Hitta planer</span>
-                  </div>
-                </motion.div>
-              </Link>
-              
-              <motion.div 
-                whileHover={{ y: -6, scale: 1.03 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => {
-                  triggerHaptic('medium');
-                  if (isGuest) {
-                    setShowAuthGate(true);
-                  } else {
-                    setShowCreateMatchModal(true);
-                  }
-                }}
-                className="relative group cursor-pointer"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-[#F4743B]/30 to-[#E5683A]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-[#2A1812]/60 backdrop-blur-md border border-[#F4743B]/20 rounded-2xl p-3 sm:p-5 lg:p-6 hover:bg-[#2A1812]/80 transition-all h-[92px] sm:h-32 lg:h-36 flex flex-col items-center justify-center gap-1.5 sm:gap-3 group-hover:border-[#F4743B]/40 group-hover:shadow-[0_8px_24px_rgba(244,116,59,0.15)]">
-                  <div className="w-9 h-9 sm:w-12 sm:h-12 lg:w-16 lg:h-16 rounded-xl bg-[#F4743B]/30 flex items-center justify-center ring-2 ring-[#F4743B]/40 flex-shrink-0">
-                    <Plus className="w-4 h-4 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-[#FDE3D2]" strokeWidth={2.5} />
-                  </div>
-                  <span className="text-[10px] sm:text-xs lg:text-sm font-bold text-white text-center leading-tight">Skapa match</span>
-                </div>
-              </motion.div>
-
-              <Link to={createPageUrl('Community')}>
-                <motion.div 
-                  whileHover={{ y: -6, scale: 1.03 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="relative group"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#9370DB]/30 to-[#7C3AED]/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="relative bg-[#1F1829]/60 backdrop-blur-md border border-[#9370DB]/20 rounded-2xl p-3 sm:p-5 lg:p-6 hover:bg-[#1F1829]/80 transition-all h-[92px] sm:h-32 lg:h-36 flex flex-col items-center justify-center gap-1.5 sm:gap-3 group-hover:border-[#9370DB]/40 group-hover:shadow-[0_8px_24px_rgba(147,112,219,0.15)]">
-                    <div className="w-9 h-9 sm:w-12 sm:h-12 lg:w-16 lg:h-16 rounded-xl bg-[#9370DB]/30 flex items-center justify-center ring-2 ring-[#9370DB]/40 flex-shrink-0">
-                      <Users className="w-4 h-4 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-[#DDD6FE]" strokeWidth={2.5} />
-                    </div>
-                    <span className="text-[10px] sm:text-xs lg:text-sm font-bold text-white text-center leading-tight">Vänner & lag</span>
-                  </div>
-                </motion.div>
-              </Link>
-            </motion.div>
-
-            {/* Main CTA Button */}
-            <motion.div variants={VARIANTS.item}>
-              <Link to={createPageUrl("Matches")}>
-                <motion.button
-                  whileHover={{ 
-                    scale: 1.02,
-                    y: -4,
-                    boxShadow: '0 25px 80px rgba(43,168,74,0.8)'
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                  animate={{
-                    boxShadow: [
-                      '0 12px 50px rgba(43,168,74,0.6)',
-                      '0 18px 70px rgba(43,168,74,0.8)',
-                      '0 12px 50px rgba(43,168,74,0.6)',
-                    ]
-                  }}
-                  transition={{
-                    boxShadow: {
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }
-                  }}
-                  className="relative h-[52px] sm:h-16 lg:h-20 w-full bg-gradient-to-r from-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center gap-2 sm:gap-3 font-black text-[13px] sm:text-base lg:text-xl text-white overflow-hidden"
-                >
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent"
-                    animate={{
-                      x: ['-100%', '200%']
-                    }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                      repeatDelay: 2
-                    }}
-                  />
-                  <motion.div
-                    animate={{
-                      scale: [1, 1.1, 1]
-                    }}
-                    transition={{
-                      duration: 1.5,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                    className="relative z-10"
-                  >
-                    <PlayCircle className="w-4 h-4 sm:w-6 sm:h-6 lg:w-8 lg:h-8" strokeWidth={2.5} />
-                  </motion.div>
-                  <span className="relative z-10 sm:hidden">Hitta matcher nu</span>
-                  <span className="relative z-10 hidden sm:inline">Hitta spontana matcher nu</span>
-                  <motion.div
-                    animate={{
-                      x: [0, 6, 0]
-                    }}
-                    transition={{
-                      duration: 1.5,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                    className="relative z-10"
-                  >
-                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8" strokeWidth={3} />
-                  </motion.div>
-                </motion.button>
-              </Link>
-            </motion.div>
-          </div>
-        </motion.div>
+          <motion.div variants={VARIANTS.item}>
+            <DashboardHero
+              user={user}
+              isGuest={isGuest}
+              nearbyCount={nearbyMatches.length}
+              myMatchesCount={myUpcomingMatches.length}
+              onCreateMatch={() => {
+                if (isGuest) {
+                  setShowAuthGate(true);
+                } else {
+                  setShowCreateMatchModal(true);
+                }
+              }}
+            />
+          </motion.div>
         )}
-
         {/* Inbox Widget */}
         {isAuthenticated && (
           <motion.div variants={VARIANTS.item}>
