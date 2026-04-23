@@ -420,130 +420,72 @@ export default function Dashboard() {
         ) : (
         <motion.div
           variants={VARIANTS.item}
-          className="relative overflow-hidden rounded-3xl shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7),0_0_40px_0px_rgba(43,168,74,0.1)] border border-[#2BA84A]/20 bg-[#0A0D0B]"
+          className="relative overflow-hidden rounded-3xl shadow-[0_30px_80px_rgba(0,0,0,0.55)] border border-white/10"
+          style={{
+            background: "linear-gradient(135deg, #0F2917 0%, #1E7A36 45%, #0D1F10 100%)",
+          }}
         >
-          {/* Dark gradient base */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#1A1A1A] via-[#0F1513] to-[#0A0D0B]"></div>
-          
-          {/* Green animated overlay */}
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/25 via-[#248232]/15 to-transparent"
-            animate={{
-              opacity: [0.4, 0.6, 0.4]
-            }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-          />
+          {/* Pitch pattern — cinematic depth */}
+          <svg className="absolute inset-0 w-full h-full opacity-[0.06] pointer-events-none" viewBox="0 0 400 300" preserveAspectRatio="none" aria-hidden>
+            <rect x="10" y="20" width="380" height="260" fill="none" stroke="white" strokeWidth="2" />
+            <circle cx="200" cy="150" r="45" fill="none" stroke="white" strokeWidth="2" />
+            <line x1="200" y1="20" x2="200" y2="280" stroke="white" strokeWidth="2" />
+            <rect x="10" y="90" width="80" height="120" fill="none" stroke="white" strokeWidth="2" />
+            <rect x="310" y="90" width="80" height="120" fill="none" stroke="white" strokeWidth="2" />
+          </svg>
 
-          {/* Enhanced Glowing Rings */}
-          <motion.div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] lg:w-[700px] lg:h-[700px] rounded-full border-2 border-[#2BA84A]/20"
-            animate={{
-              scale: [1, 1.15, 1],
-              rotate: [0, 90, 0],
-              opacity: [0.2, 0.4, 0.2]
-            }}
-            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] lg:w-[900px] lg:h-[900px] rounded-full border border-[#248232]/10"
-            animate={{
-              scale: [1.1, 1, 1.1],
-              rotate: [0, -90, 0],
-              opacity: [0.15, 0.3, 0.15]
-            }}
-            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 3 }}
-          />
-
-          {/* Ambient Orbs */}
+          {/* Ambient orbs */}
           <motion.div
-            className="absolute top-10 lg:top-20 right-10 lg:right-20 w-32 h-32 lg:w-48 lg:h-48 bg-[#2BA84A]/20 rounded-full blur-3xl"
-            animate={{
-              x: [0, 30, 0],
-              y: [0, -30, 0],
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.5, 0.3]
-            }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            animate={{ scale: [1, 1.1, 1], opacity: [0.6, 0.9, 0.6] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute -top-24 -right-20 w-80 h-80 rounded-full blur-3xl pointer-events-none"
+            style={{ background: "radial-gradient(circle, rgba(52,194,87,0.5) 0%, transparent 70%)" }}
           />
           <motion.div
-            className="absolute bottom-10 lg:bottom-20 left-10 lg:left-20 w-40 h-40 lg:w-56 lg:h-56 bg-[#1A6029]/15 rounded-full blur-3xl"
-            animate={{
-              x: [0, -20, 0],
-              y: [0, 20, 0],
-              scale: [1, 1.15, 1],
-              opacity: [0.2, 0.4, 0.2]
-            }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+            animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.6, 0.4] }}
+            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+            className="absolute -bottom-24 -left-16 w-72 h-72 rounded-full blur-3xl pointer-events-none"
+            style={{ background: "radial-gradient(circle, rgba(244,116,59,0.25) 0%, transparent 70%)" }}
           />
 
-          {/* Floating Light Particles */}
-          {[...Array(8)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-1 h-1 lg:w-2 lg:h-2 bg-[#2BA84A]/60 rounded-full"
-              style={{
-                left: `${15 + i * 12}%`,
-                top: `${25 + (i % 4) * 20}%`,
-              }}
-              animate={{
-                y: [0, -40, 0],
-                opacity: [0.2, 0.7, 0.2],
-                scale: [1, 1.5, 1]
-              }}
-              transition={{
-                duration: 4 + i * 0.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: i * 0.4,
-              }}
-            />
-          ))}
+          {/* Hairline top highlight */}
+          <div className="absolute inset-x-0 top-0 h-px pointer-events-none"
+            style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)" }}
+          />
 
-          <div className="relative z-10 px-5 py-6 sm:px-10 sm:py-10 lg:px-14 lg:py-14">
-            <div className="flex items-center gap-3 sm:gap-5 lg:gap-8 mb-4 sm:mb-6 lg:mb-8">
-              
-              {/* Profile Image */}
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ 
-                  scale: 1,
-                  opacity: 1
-                }}
-                transition={{ 
-                  duration: 0.8,
-                  ease: "easeOut"
-                }}
-                className="relative flex-shrink-0"
-              >
-                <div className="relative w-16 h-16 sm:w-24 sm:h-24 lg:w-32 lg:h-32 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-[#2BA84A]/60 shadow-[0_20px_60px_rgba(43,168,74,0.4)] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm flex items-center justify-center">
+          {/* Bottom vignette */}
+          <div className="absolute inset-0 pointer-events-none"
+            style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,0.35) 100%)" }}
+          />
+
+          <div className="relative z-10 px-5 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-10">
+            {/* Eyebrow */}
+            <div className="inline-flex items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full bg-white/12 ring-1 ring-white/20 backdrop-blur-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34C257] animate-pulse" />
+              <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#86EFAC]">Dashboard</span>
+            </div>
+
+            <div className="flex items-center gap-4 sm:gap-5 mb-5 sm:mb-6">
+              {/* Avatar — clean, premium */}
+              <div className="relative flex-shrink-0">
+                <div className="absolute -inset-1.5 bg-white/15 rounded-[22px] blur-md pointer-events-none" />
+                <div className="relative w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-2xl overflow-hidden ring-1 ring-white/20 bg-gradient-to-br from-white/10 to-black/20 backdrop-blur-sm flex items-center justify-center shadow-[0_12px_30px_rgba(0,0,0,0.45)]">
                   {user?.profile_image_url ? (
-                  <img src={user.profile_image_url} alt="Profile" className="w-full h-full object-cover" />
+                    <img src={user.profile_image_url} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
-                  <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#FFFFFF]">{(user?.display_name || user?.full_name)?.[0] || 'U'}</span>
+                    <span className="text-2xl sm:text-3xl font-black text-white">{(user?.display_name || user?.full_name)?.[0] || 'U'}</span>
                   )}
-                  </div>
-                  </motion.div>
+                </div>
+              </div>
 
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                  <motion.h1
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="text-[19px] sm:text-2xl lg:text-4xl font-black text-white tracking-tight mb-1 sm:mb-1.5 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] leading-tight"
-                  >
+              <div className="flex-1 min-w-0">
+                <h1 className="text-[22px] sm:text-[28px] lg:text-[36px] leading-[1.05] font-black text-white tracking-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
                   <span className="sm:hidden">Hej, {(user?.display_name || user?.full_name)?.split(' ')[0]}! 👋</span>
                   <span className="hidden sm:inline">Välkommen tillbaka, {(user?.display_name || user?.full_name)?.split(' ')[0]}!</span>
-                  </motion.h1>
-                
-                <motion.p
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="text-white/90 text-[11px] sm:text-[13px] lg:text-[15px] font-medium leading-snug"
-                >
-                  Dags att dominera planen idag! 🔥
-                </motion.p>
+                </h1>
+                <p className="mt-1.5 text-[13px] sm:text-[14px] text-white/80 leading-relaxed">
+                  Dags att dominera planen idag 🔥
+                </p>
               </div>
             </div>
 

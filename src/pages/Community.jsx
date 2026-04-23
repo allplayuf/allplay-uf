@@ -22,6 +22,7 @@ import { PullToRefresh } from "../components/ui/pull-to-refresh";
 import { AuthGateModal } from "../components/ui/auth-gate-modal";
 import { LoginModal } from "../components/supabase";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
+import UniversalHero from "../components/ui/universal-hero";
 import { 
   getMyProfile, getTeams, getMyTeams, createSupabaseTeam,
   getMyFriendships, sendFriendRequest, acceptFriendRequest, declineFriendRequest
@@ -443,92 +444,50 @@ export default function CommunityPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Premium Hero Card - show skeleton while auth loads */}
+        {/* Premium Hero — UniversalHero */}
         {userLoading ? (
           <HeroSkeleton />
         ) : (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="relative overflow-hidden rounded-[28px] border border-white/[0.06]"
-          style={{
-            background: 'linear-gradient(135deg, #151B18 0%, #111613 55%, #0C100E 100%)',
-            boxShadow: '0 24px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)',
-          }}
-        >
-          {/* Ambient glows — subtle, not bombastic */}
-          <div className="absolute -top-24 -right-24 w-72 h-72 bg-[#2BA84A]/18 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-28 -left-20 w-64 h-64 bg-[#F4743B]/10 rounded-full blur-3xl pointer-events-none" />
-
-          {/* Hairline top highlight */}
-          <div
-            className="absolute inset-x-0 top-0 h-px pointer-events-none"
-            style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent)' }}
-          />
-
-          <div className="relative z-10 px-5 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-10">
-            {/* Header row — compact & premium */}
-            <div className="flex items-center gap-4 sm:gap-5 mb-6 sm:mb-7">
-              <div className="relative flex-shrink-0">
-                <div className="absolute -inset-2 bg-[#2BA84A]/25 rounded-full blur-lg pointer-events-none" />
-                <div className="relative w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-2xl overflow-hidden ring-1 ring-white/10 bg-gradient-to-br from-[#1A201D] to-[#0F1513] flex items-center justify-center shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
-                  {user?.profile_image_url ? (
-                    <img src={user.profile_image_url} alt="Profile" className="w-full h-full object-cover" />
-                  ) : (
-                    <img
-                      src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png"
-                      alt="AllPlay"
-                      className="w-3/4 h-3/4 object-contain"
-                    />
-                  )}
-                </div>
-              </div>
-
+          <UniversalHero accent="green" eyebrow="Community">
+            <UniversalHero.Header>
+              <UniversalHero.Avatar
+                src={user?.profile_image_url}
+                name={user?.display_name || user?.full_name || "U"}
+                size="default"
+              />
               <div className="flex-1 min-w-0">
-                <div className="inline-flex items-center gap-1.5 mb-1.5 px-2 py-0.5 rounded-full bg-[#2BA84A]/12 ring-1 ring-[#2BA84A]/25">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#34C257]" />
-                  <span className="text-[10px] sm:text-[11px] font-bold text-[#86EFAC] uppercase tracking-wider">Community</span>
-                </div>
-                <h1 className="text-[22px] sm:text-[26px] lg:text-[34px] leading-[1.1] font-black text-white tracking-tight">
-                  Hitta din nästa lagkamrat
-                </h1>
-                <p className="text-[12px] sm:text-[13px] lg:text-[14px] text-[#B6C2BC] font-medium mt-1.5 leading-relaxed">
-                  Spelare, lag och vänner — på ett ställe
-                </p>
+                <UniversalHero.Title>Hitta din nästa lagkamrat</UniversalHero.Title>
+                <UniversalHero.Subtitle>
+                  Spelare, lag och vänner — allt på ett ställe
+                </UniversalHero.Subtitle>
+                <UniversalHero.Chips>
+                  <UniversalHero.Chip variant="success">
+                    {friendsAccepted?.length || 0} vänner
+                  </UniversalHero.Chip>
+                  <UniversalHero.Chip variant="default">
+                    {myTeams?.length || 0} lag
+                  </UniversalHero.Chip>
+                </UniversalHero.Chips>
               </div>
-            </div>
+            </UniversalHero.Header>
 
-            {/* Action pills — smaller, refined */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="grid grid-cols-2 gap-2 sm:gap-3"
-            >
-              <motion.button
-                whileTap={{ scale: 0.97 }}
+            <UniversalHero.Actions>
+              <UniversalHero.ActionButton
+                icon={UserPlus}
+                variant="primary"
                 onClick={() => { triggerHaptic('light'); setActiveTab('find'); }}
-                className="h-11 sm:h-12 rounded-xl flex items-center justify-center gap-2 text-white text-[13px] sm:text-[14px] font-bold transition-colors"
-                style={{
-                  background: 'linear-gradient(180deg, #34C257 0%, #2BA84A 55%, #248232 100%)',
-                  boxShadow: '0 6px 18px rgba(43,168,74,0.32), inset 0 1px 0 rgba(255,255,255,0.18)',
-                }}
               >
-                <UserPlus className="w-4 h-4" strokeWidth={2.4} />
-                <span>Hitta spelare</span>
-              </motion.button>
-              <motion.button
-                whileTap={{ scale: 0.97 }}
+                Hitta spelare
+              </UniversalHero.ActionButton>
+              <UniversalHero.ActionButton
+                icon={Target}
+                variant="glass"
                 onClick={() => { triggerHaptic('light'); setActiveTab('teams'); }}
-                className="h-11 sm:h-12 rounded-xl flex items-center justify-center gap-2 text-[#F5F8F6] text-[13px] sm:text-[14px] font-bold bg-white/[0.06] ring-1 ring-white/10 hover:bg-white/[0.09] transition-colors"
               >
-                <Target className="w-4 h-4" strokeWidth={2.4} />
-                <span>Mina lag</span>
-              </motion.button>
-            </motion.div>
-          </div>
-        </motion.div>
+                Mina lag
+              </UniversalHero.ActionButton>
+            </UniversalHero.Actions>
+          </UniversalHero>
         )}
 
         {/* Tabs - Dynamic colors based on active tab */}

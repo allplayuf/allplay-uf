@@ -222,21 +222,25 @@ export default function MatchHeroBanner({ match, venue, participantCount, isOrga
 function InfoChip({ icon: Icon, label, value, sub, progress }) {
   return (
     <div className="relative p-3 rounded-2xl bg-white/8 ring-1 ring-white/15 backdrop-blur-sm overflow-hidden">
-      {progress != null && (
-        <div
-          className="absolute inset-x-0 bottom-0 h-1 transition-all"
-          style={{
-            width: `${progress}%`,
-            background: progress >= 90 ? "#F4743B" : "#34C257",
-          }}
-        />
-      )}
       <div className="flex items-center gap-1.5 mb-1.5">
         <Icon className="w-3 h-3 text-white/60" />
         <span className="text-[9px] font-bold text-white/60 uppercase tracking-widest">{label}</span>
       </div>
       <div className="text-[14px] sm:text-[15px] font-bold text-white leading-tight truncate">{value}</div>
       {sub && <div className="text-[11px] text-white/60 truncate mt-0.5">{sub}</div>}
+      {/* Progress track — full-width base + filled portion (no layout shift) */}
+      {progress != null && (
+        <>
+          <div className="absolute inset-x-0 bottom-0 h-1 bg-white/10 pointer-events-none" />
+          <div
+            className="absolute left-0 bottom-0 h-1 transition-[width] duration-500 pointer-events-none"
+            style={{
+              width: `${Math.max(0, Math.min(100, progress))}%`,
+              background: progress >= 90 ? "#F4743B" : "#34C257",
+            }}
+          />
+        </>
+      )}
     </div>
   );
 }

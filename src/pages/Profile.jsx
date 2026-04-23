@@ -544,38 +544,49 @@ export default function ProfilePage() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Hero Header Card - Improved UI */}
+        {/* Hero Header Card - Premium redesign */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative overflow-hidden rounded-3xl shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7),0_0_40px_0px_rgba(43,168,74,0.1)] border border-[#2BA84A]/20 bg-[#0A0D0B]"
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="relative overflow-hidden rounded-[28px] border border-white/10"
+          style={{
+            background: "linear-gradient(135deg, #0F2917 0%, #1E7A36 45%, #0D1F10 100%)",
+            boxShadow: "0 30px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)",
+          }}
         >
-          {/* Dark gradient base */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#1A1A1A] via-[#0F1513] to-[#0A0D0B]"></div>
-          
-          {/* Green animated overlay */}
+          {/* Pitch pattern — cinematic */}
+          <svg className="absolute inset-0 w-full h-full opacity-[0.06] pointer-events-none" viewBox="0 0 400 300" preserveAspectRatio="none" aria-hidden>
+            <rect x="10" y="20" width="380" height="260" fill="none" stroke="white" strokeWidth="2" />
+            <circle cx="200" cy="150" r="45" fill="none" stroke="white" strokeWidth="2" />
+            <line x1="200" y1="20" x2="200" y2="280" stroke="white" strokeWidth="2" />
+            <rect x="10" y="90" width="80" height="120" fill="none" stroke="white" strokeWidth="2" />
+            <rect x="310" y="90" width="80" height="120" fill="none" stroke="white" strokeWidth="2" />
+          </svg>
+
+          {/* Ambient orbs */}
           <motion.div
-            className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/25 via-[#248232]/15 to-transparent"
-            animate={{
-              opacity: [0.4, 0.6, 0.4]
-            }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+            animate={{ scale: [1, 1.1, 1], opacity: [0.6, 0.9, 0.6] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute -top-24 -right-20 w-80 h-80 rounded-full blur-3xl pointer-events-none"
+            style={{ background: "radial-gradient(circle, rgba(52,194,87,0.5) 0%, transparent 70%)" }}
+          />
+          <motion.div
+            animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.6, 0.4] }}
+            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+            className="absolute -bottom-24 -left-16 w-72 h-72 rounded-full blur-3xl pointer-events-none"
+            style={{ background: "radial-gradient(circle, rgba(244,116,59,0.2) 0%, transparent 70%)" }}
           />
 
-          {/* Subtle Glowing Ring */}
-          <motion.div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] lg:w-[800px] lg:h-[800px] rounded-full border border-[#2BA84A]/12"
-            animate={{
-              scale: [1, 1.08, 1],
-              opacity: [0.15, 0.25, 0.15]
-            }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          {/* Hairline top highlight */}
+          <div className="absolute inset-x-0 top-0 h-px pointer-events-none"
+            style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)" }}
           />
 
-          {/* Ambient Orbs */}
-          <div className="absolute top-10 right-10 lg:right-20 w-40 h-40 lg:w-56 lg:h-56 bg-[#2BA84A]/15 rounded-full blur-3xl opacity-40" />
-          <div className="absolute bottom-10 left-10 lg:left-20 w-48 h-48 lg:w-64 lg:h-64 bg-[#1A6029]/10 rounded-full blur-3xl opacity-30" />
+          {/* Bottom vignette */}
+          <div className="absolute inset-0 pointer-events-none"
+            style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,0.35) 100%)" }}
+          />
 
           {/* Top Right Actions */}
           {!isViewingOtherProfile ? (
@@ -650,23 +661,26 @@ export default function ProfilePage() {
             </div>
           )}
           
-          <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-14">
-            <div className="flex items-center gap-3 sm:gap-6 mb-4 sm:mb-6 lg:mb-8">
+          <div className="relative z-10 px-5 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-10">
+            {/* Eyebrow pill */}
+            <div className="inline-flex items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full bg-white/12 ring-1 ring-white/20 backdrop-blur-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34C257] animate-pulse" />
+              <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#86EFAC]">
+                {isViewingOtherProfile ? "Profil" : "Min profil"}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-4 sm:gap-5 mb-5 sm:mb-6">
               
-              {/* Profile Image - Small border */}
+              {/* Profile Image - Premium */}
               <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ 
-                  scale: 1,
-                  opacity: 1
-                }}
-                transition={{ 
-                  duration: 0.8,
-                  ease: "easeOut"
-                }}
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                 className="relative flex-shrink-0"
               >
-                <div className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-[#FFFFFF]/30 shadow-[0_20px_60px_rgba(43,168,74,0.4)] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm flex items-center justify-center">
+                <div className="absolute -inset-1.5 bg-white/15 rounded-[22px] blur-md pointer-events-none" />
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-2xl overflow-hidden ring-1 ring-white/20 bg-gradient-to-br from-white/10 to-black/20 backdrop-blur-sm flex items-center justify-center shadow-[0_12px_30px_rgba(0,0,0,0.45)]">
                   {(displayUser?.profile_image_url || displayUser?.avatar_url) ? (
                     <img
                       src={displayUser.profile_image_url || displayUser.avatar_url}
@@ -702,38 +716,42 @@ export default function ProfilePage() {
                 )}
               </motion.div>
 
-              {/* Info - Aligned with logo */}
+              {/* Info */}
               <div className="flex-1 min-w-0">
                 <motion.h1
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="text-xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight mb-1 drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] leading-tight"
+                  transition={{ delay: 0.15, duration: 0.35 }}
+                  className="text-[22px] sm:text-[28px] lg:text-[36px] leading-[1.05] font-black text-white tracking-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.55)]"
                 >
                   {displayUser?.display_name || displayUser?.full_name}
                 </motion.h1>
-                
+
                 <motion.p
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="text-white/85 text-[11px] sm:text-sm lg:text-base font-medium leading-snug mb-3 sm:mb-4"
+                  transition={{ delay: 0.2, duration: 0.35 }}
+                  className="mt-1.5 text-white/80 text-[12px] sm:text-[14px] font-medium leading-relaxed line-clamp-2"
                 >
                   {displayUser?.bio || (isViewingOtherProfile ? '' : 'Tryck på Redigera för att lägga till en bio')}
                 </motion.p>
 
                 {/* Chips */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2">
-                  <Badge className="h-7 px-2.5 sm:px-3 bg-transparent border border-[#FFFFFF]/30 text-[#FFFFFF] text-[10px] sm:text-xs">
-                    <MapPin className="w-3 h-3 mr-1" />
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.25, duration: 0.35 }}
+                  className="flex flex-wrap items-center gap-2 mt-3"
+                >
+                  <span className="inline-flex h-7 items-center gap-1.5 px-2.5 rounded-full bg-white/12 ring-1 ring-white/20 backdrop-blur-sm text-[11px] font-semibold text-white">
+                    <MapPin className="w-3 h-3" />
                     {displayUser?.city || 'Stockholm'}
-                  </Badge>
-                  
-                  <Badge className={`h-7 px-2.5 sm:px-3 bg-gradient-to-r ${skillLevel.color} border-0 ${skillLevel.textColor} text-[10px] sm:text-xs font-semibold`}>
-                    <SkillIcon className="w-3 h-3 mr-1" />
+                  </span>
+                  <span className="inline-flex h-7 items-center gap-1.5 px-2.5 rounded-full bg-white/12 ring-1 ring-white/20 backdrop-blur-sm text-[11px] font-semibold text-white">
+                    <SkillIcon className="w-3 h-3" />
                     {skillLevel.label}
-                  </Badge>
-                </div>
+                  </span>
+                </motion.div>
               </div>
             </div>
 
