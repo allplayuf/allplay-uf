@@ -313,20 +313,20 @@ export default function MatchesCarousel({
               onMouseEnter={() => setIsPaused(true)}
               onMouseLeave={() => setIsPaused(false)}
               onFocusCapture={pauseAutoScroll}
-              className="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 -mx-4 px-4 sm:-mx-0 sm:px-0"
+              className="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2"
               style={{
                 scrollbarWidth: "none",
                 msOverflowStyle: "none",
                 WebkitOverflowScrolling: "touch",
-                scrollPaddingLeft: "16px",
-                scrollPaddingRight: "16px",
+                scrollPaddingLeft: "0px",
+                scrollPaddingRight: "0px",
                 scrollSnapType: "x mandatory",
               }}
             >
               {matches.map((match, index) => (
                 <div
                   key={`${activeTab}-${match.id}`}
-                  className="flex-shrink-0 snap-start w-[86%] xs:w-[88%] sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
+                  className="flex-shrink-0 snap-start w-full sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
                 >
                   <MatchCard
                     match={match}

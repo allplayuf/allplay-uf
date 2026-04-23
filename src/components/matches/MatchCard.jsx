@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { triggerHaptic } from "@/components/utils/motionTokens";
 import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
-import { getUsersByIds } from "@/components/supabase/services";
+import { getCachedUser } from "@/components/supabase/services/userCache";
 import AvatarImage from "@/components/ui/avatar-image";
 import { AuthGateModal } from '@/components/ui/auth-gate-modal';
 import { LoginModal } from '@/components/supabase';
@@ -52,17 +52,31 @@ const getStatusBadge = (status) => {
 
 export default React.memo(function MatchCard({ match, venues = [], user, participants = [], onJoin, onRefresh }) {
   // ALWAYS call hooks first, before any conditional returns
-  const [participantUsers, setParticipantUsers] = useState([]);
   const [showAuthGate, setShowAuthGate] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const { isGuest } = useSupabaseAuth();
 
-  useEffect(() => {
-    if (participants && participants.length > 0) {
-      loadParticipantUsers();
-    } else {
-      setParticipantUsers([]);
-    }
+  // Read participant users SYNCHRONOUSLY from the shared cache — no extra network call.
+  // `getParticipantsForMatches` (upstream) already primed the cache in the same query.
+  // Result: avatars render the same tick as the card itself. No delay, no flash.
+  const participantUsers = useMemo(() => {
+    if (!participants || participants.length === 0) return [];
+    return participants
+      .slice(0, 5)
+      .map(p => {
+        if (!p?.user_id) return null;
+        const cached = getCachedUser(p.user_id);
+        if (cached) return cached;
+        // Fallback — participant row may already carry user fields from backend join
+        return {
+          id: p.user_id,
+          full_name: p.full_name || p.display_name || 'Spelare',
+          display_name: p.display_name || p.full_name || 'Spelare',
+          avatar_url: p.avatar_url || p.profile_image_url || null,
+          profile_image_url: p.profile_image_url || p.avatar_url || null,
+        };
+      })
+      .filter(Boolean);
   }, [participants]);
 
   // NOW we can do null checks after hooks
@@ -94,32 +108,6 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
   const statusBadge = getStatusBadge(match.status);
   const isJoinable = match.status === 'upcoming' || (match.is_spontaneous && match.status === 'ongoing');
   const SkillIcon = match.skill_bracket ? getSkillBracketIcon(match.skill_bracket) : null;
-
-  const loadParticipantUsers = async () => {
-    const userIds = participants.slice(0, 5)
-      .map(p => p?.user_id)
-      .filter(Boolean);
-    
-    if (userIds.length === 0) {
-      setParticipantUsers([]);
-      return;
-    }
-    
-    try {
-      const users = await getUsersByIds(userIds);
-      setParticipantUsers(users || []);
-    } catch (error) {
-      // Never block card render – show fallback avatars
-      console.warn("[MatchCard] Failed to load participant users, using fallbacks:", error.message);
-      setParticipantUsers(userIds.map(id => ({
-        id,
-        full_name: 'Spelare',
-        display_name: 'Spelare',
-        avatar_url: null,
-        profile_image_url: null
-      })));
-    }
-  };
 
   const handleJoinClick = async (e) => {
     e.preventDefault();

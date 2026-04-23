@@ -291,60 +291,61 @@ export default function MapPage() {
           transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="sticky top-0 z-[50] bg-[#121715]/95 backdrop-blur-xl border-b border-[#223029]/60 shadow-[0_4px_20px_rgba(0,0,0,0.3)]"
         >
-          {/* Top row — search + location */}
+          {/* Row 1 — search + location + view toggle */}
           <div className="flex items-center gap-2 p-3 pb-2">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#86A096] w-4 h-4" />
+            <div className="flex-1 relative min-w-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#86A096] w-4 h-4 pointer-events-none" />
               <input
-                placeholder="Sök planer eller områden..."
+                placeholder="Sök planer..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-11 pl-10 pr-4 bg-[#18221E] border border-[#223029] text-[#F4F7F5] placeholder:text-[#86A096] focus:border-[#2BA84A]/60 focus:ring-2 focus:ring-[#2BA84A]/20 rounded-2xl text-sm outline-none transition-all"
+                className="w-full h-10 pl-9 pr-3 bg-[#18221E] border border-[#223029] text-[#F4F7F5] placeholder:text-[#86A096] focus:border-[#2BA84A]/60 focus:ring-2 focus:ring-[#2BA84A]/20 rounded-xl text-sm outline-none transition-all"
               />
             </div>
-            <button 
-              onClick={() => getUserLocation(true)}
-              aria-label="Centrera på min plats"
-              className="h-11 w-11 flex-shrink-0 flex items-center justify-center bg-[#2BA84A]/12 hover:bg-[#2BA84A]/20 text-[#86EFAC] rounded-2xl ring-1 ring-[#2BA84A]/25 transition-all"
-            >
-              <Navigation className="w-4 h-4" />
-            </button>
-          </div>
 
-          {/* Bottom row — view toggle + filters + count */}
-          <div className="flex items-center gap-2 px-3 pb-3">
-            {/* Premium segmented view toggle */}
-            <div className="flex bg-[#18221E] rounded-xl p-0.5 ring-1 ring-[#223029]">
+            {/* Segmented view toggle — icon-only on mobile for space */}
+            <div className="flex bg-[#18221E] rounded-xl p-0.5 ring-1 ring-[#223029] flex-shrink-0">
               <button
                 onClick={() => setViewMode("map")}
-                className={`flex items-center gap-1.5 px-3 h-9 rounded-lg text-xs font-bold transition-all ${
+                aria-label="Kartvy"
+                className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
                   viewMode === "map"
                     ? 'bg-[#2BA84A] text-white shadow-[0_2px_8px_rgba(43,168,74,0.3)]'
                     : 'text-[#9EAAA4] hover:text-[#F4F7F5]'
                 }`}
               >
-                <MapIcon className="w-3.5 h-3.5" />
-                Karta
+                <MapIcon className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setViewMode("list")}
-                className={`flex items-center gap-1.5 px-3 h-9 rounded-lg text-xs font-bold transition-all ${
+                aria-label="Listvy"
+                className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
                   viewMode === "list"
                     ? 'bg-[#2BA84A] text-white shadow-[0_2px_8px_rgba(43,168,74,0.3)]'
                     : 'text-[#9EAAA4] hover:text-[#F4F7F5]'
                 }`}
               >
-                <List className="w-3.5 h-3.5" />
-                Lista
+                <List className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="flex items-center gap-1.5 flex-1 min-w-0">
-              <AllPlayToggle showOtherVenues={showOtherVenues} onToggle={() => setShowOtherVenues(v => !v)} />
-              <FilterSheet filters={filters} onFilterChange={setFilters} />
-            </div>
+            <button
+              onClick={() => getUserLocation(true)}
+              aria-label="Centrera på min plats"
+              className="h-10 w-10 flex-shrink-0 flex items-center justify-center bg-[#2BA84A]/12 hover:bg-[#2BA84A]/20 text-[#86EFAC] rounded-xl ring-1 ring-[#2BA84A]/25 transition-all"
+            >
+              <Navigation className="w-4 h-4" />
+            </button>
+          </div>
 
-            <div className="flex-shrink-0 inline-flex h-9 items-center gap-1.5 rounded-xl bg-[#0F1513] px-3 ring-1 ring-[#223029]">
+          {/* Row 2 — AllPlay toggle + filter + count */}
+          <div className="flex items-center gap-2 px-3 pb-3">
+            <div className="flex-1 min-w-0">
+              <AllPlayToggle showOtherVenues={showOtherVenues} onToggle={() => setShowOtherVenues(v => !v)} />
+            </div>
+            <FilterSheet filters={filters} onFilterChange={setFilters} />
+
+            <div className="flex-shrink-0 inline-flex h-9 items-center gap-1 rounded-xl bg-[#0F1513] px-2.5 ring-1 ring-[#223029]">
               <MapPin className="w-3 h-3 text-[#86EFAC]" />
               <span className="text-[11px] font-bold text-[#F4F7F5] tabular-nums">{filteredVenues.length}</span>
               <span className="text-[10px] text-[#9EAAA4]">·</span>
