@@ -379,6 +379,15 @@
   background-size: 100% 1px;
 }
 
+/* Hide scrollbars for horizontal carousels */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Image treatment — subtle inner ring on photos/avatars for crispness */
 img.avatar-crisp,
 .avatar-crisp img {

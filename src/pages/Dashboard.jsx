@@ -25,11 +25,9 @@ import { HeroSkeleton, MatchGridSkeleton, SectionSkeleton } from "../components/
 import CreateMatchForm from "../components/matches/CreateMatchForm";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import CupsWidget from "../components/dashboard/CupsWidget";
-import NearbyMatchesWidget from "../components/dashboard/NearbyMatchesWidget";
+import MatchesCarousel from "../components/dashboard/MatchesCarousel";
 import { isCupsEnabled } from "../lib/featureFlags";
-import PremiumEmptyState from "../components/ui/premium-empty-state";
 
-import MatchCard from "../components/matches/MatchCard";
 import NextMatchCard from "../components/dashboard/NextMatchCard";
 import InboxWidget from "../components/dashboard/InboxWidget";
 import { 
@@ -690,70 +688,22 @@ export default function Dashboard() {
         {/* Main Content */}
         <div className="grid lg:grid-cols-12 gap-5 sm:gap-8">
           <div className="lg:col-span-8 space-y-5 sm:space-y-8">
-            {/* Upcoming Matches */}
+            {/* Unified Matches Carousel */}
             <motion.div variants={VARIANTS.item}>
-              <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
-                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-[#2BA84A]" strokeWidth={2.5} />
-                  </div>
-                  <h2 className="text-base sm:text-xl font-bold text-[#F4F7F5]">
-                    {isGuest ? 'Kommande matcher' : 'Dina kommande matcher'}
-                  </h2>
-                </div>
-                <Link to={createPageUrl("Matches")} className="text-sm font-semibold text-[#2BA84A] hover:text-[#CFE8D6] flex items-center gap-1 transition-colors group">
-                  Visa alla
-                  <motion.div
-                    animate={{ x: [0, 3, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  >
-                    <ArrowRight className="w-4 h-4" />
-                  </motion.div>
-                </Link>
-              </div>
-
               {matchesLoading || venuesLoading ? (
                 <MatchGridSkeleton count={2} />
-              ) : myUpcomingMatches.length === 0 ? (
-                <PremiumEmptyState
-                  icon={<Calendar className="w-9 h-9" strokeWidth={2} />}
-                  title={isGuest ? 'Inga matcher just nu' : 'Du har inga kommande matcher'}
-                  description={isGuest ? 'Logga in för att hitta och gå med i matcher nära dig.' : 'Hitta en match att gå med i eller skapa en egen på 10 sekunder!'}
-                  actionLabel={isGuest ? 'Se alla matcher' : 'Hitta matcher'}
-                  onAction={() => { triggerHaptic('light'); window.location.href = createPageUrl('Matches'); }}
-                  secondaryLabel={!isGuest ? 'Skapa match' : null}
-                  onSecondary={!isGuest ? (() => { triggerHaptic('medium'); setShowCreateMatchModal(true); }) : null}
-                  accent="green"
-                />
               ) : (
-                <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
-                  {myUpcomingMatches.map((match, index) => (
-                    <div key={match.id} className="h-full">
-                        <MatchCard 
-                            match={match} 
-                            venues={venues} 
-                            user={user} 
-                            participants={(allParticipants || []).filter(p => p.match_id === match.id)}
-                            onJoin={handleJoinMatch}
-                            index={index}
-                        />
-                    </div>
-                  ))}
-                </div>
+                <MatchesCarousel
+                  nearbyMatches={nearbyMatches}
+                  myMatches={myUpcomingMatches}
+                  allParticipants={allParticipants}
+                  venues={venues}
+                  user={user}
+                  isGuest={isGuest}
+                  onJoin={handleJoinMatch}
+                  onCreateMatch={() => setShowCreateMatchModal(true)}
+                />
               )}
-              
-            </motion.div>
-
-            {/* Nearby Matches Widget */}
-            <motion.div variants={VARIANTS.item}>
-              <NearbyMatchesWidget
-                matches={nearbyMatches}
-                allParticipants={allParticipants}
-                userMatchIds={userMatchIds}
-                userId={authUser?.id}
-                onJoin={handleJoinMatch}
-                isGuest={isGuest}
-              />
             </motion.div>
           </div>
 
