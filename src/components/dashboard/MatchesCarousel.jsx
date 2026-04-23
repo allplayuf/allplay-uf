@@ -32,9 +32,12 @@ export default function MatchesCarousel({
   const [isPaused, setIsPaused] = useState(false);
   const [activeDot, setActiveDot] = useState(0);
 
+  // Tag each match with its source so we can show a subtle badge
   const matches = useMemo(() => {
-    if (activeTab === "mine") return myMatches;
-    return nearbyMatches;
+    if (activeTab === "mine") {
+      return myMatches.map((m) => ({ ...m, _source: "mine" }));
+    }
+    return nearbyMatches.map((m) => ({ ...m, _source: "nearby" }));
   }, [activeTab, myMatches, nearbyMatches]);
 
   // Reset scroll on tab change
@@ -79,24 +82,36 @@ export default function MatchesCarousel({
     triggerHaptic("light");
   };
 
-  // Auto-scroll: advance one card every 4s, loop back to start at end.
-  // Pauses on touch/hover interaction.
+  // Auto-scroll: smooth continuous drift. Pauses on touch/hover.
+  // Uses requestAnimationFrame for silky-smooth carousel movement.
   useEffect(() => {
     if (matches.length <= 1 || isPaused) return;
-    const interval = setInterval(() => {
+    let rafId;
+    let lastTs = performance.now();
+    const pxPerSec = 24; // gentle drift speed
+
+    const tick = (ts) => {
       const el = scrollRef.current;
-      if (!el) return;
-      const firstChild = el.firstElementChild;
-      if (!firstChild) return;
-      const cardWidth = firstChild.getBoundingClientRect().width + 16;
-      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8;
-      if (atEnd) {
-        el.scrollTo({ left: 0, behavior: "smooth" });
-      } else {
-        el.scrollBy({ left: cardWidth, behavior: "smooth" });
+      if (!el) {
+        rafId = requestAnimationFrame(tick);
+        return;
       }
-    }, 4000);
-    return () => clearInterval(interval);
+      const dt = (ts - lastTs) / 1000;
+      lastTs = ts;
+
+      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2;
+      if (atEnd) {
+        // Seamless loop back to start
+        el.scrollTo({ left: 0, behavior: "smooth" });
+        lastTs = ts + 600; // brief pause during rewind
+      } else {
+        el.scrollLeft += pxPerSec * dt;
+      }
+      rafId = requestAnimationFrame(tick);
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
   }, [matches.length, isPaused, activeTab]);
 
   const tabs = [
@@ -110,57 +125,52 @@ export default function MatchesCarousel({
 
   return (
     <div>
-      {/* Header row */}
-      <div className="flex items-center justify-between mb-3 sm:mb-4 px-1">
-        <div className="flex items-center gap-2">
+      {/* Header row — title + compact segmented toggle + "Visa alla" */}
+      <div className="flex items-center gap-3 mb-3 sm:mb-4 px-1">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
             <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-[#2BA84A]" strokeWidth={2.5} />
           </div>
           <h2 className="text-base sm:text-xl font-bold text-[#F4F7F5]">Matcher</h2>
         </div>
-        <Link
-          to={createPageUrl("Matches")}
-          className="text-sm font-semibold text-[#2BA84A] hover:text-[#CFE8D6] flex items-center gap-1 transition-colors"
-        >
-          Visa alla
-          <ArrowRight className="w-4 h-4" />
-        </Link>
-      </div>
 
-      {/* Segmented tabs */}
-      <div className="flex items-center gap-2 mb-4 px-1">
-        {tabs.map((tab) => {
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => {
-                triggerHaptic("light");
-                setActiveTab(tab.id);
-              }}
-              className={`h-10 px-4 rounded-full text-sm font-semibold transition-all flex items-center gap-2 ${
-                isActive
-                  ? "bg-[#2BA84A]/16 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30"
-                  : "bg-[#18221E] text-[#B6C2BC] hover:bg-[#223029]"
-              }`}
-            >
-              {tab.id === "nearby" && <MapPin className="w-3.5 h-3.5" />}
-              <span>{tab.label}</span>
-              {tab.count > 0 && (
-                <span
-                  className={`text-[11px] font-bold rounded-full px-1.5 py-0.5 min-w-[20px] text-center ${
-                    isActive ? "bg-[#2BA84A]/30 text-white" : "bg-[#0F1513] text-[#9EAAA4]"
+        {/* Compact segmented control */}
+        <div className="flex-1 flex justify-center min-w-0">
+          <div className="inline-flex items-center gap-0.5 bg-[#0F1513] border border-[#243029] rounded-full p-0.5 shadow-inner">
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    triggerHaptic("light");
+                    setActiveTab(tab.id);
+                  }}
+                  className={`relative h-8 px-3 sm:px-4 rounded-full text-[12px] sm:text-[13px] font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                    isActive
+                      ? "bg-[#2BA84A] text-white shadow-[0_2px_8px_rgba(43,168,74,0.4)]"
+                      : "text-[#9EAAA4] hover:text-[#CFE8D6]"
                   }`}
                 >
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          );
-        })}
+                  {tab.id === "nearby" && <MapPin className="w-3 h-3" />}
+                  <span>{tab.label}</span>
+                  {tab.count > 0 && (
+                    <span
+                      className={`text-[10px] font-bold tabular-nums ${
+                        isActive ? "text-white/90" : "text-[#6B7974]"
+                      }`}
+                    >
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-        {/* Desktop nav arrows */}
-        <div className="hidden lg:flex items-center gap-1.5 ml-auto">
+        {/* Desktop arrows */}
+        <div className="hidden lg:flex items-center gap-1.5 flex-shrink-0">
           <button
             onClick={() => scrollByAmount(-1)}
             disabled={!canScrollLeft}
@@ -186,6 +196,14 @@ export default function MatchesCarousel({
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
+
+        <Link
+          to={createPageUrl("Matches")}
+          className="text-[12px] sm:text-sm font-semibold text-[#2BA84A] hover:text-[#CFE8D6] flex items-center gap-1 transition-colors flex-shrink-0"
+        >
+          <span className="hidden sm:inline">Visa alla</span>
+          <ArrowRight className="w-4 h-4" />
+        </Link>
       </div>
 
       {/* Carousel */}
@@ -246,7 +264,7 @@ export default function MatchesCarousel({
             onTouchEnd={() => setTimeout(() => setIsPaused(false), 3000)}
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
-            className="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 -mx-4 px-4 sm:mx-0 sm:px-1"
+            className="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-proximity scrollbar-hide pb-2 -mx-4 px-4 sm:mx-0 sm:px-1"
             style={{
               scrollbarWidth: "none",
               msOverflowStyle: "none",
@@ -256,7 +274,7 @@ export default function MatchesCarousel({
             {matches.map((match, index) => (
               <div
                 key={match.id}
-                className="flex-shrink-0 snap-start w-[calc(100%-3rem)] sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
+                className="flex-shrink-0 snap-start w-[88%] xs:w-[82%] sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
               >
                 <MatchCard
                   match={match}
