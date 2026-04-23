@@ -65,11 +65,13 @@
   /* Light mode override removed — AllPlay is always dark */
 
   html, body, #root {
-    background-color: #0A0E0C;
+    background-color: #0F1513;
     color: var(--color-text-primary);
     margin: 0;
     padding: 0;
     overscroll-behavior: none;
+    overscroll-behavior-y: none;
+    overscroll-behavior-x: none;
     -webkit-overflow-scrolling: touch;
     /* Premium typography: OpenType features for sharper numerals & letterforms */
     font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01", "ss02", "tnum", "calt";

@@ -261,7 +261,7 @@ export default function Dashboard() {
           const dateTimeB = new Date(`${b.date}T${b.time}`);
           return dateTimeA - dateTimeB;
         })
-        .slice(0, 2);
+        .slice(0, 12);
 
   const quickPlayMatches = upcomingMatches
     .filter(m =>
@@ -273,33 +273,12 @@ export default function Dashboard() {
     )
     .slice(0, 5);
 
-  // "I närheten"-logik:
-  //   • Visa matcher inom 15 km som vanligt.
-  //   • Om användaren har sin position i Stockholm (grov bounding-box),
-  //     visa ALLA matcher i Stockholmsregionen oavsett avstånd.
-  //   • Fallback: visa alla upcoming matches om ingen location finns.
-  const isInStockholm = (lat, lng) =>
-    lat >= 59.0 && lat <= 59.6 && lng >= 17.5 && lng <= 18.5;
-
-  const STOCKHOLM_CITIES = new Set([
-    'stockholm', 'solna', 'sundbyberg', 'nacka', 'lidingö', 'lidingo',
-    'järfälla', 'jarfalla', 'täby', 'taby', 'huddinge', 'haninge',
-    'botkyrka', 'tyresö', 'tyreso', 'danderyd', 'sollentuna',
-    'upplands väsby', 'upplands vasby', 'kungsängen', 'kungsangen',
-    'vallentuna', 'österåker', 'osteraker', 'ekerö', 'ekero',
-    'salem', 'södertälje', 'sodertalje', 'nynäshamn', 'nynashamn',
-    'vaxholm', 'norrtälje', 'norrtalje', 'bromma', 'hägersten', 'hagersten',
-    'skärholmen', 'skarholmen', 'farsta', 'enskede', 'älvsjö', 'alvsjo',
-    'kista', 'spånga', 'spanga', 'vällingby', 'vallingby'
-  ]);
-
-  const userInStockholm = userLocation && isInStockholm(userLocation.lat, userLocation.lng);
-
+  // "I närheten" = ALLA kommande matcher (inget avståndsfilter).
+  // Sortera på datum/tid (närmast i tid först).
   const nearbyMatches = upcomingMatches
     .map(match => {
       const venueLat = match._venue_lat || match.venue_lat;
       const venueLng = match._venue_lng || match.venue_lng;
-      const venueCity = (match._venue_city || match.venue_city || '').trim().toLowerCase();
 
       let distance = Infinity;
       if (userLocation && venueLat && venueLng) {
@@ -311,14 +290,9 @@ export default function Dashboard() {
         );
       }
 
-      const inStockholm =
-        STOCKHOLM_CITIES.has(venueCity) ||
-        (venueLat && venueLng && isInStockholm(parseFloat(venueLat), parseFloat(venueLng)));
-
       return {
         ...match,
         distance,
-        _inStockholm: inStockholm,
         venue: {
           name: match._venue_name || match.venue_name || 'Okänd plan',
           city: match._venue_city || match.venue_city,
@@ -328,22 +302,12 @@ export default function Dashboard() {
         }
       };
     })
-    .filter(m => {
-      // Om användaren är i Stockholm → visa alla matcher i Stockholm-regionen
-      if (userInStockholm && m._inStockholm) return true;
-      // Annars: klassiskt 15 km-filter
-      return m.distance < 15;
-    })
     .sort((a, b) => {
-      // Sortera på avstånd om vi har det, annars på datum/tid
-      if (a.distance !== Infinity && b.distance !== Infinity) return a.distance - b.distance;
-      if (a.distance !== Infinity) return -1;
-      if (b.distance !== Infinity) return 1;
       const ta = new Date(`${a.date}T${a.time}`).getTime();
       const tb = new Date(`${b.date}T${b.time}`).getTime();
       return ta - tb;
     })
-    .slice(0, 8);
+    .slice(0, 12);
 
   // Calculate weekly stats
   const weekAgo = new Date();

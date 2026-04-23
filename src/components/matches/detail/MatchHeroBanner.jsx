@@ -78,13 +78,17 @@ export default function MatchHeroBanner({ match, venue, participantCount, isOrga
         boxShadow: "0 30px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)",
       }}
     >
-      {/* Pitch lines pattern */}
-      <svg className="absolute inset-0 w-full h-full opacity-[0.08] pointer-events-none" viewBox="0 0 400 300" preserveAspectRatio="none">
-        <rect x="10" y="20" width="380" height="260" fill="none" stroke="white" strokeWidth="2" />
-        <circle cx="200" cy="150" r="45" fill="none" stroke="white" strokeWidth="2" />
-        <line x1="200" y1="20" x2="200" y2="280" stroke="white" strokeWidth="2" />
-        <rect x="10" y="90" width="80" height="120" fill="none" stroke="white" strokeWidth="2" />
-        <rect x="310" y="90" width="80" height="120" fill="none" stroke="white" strokeWidth="2" />
+      {/* Pitch lines pattern — proportional, clipped (no stretching) */}
+      <svg
+        className="absolute inset-0 w-full h-full opacity-[0.08] pointer-events-none"
+        viewBox="0 0 400 300"
+        preserveAspectRatio="xMidYMid slice"
+      >
+        <rect x="10" y="20" width="380" height="260" fill="none" stroke="white" strokeWidth="1.5" />
+        <circle cx="200" cy="150" r="45" fill="none" stroke="white" strokeWidth="1.5" />
+        <line x1="200" y1="20" x2="200" y2="280" stroke="white" strokeWidth="1.5" />
+        <rect x="10" y="90" width="80" height="120" fill="none" stroke="white" strokeWidth="1.5" />
+        <rect x="310" y="90" width="80" height="120" fill="none" stroke="white" strokeWidth="1.5" />
       </svg>
 
       {/* Ambient glows */}

@@ -326,7 +326,7 @@ export default function MatchesCarousel({
               {matches.map((match, index) => (
                 <div
                   key={`${activeTab}-${match.id}`}
-                  className="flex-shrink-0 snap-center sm:snap-start w-[82%] xs:w-[84%] sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
+                  className="flex-shrink-0 snap-start w-[86%] xs:w-[88%] sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
                 >
                   <MatchCard
                     match={match}

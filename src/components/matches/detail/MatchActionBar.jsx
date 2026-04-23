@@ -27,8 +27,8 @@ export default function MatchActionBar({
   checkInButton,
 }) {
   return (
-    <div className="sticky top-[calc(env(safe-area-inset-top)+68px)] lg:top-4 z-30 -mx-4 sm:mx-0">
-      <div className="bg-[#121715]/95 backdrop-blur-xl ring-1 ring-[#223029] sm:rounded-2xl shadow-[0_12px_32px_rgba(0,0,0,0.4)] p-3 sm:p-4">
+    <div className="relative z-10 -mx-4 sm:mx-0">
+      <div className="bg-[#121715] ring-1 ring-[#223029] sm:rounded-2xl shadow-[0_12px_32px_rgba(0,0,0,0.4)] p-3 sm:p-4">
         <div className="flex items-center gap-2">
           {/* Primary action — largest, most prominent */}
           <div className="flex-1 min-w-0">

@@ -195,7 +195,7 @@ function LayoutInner({ children }) {
         {/* Consent check - blocks authenticated users without valid consent */}
         <ConsentChecker>
 
-        <div className="h-screen flex w-full bg-[#0B0F0D] overflow-hidden">
+        <div className="h-screen flex w-full bg-[#0F1513] overflow-hidden">
         <Toaster 
           position="bottom-center"
           theme="dark"
@@ -287,10 +287,10 @@ function LayoutInner({ children }) {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col bg-[#0A0E0C] min-h-screen lg:min-h-0 overflow-hidden">
+        <main className="flex-1 flex flex-col bg-[#0F1513] min-h-screen lg:min-h-0 overflow-hidden">
           {/* Safe-area backdrop — matches app bg so the notch/status bar isn't a different color */}
           <div
-            className="lg:hidden fixed top-0 left-0 right-0 z-[90] pointer-events-none bg-[#0A0E0C]"
+            className="lg:hidden fixed top-0 left-0 right-0 z-[90] pointer-events-none bg-[#0F1513]"
             style={{ height: 'env(safe-area-inset-top)' }}
             aria-hidden
           />
@@ -305,7 +305,9 @@ function LayoutInner({ children }) {
               paddingTop: 'calc(env(safe-area-inset-top) + 60px)',
               paddingBottom: 'calc(5.5rem + env(safe-area-inset-bottom))',
               WebkitOverflowScrolling: 'touch',
-              overscrollBehaviorY: 'contain',
+              overscrollBehaviorY: 'none',
+              overscrollBehavior: 'none',
+              backgroundColor: '#0F1513',
             }}
           >
             <NavigationProvider mainContentRef={mainContentRef}>
