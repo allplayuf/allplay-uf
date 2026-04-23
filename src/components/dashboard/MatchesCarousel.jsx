@@ -1,16 +1,24 @@
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Calendar, MapPin, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Calendar, MapPin, ArrowRight, ChevronLeft, ChevronRight, UserCheck, Radar } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import MatchCard from "../matches/MatchCard";
 import PremiumEmptyState from "../ui/premium-empty-state";
 import { triggerHaptic } from "../utils/motionTokens";
 
 /**
- * Unified matches carousel for the dashboard.
- * Combines "Nära dig" and "Dina matcher" into one horizontal snap-scroll carousel
- * with segmented tabs instead of stacked widgets.
+ * Responsive matches carousel for the dashboard.
+ *
+ * Layout strategy per breakpoint:
+ *  - Mobile   (<640px):  2-row header. One card + peek. Dots indicator.
+ *  - Tablet   (640-1024): Single row header. ~2 cards visible.
+ *  - Desktop  (≥1024):   Single row header with arrows. 3 cards visible.
+ *
+ * Interaction:
+ *  - Auto-drift (24px/s) pauses on touch/hover/focus for 4s.
+ *  - Snap-proximity so manual swipes still feel natural.
+ *  - Infinite feel: smooth rewind to start when reaching end.
  */
 export default function MatchesCarousel({
   nearbyMatches = [],
@@ -22,17 +30,16 @@ export default function MatchesCarousel({
   onJoin,
   onCreateMatch,
 }) {
-  // Default tab: if user has matches show those, otherwise nearby
   const [activeTab, setActiveTab] = useState(
     !isGuest && myMatches.length > 0 ? "mine" : "nearby"
   );
   const scrollRef = useRef(null);
+  const pauseTimerRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [activeDot, setActiveDot] = useState(0);
 
-  // Tag each match with its source so we can show a subtle badge
   const matches = useMemo(() => {
     if (activeTab === "mine") {
       return myMatches.map((m) => ({ ...m, _source: "mine" }));
@@ -47,20 +54,19 @@ export default function MatchesCarousel({
     }
   }, [activeTab]);
 
-  // Track scroll position for arrow enable/disable + active dot
-  const updateScrollState = () => {
+  // Track scroll position: enable arrows + active dot on mobile
+  const updateScrollState = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
     setCanScrollLeft(el.scrollLeft > 8);
     setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 8);
-    // Active dot based on scroll position
     const firstChild = el.firstElementChild;
     if (firstChild) {
-      const cardWidth = firstChild.getBoundingClientRect().width + 16; // gap-4 = 16px
+      const cardWidth = firstChild.getBoundingClientRect().width + 12;
       const idx = Math.round(el.scrollLeft / cardWidth);
       setActiveDot(Math.min(idx, matches.length - 1));
     }
-  };
+  }, [matches.length]);
 
   useEffect(() => {
     updateScrollState();
@@ -72,7 +78,20 @@ export default function MatchesCarousel({
       el.removeEventListener("scroll", updateScrollState);
       window.removeEventListener("resize", updateScrollState);
     };
-  }, [matches.length]);
+  }, [updateScrollState]);
+
+  // Pause auto-scroll for 4s on any user interaction
+  const pauseAutoScroll = useCallback(() => {
+    setIsPaused(true);
+    if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current);
+    pauseTimerRef.current = setTimeout(() => setIsPaused(false), 4000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current);
+    };
+  }, []);
 
   const scrollByAmount = (dir) => {
     const el = scrollRef.current;
@@ -80,15 +99,15 @@ export default function MatchesCarousel({
     const amount = el.clientWidth * 0.85;
     el.scrollBy({ left: dir * amount, behavior: "smooth" });
     triggerHaptic("light");
+    pauseAutoScroll();
   };
 
-  // Auto-scroll: smooth continuous drift. Pauses on touch/hover.
-  // Uses requestAnimationFrame for silky-smooth carousel movement.
+  // Smooth continuous auto-drift using rAF. Pauses on interaction.
   useEffect(() => {
     if (matches.length <= 1 || isPaused) return;
     let rafId;
     let lastTs = performance.now();
-    const pxPerSec = 24; // gentle drift speed
+    const pxPerSec = 22;
 
     const tick = (ts) => {
       const el = scrollRef.current;
@@ -96,14 +115,13 @@ export default function MatchesCarousel({
         rafId = requestAnimationFrame(tick);
         return;
       }
-      const dt = (ts - lastTs) / 1000;
+      const dt = Math.min((ts - lastTs) / 1000, 0.05);
       lastTs = ts;
 
       const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2;
       if (atEnd) {
-        // Seamless loop back to start
         el.scrollTo({ left: 0, behavior: "smooth" });
-        lastTs = ts + 600; // brief pause during rewind
+        lastTs = ts + 800;
       } else {
         el.scrollLeft += pxPerSec * dt;
       }
@@ -115,58 +133,111 @@ export default function MatchesCarousel({
   }, [matches.length, isPaused, activeTab]);
 
   const tabs = [
-    { id: "nearby", label: "Nära dig", count: nearbyMatches.length },
+    {
+      id: "nearby",
+      label: "I närheten",
+      shortLabel: "Nära",
+      icon: Radar,
+      count: nearbyMatches.length,
+    },
     {
       id: "mine",
-      label: isGuest ? "Kommande" : "Dina matcher",
+      label: isGuest ? "Kommande" : "Anmäld",
+      shortLabel: isGuest ? "Kommande" : "Anmäld",
+      icon: UserCheck,
       count: myMatches.length,
     },
   ];
 
+  const SegmentedControl = ({ compact = false }) => (
+    <div
+      role="tablist"
+      className="inline-flex items-center gap-1 bg-[#0F1513] border border-[#243029] rounded-full p-1 shadow-[inset_0_1px_2px_rgba(0,0,0,0.35)]"
+    >
+      {tabs.map((tab) => {
+        const isActive = activeTab === tab.id;
+        const Icon = tab.icon;
+        return (
+          <button
+            key={tab.id}
+            role="tab"
+            aria-selected={isActive}
+            onClick={() => {
+              triggerHaptic("light");
+              setActiveTab(tab.id);
+              pauseAutoScroll();
+            }}
+            className={`relative h-9 px-3.5 rounded-full text-[13px] font-semibold transition-colors flex items-center gap-1.5 whitespace-nowrap ${
+              isActive
+                ? "text-white"
+                : "text-[#9EAAA4] hover:text-[#CFE8D6]"
+            }`}
+          >
+            {/* Animated active pill */}
+            {isActive && (
+              <motion.span
+                layoutId="segmented-pill"
+                transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                className="absolute inset-0 rounded-full bg-[#2BA84A] shadow-[0_4px_12px_rgba(43,168,74,0.45)]"
+                aria-hidden
+              />
+            )}
+            <Icon className="w-3.5 h-3.5 relative z-10" strokeWidth={2.5} />
+            <span className="relative z-10">
+              {compact ? tab.shortLabel : tab.label}
+            </span>
+            {tab.count > 0 && (
+              <span
+                className={`relative z-10 text-[10px] font-bold tabular-nums min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center ${
+                  isActive
+                    ? "bg-white/25 text-white"
+                    : "bg-[#18221E] text-[#B6C2BC]"
+                }`}
+              >
+                {tab.count}
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+
   return (
     <div>
-      {/* Header row — title + compact segmented toggle + "Visa alla" */}
-      <div className="flex items-center gap-3 mb-3 sm:mb-4 px-1">
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
-            <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-[#2BA84A]" strokeWidth={2.5} />
+      {/* MOBILE HEADER — 2 rows so nothing clips */}
+      <div className="sm:hidden mb-3 px-1">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-9 h-9 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Calendar className="w-4 h-4 text-[#2BA84A]" strokeWidth={2.5} />
+            </div>
+            <h2 className="text-[17px] font-bold text-[#F4F7F5] truncate">
+              Matcher
+            </h2>
           </div>
-          <h2 className="text-base sm:text-xl font-bold text-[#F4F7F5]">Matcher</h2>
+          <Link
+            to={createPageUrl("Matches")}
+            className="text-[13px] font-semibold text-[#2BA84A] hover:text-[#CFE8D6] flex items-center gap-0.5 transition-colors flex-shrink-0"
+          >
+            Visa alla
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+        <SegmentedControl compact={false} />
+      </div>
+
+      {/* DESKTOP / TABLET HEADER — single row */}
+      <div className="hidden sm:flex items-center gap-3 mb-4 px-1">
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
+            <Calendar className="w-5 h-5 text-[#2BA84A]" strokeWidth={2.5} />
+          </div>
+          <h2 className="text-xl font-bold text-[#F4F7F5]">Matcher</h2>
         </div>
 
-        {/* Compact segmented control */}
-        <div className="flex-1 flex justify-center min-w-0">
-          <div className="inline-flex items-center gap-0.5 bg-[#0F1513] border border-[#243029] rounded-full p-0.5 shadow-inner">
-            {tabs.map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => {
-                    triggerHaptic("light");
-                    setActiveTab(tab.id);
-                  }}
-                  className={`relative h-8 px-3 sm:px-4 rounded-full text-[12px] sm:text-[13px] font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${
-                    isActive
-                      ? "bg-[#2BA84A] text-white shadow-[0_2px_8px_rgba(43,168,74,0.4)]"
-                      : "text-[#9EAAA4] hover:text-[#CFE8D6]"
-                  }`}
-                >
-                  {tab.id === "nearby" && <MapPin className="w-3 h-3" />}
-                  <span>{tab.label}</span>
-                  {tab.count > 0 && (
-                    <span
-                      className={`text-[10px] font-bold tabular-nums ${
-                        isActive ? "text-white/90" : "text-[#6B7974]"
-                      }`}
-                    >
-                      {tab.count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+        <div className="flex-1 flex justify-center">
+          <SegmentedControl />
         </div>
 
         {/* Desktop arrows */}
@@ -199,9 +270,9 @@ export default function MatchesCarousel({
 
         <Link
           to={createPageUrl("Matches")}
-          className="text-[12px] sm:text-sm font-semibold text-[#2BA84A] hover:text-[#CFE8D6] flex items-center gap-1 transition-colors flex-shrink-0"
+          className="text-sm font-semibold text-[#2BA84A] hover:text-[#CFE8D6] flex items-center gap-1 transition-colors flex-shrink-0"
         >
-          <span className="hidden sm:inline">Visa alla</span>
+          Visa alla
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
@@ -242,61 +313,66 @@ export default function MatchesCarousel({
         />
       ) : (
         <div className="relative">
-          {/* Edge fade masks — only when scrollable */}
+          {/* Edge fades — only on mobile/tablet where content bleeds off screen */}
           <div
-            className={`pointer-events-none absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#0F1513] to-transparent z-10 transition-opacity duration-200 ${
+            className={`pointer-events-none absolute left-0 top-0 bottom-0 w-6 sm:w-8 bg-gradient-to-r from-[#0F1513] to-transparent z-10 transition-opacity duration-200 ${
               canScrollLeft ? "opacity-100" : "opacity-0"
             }`}
           />
           <div
-            className={`pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#0F1513] to-transparent z-10 transition-opacity duration-200 ${
+            className={`pointer-events-none absolute right-0 top-0 bottom-0 w-6 sm:w-8 bg-gradient-to-l from-[#0F1513] to-transparent z-10 transition-opacity duration-200 ${
               canScrollRight ? "opacity-100" : "opacity-0"
             }`}
           />
 
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
-            ref={scrollRef}
-            onTouchStart={() => setIsPaused(true)}
-            onTouchEnd={() => setTimeout(() => setIsPaused(false), 3000)}
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
-            className="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-proximity scrollbar-hide pb-2 -mx-4 px-4 sm:mx-0 sm:px-1"
-            style={{
-              scrollbarWidth: "none",
-              msOverflowStyle: "none",
-              WebkitOverflowScrolling: "touch",
-            }}
-          >
-            {matches.map((match, index) => (
-              <div
-                key={match.id}
-                className="flex-shrink-0 snap-start w-[88%] xs:w-[82%] sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
-              >
-                <MatchCard
-                  match={match}
-                  venues={venues}
-                  user={user}
-                  participants={(allParticipants || []).filter(
-                    (p) => p.match_id === match.id
-                  )}
-                  onJoin={onJoin}
-                  index={index}
-                />
-              </div>
-            ))}
-          </motion.div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, x: 16 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -16 }}
+              transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
+              ref={scrollRef}
+              onTouchStart={pauseAutoScroll}
+              onMouseEnter={() => setIsPaused(true)}
+              onMouseLeave={() => setIsPaused(false)}
+              onFocusCapture={pauseAutoScroll}
+              className="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-proximity scrollbar-hide pb-2 -mx-3 px-3 sm:mx-0 sm:px-0"
+              style={{
+                scrollbarWidth: "none",
+                msOverflowStyle: "none",
+                WebkitOverflowScrolling: "touch",
+                scrollPaddingLeft: "12px",
+                scrollPaddingRight: "12px",
+              }}
+            >
+              {matches.map((match, index) => (
+                <div
+                  key={match.id}
+                  className="flex-shrink-0 snap-start w-[86%] sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
+                >
+                  <MatchCard
+                    match={match}
+                    venues={venues}
+                    user={user}
+                    participants={(allParticipants || []).filter(
+                      (p) => p.match_id === match.id
+                    )}
+                    onJoin={onJoin}
+                    index={index}
+                  />
+                </div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
 
-          {/* Mobile active-dot indicator */}
+          {/* Mobile progress dots */}
           {matches.length > 1 && (
             <div className="flex lg:hidden justify-center gap-1.5 mt-3">
               {matches.slice(0, Math.min(matches.length, 8)).map((_, i) => (
                 <div
                   key={i}
-                  className={`h-1.5 rounded-full transition-all ${
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
                     i === activeDot
                       ? "w-5 bg-[#2BA84A]"
                       : "w-1.5 bg-[#2BA84A]/25"
