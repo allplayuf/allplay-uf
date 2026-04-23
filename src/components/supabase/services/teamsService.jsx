@@ -163,57 +163,51 @@ export async function getMyTeamMemberships() {
 }
 
 /**
- * Delete a team via Supabase REST API (admin only — RLS enforced)
- * Soft-delete first (set is_active=false), then try hard delete.
- * Uses Prefer: return=representation to detect RLS-blocked requests.
+ * Delete a team (admin) — uses soft-delete via REST PATCH.
+ * Sets is_active=false + deleted_at. The teams list already filters these out.
+ * RLS must allow admins to UPDATE teams for this to work.
+ * Tries the Edge Function first for hard-delete, falls back to soft-delete.
  */
 export async function deleteTeamRest(teamId) {
   if (!teamId) throw new Error('teamId is required');
   await waitForAuth();
-  const headers = await supabaseHeaders();
+  const userId = sessionStore.user?.id;
 
-  // Try hard delete with representation so we can verify it actually happened
+  // Try edge function first (may hard-delete with service role)
+  try {
+    const result = await callEdgeFunction(EDGE.deleteTeam, { team_id: teamId, teamId });
+    return { ok: true, ...result };
+  } catch (edgeError) {
+    console.warn('[teamsService] Edge delete_team unavailable, using REST soft-delete:', edgeError.message);
+  }
+
+  // Soft-delete via REST PATCH
+  const headers = await supabaseHeaders();
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/teams?id=eq.${encodeURIComponent(teamId)}`,
     {
-      method: 'DELETE',
-      headers: { ...headers, 'Prefer': 'return=representation' }
+      method: 'PATCH',
+      headers: { ...headers, 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        is_active: false,
+        deleted_at: new Date().toISOString(),
+        deleted_by: userId || null,
+      })
     }
   );
-
   const body = await res.text().catch(() => '');
-  console.log('[teamsService] deleteTeamRest response:', res.status, body);
+  console.log('[teamsService] soft-delete response:', res.status, body);
 
   if (!res.ok) {
-    // Hard delete failed (likely FK constraint) → fall back to soft delete
-    console.warn('[teamsService] Hard delete failed, trying soft delete');
-    const softRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/teams?id=eq.${encodeURIComponent(teamId)}`,
-      {
-        method: 'PATCH',
-        headers: { ...headers, 'Prefer': 'return=representation' },
-        body: JSON.stringify({ is_active: false, deleted_at: new Date().toISOString() })
-      }
-    );
-    const softBody = await softRes.text().catch(() => '');
-    if (!softRes.ok) {
-      throw new Error(`Kunde inte radera lag: ${softRes.status} ${softBody}`);
-    }
-    let softRows = [];
-    try { softRows = JSON.parse(softBody); } catch (_) {}
-    if (Array.isArray(softRows) && softRows.length === 0) {
-      throw new Error('Inget lag raderades — RLS blockerar borttagning. Kontrollera att du är admin.');
-    }
-    return { ok: true, soft_deleted: true };
+    throw new Error(`Kunde inte radera lag: ${res.status} ${body}`);
+  }
+  let rows = [];
+  try { rows = JSON.parse(body); } catch (_) {}
+  if (Array.isArray(rows) && rows.length === 0) {
+    throw new Error('Ingen ändring gjordes. RLS blockerar UPDATE för admin. Kontakta utvecklare för att uppdatera RLS-policy på teams-tabellen.');
   }
 
-  let deleted = [];
-  try { deleted = JSON.parse(body); } catch (_) {}
-  if (Array.isArray(deleted) && deleted.length === 0) {
-    throw new Error('Inget lag raderades — RLS blockerar borttagning. Kontrollera att du är admin.');
-  }
-
-  return { ok: true, deleted };
+  return { ok: true, soft_deleted: true };
 }
 
 /**

@@ -351,34 +351,62 @@ export async function deleteMatch(matchId) {
 }
 
 /**
- * Delete a match via REST API (admin — RLS enforced)
- * Uses Prefer: return=representation so we can detect RLS-blocked deletes
- * (200 with empty array) vs actual deletes (200 with row).
+ * Delete a match (admin) — tries Edge Function first, then falls back to
+ * soft-delete via REST PATCH (sets status='cancelled' + deleted_at).
+ * Match lists already filter by status.
  */
 export async function deleteMatchRest(matchId) {
   if (!matchId) throw new Error('matchId is required');
+
+  // Try edge function first
+  try {
+    const result = await callEdgeFunction(EDGE.deleteMatch, { match_id: matchId });
+    return { ok: true, ...result };
+  } catch (edgeError) {
+    console.warn('[matchesService] Edge delete_match unavailable, trying REST:', edgeError.message);
+  }
+
   const headers = await getAuthHeaders();
 
-  const res = await fetch(
+  // Try hard DELETE via REST
+  const delRes = await fetch(
     `${SUPABASE_URL}/rest/v1/matches?id=eq.${encodeURIComponent(matchId)}`,
     {
       method: 'DELETE',
       headers: { ...headers, 'Prefer': 'return=representation' }
     }
   );
-
-  const body = await res.text().catch(() => '');
-  console.log('[matchesService] deleteMatchRest response:', res.status, body);
-
-  if (!res.ok) {
-    throw new Error(`Kunde inte radera match: ${res.status} ${body}`);
+  const delBody = await delRes.text().catch(() => '');
+  if (delRes.ok) {
+    let deleted = [];
+    try { deleted = JSON.parse(delBody); } catch (_) {}
+    if (Array.isArray(deleted) && deleted.length > 0) {
+      return { ok: true, deleted };
+    }
   }
 
-  let deleted = [];
-  try { deleted = JSON.parse(body); } catch (_) {}
-  if (Array.isArray(deleted) && deleted.length === 0) {
-    throw new Error('Ingen match raderades — RLS blockerar borttagning. Kontrollera att du är admin.');
+  // Fallback: soft-delete via PATCH (set status='cancelled')
+  console.warn('[matchesService] Hard DELETE blocked, trying soft-delete via PATCH');
+  const patchRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/matches?id=eq.${encodeURIComponent(matchId)}`,
+    {
+      method: 'PATCH',
+      headers: { ...headers, 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        status: 'cancelled',
+        deleted_at: new Date().toISOString(),
+      })
+    }
+  );
+  const patchBody = await patchRes.text().catch(() => '');
+  if (!patchRes.ok) {
+    throw new Error(`Kunde inte radera match: ${patchRes.status} ${patchBody}`);
+  }
+  let rows = [];
+  try { rows = JSON.parse(patchBody); } catch (_) {}
+  if (Array.isArray(rows) && rows.length === 0) {
+    throw new Error('Ingen ändring gjordes. RLS blockerar DELETE/UPDATE för admin. Uppdatera RLS-policy för matches-tabellen.');
   }
 
-  return { ok: true, deleted };
+  return { ok: true, soft_deleted: true };
 }

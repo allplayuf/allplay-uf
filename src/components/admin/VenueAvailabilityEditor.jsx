@@ -13,6 +13,7 @@ import {
   deleteVenueAvailability,
 } from '@/components/supabase/services/venueAvailabilityService';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import QuickAddBar from './venue-availability/QuickAddBar';
 
 const DAYS = ['Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör', 'Sön'];
 const HOURS = Array.from({ length: 17 }, (_, i) => i + 7); // 07:00 to 23:00
@@ -73,6 +74,7 @@ function SlotBlock({ slot, onDelete, isDeleting }) {
 export default function VenueAvailabilityEditor({ venue, onClose }) {
   const [weekOffset, setWeekOffset] = useState(0);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedDate, setSelectedDate] = useState('');
   const [newSlot, setNewSlot] = useState({
     date: '',
     start_time: '08:00',
@@ -123,6 +125,19 @@ export default function VenueAvailabilityEditor({ venue, onClose }) {
     createMutation.mutate({
       venue_id: venue.id,
       ...newSlot,
+    });
+  };
+
+  const handleQuickAdd = ({ start_time, end_time, slot_type }) => {
+    if (!selectedDate) return;
+    createMutation.mutate({
+      venue_id: venue.id,
+      date: selectedDate,
+      start_time,
+      end_time,
+      slot_type,
+      booked_by: '',
+      notes: '',
     });
   };
 
@@ -220,6 +235,42 @@ export default function VenueAvailabilityEditor({ venue, onClose }) {
             </button>
           </div>
 
+          {/* Quick-add presets (appears when a day is selected) */}
+          <QuickAddBar
+            selectedDate={selectedDate}
+            onQuickAdd={handleQuickAdd}
+            disabled={createMutation.isPending}
+          />
+
+          {/* Selected-day action bar */}
+          {selectedDate && (
+            <div className="flex items-center justify-between px-4 sm:px-5 py-2 bg-[#0F1513] border-b border-[#223029]">
+              <span className="text-xs text-[#9EAAA4]">
+                <span className="text-[#F4743B] font-semibold">Vald dag:</span> {selectedDate}
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setNewSlot(s => ({ ...s, date: selectedDate }));
+                    setShowAddForm(true);
+                  }}
+                  className="h-7 text-[11px] border-[#223029] text-[#B6C2BC] hover:text-[#F4F7F5] px-2.5"
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Egen tid
+                </Button>
+                <button
+                  onClick={() => setSelectedDate('')}
+                  className="text-xs text-[#7B8A83] hover:text-[#F4F7F5]"
+                >
+                  Rensa
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Schedule Grid */}
           <div className="flex-1 overflow-auto p-2 sm:p-4">
             {isLoading ? (
@@ -248,13 +299,15 @@ export default function VenueAvailabilityEditor({ venue, onClose }) {
                       {/* Day header */}
                       <button
                         onClick={() => {
+                          setSelectedDate(dateStr);
                           setNewSlot(s => ({ ...s, date: dateStr }));
-                          setShowAddForm(true);
                         }}
                         className={`w-full text-center py-1.5 rounded-t-lg text-xs font-bold mb-0.5 transition-colors ${
-                          isToday 
-                            ? 'bg-[#2BA84A]/20 text-[#2BA84A] border border-[#2BA84A]/30' 
-                            : 'bg-[#18221E] text-[#B6C2BC] border border-[#223029] hover:border-[#2BA84A]/30 hover:text-[#F4F7F5]'
+                          selectedDate === dateStr
+                            ? 'bg-[#F4743B]/20 text-[#F4743B] border border-[#F4743B]/40 ring-1 ring-[#F4743B]/30'
+                            : isToday
+                              ? 'bg-[#2BA84A]/20 text-[#2BA84A] border border-[#2BA84A]/30'
+                              : 'bg-[#18221E] text-[#B6C2BC] border border-[#223029] hover:border-[#2BA84A]/30 hover:text-[#F4F7F5]'
                         }`}
                       >
                         <div>{DAYS[i]}</div>
@@ -278,12 +331,12 @@ export default function VenueAvailabilityEditor({ venue, onClose }) {
                           />
                         ))}
 
-                        {/* Click to add overlay */}
+                        {/* Click to select day — enables quick-add + custom form */}
                         {daySlots.length === 0 && (
                           <button
                             onClick={() => {
+                              setSelectedDate(dateStr);
                               setNewSlot(s => ({ ...s, date: dateStr }));
-                              setShowAddForm(true);
                             }}
                             className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-[#2BA84A]/5"
                           >
