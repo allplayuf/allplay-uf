@@ -159,22 +159,12 @@ export default function DashboardHero({
           </span>
         </motion.h1>
 
-        {/* ─── Status line ──────────────────────────────── */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.25, duration: 0.5 }}
-          className="mt-3 sm:mt-3.5 text-[13px] sm:text-[14.5px] lg:text-[15px] text-white/65 leading-[1.55] max-w-[38ch]"
-        >
-          {getStatusLine({ nearbyCount, myMatchesCount, isGuest })}
-        </motion.p>
-
         {/* ─── Primary CTA ──────────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.45 }}
-          className="mt-7 sm:mt-8 lg:mt-9"
+          className="mt-5 sm:mt-7 lg:mt-8"
         >
           <Link
             to={createPageUrl("Matches")}
@@ -242,7 +232,6 @@ export default function DashboardHero({
             to={createPageUrl("Map")}
             icon={MapPin}
             label="Planer"
-            sublabel="Karta"
             accent="#86EFAC"
           />
           <QuickTile
@@ -252,14 +241,12 @@ export default function DashboardHero({
             }}
             icon={Plus}
             label="Skapa"
-            sublabel="Ny match"
             accent="#FDBA74"
           />
           <QuickTile
             to={createPageUrl("Community")}
             icon={Users}
-            label="Community"
-            sublabel={myMatchesCount > 0 ? `${myMatchesCount} anmälda` : "Vänner"}
+            label="Vänner"
             accent="#C4B5FD"
           />
         </motion.nav>
@@ -374,24 +361,24 @@ function PitchPattern() {
 // ═══════════════════════════════════════════════════════════
 // Quick-nav tile
 // ═══════════════════════════════════════════════════════════
-function QuickTile({ to, onClick, icon: Icon, label, sublabel, accent }) {
+function QuickTile({ to, onClick, icon: Icon, label, accent }) {
   const body = (
     <motion.div
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.97 }}
       transition={{ type: "spring", stiffness: 420, damping: 28 }}
-      className="group relative h-full rounded-2xl px-3 py-3 sm:py-3.5 bg-white/[0.04] hover:bg-white/[0.07] ring-1 ring-white/[0.07] hover:ring-white/[0.14] backdrop-blur-sm transition-colors cursor-pointer overflow-hidden"
+      className="group relative h-full rounded-2xl px-2 py-3 sm:py-3.5 bg-white/[0.04] hover:bg-white/[0.07] ring-1 ring-white/[0.07] hover:ring-white/[0.14] backdrop-blur-sm transition-colors cursor-pointer overflow-hidden"
     >
       {/* Subtle accent wash on hover */}
       <div
         aria-hidden
         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
         style={{
-          background: `linear-gradient(135deg, ${accent}10 0%, transparent 60%)`,
+          background: `linear-gradient(135deg, ${accent}12 0%, transparent 60%)`,
         }}
       />
 
-      <div className="relative flex items-center gap-2 sm:gap-2.5">
+      <div className="relative flex flex-col items-center justify-center gap-1.5 sm:gap-2">
         <div
           className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center"
           style={{
@@ -405,13 +392,8 @@ function QuickTile({ to, onClick, icon: Icon, label, sublabel, accent }) {
             strokeWidth={2.5}
           />
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="text-[12px] sm:text-[13px] font-black text-white leading-none truncate">
-            {label}
-          </div>
-          <div className="mt-1 text-[10px] sm:text-[11px] text-white/50 font-medium leading-none truncate">
-            {sublabel}
-          </div>
+        <div className="text-[12px] sm:text-[13px] font-black text-white leading-none text-center">
+          {label}
         </div>
       </div>
     </motion.div>
@@ -441,15 +423,4 @@ function getGreeting() {
   if (h < 17) return "Eftermiddag";
   if (h < 22) return "Kväll";
   return "God natt";
-}
-
-function getStatusLine({ nearbyCount, myMatchesCount, isGuest }) {
-  if (isGuest) return "Utforska matcher och planer. Logga in för att gå med.";
-  if (nearbyCount > 0 && myMatchesCount > 0)
-    return `${myMatchesCount} kommande ${myMatchesCount === 1 ? "match" : "matcher"} · ${nearbyCount} öppna nära dig.`;
-  if (nearbyCount > 0)
-    return `${nearbyCount} öppna ${nearbyCount === 1 ? "match" : "matcher"} i närheten — hoppa in och spela.`;
-  if (myMatchesCount > 0)
-    return `${myMatchesCount} kommande ${myMatchesCount === 1 ? "match" : "matcher"} anmäld. Ladda upp.`;
-  return "Inga matcher just nu — skapa en eller utforska planer nära dig.";
 }
