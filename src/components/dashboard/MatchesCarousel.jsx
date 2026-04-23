@@ -318,6 +318,8 @@ export default function MatchesCarousel({
                 scrollbarWidth: "none",
                 msOverflowStyle: "none",
                 WebkitOverflowScrolling: "touch",
+                scrollPaddingLeft: "0px",
+                scrollPaddingRight: "0px",
                 scrollSnapType: "x mandatory",
               }}
             >

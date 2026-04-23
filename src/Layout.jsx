@@ -142,16 +142,17 @@ function LayoutInner({ children }) {
   // Scroll restoration is now handled by NavigationProvider.
   // No manual scrollTop = 0 here — that would fight scroll-position persistence.
   
-  // Handle tab click - navigate to tab root. If already on that tab,
-  // force scroll-to-top (native app feel). NavigationProvider handles
-  // scroll restoration for all other navigation.
+  // Handle tab click - always navigate to the tab root and force scroll-to-top.
+  // NavigationProvider ALSO snaps to top on tab/push, but we do it here too so
+  // tapping the same active tab still scrolls up (native app feel).
   const handleTabClick = (item) => {
     triggerHaptic('light');
-    if (location.pathname === item.url && mainContentRef.current) {
-      mainContentRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
     navigate(item.url);
+    requestAnimationFrame(() => {
+      if (mainContentRef.current) {
+        mainContentRef.current.scrollTo({ top: 0, behavior: 'auto' });
+      }
+    });
   };
 
   // Use Supabase auth state for admin check
@@ -163,6 +164,7 @@ function LayoutInner({ children }) {
     
     if (isSupabaseAuth && supabaseUser) {
       checkIsAdmin({ forceRefresh: true }).then(result => {
+        console.log('[Layout] Admin check result:', result, 'for user:', supabaseUser.id);
         setIsAdmin(result);
         setAdminCheckDone(true);
       }).catch(() => {
@@ -233,8 +235,7 @@ function LayoutInner({ children }) {
                 Navigation
               </p>
               {navigationItems.map((item) => {
-                const isActive = location.pathname === item.url ||
-                  (item.url !== '/' && location.pathname.startsWith(item.url + '/'));
+                const isActive = location.pathname === item.url;
                 return (
                   <button
                     key={item.title}
