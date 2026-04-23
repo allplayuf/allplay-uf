@@ -352,6 +352,8 @@ export async function deleteMatch(matchId) {
 
 /**
  * Delete a match via REST API (admin — RLS enforced)
+ * Uses Prefer: return=representation so we can detect RLS-blocked deletes
+ * (200 with empty array) vs actual deletes (200 with row).
  */
 export async function deleteMatchRest(matchId) {
   if (!matchId) throw new Error('matchId is required');
@@ -359,12 +361,24 @@ export async function deleteMatchRest(matchId) {
 
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/matches?id=eq.${encodeURIComponent(matchId)}`,
-    { method: 'DELETE', headers }
+    {
+      method: 'DELETE',
+      headers: { ...headers, 'Prefer': 'return=representation' }
+    }
   );
 
+  const body = await res.text().catch(() => '');
+  console.log('[matchesService] deleteMatchRest response:', res.status, body);
+
   if (!res.ok) {
-    const err = await res.text().catch(() => '');
-    throw new Error(`Kunde inte radera match: ${res.status} ${err}`);
+    throw new Error(`Kunde inte radera match: ${res.status} ${body}`);
   }
-  return { ok: true };
+
+  let deleted = [];
+  try { deleted = JSON.parse(body); } catch (_) {}
+  if (Array.isArray(deleted) && deleted.length === 0) {
+    throw new Error('Ingen match raderades — RLS blockerar borttagning. Kontrollera att du är admin.');
+  }
+
+  return { ok: true, deleted };
 }

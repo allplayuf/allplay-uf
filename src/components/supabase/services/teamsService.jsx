@@ -164,21 +164,56 @@ export async function getMyTeamMemberships() {
 
 /**
  * Delete a team via Supabase REST API (admin only — RLS enforced)
+ * Soft-delete first (set is_active=false), then try hard delete.
+ * Uses Prefer: return=representation to detect RLS-blocked requests.
  */
 export async function deleteTeamRest(teamId) {
   if (!teamId) throw new Error('teamId is required');
   await waitForAuth();
   const headers = await supabaseHeaders();
 
+  // Try hard delete with representation so we can verify it actually happened
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/teams?id=eq.${encodeURIComponent(teamId)}`,
-    { method: 'DELETE', headers }
+    {
+      method: 'DELETE',
+      headers: { ...headers, 'Prefer': 'return=representation' }
+    }
   );
 
+  const body = await res.text().catch(() => '');
+  console.log('[teamsService] deleteTeamRest response:', res.status, body);
+
   if (!res.ok) {
-    throw new Error(`Kunde inte radera lag: ${res.status}`);
+    // Hard delete failed (likely FK constraint) → fall back to soft delete
+    console.warn('[teamsService] Hard delete failed, trying soft delete');
+    const softRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/teams?id=eq.${encodeURIComponent(teamId)}`,
+      {
+        method: 'PATCH',
+        headers: { ...headers, 'Prefer': 'return=representation' },
+        body: JSON.stringify({ is_active: false, deleted_at: new Date().toISOString() })
+      }
+    );
+    const softBody = await softRes.text().catch(() => '');
+    if (!softRes.ok) {
+      throw new Error(`Kunde inte radera lag: ${softRes.status} ${softBody}`);
+    }
+    let softRows = [];
+    try { softRows = JSON.parse(softBody); } catch (_) {}
+    if (Array.isArray(softRows) && softRows.length === 0) {
+      throw new Error('Inget lag raderades — RLS blockerar borttagning. Kontrollera att du är admin.');
+    }
+    return { ok: true, soft_deleted: true };
   }
-  return { ok: true };
+
+  let deleted = [];
+  try { deleted = JSON.parse(body); } catch (_) {}
+  if (Array.isArray(deleted) && deleted.length === 0) {
+    throw new Error('Inget lag raderades — RLS blockerar borttagning. Kontrollera att du är admin.');
+  }
+
+  return { ok: true, deleted };
 }
 
 /**
