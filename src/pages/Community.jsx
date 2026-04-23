@@ -22,7 +22,7 @@ import { PullToRefresh } from "../components/ui/pull-to-refresh";
 import { AuthGateModal } from "../components/ui/auth-gate-modal";
 import { LoginModal } from "../components/supabase";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
-import UniversalHero from "../components/ui/universal-hero";
+import CommunityHero from "../components/community/CommunityHero";
 import { 
   getMyProfile, getTeams, getMyTeams, createSupabaseTeam,
   getMyFriendships, sendFriendRequest, acceptFriendRequest, declineFriendRequest
@@ -444,50 +444,17 @@ export default function CommunityPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Premium Hero — UniversalHero */}
+        {/* Community Hero — mobile-first signature design */}
         {userLoading ? (
           <HeroSkeleton />
         ) : (
-          <UniversalHero accent="green" eyebrow="Community">
-            <UniversalHero.Header>
-              <UniversalHero.Avatar
-                src={user?.profile_image_url}
-                name={user?.display_name || user?.full_name || "U"}
-                size="default"
-              />
-              <div className="flex-1 min-w-0">
-                <UniversalHero.Title>Hitta din nästa lagkamrat</UniversalHero.Title>
-                <UniversalHero.Subtitle>
-                  Spelare, lag och vänner — allt på ett ställe
-                </UniversalHero.Subtitle>
-                <UniversalHero.Chips>
-                  <UniversalHero.Chip variant="success">
-                    {friendsAccepted?.length || 0} vänner
-                  </UniversalHero.Chip>
-                  <UniversalHero.Chip variant="default">
-                    {myTeams?.length || 0} lag
-                  </UniversalHero.Chip>
-                </UniversalHero.Chips>
-              </div>
-            </UniversalHero.Header>
-
-            <UniversalHero.Actions>
-              <UniversalHero.ActionButton
-                icon={UserPlus}
-                variant="primary"
-                onClick={() => { triggerHaptic('light'); setActiveTab('find'); }}
-              >
-                Hitta spelare
-              </UniversalHero.ActionButton>
-              <UniversalHero.ActionButton
-                icon={Target}
-                variant="glass"
-                onClick={() => { triggerHaptic('light'); setActiveTab('teams'); }}
-              >
-                Mina lag
-              </UniversalHero.ActionButton>
-            </UniversalHero.Actions>
-          </UniversalHero>
+          <CommunityHero
+            user={user}
+            friendsCount={friendsAccepted?.length || 0}
+            teamsCount={myTeams?.length || 0}
+            onFindPlayers={() => { triggerHaptic('light'); setActiveTab('find'); }}
+            onViewTeams={() => { triggerHaptic('light'); setActiveTab('teams'); }}
+          />
         )}
 
         {/* Tabs - Dynamic colors based on active tab */}

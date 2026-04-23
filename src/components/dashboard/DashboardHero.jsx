@@ -31,7 +31,7 @@ export default function DashboardHero({
 }) {
   const firstName = getFirstName(user);
   const greeting = getGreeting();
-  const hasLive = nearbyCount > 0;
+  const hasOpenMatches = nearbyCount > 0;
 
   return (
     <motion.section
@@ -99,44 +99,25 @@ export default function DashboardHero({
 
       {/* ═══ Layer 3: Content ═══════════════════════════════ */}
       <div className="relative z-10 px-5 pt-6 pb-5 sm:px-8 sm:pt-8 sm:pb-7 lg:px-11 lg:pt-10 lg:pb-9">
-        {/* ─── Top bar: greeting + live pulse ─────────────── */}
-        <header className="flex items-center justify-between gap-3 mb-7 sm:mb-9 lg:mb-11">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-[10px] overflow-hidden ring-1 ring-white/12 bg-gradient-to-br from-white/[0.08] to-black/40 flex items-center justify-center flex-shrink-0 shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
-              {user?.profile_image_url ? (
-                <img src={user.profile_image_url} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-[13px] font-black text-white">
-                  {firstName[0]?.toUpperCase() || "U"}
-                </span>
-              )}
+        {/* ─── Top bar: greeting only, clean ─────────────── */}
+        <header className="flex items-center gap-2.5 mb-7 sm:mb-9 lg:mb-11">
+          <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-[10px] overflow-hidden ring-1 ring-white/12 bg-gradient-to-br from-white/[0.08] to-black/40 flex items-center justify-center flex-shrink-0 shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
+            {user?.profile_image_url ? (
+              <img src={user.profile_image_url} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-[13px] font-black text-white">
+                {firstName[0]?.toUpperCase() || "U"}
+              </span>
+            )}
+          </div>
+          <div className="min-w-0">
+            <div className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.14em] text-white/55 leading-none">
+              {greeting}
             </div>
-            <div className="min-w-0">
-              <div className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.14em] text-white/55 leading-none">
-                {greeting}
-              </div>
-              <div className="mt-1 text-[13px] sm:text-[14px] font-bold text-white leading-none truncate">
-                {firstName}
-              </div>
+            <div className="mt-1 text-[13px] sm:text-[14px] font-bold text-white leading-none truncate">
+              {firstName}
             </div>
           </div>
-
-          {hasLive && (
-            <motion.div
-              initial={{ opacity: 0, x: 8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.25 }}
-              className="flex-shrink-0 flex items-center gap-1.5 h-7 px-2.5 rounded-full bg-[#2BA84A]/[0.14] ring-1 ring-[#2BA84A]/30 backdrop-blur-md"
-            >
-              <span className="relative flex w-1.5 h-1.5" aria-hidden>
-                <span className="absolute inline-flex w-full h-full rounded-full bg-[#34C257] opacity-70 animate-ping" />
-                <span className="relative inline-flex rounded-full w-1.5 h-1.5 bg-[#34C257]" />
-              </span>
-              <span className="text-[10.5px] sm:text-[11px] font-black text-[#86EFAC] tabular-nums tracking-wide">
-                {nearbyCount} LIVE
-              </span>
-            </motion.div>
-          )}
         </header>
 
         {/* ─── Display headline ─────────────────────────── */}
@@ -204,7 +185,7 @@ export default function DashboardHero({
                     Hitta en match nu
                   </div>
                   <div className="text-[11px] sm:text-[12px] text-white/85 font-medium leading-tight mt-0.5">
-                    {hasLive ? `${nearbyCount} öppna matcher väntar` : "Utforska alla öppna matcher"}
+                    {hasOpenMatches ? `${nearbyCount} öppna matcher väntar` : "Utforska alla öppna matcher"}
                   </div>
                 </div>
 

@@ -144,9 +144,9 @@ export default function NextMatchCard({ match, venue, participants = [] }) {
           style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent)' }}
         />
 
-        <div className="relative z-10 p-4 sm:p-5">
+        <div className="relative z-10 p-4 sm:p-5 lg:p-5">
           {/* Eyebrow + share */}
-          <div className="flex items-center justify-between mb-3.5">
+          <div className="flex items-center justify-between mb-3 sm:mb-3.5">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.06] ring-1 ring-white/10">
               <span className={`w-1.5 h-1.5 rounded-full ${isUrgent ? 'bg-[#F4743B]' : 'bg-[#34C257]'} animate-pulse`} />
               <span className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-white/85">
@@ -155,58 +155,55 @@ export default function NextMatchCard({ match, venue, participants = [] }) {
             </div>
             <button
               onClick={() => setShowShareModal(true)}
-              className="w-9 h-9 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] ring-1 ring-white/10 flex items-center justify-center transition-colors"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] ring-1 ring-white/10 flex items-center justify-center transition-colors flex-shrink-0"
               aria-label="Dela match"
             >
-              <Share2 className="w-4 h-4 text-[#C2CEC8]" strokeWidth={2.2} />
+              <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#C2CEC8]" strokeWidth={2.2} />
             </button>
           </div>
 
           {/* Title */}
-          <h3 className="text-[17px] sm:text-[19px] font-black text-white tracking-tight leading-tight mb-1 truncate">
+          <h3 className="text-[16px] sm:text-[18px] lg:text-[19px] font-black text-white tracking-tight leading-tight mb-1 line-clamp-2">
             {match.title}
           </h3>
 
           {/* Meta row */}
-          <div className="flex items-center gap-3 text-[12px] text-[#B6C2BC] mb-4">
-            <span className="inline-flex items-center gap-1 min-w-0">
-              <MapPin className="w-3.5 h-3.5 text-[#34C257] flex-shrink-0" />
-              <span className="truncate">{venue?.name || 'Okänd plan'}</span>
-            </span>
+          <div className="flex items-center gap-2 text-[12px] text-[#B6C2BC] mb-3.5 sm:mb-4">
+            <MapPin className="w-3.5 h-3.5 text-[#34C257] flex-shrink-0" />
+            <span className="truncate">{venue?.name || 'Okänd plan'}</span>
           </div>
 
-          {/* Countdown pill + time */}
-          <div className="grid grid-cols-2 gap-2.5 mb-4">
+          {/* Countdown pill + time — always 2 cols, scales with container */}
+          <div className="grid grid-cols-2 gap-2 sm:gap-2.5 mb-3.5 sm:mb-4">
             <div
-              className="rounded-xl p-3 ring-1 text-left"
+              className="rounded-xl p-2.5 sm:p-3 text-left min-w-0"
               style={{
                 background: isUrgent
                   ? 'linear-gradient(135deg, rgba(244,116,59,0.14), rgba(244,116,59,0.06))'
                   : 'linear-gradient(135deg, rgba(43,168,74,0.14), rgba(43,168,74,0.05))',
-                borderColor: 'transparent',
                 boxShadow: `inset 0 0 0 1px ${isUrgent ? 'rgba(244,116,59,0.28)' : 'rgba(43,168,74,0.25)'}`,
               }}
             >
-              <div className="flex items-center gap-1.5 mb-1">
-                <Zap className={`w-3 h-3 ${isUrgent ? 'text-[#F4743B]' : 'text-[#34C257]'}`} />
-                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8FA097]">
+              <div className="flex items-center gap-1 mb-1 min-w-0">
+                <Zap className={`w-3 h-3 flex-shrink-0 ${isUrgent ? 'text-[#F4743B]' : 'text-[#34C257]'}`} />
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8FA097] truncate">
                   {timeLeft.started ? 'Läge' : 'Startar om'}
                 </span>
               </div>
-              <div className={`text-[18px] font-black tabular-nums leading-none ${isUrgent ? 'text-[#FDBA74]' : 'text-[#86EFAC]'}`}>
+              <div className={`text-[16px] sm:text-[18px] font-black tabular-nums leading-none truncate ${isUrgent ? 'text-[#FDBA74]' : 'text-[#86EFAC]'}`}>
                 {countdownLabel}
               </div>
             </div>
 
-            <div className="rounded-xl p-3 ring-1 ring-white/[0.06] bg-white/[0.02] text-left">
-              <div className="flex items-center gap-1.5 mb-1">
-                <Clock className="w-3 h-3 text-[#C2CEC8]" />
-                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8FA097]">Tid</span>
+            <div className="rounded-xl p-2.5 sm:p-3 ring-1 ring-white/[0.06] bg-white/[0.02] text-left min-w-0">
+              <div className="flex items-center gap-1 mb-1 min-w-0">
+                <Clock className="w-3 h-3 text-[#C2CEC8] flex-shrink-0" />
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8FA097] truncate">Tid</span>
               </div>
-              <div className="text-[13px] font-bold text-white leading-tight capitalize">
+              <div className="text-[12px] sm:text-[13px] font-bold text-white leading-tight capitalize truncate">
                 {formatRelativeDay()}
               </div>
-              <div className="text-[12px] text-[#B6C2BC] tabular-nums">{formatTime()}</div>
+              <div className="text-[11px] sm:text-[12px] text-[#B6C2BC] tabular-nums truncate">{formatTime()}</div>
             </div>
           </div>
 

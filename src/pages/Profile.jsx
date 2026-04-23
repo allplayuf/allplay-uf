@@ -57,6 +57,7 @@ const InboxNotifications = lazy(() => import("../components/profile/InboxNotific
 const QRModal = lazy(() => import("../components/profile/QRModal"));
 const SettingsSheet = lazy(() => import("../components/profile/SettingsSheet"));
 const OtherProfileView = lazy(() => import("../components/profile/OtherProfileView"));
+import ProfileHero from "../components/profile/ProfileHero";
 
 const SKILL_LEVEL_CONFIG = {
   beginner: { label: 'Nybörjare', icon: Target, color: 'from-[#10B981] to-[#059669]', textColor: 'text-[#A7F3D0]' },
@@ -544,18 +545,21 @@ export default function ProfilePage() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Hero Header Card - Premium redesign (darker, more responsive) */}
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="relative overflow-hidden rounded-[22px] sm:rounded-[26px] lg:rounded-[28px] border border-white/[0.08]"
-          style={{
-            background: "linear-gradient(145deg, #070D09 0%, #0C1C12 35%, #103A1E 70%, #081410 100%)",
-            boxShadow: "0 24px 60px rgba(0,0,0,0.6), 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)",
-          }}
-        >
-          {/* Pitch pattern */}
+        {/* Profile Hero — mirrors Dashboard signature */}
+        <ProfileHero
+          user={displayUser}
+          isViewingOtherProfile={isViewingOtherProfile}
+          onImageUpload={handleProfileImageUpload}
+          onShowQR={() => setShowQRModal(true)}
+          onLogout={handleLogout}
+          onReport={() => setShowReportModal(true)}
+          showMoreMenu={showMoreMenu}
+          setShowMoreMenu={setShowMoreMenu}
+          targetUserId={targetUser?.id}
+        />
+        {false && (
+        <motion.div className="hidden" style={{display:'none'}}>
+          {/* HIDDEN — replaced by ProfileHero component */}
           <svg className="absolute inset-0 w-full h-full opacity-[0.045] pointer-events-none" viewBox="0 0 400 300" preserveAspectRatio="none" aria-hidden>
             <rect x="10" y="20" width="380" height="260" fill="none" stroke="white" strokeWidth="2" />
             <circle cx="200" cy="150" r="45" fill="none" stroke="white" strokeWidth="2" />
@@ -823,6 +827,7 @@ export default function ProfilePage() {
             )}
           </div>
         </motion.div>
+        )}
 
         {/* Content based on if viewing other profile */}
         {isViewingOtherProfile ? (
