@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Palette, Check } from "lucide-react";
-import { Team } from "@/entities/Team";
+import { updateTeam } from "@/components/supabase/services";
+import { toast } from "sonner";
 
 const TEAM_COLORS = [
   { 
@@ -87,25 +88,16 @@ export default function TeamColorPicker({ team, onColorChange, isCaptain }) {
 
   const handleColorSelect = async (color) => {
     if (!isCaptain) return;
-    
+
     setSelectedColor(color);
     setIsSaving(true);
-    
+
     try {
-      await Team.update(team.id, { 
-        teamColor: color.primary,
-        teamColorLight: color.light,
-        teamColorDark: color.dark,
-        teamColorGradient: color.gradient,
-        teamColorCircleLight: color.circleLightBg,
-        teamColorCircleDark: color.circleDarkBg
-      });
-      
-      onColorChange(color);
-      alert('Lagfärg uppdaterad!');
+      await updateTeam(team.id, { teamColor: color.primary });
+      onColorChange?.(color);
+      toast.success('Lagfärg uppdaterad');
     } catch (error) {
-      console.error("Error updating team color:", error);
-      alert('Kunde inte uppdatera färg. Försök igen.');
+      toast.error(error.message || 'Kunde inte uppdatera färg');
     } finally {
       setIsSaving(false);
     }

@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect, useCallback } from 'react';
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { X, Users, Link as LinkIcon, Check, Search, Mail, Loader2, UserPlus, AtSign } from "lucide-react";
-import { base44 } from "@/api/base44Client";
-import { getUsersByIds } from "../supabase/services/usersService";
-import { motion, AnimatePresence } from "framer-motion";
+import { X, Users, Link as LinkIcon, Search, Loader2, UserPlus, AtSign } from "lucide-react";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { getMyFriendships } from "@/components/supabase/services/friendshipsService";
+import { getUsersByIds, searchPlayers } from "@/components/supabase/services";
+import { getTeamMembers, inviteToTeam } from "@/components/supabase/services/teamsService";
 
 export default function InviteFriendsToTeamModal({ team, currentUser, onClose }) {
   const [friends, setFriends] = useState([]);
@@ -15,121 +16,95 @@ export default function InviteFriendsToTeamModal({ team, currentUser, onClose })
   const [activeTab, setActiveTab] = useState('friends');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Search by username/email
+  // Search tab
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [existingMemberIds, setExistingMemberIds] = useState(new Set());
 
-  useEffect(() => {
-    loadFriends();
-  }, []);
-
-  const loadFriends = async () => {
+  const loadFriends = useCallback(async () => {
     try {
-      const [sentFriendships, receivedFriendships, teamMembers] = await Promise.all([
-        base44.entities.Friendship.filter({ requester_id: currentUser.id, status: 'accepted' }),
-        base44.entities.Friendship.filter({ addressee_id: currentUser.id, status: 'accepted' }),
-        base44.entities.TeamMember.filter({ team_id: team.id })
+      const [friendships, teamMembers] = await Promise.all([
+        getMyFriendships().catch(() => []),
+        getTeamMembers(team.id).catch(() => []),
       ]);
 
-      const allFriendships = [...sentFriendships, ...receivedFriendships];
-      const uniqueMap = new Map();
-      allFriendships.forEach(f => uniqueMap.set(f.id, f));
-      const friendships = Array.from(uniqueMap.values());
-
-      const friendIds = friendships.map(f => 
+      const accepted = (friendships || []).filter(f => f.status === 'accepted');
+      const friendIds = accepted.map(f =>
         f.requester_id === currentUser.id ? f.addressee_id : f.requester_id
       );
 
-      const memberIds = new Set(teamMembers.map(tm => tm.user_id));
+      const memberIds = new Set((teamMembers || []).map(tm => tm.user_id));
       setExistingMemberIds(memberIds);
 
       if (friendIds.length > 0) {
         const friendUsers = await getUsersByIds(friendIds);
-        setFriends(friendUsers.filter(f => !memberIds.has(f.id)));
+        setFriends((friendUsers || []).filter(f => !memberIds.has(f.id)));
+      } else {
+        setFriends([]);
       }
     } catch (error) {
-      console.error("Error loading friends:", error);
+      toast.error('Kunde inte ladda vänner');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleSearchUsers = async () => {
-    const q = userSearchQuery.trim();
-    if (q.length < 2) return;
-    
-    setIsSearching(true);
-    try {
-      // Search all users (limited by Base44 list) and filter locally
-      const allUsers = await base44.entities.User.list('full_name', 200);
-      const lowerQ = q.toLowerCase();
-      const results = allUsers.filter(u => 
-        u.id !== currentUser.id &&
-        !existingMemberIds.has(u.id) &&
-        (
-          u.full_name?.toLowerCase().includes(lowerQ) ||
-          u.email?.toLowerCase().includes(lowerQ)
-        )
-      ).slice(0, 10);
-      
-      setSearchResults(results);
-    } catch (error) {
-      console.error("Error searching users:", error);
-    } finally {
-      setIsSearching(false);
-    }
-  };
+  }, [team.id, currentUser.id]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (userSearchQuery.trim().length >= 2) {
-        handleSearchUsers();
-      } else {
+    loadFriends();
+  }, [loadFriends]);
+
+  // Debounced user search via Supabase
+  useEffect(() => {
+    const q = userSearchQuery.trim();
+    if (q.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const results = await searchPlayers(q, 10);
+        const filtered = (results || []).filter(
+          u => u.id !== currentUser.id && !existingMemberIds.has(u.id)
+        );
+        setSearchResults(filtered);
+      } catch {
         setSearchResults([]);
+      } finally {
+        setIsSearching(false);
       }
-    }, 400);
+    }, 350);
     return () => clearTimeout(timer);
-  }, [userSearchQuery]);
+  }, [userSearchQuery, currentUser.id, existingMemberIds]);
 
   const handleInvite = async (userId) => {
     setInviting(prev => ({ ...prev, [userId]: true }));
     try {
-      // Check for existing membership/invite
-      const existing = await base44.entities.TeamMember.filter({ team_id: team.id, user_id: userId });
-      if (existing.length > 0) {
-        toast.info('Denna spelare har redan en inbjudan eller är redan med i laget');
-        return;
+      const result = await inviteToTeam(team.id, userId);
+      if (result?.reason === 'already_exists') {
+        toast.info('Spelaren har redan en inbjudan eller är medlem');
+      } else {
+        toast.success('Inbjudan skickad');
       }
-
-      await base44.entities.TeamMember.create({
-        team_id: team.id,
-        user_id: userId,
-        role: 'member',
-        status: 'pending'
-      });
-
-      toast.success('Inbjudan skickad!');
       setFriends(prev => prev.filter(f => f.id !== userId));
       setSearchResults(prev => prev.filter(u => u.id !== userId));
       setExistingMemberIds(prev => new Set([...prev, userId]));
     } catch (error) {
-      console.error("Error inviting:", error);
-      toast.error('Kunde inte skicka inbjudan');
+      toast.error(error.message || 'Kunde inte skicka inbjudan');
     } finally {
       setInviting(prev => ({ ...prev, [userId]: false }));
     }
   };
 
   const handleCopyLink = () => {
-    const inviteUrl = `${window.location.origin}${window.location.pathname}?page=TeamOverview&id=${team.id}`;
+    const inviteUrl = `${window.location.origin}/TeamOverview?id=${team.id}`;
     navigator.clipboard.writeText(inviteUrl);
-    toast.success('Länk kopierad!');
+    toast.success('Länk kopierad');
   };
 
-  const filteredFriends = friends.filter(friend =>
-    (friend.full_name || friend.display_name || '').toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredFriends = friends.filter(f =>
+    (f.full_name || f.display_name || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const UserRow = ({ user, isInviting }) => (
@@ -138,12 +113,16 @@ export default function InviteFriendsToTeamModal({ team, currentUser, onClose })
         {(user.profile_image_url || user.avatar_url) ? (
           <img src={user.profile_image_url || user.avatar_url} alt="" className="w-full h-full object-cover" />
         ) : (
-          <span className="text-white font-semibold text-sm">{(user.display_name || user.full_name)?.[0] || 'U'}</span>
+          <span className="text-white font-semibold text-sm">
+            {(user.display_name || user.full_name)?.[0] || 'U'}
+          </span>
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <h4 className="font-semibold text-[#F4F7F5] text-sm truncate">{user.display_name || user.full_name}</h4>
-        <p className="text-xs text-[#9EAAA4] truncate">{user.city || user.email || ''}</p>
+        <h4 className="font-semibold text-[#F4F7F5] text-sm truncate">
+          {user.display_name || user.full_name}
+        </h4>
+        <p className="text-xs text-[#9EAAA4] truncate">{user.city || ''}</p>
       </div>
       <Button
         onClick={() => handleInvite(user.id)}
@@ -151,7 +130,11 @@ export default function InviteFriendsToTeamModal({ team, currentUser, onClose })
         size="sm"
         className="bg-[#2BA84A] hover:bg-[#248232] text-white rounded-xl h-8 px-3 text-xs font-semibold"
       >
-        {isInviting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><UserPlus className="w-3.5 h-3.5 mr-1" /> Bjud in</>}
+        {isInviting ? (
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+        ) : (
+          <><UserPlus className="w-3.5 h-3.5 mr-1" /> Bjud in</>
+        )}
       </Button>
     </div>
   );
@@ -176,10 +159,13 @@ export default function InviteFriendsToTeamModal({ team, currentUser, onClose })
           {/* Header */}
           <div className="border-b border-[#223029] p-4 flex-shrink-0">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-bold text-[#F4F7F5]">
+              <h2 className="text-lg font-bold text-[#F4F7F5] truncate pr-2">
                 Bjud in till {team.name}
               </h2>
-              <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#18221E] text-[#9EAAA4]">
+              <button
+                onClick={onClose}
+                className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#18221E] text-[#9EAAA4] flex-shrink-0"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -188,8 +174,8 @@ export default function InviteFriendsToTeamModal({ team, currentUser, onClose })
             <div className="flex gap-2">
               {[
                 { id: 'friends', label: 'Vänner', icon: Users },
-                { id: 'search', label: 'Sök spelare', icon: AtSign },
-                { id: 'link', label: 'Dela länk', icon: LinkIcon },
+                { id: 'search', label: 'Sök', icon: AtSign },
+                { id: 'link', label: 'Länk', icon: LinkIcon },
               ].map(tab => (
                 <button
                   key={tab.id}
@@ -247,12 +233,14 @@ export default function InviteFriendsToTeamModal({ team, currentUser, onClose })
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9EAAA4] w-4 h-4" />
                   <Input
-                    placeholder="Sök på namn eller e-post..."
+                    placeholder="Sök på namn..."
                     value={userSearchQuery}
                     onChange={(e) => setUserSearchQuery(e.target.value)}
                     className="pl-9 bg-[#18221E] border-[#223029] text-[#F4F7F5] rounded-xl h-10 text-sm"
                   />
-                  {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-[#2BA84A]" />}
+                  {isSearching && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-[#2BA84A]" />
+                  )}
                 </div>
 
                 {userSearchQuery.trim().length < 2 ? (
@@ -276,21 +264,19 @@ export default function InviteFriendsToTeamModal({ team, currentUser, onClose })
             )}
 
             {activeTab === 'link' && (
-              <div className="space-y-4">
-                <div className="bg-[#18221E] rounded-xl p-5 border border-[#223029] text-center">
-                  <LinkIcon className="w-10 h-10 text-[#2BA84A] mx-auto mb-3" />
-                  <h3 className="text-base font-bold text-[#F4F7F5] mb-1">Dela inbjudningslänk</h3>
-                  <p className="text-xs text-[#9EAAA4] mb-4">
-                    Dela länken med vem som helst – de kan ansöka om att gå med
-                  </p>
-                  <Button
-                    onClick={handleCopyLink}
-                    className="w-full bg-[#2BA84A] hover:bg-[#248232] text-white rounded-xl h-10 font-semibold"
-                  >
-                    <LinkIcon className="w-4 h-4 mr-2" />
-                    Kopiera länk
-                  </Button>
-                </div>
+              <div className="bg-[#18221E] rounded-xl p-5 border border-[#223029] text-center">
+                <LinkIcon className="w-10 h-10 text-[#2BA84A] mx-auto mb-3" />
+                <h3 className="text-base font-bold text-[#F4F7F5] mb-1">Dela inbjudningslänk</h3>
+                <p className="text-xs text-[#9EAAA4] mb-4">
+                  Dela länken med vem som helst – de kan ansöka om att gå med
+                </p>
+                <Button
+                  onClick={handleCopyLink}
+                  className="w-full bg-[#2BA84A] hover:bg-[#248232] text-white rounded-xl h-10 font-semibold"
+                >
+                  <LinkIcon className="w-4 h-4 mr-2" />
+                  Kopiera länk
+                </Button>
               </div>
             )}
           </div>

@@ -88,7 +88,10 @@ export {
   getMyTeams,
   getMyTeamMemberships,
   createTeam as createSupabaseTeam,
-  deleteTeamRest
+  deleteTeamRest,
+  updateTeam,
+  inviteToTeam,
+  requestJoinTeam
 } from './teamsService';
 
 // Reports

@@ -27,8 +27,6 @@ export async function getTeams() {
   );
 
   if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    console.error('[teamsService] getTeams failed:', res.status, text);
     throw new Error(`Kunde inte hämta lag: ${res.status}`);
   }
 
@@ -49,8 +47,6 @@ export async function getTeamById(teamId) {
   );
 
   if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    console.error('[teamsService] getTeamById failed:', res.status, text);
     throw new Error(`Kunde inte hämta lag: ${res.status}`);
   }
 
@@ -72,8 +68,6 @@ export async function getTeamMembers(teamId) {
   );
 
   if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    console.error('[teamsService] getTeamMembers failed:', res.status, text);
     return [];
   }
 
@@ -182,8 +176,6 @@ export async function deleteTeamRest(teamId) {
   );
 
   if (!res.ok) {
-    const err = await res.text().catch(() => '');
-    console.error('[teamsService] deleteTeamRest failed:', res.status, err);
     throw new Error(`Kunde inte radera lag: ${res.status}`);
   }
   return { ok: true };
@@ -207,15 +199,78 @@ export async function createTeam(data) {
   if (!payload.name) throw new Error('Lagnamn krävs');
   if (!payload.city) throw new Error('Stad krävs');
 
-  console.log('[teamsService] createTeam payload:', JSON.stringify(payload));
-
   const result = await callEdgeFunction(EDGE.createTeam, payload);
-  
-  console.log('[teamsService] createTeam result:', JSON.stringify(result));
-  
+
   if (result?.error) {
     throw new Error(result.error);
   }
-  
+
   return result;
+}
+
+/**
+ * Update team fields (RLS enforced — only captain can update)
+ */
+export async function updateTeam(teamId, updates) {
+  if (!teamId) throw new Error('teamId is required');
+  await waitForAuth();
+  const headers = { ...(await supabaseHeaders()), Prefer: 'return=representation' };
+
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/teams?id=eq.${encodeURIComponent(teamId)}`,
+    { method: 'PATCH', headers, body: JSON.stringify(updates) }
+  );
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Kunde inte uppdatera lag: ${res.status} ${text}`);
+  }
+  const data = await res.json();
+  return data?.[0] || null;
+}
+
+/**
+ * Invite a user to a team by creating a pending team_members row (RLS enforced)
+ */
+export async function inviteToTeam(teamId, userId) {
+  if (!teamId || !userId) throw new Error('teamId and userId required');
+  await waitForAuth();
+  const headers = { ...(await supabaseHeaders()), Prefer: 'return=representation' };
+
+  // Check existing membership first
+  const existingRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/team_members?team_id=eq.${teamId}&user_id=eq.${userId}&select=*`,
+    { method: 'GET', headers: await supabaseHeaders() }
+  );
+  if (existingRes.ok) {
+    const existing = await existingRes.json();
+    if (existing.length > 0) {
+      return { ok: false, reason: 'already_exists', row: existing[0] };
+    }
+  }
+
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/team_members`,
+    {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ team_id: teamId, user_id: userId, role: 'member', status: 'pending' })
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Kunde inte skicka inbjudan: ${res.status} ${text}`);
+  }
+  const data = await res.json();
+  return { ok: true, row: data?.[0] || null };
+}
+
+/**
+ * Request to join a team as current user (creates pending team_members row)
+ */
+export async function requestJoinTeam(teamId) {
+  const userId = sessionStore.user?.id;
+  if (!userId) throw new Error('Du måste vara inloggad');
+  return inviteToTeam(teamId, userId);
 }
