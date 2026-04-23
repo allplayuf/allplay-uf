@@ -1,0 +1,33 @@
+{
+  "name": "EmailNotificationLog",
+  "type": "object",
+  "description": "Tracks which automated notification emails have been sent, to prevent duplicates across cron runs.",
+  "properties": {
+    "notification_type": {
+      "type": "string",
+      "enum": [
+        "match_reminder",
+        "inactivity"
+      ],
+      "description": "Type of automated notification"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Recipient user ID"
+    },
+    "match_id": {
+      "type": "string",
+      "description": "Match ID (only for match_reminder)"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the email was sent"
+    }
+  },
+  "required": [
+    "notification_type",
+    "user_id",
+    "sent_at"
+  ]
+}
