@@ -1,24 +1,20 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, MapPin, ArrowRight, ChevronLeft, ChevronRight, UserCheck, Radar } from "lucide-react";
+import { Calendar, ArrowRight, ChevronLeft, ChevronRight, UserCheck, Radar } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import MatchCard from "../matches/MatchCard";
 import PremiumEmptyState from "../ui/premium-empty-state";
 import { triggerHaptic } from "../utils/motionTokens";
 
 /**
- * Responsive matches carousel for the dashboard.
+ * Dashboard matches carousel.
  *
- * Layout strategy per breakpoint:
- *  - Mobile   (<640px):  2-row header. One card + peek. Dots indicator.
- *  - Tablet   (640-1024): Single row header. ~2 cards visible.
- *  - Desktop  (≥1024):   Single row header with arrows. 3 cards visible.
- *
- * Interaction:
- *  - Auto-drift (24px/s) pauses on touch/hover/focus for 4s.
- *  - Snap-proximity so manual swipes still feel natural.
- *  - Infinite feel: smooth rewind to start when reaching end.
+ * Design goals:
+ *  - Single-line header on all breakpoints: [Matcher] [Segmented] [Visa alla]
+ *  - One full card visible on mobile with a small peek of the next
+ *  - Auto-rotate by snapping to the next card every 4.5s (pauses on interaction)
+ *  - Dots indicator on mobile, arrows on desktop
  */
 export default function MatchesCarousel({
   nearbyMatches = [],
@@ -38,7 +34,7 @@ export default function MatchesCarousel({
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [activeDot, setActiveDot] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const matches = useMemo(() => {
     if (activeTab === "mine") {
@@ -51,22 +47,34 @@ export default function MatchesCarousel({
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
+      setActiveIndex(0);
     }
   }, [activeTab]);
 
-  // Track scroll position: enable arrows + active dot on mobile
+  // Measures card step (card width + gap) based on first child.
+  const getCardStep = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el || !el.firstElementChild) return 0;
+    const first = el.firstElementChild;
+    const second = el.children[1];
+    if (second) {
+      return second.getBoundingClientRect().left - first.getBoundingClientRect().left;
+    }
+    return first.getBoundingClientRect().width + 12;
+  }, []);
+
+  // Track scroll position: enable arrows + active index
   const updateScrollState = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
     setCanScrollLeft(el.scrollLeft > 8);
     setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 8);
-    const firstChild = el.firstElementChild;
-    if (firstChild) {
-      const cardWidth = firstChild.getBoundingClientRect().width + 12;
-      const idx = Math.round(el.scrollLeft / cardWidth);
-      setActiveDot(Math.min(idx, matches.length - 1));
+    const step = getCardStep();
+    if (step > 0) {
+      const idx = Math.round(el.scrollLeft / step);
+      setActiveIndex(Math.min(Math.max(idx, 0), matches.length - 1));
     }
-  }, [matches.length]);
+  }, [matches.length, getCardStep]);
 
   useEffect(() => {
     updateScrollState();
@@ -80,11 +88,11 @@ export default function MatchesCarousel({
     };
   }, [updateScrollState]);
 
-  // Pause auto-scroll for 4s on any user interaction
+  // Pause auto-rotate for 6s on any user interaction
   const pauseAutoScroll = useCallback(() => {
     setIsPaused(true);
     if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current);
-    pauseTimerRef.current = setTimeout(() => setIsPaused(false), 4000);
+    pauseTimerRef.current = setTimeout(() => setIsPaused(false), 6000);
   }, []);
 
   useEffect(() => {
@@ -96,63 +104,53 @@ export default function MatchesCarousel({
   const scrollByAmount = (dir) => {
     const el = scrollRef.current;
     if (!el) return;
-    const amount = el.clientWidth * 0.85;
-    el.scrollBy({ left: dir * amount, behavior: "smooth" });
+    const step = getCardStep() || el.clientWidth * 0.85;
+    el.scrollBy({ left: dir * step, behavior: "smooth" });
     triggerHaptic("light");
     pauseAutoScroll();
   };
 
-  // Smooth continuous auto-drift using rAF. Pauses on interaction.
+  // Auto-rotate: snap to next card every 4.5s. Loops back to 0 at end.
   useEffect(() => {
     if (matches.length <= 1 || isPaused) return;
-    let rafId;
-    let lastTs = performance.now();
-    const pxPerSec = 22;
 
-    const tick = (ts) => {
+    const interval = setInterval(() => {
       const el = scrollRef.current;
-      if (!el) {
-        rafId = requestAnimationFrame(tick);
-        return;
-      }
-      const dt = Math.min((ts - lastTs) / 1000, 0.05);
-      lastTs = ts;
+      if (!el) return;
 
-      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2;
+      const step = getCardStep();
+      if (step <= 0) return;
+
+      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
       if (atEnd) {
         el.scrollTo({ left: 0, behavior: "smooth" });
-        lastTs = ts + 800;
       } else {
-        el.scrollLeft += pxPerSec * dt;
+        el.scrollBy({ left: step, behavior: "smooth" });
       }
-      rafId = requestAnimationFrame(tick);
-    };
+    }, 4500);
 
-    rafId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafId);
-  }, [matches.length, isPaused, activeTab]);
+    return () => clearInterval(interval);
+  }, [matches.length, isPaused, activeTab, getCardStep]);
 
   const tabs = [
     {
       id: "nearby",
       label: "I närheten",
-      shortLabel: "Nära",
       icon: Radar,
       count: nearbyMatches.length,
     },
     {
       id: "mine",
       label: isGuest ? "Kommande" : "Anmäld",
-      shortLabel: isGuest ? "Kommande" : "Anmäld",
       icon: UserCheck,
       count: myMatches.length,
     },
   ];
 
-  const SegmentedControl = ({ compact = false }) => (
+  const SegmentedControl = () => (
     <div
       role="tablist"
-      className="inline-flex items-center gap-1 bg-[#0F1513] border border-[#243029] rounded-full p-1 shadow-[inset_0_1px_2px_rgba(0,0,0,0.35)]"
+      className="inline-flex items-center gap-0.5 bg-[#0F1513] border border-[#243029] rounded-full p-0.5 shadow-[inset_0_1px_2px_rgba(0,0,0,0.35)]"
     >
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
@@ -167,13 +165,10 @@ export default function MatchesCarousel({
               setActiveTab(tab.id);
               pauseAutoScroll();
             }}
-            className={`relative h-9 px-3.5 rounded-full text-[13px] font-semibold transition-colors flex items-center gap-1.5 whitespace-nowrap ${
-              isActive
-                ? "text-white"
-                : "text-[#9EAAA4] hover:text-[#CFE8D6]"
+            className={`relative h-8 px-2.5 sm:px-3 rounded-full text-[12px] sm:text-[13px] font-semibold transition-colors flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${
+              isActive ? "text-white" : "text-[#9EAAA4] hover:text-[#CFE8D6]"
             }`}
           >
-            {/* Animated active pill */}
             {isActive && (
               <motion.span
                 layoutId="segmented-pill"
@@ -183,15 +178,11 @@ export default function MatchesCarousel({
               />
             )}
             <Icon className="w-3.5 h-3.5 relative z-10" strokeWidth={2.5} />
-            <span className="relative z-10">
-              {compact ? tab.shortLabel : tab.label}
-            </span>
+            <span className="relative z-10">{tab.label}</span>
             {tab.count > 0 && (
               <span
                 className={`relative z-10 text-[10px] font-bold tabular-nums min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center ${
-                  isActive
-                    ? "bg-white/25 text-white"
-                    : "bg-[#18221E] text-[#B6C2BC]"
+                  isActive ? "bg-white/25 text-white" : "bg-[#18221E] text-[#B6C2BC]"
                 }`}
               >
                 {tab.count}
@@ -205,38 +196,18 @@ export default function MatchesCarousel({
 
   return (
     <div>
-      {/* MOBILE HEADER — 2 rows so nothing clips */}
-      <div className="sm:hidden mb-3 px-1">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-9 h-9 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Calendar className="w-4 h-4 text-[#2BA84A]" strokeWidth={2.5} />
-            </div>
-            <h2 className="text-[17px] font-bold text-[#F4F7F5] truncate">
-              Matcher
-            </h2>
-          </div>
-          <Link
-            to={createPageUrl("Matches")}
-            className="text-[13px] font-semibold text-[#2BA84A] hover:text-[#CFE8D6] flex items-center gap-0.5 transition-colors flex-shrink-0"
-          >
-            Visa alla
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-        <SegmentedControl compact={false} />
-      </div>
-
-      {/* DESKTOP / TABLET HEADER — single row */}
-      <div className="hidden sm:flex items-center gap-3 mb-4 px-1">
+      {/* HEADER — one row on all breakpoints */}
+      <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 px-1">
+        {/* Title — icon only on mobile, icon + text on sm+ */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
-            <Calendar className="w-5 h-5 text-[#2BA84A]" strokeWidth={2.5} />
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
+            <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-[#2BA84A]" strokeWidth={2.5} />
           </div>
-          <h2 className="text-xl font-bold text-[#F4F7F5]">Matcher</h2>
+          <h2 className="hidden sm:block text-xl font-bold text-[#F4F7F5]">Matcher</h2>
         </div>
 
-        <div className="flex-1 flex justify-center">
+        {/* Segmented control takes remaining space, centered */}
+        <div className="flex-1 flex justify-center min-w-0">
           <SegmentedControl />
         </div>
 
@@ -268,11 +239,13 @@ export default function MatchesCarousel({
           </button>
         </div>
 
+        {/* "Visa alla" — always visible, icon-only on narrow mobile */}
         <Link
           to={createPageUrl("Matches")}
-          className="text-sm font-semibold text-[#2BA84A] hover:text-[#CFE8D6] flex items-center gap-1 transition-colors flex-shrink-0"
+          className="text-[12px] sm:text-sm font-semibold text-[#2BA84A] hover:text-[#CFE8D6] flex items-center gap-0.5 sm:gap-1 transition-colors flex-shrink-0"
         >
-          Visa alla
+          <span className="hidden xs:inline sm:inline">Visa alla</span>
+          <span className="xs:hidden sm:hidden">Alla</span>
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
@@ -313,7 +286,7 @@ export default function MatchesCarousel({
         />
       ) : (
         <div className="relative">
-          {/* Edge fades — only on mobile/tablet where content bleeds off screen */}
+          {/* Edge fades — hint at scrollable content */}
           <div
             className={`pointer-events-none absolute left-0 top-0 bottom-0 w-6 sm:w-8 bg-gradient-to-r from-[#0F1513] to-transparent z-10 transition-opacity duration-200 ${
               canScrollLeft ? "opacity-100" : "opacity-0"
@@ -337,7 +310,7 @@ export default function MatchesCarousel({
               onMouseEnter={() => setIsPaused(true)}
               onMouseLeave={() => setIsPaused(false)}
               onFocusCapture={pauseAutoScroll}
-              className="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-proximity scrollbar-hide pb-2 -mx-3 px-3 sm:mx-0 sm:px-0"
+              className="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 -mx-3 px-3 sm:mx-0 sm:px-0"
               style={{
                 scrollbarWidth: "none",
                 msOverflowStyle: "none",
@@ -349,7 +322,7 @@ export default function MatchesCarousel({
               {matches.map((match, index) => (
                 <div
                   key={match.id}
-                  className="flex-shrink-0 snap-start w-[86%] sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
+                  className="flex-shrink-0 snap-start w-[92%] sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
                 >
                   <MatchCard
                     match={match}
@@ -373,9 +346,7 @@ export default function MatchesCarousel({
                 <div
                   key={i}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
-                    i === activeDot
-                      ? "w-5 bg-[#2BA84A]"
-                      : "w-1.5 bg-[#2BA84A]/25"
+                    i === activeIndex ? "w-5 bg-[#2BA84A]" : "w-1.5 bg-[#2BA84A]/25"
                   }`}
                 />
               ))}

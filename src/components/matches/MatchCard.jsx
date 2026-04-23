@@ -167,12 +167,12 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
     />
     
     <div className="h-full">
-      <Card className={`bg-[#121715] border border-[#243029] rounded-[20px] shadow-[0_10px_28px_rgba(0,0,0,0.38)] hover:shadow-[0_14px_36px_rgba(0,0,0,0.45),0_0_0_1px_rgba(43,168,74,0.25)] hover:border-[#2BA84A]/40 hover:-translate-y-0.5 transition-[transform,box-shadow,border-color] duration-200 h-full min-h-[280px] flex flex-col overflow-hidden group ${
+      <Card className={`bg-[#121715] border border-[#243029] rounded-[18px] shadow-[0_8px_20px_rgba(0,0,0,0.35)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.42),0_0_0_1px_rgba(43,168,74,0.25)] hover:border-[#2BA84A]/40 hover:-translate-y-0.5 transition-[transform,box-shadow,border-color] duration-200 h-full min-h-[220px] flex flex-col overflow-hidden group ${
         match.status === 'completed' ? 'opacity-75' : ''
       }`}
-      style={{ boxShadow: '0 10px 28px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.04)' }}
+      style={{ boxShadow: '0 8px 20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)' }}
       >
-        <CardContent className="p-4 flex flex-col h-full">
+        <CardContent className="p-3 sm:p-4 flex flex-col h-full">
           <div className="space-y-3 flex flex-col h-full">
             {/* Header — status dot + title + one compact chip */}
             <div>
@@ -229,7 +229,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
             </div>
 
             {/* Players section — unified fixed height across all card types */}
-            <div className="space-y-2 mt-auto min-h-[68px] flex flex-col justify-end">
+            <div className="space-y-1.5 mt-auto min-h-[56px] flex flex-col justify-end">
               {/* Header row: label + count */}
               <div className="flex items-center justify-between text-xs">
                 {match.is_spontaneous ? (
@@ -318,7 +318,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
             </div>
 
             {/* Actions - ALWAYS show Info button, conditionally show Join */}
-            <div className="flex gap-2.5 pt-3 mt-auto">
+            <div className="flex gap-2 pt-2.5 mt-auto">
               {/* Join button — premium pulsing CTA */}
               {canJoin && (
                 <motion.button
@@ -332,7 +332,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
                     ],
                   }}
                   transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-                  className="flex-1 relative overflow-hidden text-white text-[15px] font-extrabold uppercase tracking-wide h-12 rounded-[14px] flex items-center justify-center gap-2 ring-1 ring-white/10"
+                  className="flex-1 relative overflow-hidden text-white text-[14px] font-extrabold uppercase tracking-wide h-10 rounded-[12px] flex items-center justify-center gap-2 ring-1 ring-white/10"
                   style={{
                     background:
                       'linear-gradient(180deg, #FF8A4D 0%, #F4743B 55%, #D95D26 100%)',
@@ -364,14 +364,14 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
 
               {/* Status badges for non-joinable states */}
               {match.status === 'completed' && (
-                <div className="flex-1 h-12 flex items-center justify-center border border-[#243029] rounded-[14px] bg-[#18221E]">
-                  <span className="text-sm font-bold text-[#9EAAA4]">Avslutad</span>
+                <div className="flex-1 h-10 flex items-center justify-center border border-[#243029] rounded-[12px] bg-[#18221E]">
+                  <span className="text-[13px] font-bold text-[#9EAAA4]">Avslutad</span>
                 </div>
               )}
 
               {hasJoined && match.status !== 'completed' && (
-                <div className="flex-1 h-12 flex items-center justify-center border border-[#2BA84A]/30 rounded-[14px] bg-[#2BA84A]/10">
-                  <span className="text-sm font-bold text-[#34C257]">Anmäld ✓</span>
+                <div className="flex-1 h-10 flex items-center justify-center border border-[#2BA84A]/30 rounded-[12px] bg-[#2BA84A]/10">
+                  <span className="text-[13px] font-bold text-[#34C257]">Anmäld ✓</span>
                 </div>
               )}
 
@@ -379,14 +379,14 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
               {isGuest ? (
                 <button
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowAuthGate(true); }}
-                  className={`h-12 border border-[#243029] hover:bg-[#18221E] hover:border-[#2BA84A]/40 text-[#F5F8F6] text-sm font-bold rounded-[14px] transition-colors flex items-center justify-center gap-1 ${canJoin ? 'flex-shrink-0 px-4' : 'flex-1 w-full'}`}
+                  className={`h-10 border border-[#243029] hover:bg-[#18221E] hover:border-[#2BA84A]/40 text-[#F5F8F6] text-[13px] font-bold rounded-[12px] transition-colors flex items-center justify-center gap-1 ${canJoin ? 'flex-shrink-0 px-3.5' : 'flex-1 w-full'}`}
                 >
                   Info
                   <ChevronRight className="w-4 h-4" />
                 </button>
               ) : (
                 <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`} className={canJoin ? "flex-shrink-0" : "flex-1"}>
-                  <button className={`h-12 border border-[#243029] hover:bg-[#18221E] hover:border-[#2BA84A]/40 text-[#F5F8F6] text-sm font-bold rounded-[14px] transition-colors flex items-center justify-center gap-1 ${canJoin ? 'px-4' : 'w-full'}`}>
+                  <button className={`h-10 border border-[#243029] hover:bg-[#18221E] hover:border-[#2BA84A]/40 text-[#F5F8F6] text-[13px] font-bold rounded-[12px] transition-colors flex items-center justify-center gap-1 ${canJoin ? 'px-3.5' : 'w-full'}`}>
                     Info
                     <ChevronRight className="w-4 h-4" />
                   </button>
