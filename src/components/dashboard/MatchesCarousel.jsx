@@ -29,6 +29,8 @@ export default function MatchesCarousel({
   const scrollRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [activeDot, setActiveDot] = useState(0);
 
   const matches = useMemo(() => {
     if (activeTab === "mine") return myMatches;
@@ -42,12 +44,19 @@ export default function MatchesCarousel({
     }
   }, [activeTab]);
 
-  // Track scroll position for arrow enable/disable
+  // Track scroll position for arrow enable/disable + active dot
   const updateScrollState = () => {
     const el = scrollRef.current;
     if (!el) return;
     setCanScrollLeft(el.scrollLeft > 8);
     setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 8);
+    // Active dot based on scroll position
+    const firstChild = el.firstElementChild;
+    if (firstChild) {
+      const cardWidth = firstChild.getBoundingClientRect().width + 16; // gap-4 = 16px
+      const idx = Math.round(el.scrollLeft / cardWidth);
+      setActiveDot(Math.min(idx, matches.length - 1));
+    }
   };
 
   useEffect(() => {
@@ -69,6 +78,26 @@ export default function MatchesCarousel({
     el.scrollBy({ left: dir * amount, behavior: "smooth" });
     triggerHaptic("light");
   };
+
+  // Auto-scroll: advance one card every 4s, loop back to start at end.
+  // Pauses on touch/hover interaction.
+  useEffect(() => {
+    if (matches.length <= 1 || isPaused) return;
+    const interval = setInterval(() => {
+      const el = scrollRef.current;
+      if (!el) return;
+      const firstChild = el.firstElementChild;
+      if (!firstChild) return;
+      const cardWidth = firstChild.getBoundingClientRect().width + 16;
+      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8;
+      if (atEnd) {
+        el.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        el.scrollBy({ left: cardWidth, behavior: "smooth" });
+      }
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [matches.length, isPaused, activeTab]);
 
   const tabs = [
     { id: "nearby", label: "Nära dig", count: nearbyMatches.length },
@@ -205,7 +234,11 @@ export default function MatchesCarousel({
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
             ref={scrollRef}
-            className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 -mx-4 px-4 sm:mx-0 sm:px-1"
+            onTouchStart={() => setIsPaused(true)}
+            onTouchEnd={() => setTimeout(() => setIsPaused(false), 3000)}
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+            className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 -mx-3 px-3 sm:mx-0 sm:px-1"
             style={{
               scrollbarWidth: "none",
               msOverflowStyle: "none",
@@ -215,7 +248,7 @@ export default function MatchesCarousel({
             {matches.map((match, index) => (
               <div
                 key={match.id}
-                className="flex-shrink-0 snap-start w-[88%] sm:w-[380px] lg:w-[420px]"
+                className="flex-shrink-0 snap-start w-[78%] sm:w-[340px] lg:w-[400px]"
               >
                 <MatchCard
                   match={match}
@@ -231,13 +264,17 @@ export default function MatchesCarousel({
             ))}
           </motion.div>
 
-          {/* Mobile scroll hint dots */}
+          {/* Mobile active-dot indicator */}
           {matches.length > 1 && (
             <div className="flex lg:hidden justify-center gap-1.5 mt-3">
-              {matches.slice(0, Math.min(matches.length, 6)).map((_, i) => (
+              {matches.slice(0, Math.min(matches.length, 8)).map((_, i) => (
                 <div
                   key={i}
-                  className="w-1.5 h-1.5 rounded-full bg-[#2BA84A]/30"
+                  className={`h-1.5 rounded-full transition-all ${
+                    i === activeDot
+                      ? "w-5 bg-[#2BA84A]"
+                      : "w-1.5 bg-[#2BA84A]/25"
+                  }`}
                 />
               ))}
             </div>
