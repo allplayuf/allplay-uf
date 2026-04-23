@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, Users as UsersIcon, Flag, Info } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { useCustomDialog } from "../components/ui/custom-dialog";
+import feedback from "../components/ui/feedback-toast";
 import { LazyMatchEndModal, LazyInviteFriendsModal, LazyMatchReportModal } from "../components/matches/LazyMatchDetails";
 import { CACHE_STRATEGIES } from "../components/providers/QueryProvider";
 import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
@@ -183,10 +184,10 @@ export default function MatchDetailPage() {
     },
     onError: (err, _vars, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(["supabase-matchParticipants", matchId], ctx.prev);
-      alert("Kunde inte anmäla dig", err.message || "Försök igen.", { type: "alert" });
+      feedback.error("Kunde inte anmäla dig", { description: err.message || "Försök igen." });
     },
     onSuccess: () => {
-      alert("Du är med! ⚽", `Du har anmält dig till "${match?.title || "matchen"}".`, { type: "success" });
+      feedback.success("Du är med! ⚽", { description: `Anmäld till "${match?.title || "matchen"}"` });
     },
     onSettled: () => {
       setIsActionLoading(false);
@@ -216,10 +217,10 @@ export default function MatchDetailPage() {
       queryClient.invalidateQueries({ queryKey: ["supabase-match", matchId] });
       queryClient.invalidateQueries({ queryKey: ["matches-infinite"] });
       queryClient.invalidateQueries({ queryKey: ["supabase-myParticipantMatchIds"] });
-      await alert("Match lämnad", "Du har lämnat matchen", { type: "info" });
+      feedback.info("Du har lämnat matchen");
     } catch (error) {
       if (prev) queryClient.setQueryData(["supabase-matchParticipants", matchId], prev);
-      await alert("Kunde inte lämna", error.message || "Försök igen.", { type: "alert" });
+      feedback.error("Kunde inte lämna", { description: error.message || "Försök igen." });
     } finally {
       setIsActionLoading(false);
     }
@@ -236,9 +237,9 @@ export default function MatchDetailPage() {
       queryClient.invalidateQueries({ queryKey: ["supabase-match", matchId] });
       queryClient.invalidateQueries({ queryKey: ["supabase-matchParticipants", matchId] });
       queryClient.invalidateQueries({ queryKey: ["matches-infinite"] });
-      await alert("Match avslutad!", "Resultaten har sparats.", { type: "success" });
+      feedback.success("Match avslutad!", { description: "Resultaten har sparats." });
     } catch (error) {
-      await alert("Kunde inte avsluta", error.message || "Försök igen.", { type: "alert" });
+      feedback.error("Kunde inte avsluta", { description: error.message || "Försök igen." });
     }
   };
 
@@ -246,17 +247,17 @@ export default function MatchDetailPage() {
     try {
       const result = await sendFriendRequest(participantId);
       if (result.action === "created") {
-        await alert("Vänförfrågan skickad! 🤝", "Din vän får ett meddelande.", { type: "success" });
+        feedback.success("Vänförfrågan skickad 🤝");
       } else if (result.action === "accepted") {
-        await alert("Ni är nu vänner! 🎉", "Vänskap bekräftad.", { type: "success" });
+        feedback.success("Ni är nu vänner! 🎉");
       } else if (result.action === "already_sent") {
-        await alert("Redan skickad", "Du har redan skickat en vänförfrågan.", { type: "info" });
+        feedback.info("Vänförfrågan redan skickad");
       } else if (result.action === "already_friends") {
-        await alert("Redan vänner", "Ni är redan vänner.", { type: "info" });
+        feedback.info("Ni är redan vänner");
       }
       queryClient.invalidateQueries({ queryKey: ["friendships", user?.id] });
     } catch (error) {
-      await alert("Kunde inte skicka", error.message || "Försök igen.", { type: "alert" });
+      feedback.error("Kunde inte skicka", { description: error.message || "Försök igen." });
     }
   };
 
@@ -288,10 +289,10 @@ export default function MatchDetailPage() {
     try {
       await deleteMatch(matchId);
       queryClient.invalidateQueries({ queryKey: ["matches-infinite"] });
-      await alert("Match borttagen", "Matchen har tagits bort", { type: "success" });
+      feedback.success("Match borttagen");
       navigate(createPageUrl("Matches"));
     } catch (error) {
-      await alert("Kunde inte ta bort", error.message || "Försök igen.", { type: "alert" });
+      feedback.error("Kunde inte ta bort", { description: error.message || "Försök igen." });
     } finally {
       setIsActionLoading(false);
     }
@@ -471,9 +472,9 @@ export default function MatchDetailPage() {
         match={match}
         currentUser={user}
         onClose={() => setShowInviteModal(false)}
-        onInvitesSent={async () => {
+        onInvitesSent={() => {
           setShowInviteModal(false);
-          await alert("Inbjudningar skickade!", "Dina vänner har blivit inbjudna.", { type: "success" });
+          feedback.success("Inbjudningar skickade!", { description: "Dina vänner har blivit inbjudna." });
         }}
       />
       <LazyMatchReportModal

@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { X, Users, Link as LinkIcon, Search, Loader2, UserPlus, AtSign } from "lucide-react";
-import { motion } from "framer-motion";
-import { toast } from "sonner";
+import { X, Users, Link as LinkIcon, Search, Loader2, UserPlus, AtSign, Check } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import feedback from "@/components/ui/feedback-toast";
 import { getMyFriendships } from "@/components/supabase/services/friendshipsService";
 import { getUsersByIds, searchPlayers } from "@/components/supabase/services";
 import { getTeamMembers, inviteToTeam } from "@/components/supabase/services/teamsService";
@@ -13,6 +13,7 @@ export default function InviteFriendsToTeamModal({ team, currentUser, onClose })
   const [friends, setFriends] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [inviting, setInviting] = useState({});
+  const [invited, setInvited] = useState({}); // shows checkmark briefly before row disappears
   const [activeTab, setActiveTab] = useState('friends');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -44,7 +45,7 @@ export default function InviteFriendsToTeamModal({ team, currentUser, onClose })
         setFriends([]);
       }
     } catch (error) {
-      toast.error('Kunde inte ladda vänner');
+      feedback.error('Kunde inte ladda vänner');
     } finally {
       setIsLoading(false);
     }
@@ -83,15 +84,24 @@ export default function InviteFriendsToTeamModal({ team, currentUser, onClose })
     try {
       const result = await inviteToTeam(team.id, userId);
       if (result?.reason === 'already_exists') {
-        toast.info('Spelaren har redan en inbjudan eller är medlem');
+        feedback.info('Spelaren har redan en inbjudan eller är medlem');
       } else {
-        toast.success('Inbjudan skickad');
+        feedback.success('Inbjudan skickad');
       }
-      setFriends(prev => prev.filter(f => f.id !== userId));
-      setSearchResults(prev => prev.filter(u => u.id !== userId));
+      // Show subtle inline checkmark on the row for 900ms before removing
+      setInvited(prev => ({ ...prev, [userId]: true }));
       setExistingMemberIds(prev => new Set([...prev, userId]));
+      setTimeout(() => {
+        setFriends(prev => prev.filter(f => f.id !== userId));
+        setSearchResults(prev => prev.filter(u => u.id !== userId));
+        setInvited(prev => {
+          const next = { ...prev };
+          delete next[userId];
+          return next;
+        });
+      }, 900);
     } catch (error) {
-      toast.error(error.message || 'Kunde inte skicka inbjudan');
+      feedback.error(error.message || 'Kunde inte skicka inbjudan');
     } finally {
       setInviting(prev => ({ ...prev, [userId]: false }));
     }
@@ -100,15 +110,24 @@ export default function InviteFriendsToTeamModal({ team, currentUser, onClose })
   const handleCopyLink = () => {
     const inviteUrl = `${window.location.origin}/TeamOverview?id=${team.id}`;
     navigator.clipboard.writeText(inviteUrl);
-    toast.success('Länk kopierad');
+    feedback.success('Länk kopierad');
   };
 
   const filteredFriends = friends.filter(f =>
     (f.full_name || f.display_name || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const UserRow = ({ user, isInviting }) => (
-    <div className="flex items-center gap-3 p-3 bg-[#18221E] rounded-xl border border-[#223029] hover:border-[#2BA84A]/30 transition-colors">
+  const UserRow = ({ user, isInviting, isInvited }) => (
+    <motion.div
+      layout
+      initial={false}
+      animate={{
+        borderColor: isInvited ? 'rgba(43, 168, 74, 0.5)' : 'rgba(34, 48, 41, 1)',
+        backgroundColor: isInvited ? 'rgba(43, 168, 74, 0.08)' : 'rgba(24, 34, 30, 1)',
+      }}
+      transition={{ duration: 0.25 }}
+      className="flex items-center gap-3 p-3 rounded-xl border"
+    >
       <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
         {(user.profile_image_url || user.avatar_url) ? (
           <img src={user.profile_image_url || user.avatar_url} alt="" className="w-full h-full object-cover" />
@@ -124,19 +143,42 @@ export default function InviteFriendsToTeamModal({ team, currentUser, onClose })
         </h4>
         <p className="text-xs text-[#9EAAA4] truncate">{user.city || ''}</p>
       </div>
-      <Button
-        onClick={() => handleInvite(user.id)}
-        disabled={isInviting}
-        size="sm"
-        className="bg-[#2BA84A] hover:bg-[#248232] text-white rounded-xl h-8 px-3 text-xs font-semibold"
-      >
-        {isInviting ? (
-          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+      <AnimatePresence mode="wait" initial={false}>
+        {isInvited ? (
+          <motion.div
+            key="invited"
+            initial={{ scale: 0.6, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.6, opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="h-8 px-3 flex items-center gap-1.5 rounded-xl bg-[#2BA84A]/15 ring-1 ring-[#2BA84A]/40 text-[#86EFAC] text-xs font-bold"
+          >
+            <Check className="w-3.5 h-3.5" strokeWidth={3} />
+            Skickad
+          </motion.div>
         ) : (
-          <><UserPlus className="w-3.5 h-3.5 mr-1" /> Bjud in</>
+          <motion.div
+            key="invite-btn"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <Button
+              onClick={() => handleInvite(user.id)}
+              disabled={isInviting}
+              size="sm"
+              className="bg-[#2BA84A] hover:bg-[#248232] text-white rounded-xl h-8 px-3 text-xs font-semibold"
+            >
+              {isInviting ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <><UserPlus className="w-3.5 h-3.5 mr-1" /> Bjud in</>
+              )}
+            </Button>
+          </motion.div>
         )}
-      </Button>
-    </div>
+      </AnimatePresence>
+    </motion.div>
   );
 
   return (
@@ -221,7 +263,7 @@ export default function InviteFriendsToTeamModal({ team, currentUser, onClose })
                 ) : (
                   <div className="space-y-2">
                     {filteredFriends.map(friend => (
-                      <UserRow key={friend.id} user={friend} isInviting={inviting[friend.id]} />
+                      <UserRow key={friend.id} user={friend} isInviting={inviting[friend.id]} isInvited={invited[friend.id]} />
                     ))}
                   </div>
                 )}
@@ -256,7 +298,7 @@ export default function InviteFriendsToTeamModal({ team, currentUser, onClose })
                 ) : (
                   <div className="space-y-2">
                     {searchResults.map(user => (
-                      <UserRow key={user.id} user={user} isInviting={inviting[user.id]} />
+                      <UserRow key={user.id} user={user} isInviting={inviting[user.id]} isInvited={invited[user.id]} />
                     ))}
                   </div>
                 )}
