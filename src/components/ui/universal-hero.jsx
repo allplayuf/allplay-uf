@@ -23,49 +23,50 @@ import { motion } from "framer-motion";
 
 const ACCENTS = {
   green: {
-    gradient: "linear-gradient(135deg, #0F2917 0%, #1E7A36 45%, #0D1F10 100%)",
-    orb1: "rgba(52, 194, 87, 0.45)",
-    orb2: "rgba(244, 116, 59, 0.18)",
+    // Deeper, darker base — night-pitch feel. Accent glows live in orbs only.
+    gradient: "linear-gradient(145deg, #070D09 0%, #0C1C12 35%, #103A1E 70%, #081410 100%)",
+    orb1: "rgba(52, 194, 87, 0.38)",
+    orb2: "rgba(244, 116, 59, 0.14)",
     dotColor: "#34C257",
     eyebrowText: "#86EFAC",
-    eyebrowBg: "rgba(43,168,74,0.22)",
-    eyebrowRing: "rgba(43,168,74,0.45)",
+    eyebrowBg: "rgba(43,168,74,0.18)",
+    eyebrowRing: "rgba(43,168,74,0.4)",
   },
   orange: {
-    gradient: "linear-gradient(135deg, #2B1408 0%, #D95D26 45%, #1A0C05 100%)",
-    orb1: "rgba(244, 116, 59, 0.5)",
-    orb2: "rgba(52, 194, 87, 0.15)",
+    gradient: "linear-gradient(145deg, #0B0604 0%, #1A0C07 35%, #4D1F0C 70%, #0C0604 100%)",
+    orb1: "rgba(244, 116, 59, 0.42)",
+    orb2: "rgba(52, 194, 87, 0.12)",
     dotColor: "#FB923C",
     eyebrowText: "#FED7AA",
-    eyebrowBg: "rgba(244,116,59,0.22)",
-    eyebrowRing: "rgba(244,116,59,0.45)",
+    eyebrowBg: "rgba(244,116,59,0.18)",
+    eyebrowRing: "rgba(244,116,59,0.4)",
   },
   purple: {
-    gradient: "linear-gradient(135deg, #1E1438 0%, #6D28D9 45%, #0E0923 100%)",
-    orb1: "rgba(167, 139, 250, 0.45)",
-    orb2: "rgba(244, 116, 59, 0.15)",
+    gradient: "linear-gradient(145deg, #08060F 0%, #120C22 35%, #2F1B60 70%, #0A0714 100%)",
+    orb1: "rgba(167, 139, 250, 0.38)",
+    orb2: "rgba(244, 116, 59, 0.12)",
     dotColor: "#A78BFA",
     eyebrowText: "#DDD6FE",
-    eyebrowBg: "rgba(139,92,246,0.22)",
-    eyebrowRing: "rgba(139,92,246,0.45)",
+    eyebrowBg: "rgba(139,92,246,0.18)",
+    eyebrowRing: "rgba(139,92,246,0.4)",
   },
   gold: {
-    gradient: "linear-gradient(135deg, #2B1F08 0%, #D97706 45%, #1A1305 100%)",
-    orb1: "rgba(251, 191, 36, 0.45)",
-    orb2: "rgba(244, 116, 59, 0.2)",
+    gradient: "linear-gradient(145deg, #0C0804 0%, #1A1206 35%, #4A2E06 70%, #0C0804 100%)",
+    orb1: "rgba(251, 191, 36, 0.38)",
+    orb2: "rgba(244, 116, 59, 0.16)",
     dotColor: "#FBBF24",
     eyebrowText: "#FDE68A",
-    eyebrowBg: "rgba(217,119,6,0.22)",
-    eyebrowRing: "rgba(217,119,6,0.45)",
+    eyebrowBg: "rgba(217,119,6,0.18)",
+    eyebrowRing: "rgba(217,119,6,0.4)",
   },
   mixed: {
-    gradient: "linear-gradient(135deg, #0F2917 0%, #1E7A36 40%, #D95D26 100%)",
-    orb1: "rgba(52, 194, 87, 0.4)",
-    orb2: "rgba(244, 116, 59, 0.35)",
+    gradient: "linear-gradient(145deg, #070D09 0%, #0C1C12 40%, #3A1E0E 100%)",
+    orb1: "rgba(52, 194, 87, 0.34)",
+    orb2: "rgba(244, 116, 59, 0.3)",
     dotColor: "#34C257",
     eyebrowText: "#EAF6EE",
-    eyebrowBg: "rgba(255,255,255,0.14)",
-    eyebrowRing: "rgba(255,255,255,0.25)",
+    eyebrowBg: "rgba(255,255,255,0.1)",
+    eyebrowRing: "rgba(255,255,255,0.2)",
   },
 };
 
@@ -84,17 +85,17 @@ export default function UniversalHero({
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className={`relative overflow-hidden rounded-[28px] border border-white/10 ${className}`}
+      className={`relative overflow-hidden rounded-[22px] sm:rounded-[26px] lg:rounded-[28px] border border-white/[0.08] ${className}`}
       style={{
         background: cfg.gradient,
         boxShadow:
-          "0 30px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)",
+          "0 24px 60px rgba(0,0,0,0.6), 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)",
       }}
     >
       {/* Pitch pattern (subtle, cinematic) */}
       {showPitchPattern && (
         <svg
-          className="absolute inset-0 w-full h-full opacity-[0.06] pointer-events-none"
+          className="absolute inset-0 w-full h-full opacity-[0.045] pointer-events-none"
           viewBox="0 0 400 300"
           preserveAspectRatio="none"
           aria-hidden
@@ -107,17 +108,26 @@ export default function UniversalHero({
         </svg>
       )}
 
-      {/* Ambient animated orbs */}
+      {/* Noise/grain overlay for premium depth */}
+      <div
+        className="absolute inset-0 opacity-[0.04] pointer-events-none mix-blend-overlay"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
+        }}
+      />
+
+      {/* Ambient animated orbs — responsive sizing */}
       <motion.div
-        animate={{ scale: [1, 1.08, 1], opacity: [0.7, 0.9, 0.7] }}
+        animate={{ scale: [1, 1.08, 1], opacity: [0.55, 0.75, 0.55] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute -top-24 -right-20 w-80 h-80 rounded-full blur-3xl pointer-events-none"
+        className="absolute -top-16 -right-14 sm:-top-24 sm:-right-20 w-56 h-56 sm:w-72 sm:h-72 lg:w-96 lg:h-96 rounded-full blur-3xl pointer-events-none"
         style={{ background: `radial-gradient(circle, ${cfg.orb1} 0%, transparent 70%)` }}
       />
       <motion.div
-        animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.7, 0.5] }}
+        animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.55, 0.4] }}
         transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-        className="absolute -bottom-24 -left-16 w-72 h-72 rounded-full blur-3xl pointer-events-none"
+        className="absolute -bottom-16 -left-10 sm:-bottom-24 sm:-left-16 w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80 rounded-full blur-3xl pointer-events-none"
         style={{ background: `radial-gradient(circle, ${cfg.orb2} 0%, transparent 70%)` }}
       />
 
@@ -126,28 +136,28 @@ export default function UniversalHero({
         className="absolute inset-x-0 top-0 h-px pointer-events-none"
         style={{
           background:
-            "linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)",
+            "linear-gradient(90deg, transparent, rgba(255,255,255,0.16), transparent)",
         }}
       />
 
-      {/* Bottom vignette */}
+      {/* Deep bottom vignette — mörkare botten, premium känsla */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,0.35) 100%)",
+            "linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(0,0,0,0.45) 100%)",
         }}
       />
 
       {/* Top-right actions slot */}
       {topRight && (
-        <div className="absolute top-4 right-4 sm:top-5 sm:right-5 z-20 flex items-center gap-2">
+        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 lg:top-5 lg:right-5 z-20 flex items-center gap-2">
           {topRight}
         </div>
       )}
 
-      {/* Content */}
-      <div className="relative z-10 p-5 sm:p-7 lg:p-8">
+      {/* Content — tighter on mobile, breathing room on desktop */}
+      <div className="relative z-10 px-4 py-5 sm:px-6 sm:py-7 lg:px-9 lg:py-9">
         {eyebrow && (
           <div
             className="inline-flex items-center gap-1.5 mb-4 px-2.5 py-1 rounded-full backdrop-blur-sm"
@@ -178,7 +188,7 @@ export default function UniversalHero({
 
 UniversalHero.Header = function Header({ children, className = "" }) {
   return (
-    <div className={`flex items-center gap-4 sm:gap-5 ${className}`}>
+    <div className={`flex items-center gap-3 sm:gap-4 lg:gap-5 ${className}`}>
       {children}
     </div>
   );
@@ -186,17 +196,17 @@ UniversalHero.Header = function Header({ children, className = "" }) {
 
 UniversalHero.Avatar = function Avatar({ src, name, size = "default", ring = true }) {
   const sizes = {
-    sm: "w-12 h-12 sm:w-14 sm:h-14 text-base",
-    default: "w-16 h-16 sm:w-20 sm:h-20 text-2xl",
-    lg: "w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 text-3xl",
+    sm: "w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 text-sm sm:text-base",
+    default: "w-14 h-14 sm:w-[68px] sm:h-[68px] lg:w-[76px] lg:h-[76px] text-xl sm:text-2xl",
+    lg: "w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 text-2xl sm:text-3xl",
   };
   return (
     <div className="relative flex-shrink-0">
       {ring && (
-        <div className="absolute -inset-1.5 rounded-[22px] bg-white/15 blur-md pointer-events-none" />
+        <div className="absolute -inset-1 sm:-inset-1.5 rounded-[20px] bg-white/10 blur-md pointer-events-none" />
       )}
       <div
-        className={`relative ${sizes[size]} rounded-2xl overflow-hidden ring-1 ring-white/20 bg-gradient-to-br from-white/10 to-black/20 backdrop-blur-sm flex items-center justify-center shadow-[0_12px_30px_rgba(0,0,0,0.45)]`}
+        className={`relative ${sizes[size]} rounded-2xl overflow-hidden ring-1 ring-white/15 bg-gradient-to-br from-white/8 to-black/30 backdrop-blur-sm flex items-center justify-center shadow-[0_10px_24px_rgba(0,0,0,0.5)]`}
       >
         {src ? (
           <img src={src} alt={name || ""} className="w-full h-full object-cover" loading="eager" />
@@ -211,7 +221,7 @@ UniversalHero.Avatar = function Avatar({ src, name, size = "default", ring = tru
 UniversalHero.Title = function Title({ children, className = "" }) {
   return (
     <h1
-      className={`text-[24px] sm:text-[30px] lg:text-[38px] leading-[1.05] font-black text-white tracking-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.55)] ${className}`}
+      className={`text-[20px] sm:text-[26px] lg:text-[34px] leading-[1.1] font-black text-white tracking-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)] ${className}`}
     >
       {children}
     </h1>
@@ -221,7 +231,7 @@ UniversalHero.Title = function Title({ children, className = "" }) {
 UniversalHero.Subtitle = function Subtitle({ children, className = "" }) {
   return (
     <p
-      className={`mt-1.5 text-[12px] sm:text-[14px] text-white/80 leading-relaxed ${className}`}
+      className={`mt-1 sm:mt-1.5 text-[12px] sm:text-[13px] lg:text-[14px] text-white/75 leading-snug sm:leading-relaxed line-clamp-2 ${className}`}
     >
       {children}
     </p>
@@ -230,7 +240,7 @@ UniversalHero.Subtitle = function Subtitle({ children, className = "" }) {
 
 UniversalHero.Chips = function Chips({ children, className = "" }) {
   return (
-    <div className={`flex flex-wrap items-center gap-1.5 sm:gap-2 mt-3 ${className}`}>
+    <div className={`flex flex-wrap items-center gap-1.5 sm:gap-2 mt-2.5 sm:mt-3 ${className}`}>
       {children}
     </div>
   );
@@ -289,7 +299,7 @@ UniversalHero.Stats = function Stats({ items = [] }) {
 
 UniversalHero.Actions = function Actions({ children, className = "" }) {
   return (
-    <div className={`grid grid-cols-2 gap-2 sm:gap-3 mt-5 ${className}`}>
+    <div className={`grid grid-cols-2 gap-2 sm:gap-2.5 lg:gap-3 mt-4 sm:mt-5 ${className}`}>
       {children}
     </div>
   );
@@ -298,11 +308,11 @@ UniversalHero.Actions = function Actions({ children, className = "" }) {
 UniversalHero.ActionButton = function ActionButton({ onClick, icon: Icon, children, variant = "primary" }) {
   const variants = {
     primary:
-      "text-white shadow-[0_8px_24px_rgba(43,168,74,0.35)] hover:shadow-[0_10px_28px_rgba(43,168,74,0.45)]",
+      "text-white shadow-[0_6px_18px_rgba(43,168,74,0.35)] active:shadow-[0_2px_8px_rgba(43,168,74,0.45)]",
     accent:
-      "text-white shadow-[0_8px_24px_rgba(244,116,59,0.35)] hover:shadow-[0_10px_28px_rgba(244,116,59,0.45)]",
+      "text-white shadow-[0_6px_18px_rgba(244,116,59,0.35)] active:shadow-[0_2px_8px_rgba(244,116,59,0.45)]",
     glass:
-      "bg-white/12 ring-1 ring-white/25 text-white backdrop-blur-sm hover:bg-white/18",
+      "bg-white/10 ring-1 ring-white/20 text-white backdrop-blur-sm hover:bg-white/15 active:bg-white/20",
   };
   const primaryStyle = {
     primary: {
@@ -316,13 +326,13 @@ UniversalHero.ActionButton = function ActionButton({ onClick, icon: Icon, childr
   };
   return (
     <motion.button
-      whileTap={{ scale: 0.96 }}
+      whileTap={{ scale: 0.97 }}
       onClick={onClick}
-      className={`h-12 sm:h-[52px] rounded-2xl flex items-center justify-center gap-2 font-black text-[13px] sm:text-[14px] transition-all ${variants[variant]}`}
+      className={`h-11 sm:h-12 lg:h-[52px] px-3 rounded-xl sm:rounded-2xl flex items-center justify-center gap-1.5 sm:gap-2 font-black text-[12px] sm:text-[13px] lg:text-[14px] transition-all ${variants[variant]}`}
       style={primaryStyle[variant]}
     >
-      {Icon && <Icon className="w-4 h-4" strokeWidth={2.6} />}
-      <span>{children}</span>
+      {Icon && <Icon className="w-4 h-4 flex-shrink-0" strokeWidth={2.6} />}
+      <span className="truncate">{children}</span>
     </motion.button>
   );
 };
