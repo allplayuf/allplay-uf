@@ -42,7 +42,11 @@ import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { AuthGateModal } from "../components/ui/auth-gate-modal";
 import { LoginModal } from "../components/supabase";
 import { LogIn } from "lucide-react";
-import { getMyProfile, updateProfile } from "../components/supabase/services";
+import { 
+  getMyProfile, updateProfile,
+  getMyFriendships, sendFriendRequest, acceptFriendRequest, 
+  declineFriendRequest, removeFriendship, getFriendshipStatus
+} from "../components/supabase/services";
 import { supabaseClient } from "../components/supabase/client";
 
 // Lazy load components
@@ -52,6 +56,7 @@ const MatchHistory = lazy(() => import("../components/profile/MatchHistory"));
 const InboxNotifications = lazy(() => import("../components/profile/InboxNotifications"));
 const QRModal = lazy(() => import("../components/profile/QRModal"));
 const SettingsSheet = lazy(() => import("../components/profile/SettingsSheet"));
+const OtherProfileView = lazy(() => import("../components/profile/OtherProfileView"));
 
 const SKILL_LEVEL_CONFIG = {
   beginner: { label: 'Nybörjare', icon: Target, color: 'from-[#10B981] to-[#059669]', textColor: 'text-[#A7F3D0]' },
@@ -147,19 +152,10 @@ export default function ProfilePage() {
     }
   });
 
-  // Fetch all friendships
+  // Fetch all friendships — single source of truth via Supabase REST (RLS enforced)
   const { data: friendships = [] } = useQuery({
     queryKey: QUERY_KEYS.friendships,
-    queryFn: async () => {
-      const [sent, received] = await Promise.all([
-        base44.entities.Friendship.filter({ requester_id: user.id }),
-        base44.entities.Friendship.filter({ addressee_id: user.id })
-      ]);
-      const map = new Map();
-      sent.forEach(f => map.set(f.id, f));
-      received.forEach(f => map.set(f.id, f));
-      return Array.from(map.values());
-    },
+    queryFn: () => getMyFriendships(),
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
     enabled: !!user && !isGuest,
   });
@@ -281,14 +277,13 @@ export default function ProfilePage() {
 
   const handleAcceptFriendRequest = async (requestId) => {
     try {
-      await base44.entities.Friendship.update(requestId, { status: 'accepted' });
+      await acceptFriendRequest(requestId);
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friends(user.id) });
-      
       await alert('Nya vänner! 🎉', 'Ni är nu vänner!', { type: 'success' });
     } catch (error) {
       console.error("Error accepting friend request:", error);
-      await alert('Fel vid vänförfrågan', 'Kunde inte acceptera förfrågan. Försök igen.', { type: 'alert' });
+      await alert('Fel vid vänförfrågan', error.message || 'Kunde inte acceptera förfrågan. Försök igen.', { type: 'alert' });
     }
   };
 
@@ -298,15 +293,14 @@ export default function ProfilePage() {
       'Är du säker på att du vill neka denna vänförfrågan?',
       { type: 'warning', confirmText: 'Ja, neka', cancelText: 'Avbryt' }
     );
-
     if (!shouldDecline) return;
 
     try {
-      await base44.entities.Friendship.delete(requestId);
+      await declineFriendRequest(requestId);
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
     } catch (error) {
       console.error("Error declining friend request:", error);
-      await alert('Fel vid vänförfrågan', 'Kunde inte neka förfrågan. Försök igen.', { type: 'alert' });
+      await alert('Fel vid vänförfrågan', error.message || 'Kunde inte neka förfrågan. Försök igen.', { type: 'alert' });
     }
   };
 
@@ -436,37 +430,23 @@ export default function ProfilePage() {
 
   const handleAddFriendFromProfile = async () => {
     if (!targetUser || !user) return;
-    
     try {
-      const existing = friendships.find(f =>
-        (f.requester_id === user.id && f.addressee_id === targetUser.id) ||
-        (f.requester_id === targetUser.id && f.addressee_id === user.id)
-      );
-
-      if (existing) {
-        if (existing.status === 'accepted') {
-          await alert('Redan vänner', 'Ni är redan vänner!', { type: 'info' });
-        } else if (existing.status === 'pending') {
-          if (existing.requester_id === user.id) {
-            await alert('Förfrågan skickad', 'Vänförfrågan redan skickad!', { type: 'info' });
-          } else {
-            await base44.entities.Friendship.update(existing.id, { status: 'accepted' });
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
-          }
-        }
-        return;
-      }
-
-      await base44.entities.Friendship.create({
-        requester_id: user.id,
-        addressee_id: targetUser.id,
-        status: 'pending'
-      });
-
+      const result = await sendFriendRequest(targetUser.id);
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friends(user.id) });
+      
+      if (result.action === 'created') {
+        await alert('Vänförfrågan skickad! 🤝', `${targetUser.display_name || targetUser.full_name} får en notis.`, { type: 'success' });
+      } else if (result.action === 'accepted') {
+        await alert('Nya vänner! 🎉', 'Ni är nu vänner!', { type: 'success' });
+      } else if (result.action === 'already_friends') {
+        await alert('Redan vänner', 'Ni är redan vänner!', { type: 'info' });
+      } else if (result.action === 'already_sent') {
+        await alert('Förfrågan skickad', 'Du har redan skickat en vänförfrågan!', { type: 'info' });
+      }
     } catch (error) {
       console.error('Error adding friend:', error);
-      await alert('Fel vid vänförfrågan', 'Kunde inte skicka vänförfrågan. Försök igen.', { type: 'alert' });
+      await alert('Fel vid vänförfrågan', error.message || 'Kunde inte skicka vänförfrågan. Försök igen.', { type: 'alert' });
     }
   };
 
@@ -819,39 +799,16 @@ export default function ProfilePage() {
 
         {/* Content based on if viewing other profile */}
         {isViewingOtherProfile ? (
-          <motion.div
-            key="other-profile-content" 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2, ease: "easeOut" }}
-          >
-            <Suspense fallback={<ProfileSkeleton />}>
-              <ProfileStats user={displayUser} isOwnProfile={false} />
-            </Suspense>
-            
-            {matchHistory.length > 0 && (
-              <div className="mt-6">
-                <h3 className="text-lg font-bold text-[#F4F7F5] mb-4">Senaste matcher</h3>
-                <Suspense fallback={<ProfileSkeleton />}>
-                  <MatchHistory matches={matchHistory} />
-                </Suspense>
-              </div>
-            )}
-
-            {matchHistory.length === 0 && (
-              <Card className="bg-[#121715] border border-[#223029] rounded-2xl p-10 text-center mt-6">
-                <div className="w-16 h-16 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-5 ring-1 ring-[#2BA84A]/20">
-                  <Trophy className="w-8 h-8 text-[#2BA84A]" />
-                </div>
-                <h3 className="text-xl font-bold text-[#F4F7F5] mb-2">
-                  Inga matcher spelade
-                </h3>
-                <p className="text-sm text-[#9EAAA4]">
-                  Denna användare har inte spelat några matcher än.
-                </p>
-              </Card>
-            )}
-          </motion.div>
+          <Suspense fallback={<ProfileSkeleton />}>
+            <OtherProfileView
+              targetUser={displayUser}
+              currentUser={user}
+              friendships={friendships}
+              friendshipStatus={friendshipStatus}
+              onAddFriend={handleAddFriendFromProfile}
+              matchHistory={matchHistory}
+            />
+          </Suspense>
         ) : (
           <>
             {/* Sticky Tab Bar */}
@@ -1002,7 +959,7 @@ export default function ProfilePage() {
                     transition={TRANSITIONS.tab}
                   >
                     <Suspense fallback={<TabSkeleton rows={4} />}>
-                      <ProfileStats user={displayUser} isOwnProfile={true} />
+                      <ProfileStats user={displayUser} matchHistory={matchHistory} isOwnProfile={true} />
                     </Suspense>
                   </motion.div>
                 )}

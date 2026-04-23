@@ -1,67 +1,135 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Trophy, Target, Flame, Calendar, Star, Award, Shield, Crown, Gem, TrendingUp } from "lucide-react";
+import {
+  Trophy, Target, Flame, Calendar, Star, Award, Shield, Crown,
+  TrendingUp, MapPin, Percent, CheckCircle2, Activity
+} from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
 import { updateProfile } from "@/components/supabase/services";
+import { motion } from "framer-motion";
 
 const skillLevelConfig = {
   beginner: {
-    label: 'Nybörjare',
-    icon: Target,
+    label: 'Nybörjare', icon: Target,
     color: 'from-[#10B981] to-[#059669]',
     textColor: 'text-[#A7F3D0]',
     ringColor: 'ring-[#10B981]/30',
-    bgColor: 'bg-[#10B981]/10'
   },
   intermediate: {
-    label: 'Medel',
-    icon: TrendingUp,
+    label: 'Medel', icon: TrendingUp,
     color: 'from-[#14B8A6] to-[#0D9488]',
     textColor: 'text-[#99F6E4]',
     ringColor: 'ring-[#14B8A6]/30',
-    bgColor: 'bg-[#14B8A6]/10'
   },
   advanced: {
-    label: 'Avancerad',
-    icon: Shield,
+    label: 'Avancerad', icon: Shield,
     color: 'from-[#8B5CF6] to-[#7C3AED]',
     textColor: 'text-[#DDD6FE]',
     ringColor: 'ring-[#8B5CF6]/30',
-    bgColor: 'bg-[#8B5CF6]/10'
   },
   elite: {
-    label: 'Elite',
-    icon: Crown,
+    label: 'Elite', icon: Crown,
     color: 'from-[#F59E0B] to-[#D97706]',
     textColor: 'text-[#FDE68A]',
     ringColor: 'ring-[#F59E0B]/30',
-    bgColor: 'bg-[#F59E0B]/10'
   }
 };
 
-export default function ProfileStats({ user, isOwnProfile = true }) {
+/**
+ * Computes derived stats from match history when the user object's
+ * counters are missing or stale. Backend counters (matches_played,
+ * mvp_count) take precedence when present.
+ */
+function computeStats(user, matchHistory = []) {
+  const completed = matchHistory.filter(m => m.status === 'completed' || m.status === 'finished');
+  const upcomingCount = matchHistory.filter(m => m.status === 'upcoming').length;
+
+  // Win/loss derived from final_score (best-effort — we can't know which side user was on
+  // without participant team data, so we only show total played + completion rate).
+  const totalPlayed = user?.matches_played ?? completed.length;
+  const completionRate = matchHistory.length > 0
+    ? Math.round((completed.length / matchHistory.length) * 100)
+    : 0;
+
+  // Most-visited venue
+  const venueCounts = {};
+  matchHistory.forEach(m => {
+    const key = m.venue_name || m._venue_name || m.pitch_name;
+    if (key) venueCounts[key] = (venueCounts[key] || 0) + 1;
+  });
+  const topVenue = Object.entries(venueCounts).sort((a, b) => b[1] - a[1])[0];
+
+  return {
+    totalPlayed,
+    completedCount: completed.length,
+    upcomingCount,
+    mvpCount: user?.mvp_count ?? 0,
+    currentStreak: user?.current_streak ?? 0,
+    longestStreak: user?.longest_streak ?? 0,
+    eloRating: user?.elo_rating ?? null,
+    completionRate,
+    topVenue: topVenue ? { name: topVenue[0], count: topVenue[1] } : null,
+  };
+}
+
+function StatTile({ icon: Icon, label, value, sub, accent = '#2BA84A', delay = 0 }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay }}
+      className="relative overflow-hidden rounded-2xl bg-[#18221E] border border-[#223029] p-4"
+    >
+      <div
+        className="absolute -top-6 -right-6 w-20 h-20 rounded-full blur-2xl opacity-30 pointer-events-none"
+        style={{ background: accent }}
+      />
+      <div className="relative flex items-start justify-between mb-2">
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center"
+          style={{ background: `${accent}22`, border: `1px solid ${accent}33` }}
+        >
+          <Icon className="w-4 h-4" style={{ color: accent }} strokeWidth={2.4} />
+        </div>
+      </div>
+      <div className="relative">
+        <div className="text-[26px] leading-none font-black text-white tabular-nums">
+          {value}
+        </div>
+        <div className="text-[11px] text-[#9EAAA4] font-semibold uppercase tracking-wider mt-1.5">
+          {label}
+        </div>
+        {sub && (
+          <div className="text-[11px] text-[#6B7C74] mt-0.5 truncate">{sub}</div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+export default function ProfileStats({ user, matchHistory = [], isOwnProfile = true }) {
   const [isEditingSkill, setIsEditingSkill] = React.useState(false);
   const [isSavingSkill, setIsSavingSkill] = React.useState(false);
   const [selectedSkill, setSelectedSkill] = React.useState(user?.skill_level || 'intermediate');
   const queryClient = useQueryClient();
   const { user: authUser } = useSupabaseAuth();
 
+  const stats = useMemo(() => computeStats(user, matchHistory), [user, matchHistory]);
+
   const handleSkillUpdate = async () => {
     setIsSavingSkill(true);
     try {
       await updateProfile({ skill_level: selectedSkill });
-      // Optimistic update
-      queryClient.setQueryData(['supabase-userProfile', authUser?.id], old => ({
+      queryClient.setQueryData(['supabase-userProfile', authUser?.id], (old) => ({
         ...old,
         skill_level: selectedSkill,
       }));
       queryClient.invalidateQueries({ queryKey: ['supabase-userProfile'] });
       setIsEditingSkill(false);
     } catch (error) {
-      console.error("Error updating skill level:", error);
+      console.error('Error updating skill level:', error);
     } finally {
       setIsSavingSkill(false);
     }
@@ -71,116 +139,164 @@ export default function ProfileStats({ user, isOwnProfile = true }) {
   const SkillIcon = currentSkill.icon;
 
   return (
-    <div className="grid md:grid-cols-2 gap-4">
-      {/* Player Skill Level */}
-      <Card className="bg-[#121715] border border-[#223029] rounded-2xl overflow-hidden">
-        <CardHeader className="border-b border-[#223029] px-5 py-4">
-          <CardTitle className="text-sm text-[#F4F7F5] flex items-center gap-2 font-bold">
-            <div className="w-7 h-7 rounded-lg bg-[#2BA84A]/12 flex items-center justify-center">
-              <Target className="w-3.5 h-3.5 text-[#2BA84A]" />
-            </div>
-            {isOwnProfile ? 'Min spelarnivå' : 'Spelarnivå'}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-5">
-          {isEditingSkill && isOwnProfile ? (
-            <div className="space-y-4">
-              <Label className="text-[#B6C2BC] text-[13px] leading-[18px] font-medium">
-                Välj din nivå – påverkar vilka matcher du ser
-              </Label>
-              <div className="grid grid-cols-2 gap-3">
-                {Object.entries(skillLevelConfig).map(([value, config]) => {
-                  const Icon = config.icon;
-                  return (
-                    <button
-                      key={value}
-                      onClick={() => setSelectedSkill(value)}
-                      className={`p-4 rounded-xl font-semibold text-[13px] leading-[18px] transition-all border flex flex-col items-center gap-2 ${
-                        selectedSkill === value
-                          ? `bg-gradient-to-br ${config.color} ${config.textColor} border-transparent shadow-[0_4px_12px_rgba(0,0,0,0.3)]`
-                          : 'bg-[#18221E] text-[#B6C2BC] border-[#223029] hover:border-[#2BA84A]'
-                      }`}
-                    >
-                      <Icon className="w-6 h-6" />
-                      {config.label}
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="flex gap-3 mt-4">
-                <button
-                  onClick={handleSkillUpdate}
-                  disabled={isSavingSkill}
-                  className="flex-1 inline-flex h-11 items-center justify-center gap-2 rounded-[14px] bg-[#2BA84A]/16 px-5 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30 transition-all hover:bg-[#2BA84A]/24 hover:ring-[#2BA84A]/45 font-semibold disabled:opacity-50"
-                >
-                  {isSavingSkill ? 'Sparar...' : 'Spara'}
-                </button>
-                <button
-                  onClick={() => setIsEditingSkill(false)}
-                  className="flex-1 inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border border-[#223029] px-5 text-[#B6C2BC] transition-all hover:bg-[#18221E] font-semibold"
-                >
-                  Avbryt
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="relative mb-6">
-                <div className={`w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br ${currentSkill.color} flex items-center justify-center shadow-[0_6px_18px_rgba(0,0,0,0.22)] ring-2 ${currentSkill.ringColor}`}>
-                  <SkillIcon className="w-12 h-12 text-[#EAF6EE]" />
-                </div>
-              </div>
-              <div className="text-center mb-4">
-                <div className={`text-[20px] leading-[28px] font-semibold ${currentSkill.textColor} mb-1`}>
-                  {currentSkill.label}
-                </div>
-                <p className="text-[13px] leading-[18px] text-[#B6C2BC]">
-                  {isOwnProfile ? 'Din nuvarande nivå för vanliga matcher' : 'Spelarnivå för vanliga matcher'}
-                </p>
-              </div>
-              {isOwnProfile && (
-                <button
-                  onClick={() => setIsEditingSkill(true)}
-                  className="w-full inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border border-[#2BA84A]/35 px-5 text-[#CFE8D6] transition-all hover:bg-[#2BA84A]/10 font-semibold"
-                >
-                  Ändra nivå
-                </button>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
+    <div className="space-y-4">
+      {/* ── Key stats grid ── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatTile
+          icon={Calendar}
+          label="Matcher"
+          value={stats.totalPlayed}
+          sub={stats.upcomingCount > 0 ? `${stats.upcomingCount} kommande` : null}
+          accent="#2BA84A"
+          delay={0}
+        />
+        <StatTile
+          icon={Crown}
+          label="MVP"
+          value={stats.mvpCount}
+          sub={stats.mvpCount > 0 ? 'Röstad som bäst' : 'Ingen än'}
+          accent="#F4743B"
+          delay={0.05}
+        />
+        <StatTile
+          icon={Flame}
+          label="Streak"
+          value={stats.currentStreak}
+          sub={stats.longestStreak > stats.currentStreak ? `Längsta: ${stats.longestStreak}` : null}
+          accent="#F59E0B"
+          delay={0.1}
+        />
+        <StatTile
+          icon={Activity}
+          label="Aktivitet"
+          value={`${stats.completionRate}%`}
+          sub={`${stats.completedCount} avslutade`}
+          accent="#4169E1"
+          delay={0.15}
+        />
+      </div>
 
-      {/* General Stats */}
-      <Card className="bg-[#121715] border border-[#223029] rounded-2xl overflow-hidden">
-        <CardHeader className="border-b border-[#223029] px-5 py-4">
-          <CardTitle className="text-sm text-[#F4F7F5] flex items-center gap-2 font-bold">
-            <div className="w-7 h-7 rounded-lg bg-[#F4743B]/12 flex items-center justify-center">
-              <Trophy className="w-3.5 h-3.5 text-[#F4743B]" />
-            </div>
-            Statistik
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-3 space-y-1.5">
-          {[
-            { icon: Calendar, label: 'Matcher spelade', value: user?.matches_played || 0, color: 'text-[#F4F7F5]', iconColor: 'text-[#2BA84A]' },
-            { icon: Star, label: 'MVPs', value: user?.mvp_count || 0, color: 'text-[#F4743B]', iconColor: 'text-[#F4743B]' },
-            { icon: Flame, label: 'Nuvarande streak', value: user?.current_streak || 0, color: 'text-[#F4743B]', iconColor: 'text-[#F4743B]' },
-            { icon: Award, label: 'Längsta streak', value: user?.longest_streak || 0, color: 'text-[#F4F7F5]', iconColor: 'text-[#2BA84A]' },
-          ].map((stat, idx) => {
-            const StatIcon = stat.icon;
-            return (
-              <div key={idx} className="flex items-center justify-between p-3.5 bg-[#18221E] rounded-xl">
-                <div className="flex items-center gap-2.5">
-                  <StatIcon className={`w-4 h-4 ${stat.iconColor}`} />
-                  <span className="text-[13px] text-[#B6C2BC] font-medium">{stat.label}</span>
-                </div>
-                <span className={`text-lg font-bold tabular-nums ${stat.color}`}>{stat.value}</span>
+      {/* ── Detail row ── */}
+      <div className="grid md:grid-cols-2 gap-4">
+        {/* Skill level card */}
+        <Card className="bg-[#121715] border border-[#223029] rounded-2xl overflow-hidden">
+          <CardHeader className="border-b border-[#223029] px-5 py-4">
+            <CardTitle className="text-sm text-[#F4F7F5] flex items-center gap-2 font-bold">
+              <div className="w-7 h-7 rounded-lg bg-[#2BA84A]/12 flex items-center justify-center">
+                <Target className="w-3.5 h-3.5 text-[#2BA84A]" />
               </div>
-            );
-          })}
-        </CardContent>
-      </Card>
+              {isOwnProfile ? 'Min spelarnivå' : 'Spelarnivå'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-5">
+            {isEditingSkill && isOwnProfile ? (
+              <div className="space-y-4">
+                <Label className="text-[#B6C2BC] text-[13px] font-medium">
+                  Välj din nivå – påverkar vilka matcher du ser
+                </Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {Object.entries(skillLevelConfig).map(([value, config]) => {
+                    const Icon = config.icon;
+                    return (
+                      <button
+                        key={value}
+                        onClick={() => setSelectedSkill(value)}
+                        className={`p-4 rounded-xl font-semibold text-[13px] transition-all border flex flex-col items-center gap-2 ${
+                          selectedSkill === value
+                            ? `bg-gradient-to-br ${config.color} ${config.textColor} border-transparent shadow-[0_4px_12px_rgba(0,0,0,0.3)]`
+                            : 'bg-[#18221E] text-[#B6C2BC] border-[#223029] hover:border-[#2BA84A]'
+                        }`}
+                      >
+                        <Icon className="w-6 h-6" />
+                        {config.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="flex gap-3 mt-4">
+                  <button
+                    onClick={handleSkillUpdate}
+                    disabled={isSavingSkill}
+                    className="flex-1 inline-flex h-11 items-center justify-center gap-2 rounded-[14px] bg-[#2BA84A] px-5 text-white transition-all hover:bg-[#248232] font-semibold disabled:opacity-50"
+                  >
+                    {isSavingSkill ? 'Sparar...' : 'Spara'}
+                  </button>
+                  <button
+                    onClick={() => setIsEditingSkill(false)}
+                    className="flex-1 inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border border-[#223029] px-5 text-[#B6C2BC] transition-all hover:bg-[#18221E] font-semibold"
+                  >
+                    Avbryt
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-center mb-5">
+                  <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${currentSkill.color} flex items-center justify-center shadow-[0_6px_18px_rgba(0,0,0,0.22)] ring-2 ${currentSkill.ringColor}`}>
+                    <SkillIcon className="w-10 h-10 text-white" />
+                  </div>
+                </div>
+                <div className="text-center mb-4">
+                  <div className={`text-lg font-bold ${currentSkill.textColor}`}>
+                    {currentSkill.label}
+                  </div>
+                  <p className="text-xs text-[#B6C2BC] mt-0.5">
+                    {isOwnProfile ? 'Din nuvarande nivå' : 'Spelarens nivå'}
+                  </p>
+                </div>
+                {isOwnProfile && (
+                  <button
+                    onClick={() => setIsEditingSkill(true)}
+                    className="w-full inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border border-[#2BA84A]/35 px-5 text-[#CFE8D6] transition-all hover:bg-[#2BA84A]/10 font-semibold"
+                  >
+                    Ändra nivå
+                  </button>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Performance detail card */}
+        <Card className="bg-[#121715] border border-[#223029] rounded-2xl overflow-hidden">
+          <CardHeader className="border-b border-[#223029] px-5 py-4">
+            <CardTitle className="text-sm text-[#F4F7F5] flex items-center gap-2 font-bold">
+              <div className="w-7 h-7 rounded-lg bg-[#F4743B]/12 flex items-center justify-center">
+                <Trophy className="w-3.5 h-3.5 text-[#F4743B]" />
+              </div>
+              Prestation
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 space-y-1.5">
+            {[
+              { icon: CheckCircle2, label: 'Avslutade matcher', value: stats.completedCount, iconColor: 'text-[#2BA84A]' },
+              { icon: Star, label: 'MVP-röster', value: stats.mvpCount, iconColor: 'text-[#F4743B]', valueColor: 'text-[#F4743B]' },
+              { icon: Flame, label: 'Nuvarande streak', value: stats.currentStreak, iconColor: 'text-[#F59E0B]', valueColor: 'text-[#FCD34D]' },
+              { icon: Award, label: 'Längsta streak', value: stats.longestStreak, iconColor: 'text-[#2BA84A]' },
+              ...(stats.eloRating ? [{ icon: TrendingUp, label: 'Elo-rating', value: stats.eloRating, iconColor: 'text-[#4169E1]', valueColor: 'text-[#93B4F5]' }] : []),
+              ...(stats.topVenue ? [{ icon: MapPin, label: 'Favoritplan', value: `${stats.topVenue.count}x`, sub: stats.topVenue.name, iconColor: 'text-[#9370DB]' }] : []),
+            ].map((stat, idx) => {
+              const StatIcon = stat.icon;
+              return (
+                <div key={idx} className="flex items-center justify-between p-3 bg-[#18221E] rounded-xl">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <StatIcon className={`w-4 h-4 flex-shrink-0 ${stat.iconColor}`} />
+                    <div className="min-w-0">
+                      <span className="text-[13px] text-[#B6C2BC] font-medium truncate block">{stat.label}</span>
+                      {stat.sub && (
+                        <span className="text-[11px] text-[#6B7C74] truncate block">{stat.sub}</span>
+                      )}
+                    </div>
+                  </div>
+                  <span className={`text-lg font-bold tabular-nums flex-shrink-0 ml-2 ${stat.valueColor || 'text-[#F4F7F5]'}`}>
+                    {stat.value}
+                  </span>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

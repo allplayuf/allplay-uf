@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { base44 } from "@/api/base44Client";
 import { finishMatch } from "@/components/supabase/services/matchesService";
 import { callEdgeFunction } from "@/components/supabase/callEdgeFunction";
+import { triggerHaptic } from "@/components/utils/motionTokens";
 import {
   Trophy,
   Star,
@@ -33,6 +35,7 @@ export default function MatchEndModal({
   onClose,
   onSubmit
 }) {
+  const queryClient = useQueryClient();
   const [step, setStep] = useState(1); // 1: MVP Vote, 2: Player Ratings, 3: Result, 4: Complete
   const [selectedMVP, setSelectedMVP] = useState(null);
   const [playerRatings, setPlayerRatings] = useState({}); // Store ratings per player
@@ -43,6 +46,21 @@ export default function MatchEndModal({
   const [usersList, setUsersList] = useState([]);
   const [showConfetti, setShowConfetti] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
+
+  /**
+   * Invalidate all stat-related caches so Profile/Dashboard pick up the
+   * new matches_played / mvp_count values immediately after finish.
+   */
+  const invalidateStats = () => {
+    queryClient.invalidateQueries({ queryKey: ['supabase-userProfile'] });
+    queryClient.invalidateQueries({ queryKey: ['user'] });
+    queryClient.invalidateQueries({ queryKey: ['matchHistory'] });
+    queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
+    queryClient.invalidateQueries({ queryKey: ['supabase-completedMatches'] });
+    queryClient.invalidateQueries({ queryKey: ['supabase-match'] });
+    queryClient.invalidateQueries({ queryKey: ['supabase-matchParticipants'] });
+    queryClient.invalidateQueries({ queryKey: ['targetUser'] });
+  };
 
   useEffect(() => {
     if (participants && currentUser) {
@@ -82,9 +100,9 @@ export default function MatchEndModal({
   const handleMVPVote = async () => {
     if (!selectedMVP) return;
 
+    triggerHaptic('medium');
     setIsSubmitting(true);
     try {
-      // Save MVP vote
       await base44.entities.MVPVote.create({
         match_id: match.id,
         voter_id: currentUser.id,
@@ -93,7 +111,8 @@ export default function MatchEndModal({
       });
 
       setHasVoted(true);
-      setStep(2); // Go to player ratings
+      triggerHaptic('success');
+      setStep(2);
     } catch (error) {
       console.error('Error submitting MVP vote:', error);
       alert('Kunde inte spara MVP-röst. Försök igen.');
@@ -120,6 +139,7 @@ export default function MatchEndModal({
 
       if (match.is_spontaneous) {
         await completeMatch();
+        triggerHaptic('success');
         setShowConfetti(true);
         setStep(4);
       } else {
@@ -165,7 +185,7 @@ export default function MatchEndModal({
       await base44.entities.Match.update(match.id, updateData);
     }
     
-    // Calculate MVP winner based on all votes (best-effort)
+    // Calculate MVP winner based on all votes + bump their mvp_count
     try {
       const allVotes = await base44.entities.MVPVote.filter({ match_id: match.id });
       if (allVotes && allVotes.length > 0) {
@@ -173,16 +193,26 @@ export default function MatchEndModal({
         allVotes.forEach(vote => {
           voteCounts[vote.nominee_id] = (voteCounts[vote.nominee_id] || 0) + 1;
         });
-        
-        const mvpId = Object.keys(voteCounts).reduce((a, b) => 
+        const mvpId = Object.keys(voteCounts).reduce((a, b) =>
           voteCounts[a] > voteCounts[b] ? a : b
         );
-        
         await base44.entities.Match.update(match.id, { mvp_user_id: mvpId });
+
+        // Bump mvp_count on the winning player (best-effort)
+        try {
+          const mvpUser = await base44.entities.User.filter({ id: mvpId });
+          const current = mvpUser?.[0]?.mvp_count || 0;
+          await base44.entities.User.update(mvpId, { mvp_count: current + 1 });
+        } catch (userErr) {
+          console.warn('Could not bump mvp_count:', userErr?.message);
+        }
       }
     } catch (error) {
       console.error('Error calculating MVP:', error);
     }
+
+    // Always invalidate stats after completion so UI refreshes
+    invalidateStats();
   };
 
   const handleResultSubmit = async () => {
@@ -194,6 +224,7 @@ export default function MatchEndModal({
     setIsSubmitting(true);
     try {
       await completeMatch(finalScore.trim());
+      triggerHaptic('success');
       setShowConfetti(true);
       setStep(4);
     } catch (error) {
@@ -751,6 +782,7 @@ export default function MatchEndModal({
 
               <Button
                 onClick={() => {
+                  invalidateStats();
                   if (onSubmit) onSubmit();
                   onClose();
                 }}

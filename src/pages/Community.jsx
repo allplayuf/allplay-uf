@@ -22,7 +22,10 @@ import { PullToRefresh } from "../components/ui/pull-to-refresh";
 import { AuthGateModal } from "../components/ui/auth-gate-modal";
 import { LoginModal } from "../components/supabase";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
-import { getMyProfile, getTeams, getMyTeams, createSupabaseTeam } from "../components/supabase/services";
+import { 
+  getMyProfile, getTeams, getMyTeams, createSupabaseTeam,
+  getMyFriendships, sendFriendRequest, acceptFriendRequest, declineFriendRequest
+} from "../components/supabase/services";
 import { isCupsEnabled } from "../lib/featureFlags";
 
 /**
@@ -195,23 +198,10 @@ export default function CommunityPage() {
     enabled: !!user,
   });
 
-  // Fetch friendships with OPTIMIZED caching
+  // Fetch friendships — single source of truth via friendshipsService
   const { data: friendships = [], isLoading: friendshipsLoading } = useQuery({
     queryKey: QUERY_KEYS.friendships,
-    queryFn: async () => {
-      // Optimization: Fetch only relevant friendships instead of listing all
-      const [sent, received] = await Promise.all([
-        restGet(`friendships?requester_id=eq.${user.id}&select=*`),
-        restGet(`friendships?addressee_id=eq.${user.id}&select=*`)
-      ]);
-      
-      // Combine and deduplicate by ID
-      const map = new Map();
-      sent.forEach(f => map.set(f.id, f));
-      received.forEach(f => map.set(f.id, f));
-      
-      return Array.from(map.values());
-    },
+    queryFn: () => getMyFriendships(),
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
     enabled: !!user,
   });
@@ -261,62 +251,26 @@ export default function CommunityPage() {
     f && f.status === 'pending' && f.addressee_id === user?.id
   );
 
-  // Don't block full page — hero skeleton handles user loading
+  // Friend actions — all via friendshipsService (Supabase RLS)
   const handleAddFriend = async (targetId) => {
     if (isSubmitting) return;
     setIsSubmitting(true);
     try {
-      const existing = (friendships || []).find(f =>
-        f && ((f.requester_id === user.id && f.addressee_id === targetId) ||
-        (f.requester_id === targetId && f.addressee_id === user.id))
-      );
-
-      if (existing) {
-        if (existing.status === 'accepted') {
-          await alert('Redan vänner', 'Ni är redan vänner!', { type: 'info' });
-          return;
-        }
-        if (existing.status === 'pending') {
-          if (existing.requester_id === user.id) {
-            await alert('Förfrågan skickad', 'Du har redan skickat en vänförfrågan!', { type: 'info' });
-          } else {
-            const shouldAccept = await confirm(
-              'Acceptera vänförfrågan',
-              'Denna person har skickat dig en vänförfrågan. Vill du acceptera?',
-              { type: 'confirm', confirmText: 'Acceptera', cancelText: 'Senare' }
-            );
-            if (shouldAccept) {
-              await restPatch(`friendships?id=eq.${existing.id}`, { status: 'accepted' });
-              queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
-              
-              await alert(
-                'Nya vänner! 🎉',
-                'Ni är nu vänner!',
-                { type: 'success' }
-              );
-            }
-          }
-          return;
-        }
-      }
-
-      await restPost(`friendships`, {
-        requester_id: user.id,
-        addressee_id: targetId,
-        status: 'pending'
-      });
-
+      const result = await sendFriendRequest(targetId);
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
-      
-      await alert(
-        'Vänförfrågan skickad! 🤝',
-        'Din vänförfrågan har skickats!',
-        { type: 'success' }
-      );
-      
+
+      if (result.action === 'created') {
+        await alert('Vänförfrågan skickad! 🤝', 'Din förfrågan har skickats!', { type: 'success' });
+      } else if (result.action === 'accepted') {
+        await alert('Nya vänner! 🎉', 'Ni är nu vänner!', { type: 'success' });
+      } else if (result.action === 'already_friends') {
+        await alert('Redan vänner', 'Ni är redan vänner!', { type: 'info' });
+      } else if (result.action === 'already_sent') {
+        await alert('Förfrågan skickad', 'Du har redan skickat en vänförfrågan!', { type: 'info' });
+      }
     } catch (error) {
       console.error("Error adding friend:", error);
-      await alert('Ett fel uppstod', 'Kunde inte skicka vänförfrågan.', { type: 'alert' });
+      await alert('Kunde inte skicka förfrågan', error.message || 'Försök igen.', { type: 'alert' });
     } finally {
       setIsSubmitting(false);
     }
@@ -324,13 +278,12 @@ export default function CommunityPage() {
 
   const handleAcceptFriend = async (requestId) => {
     try {
-      await restPatch(`friendships?id=eq.${requestId}`, { status: 'accepted' });
+      await acceptFriendRequest(requestId);
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
-      
       await alert('Nya vänner! 🎉', 'Ni är nu vänner!', { type: 'success' });
     } catch (error) {
       console.error("Error accepting friend:", error);
-      await alert('Ett fel uppstod', 'Kunde inte acceptera förfrågan.', { type: 'alert' });
+      await alert('Kunde inte acceptera', error.message || 'Försök igen.', { type: 'alert' });
     }
   };
 
@@ -340,15 +293,14 @@ export default function CommunityPage() {
       'Är du säker på att du vill neka denna vänförfrågan?',
       { type: 'warning', confirmText: 'Neka', cancelText: 'Avbryt' }
     );
-
     if (!shouldDecline) return;
 
     try {
-      await restDelete(`friendships?id=eq.${requestId}`);
+      await declineFriendRequest(requestId);
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
     } catch (error) {
       console.error("Error declining friend:", error);
-      await alert('Ett fel uppstod', 'Kunde inte neka förfrågan.', { type: 'alert' });
+      await alert('Kunde inte neka', error.message || 'Försök igen.', { type: 'alert' });
     }
   };
 

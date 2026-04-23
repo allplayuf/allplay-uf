@@ -113,3 +113,14 @@ export {
   bulkCreateVenueAvailability,
   deleteVenueAvailability
 } from './venueAvailabilityService';
+
+// Friendships (single source of truth via Supabase REST)
+export {
+  getMyFriendships,
+  sendFriendRequest,
+  acceptFriendRequest,
+  declineFriendRequest,
+  removeFriendship,
+  getFriendshipBetween,
+  getFriendshipStatus
+} from './friendshipsService';
