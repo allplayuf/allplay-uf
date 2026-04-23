@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, MapPin, Users, Clock, Share2, ArrowRight, Zap } from "lucide-react";
+import { Calendar, MapPin, Clock, Share2, ArrowRight, Zap, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -9,71 +8,114 @@ import { getUsersByIds } from "@/components/supabase/services";
 import ShareMatchModal from "./ShareMatchModal";
 import AvatarImage from "@/components/ui/avatar-image";
 
+/**
+ * Next-match card for the dashboard sidebar.
+ * 
+ * Design: matches "Lär känna AllPlay" — horizontal stage image + content panel on sm+,
+ * stacked on mobile. Uses robust date parsing so time always renders correctly
+ * regardless of whether the match row has `date + time`, `starts_at`, or both.
+ */
 export default function NextMatchCard({ match, venue, participants = [] }) {
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0 });
   const [showShareModal, setShowShareModal] = useState(false);
+  const [now, setNow] = useState(() => new Date());
 
-  const participantUserIds = participants.slice(0, 6).map(p => p.user_id).filter(Boolean);
-
-  const { data: participantUsers = [] } = useQuery({
-    queryKey: ['nextMatchParticipantUsers', ...participantUserIds],
-    queryFn: () => getUsersByIds(participantUserIds),
-    enabled: participantUserIds.length > 0,
-    staleTime: 60000,
-  });
-
-  useEffect(() => {
-    if (!match) return;
-
-    const calculateTimeLeft = () => {
-      const matchDateTime = new Date(`${match.date}T${match.time}`);
-      const now = new Date();
-      const difference = matchDateTime - now;
-
-      if (difference > 0) {
-        setTimeLeft({
-          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-          minutes: Math.floor((difference / 1000 / 60) % 60)
-        });
-      } else {
-        setTimeLeft({ days: 0, hours: 0, minutes: 0 });
-      }
-    };
-
-    calculateTimeLeft();
-    const timer = setInterval(calculateTimeLeft, 60000);
-    return () => clearInterval(timer);
+  // ── Robust datetime parsing ───────────────────────────────────
+  const startDate = useMemo(() => {
+    if (!match) return null;
+    // Prefer starts_at (ISO, timezone-safe)
+    if (match.starts_at) {
+      const d = new Date(match.starts_at);
+      if (!isNaN(d.getTime())) return d;
+    }
+    if (match.date && match.time) {
+      // Parse as local time (user's timezone)
+      const d = new Date(`${match.date}T${match.time}`);
+      if (!isNaN(d.getTime())) return d;
+    }
+    if (match.date) {
+      const d = new Date(match.date);
+      if (!isNaN(d.getTime())) return d;
+    }
+    return null;
   }, [match]);
 
+  // Tick every 30s so the countdown stays fresh without wasting renders
+  useEffect(() => {
+    if (!startDate) return;
+    const t = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(t);
+  }, [startDate]);
+
+  const timeLeft = useMemo(() => {
+    if (!startDate) return { days: 0, hours: 0, minutes: 0, started: true };
+    const diff = startDate.getTime() - now.getTime();
+    if (diff <= 0) return { days: 0, hours: 0, minutes: 0, started: true };
+    return {
+      days: Math.floor(diff / 86400000),
+      hours: Math.floor((diff / 3600000) % 24),
+      minutes: Math.floor((diff / 60000) % 60),
+      started: false,
+    };
+  }, [startDate, now]);
+
+  const participantIds = participants.slice(0, 5).map(p => p.user_id).filter(Boolean);
+  const { data: participantUsers = [] } = useQuery({
+    queryKey: ['nextMatchParticipants', ...participantIds.sort()],
+    queryFn: () => getUsersByIds(participantIds),
+    enabled: participantIds.length > 0,
+    staleTime: 60_000,
+  });
+
+  // Empty state
   if (!match) {
     return (
-      <Card className="bg-[#121715] rounded-2xl border border-[#223029] overflow-hidden">
-        <CardContent className="p-6 text-center">
-          <div className="w-14 h-14 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-3 ring-1 ring-[#2BA84A]/20">
-            <Calendar className="w-7 h-7 text-[#2BA84A]" />
-          </div>
-          <p className="text-sm font-semibold text-[#B6C2BC] mb-3">Inga kommande matcher</p>
-          <Link to={createPageUrl("Matches")}>
-            <button className="h-9 px-5 bg-[#2BA84A] hover:bg-[#248232] text-white rounded-xl text-sm font-semibold transition-colors">
-              Hitta matcher
-            </button>
-          </Link>
-        </CardContent>
-      </Card>
+      <div className="relative overflow-hidden rounded-[22px] border border-[#223029] bg-[#121715] p-6 text-center">
+        <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-[#2BA84A]/10 ring-1 ring-[#2BA84A]/20 flex items-center justify-center">
+          <Calendar className="w-7 h-7 text-[#2BA84A]" strokeWidth={2.2} />
+        </div>
+        <p className="text-sm font-semibold text-[#B6C2BC] mb-3">Inga kommande matcher</p>
+        <Link to={createPageUrl("Matches")}>
+          <button className="h-10 px-5 bg-[#2BA84A] hover:bg-[#248232] text-white rounded-xl text-sm font-semibold transition-colors">
+            Hitta matcher
+          </button>
+        </Link>
+      </div>
     );
   }
 
-  const formatDate = (dateStr) => {
-    const today = new Date().toISOString().split('T')[0];
-    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-    if (dateStr === today) return 'Idag';
-    if (dateStr === tomorrow) return 'Imorgon';
-    return new Date(dateStr).toLocaleDateString('sv-SE', { weekday: 'long', day: 'numeric', month: 'short' });
+  // ── Formatters ─────────────────────────────────────────────────
+  const formatRelativeDay = () => {
+    if (!startDate) return '';
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const matchDay = new Date(startDate);
+    matchDay.setHours(0, 0, 0, 0);
+    if (matchDay.getTime() === today.getTime()) return 'Idag';
+    if (matchDay.getTime() === tomorrow.getTime()) return 'Imorgon';
+    return startDate.toLocaleDateString('sv-SE', { weekday: 'long', day: 'numeric', month: 'short' });
   };
 
+  const formatTime = () => {
+    if (!startDate) return '';
+    return startDate.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const progressPct = match.is_spontaneous
+    ? 0
+    : Math.min(100, (participants.length / (match.max_players || 1)) * 100);
   const spotsLeft = match.is_spontaneous ? null : (match.max_players - participants.length);
-  const progressPct = match.is_spontaneous ? 0 : (participants.length / (match.max_players || 1)) * 100;
+
+  // Countdown display: "3d 5h", "4h 20m", "45m", or "Startar nu"
+  const countdownLabel = (() => {
+    if (timeLeft.started) return 'Startar nu';
+    if (timeLeft.days > 0) return `${timeLeft.days}d ${timeLeft.hours}h`;
+    if (timeLeft.hours > 0) return `${timeLeft.hours}h ${timeLeft.minutes}m`;
+    return `${timeLeft.minutes}m`;
+  })();
+
+  const isUrgent = timeLeft.started || (timeLeft.days === 0 && timeLeft.hours < 2);
 
   return (
     <>
@@ -83,134 +125,176 @@ export default function NextMatchCard({ match, venue, participants = [] }) {
         )}
       </AnimatePresence>
 
-      <Card
-        className="rounded-[22px] border border-white/[0.06] overflow-hidden relative"
+      <motion.div
+        whileHover={{ y: -2 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+        className="relative overflow-hidden rounded-[22px] border border-white/[0.07]"
         style={{
           background: 'linear-gradient(135deg, #151B18 0%, #111613 55%, #0C100E 100%)',
-          boxShadow: '0 18px 42px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)',
+          boxShadow: '0 20px 48px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)',
         }}
       >
-        {/* Ambient green glow */}
-        <div className="absolute -top-20 -right-16 w-52 h-52 bg-[#2BA84A]/14 rounded-full blur-3xl pointer-events-none" />
+        {/* Ambient glow */}
+        <div className="pointer-events-none absolute -top-20 -right-16 w-56 h-56 rounded-full blur-3xl"
+          style={{ background: isUrgent ? 'rgba(244,116,59,0.22)' : 'rgba(43,168,74,0.18)' }} />
+
+        {/* Top hairline */}
         <div
           className="absolute inset-x-0 top-0 h-px pointer-events-none"
           style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent)' }}
         />
 
-        <CardContent className="p-0 relative">
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 pt-4 pb-3">
-            <div className="flex items-center gap-2.5">
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#2BA84A]/12 ring-1 ring-[#2BA84A]/25">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#34C257] animate-pulse" />
-                <span className="text-[10px] font-bold text-[#86EFAC] uppercase tracking-wider">Nästa match</span>
-              </div>
+        <div className="relative z-10 p-4 sm:p-5">
+          {/* Eyebrow + share */}
+          <div className="flex items-center justify-between mb-3.5">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.06] ring-1 ring-white/10">
+              <span className={`w-1.5 h-1.5 rounded-full ${isUrgent ? 'bg-[#F4743B]' : 'bg-[#34C257]'} animate-pulse`} />
+              <span className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-white/85">
+                Nästa match
+              </span>
             </div>
             <button
-              onClick={(e) => { e.preventDefault(); setShowShareModal(true); }}
-              className="w-8 h-8 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] ring-1 ring-white/10 flex items-center justify-center transition-colors"
+              onClick={() => setShowShareModal(true)}
+              className="w-9 h-9 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] ring-1 ring-white/10 flex items-center justify-center transition-colors"
               aria-label="Dela match"
             >
-              <Share2 className="w-3.5 h-3.5 text-[#C2CEC8]" />
+              <Share2 className="w-4 h-4 text-[#C2CEC8]" strokeWidth={2.2} />
             </button>
           </div>
 
-          {/* Countdown — refined */}
-          <div className="mx-4 mb-3 rounded-xl p-3 ring-1 ring-white/5 bg-white/[0.02]">
-            <p className="text-[10px] font-bold text-[#8FA097] uppercase tracking-wider mb-2 text-center">Startar om</p>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { label: 'Dagar', value: timeLeft.days },
-                { label: 'Timmar', value: timeLeft.hours },
-                { label: 'Min', value: timeLeft.minutes }
-              ].map((item, i) => (
-                <div key={i} className="rounded-lg p-2 text-center bg-[#0F1513] ring-1 ring-white/5">
-                  <div className="text-xl font-black text-[#86EFAC] tabular-nums leading-none">{item.value}</div>
-                  <div className="text-[9px] text-[#8FA097] font-semibold uppercase tracking-wider mt-1">{item.label}</div>
-                </div>
-              ))}
+          {/* Title */}
+          <h3 className="text-[17px] sm:text-[19px] font-black text-white tracking-tight leading-tight mb-1 truncate">
+            {match.title}
+          </h3>
+
+          {/* Meta row */}
+          <div className="flex items-center gap-3 text-[12px] text-[#B6C2BC] mb-4">
+            <span className="inline-flex items-center gap-1 min-w-0">
+              <MapPin className="w-3.5 h-3.5 text-[#34C257] flex-shrink-0" />
+              <span className="truncate">{venue?.name || 'Okänd plan'}</span>
+            </span>
+          </div>
+
+          {/* Countdown pill + time */}
+          <div className="grid grid-cols-2 gap-2.5 mb-4">
+            <div
+              className="rounded-xl p-3 ring-1 text-left"
+              style={{
+                background: isUrgent
+                  ? 'linear-gradient(135deg, rgba(244,116,59,0.14), rgba(244,116,59,0.06))'
+                  : 'linear-gradient(135deg, rgba(43,168,74,0.14), rgba(43,168,74,0.05))',
+                borderColor: 'transparent',
+                boxShadow: `inset 0 0 0 1px ${isUrgent ? 'rgba(244,116,59,0.28)' : 'rgba(43,168,74,0.25)'}`,
+              }}
+            >
+              <div className="flex items-center gap-1.5 mb-1">
+                <Zap className={`w-3 h-3 ${isUrgent ? 'text-[#F4743B]' : 'text-[#34C257]'}`} />
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8FA097]">
+                  {timeLeft.started ? 'Läge' : 'Startar om'}
+                </span>
+              </div>
+              <div className={`text-[18px] font-black tabular-nums leading-none ${isUrgent ? 'text-[#FDBA74]' : 'text-[#86EFAC]'}`}>
+                {countdownLabel}
+              </div>
+            </div>
+
+            <div className="rounded-xl p-3 ring-1 ring-white/[0.06] bg-white/[0.02] text-left">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Clock className="w-3 h-3 text-[#C2CEC8]" />
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[#8FA097]">Tid</span>
+              </div>
+              <div className="text-[13px] font-bold text-white leading-tight capitalize">
+                {formatRelativeDay()}
+              </div>
+              <div className="text-[12px] text-[#B6C2BC] tabular-nums">{formatTime()}</div>
             </div>
           </div>
 
-          {/* Match Info */}
-          <div className="px-4 pb-3 space-y-2.5">
-            <h4 className="text-base font-bold text-[#F4F7F5] truncate">{match.title}</h4>
-            
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2 text-xs text-[#B6C2BC]">
-                <MapPin className="w-3.5 h-3.5 text-[#2BA84A] flex-shrink-0" />
-                <span className="truncate">{venue?.name || 'Okänd plan'}</span>
+          {/* Players / progress */}
+          {!match.is_spontaneous && match.max_players && (
+            <div className="mb-3.5">
+              <div className="flex items-center justify-between mb-1.5 text-[11px]">
+                <span className="text-[#9EAAA4] font-medium">Spelare</span>
+                <span className="text-[#F4F7F5] font-bold tabular-nums">
+                  {participants.length}/{match.max_players}
+                </span>
               </div>
-              <div className="flex items-center gap-2 text-xs text-[#B6C2BC]">
-                <Clock className="w-3.5 h-3.5 text-[#F4743B] flex-shrink-0" />
-                <span>{formatDate(match.date)} · {match.time}</span>
+              <div className="h-1.5 bg-[#18221E] rounded-full overflow-hidden border border-[#223029]">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progressPct}%` }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
+                  className={`h-full rounded-full ${progressPct >= 90 ? 'bg-[#F4743B]' : 'bg-[#2BA84A]'}`}
+                />
               </div>
+              {spotsLeft !== null && spotsLeft > 0 && spotsLeft <= 3 && (
+                <p className="text-[10px] font-semibold text-[#F4743B] mt-1.5">
+                  {spotsLeft} {spotsLeft === 1 ? 'plats' : 'platser'} kvar!
+                </p>
+              )}
             </div>
+          )}
 
-            {/* Progress */}
-            {!match.is_spontaneous && (
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-[#9EAAA4]">Spelare</span>
-                  <span className="text-[#F4F7F5] font-bold">{participants.length}/{match.max_players}</span>
-                </div>
-                <div className="h-1.5 bg-[#18221E] rounded-full overflow-hidden border border-[#223029]">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progressPct}%` }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                    className={`h-full rounded-full ${progressPct >= 90 ? 'bg-[#F4743B]' : 'bg-[#2BA84A]'}`}
-                  />
-                </div>
-                {spotsLeft !== null && spotsLeft <= 3 && spotsLeft > 0 && (
-                  <p className="text-[10px] font-semibold text-[#F4743B]">{spotsLeft} {spotsLeft === 1 ? 'plats' : 'platser'} kvar!</p>
-                )}
+          {match.is_spontaneous && (
+            <div className="flex items-center gap-2 mb-3.5 text-[11px] text-[#FDE3D2]">
+              <Users className="w-3.5 h-3.5 text-[#F4743B]" />
+              <span className="font-semibold">{participants.length} anmälda · Spontan</span>
+            </div>
+          )}
+
+          {/* Avatars */}
+          {participants.length > 0 && (
+            <div className="flex items-center gap-2 mb-4">
+              <div className="flex -space-x-1.5">
+                {participants.slice(0, 5).map((p, i) => {
+                  const pUser = participantUsers.find(u => u.id === p.user_id);
+                  return (
+                    <div key={p.id || i} className="ring-2 ring-[#111613] rounded-full">
+                      <AvatarImage
+                        src={pUser?.avatar_url || pUser?.profile_image_url}
+                        name={pUser?.display_name || pUser?.full_name || 'S'}
+                        className="w-7 h-7"
+                        textClassName="text-[9px]"
+                      />
+                    </div>
+                  );
+                })}
               </div>
-            )}
+              {participants.length > 5 && (
+                <span className="text-[10px] font-semibold text-[#9EAAA4]">
+                  +{participants.length - 5}
+                </span>
+              )}
+            </div>
+          )}
 
-            {/* Participants */}
-            {participants.length > 0 && (
-              <div className="flex items-center gap-2 pt-1">
-                <div className="flex -space-x-1.5">
-                  {participants.slice(0, 5).map((p, i) => {
-                    const pUser = participantUsers.find(u => u.id === p.user_id);
-                    return (
-                      <div key={p.id || i} className="ring-2 ring-[#121715] rounded-full">
-                        <AvatarImage
-                          src={pUser?.avatar_url || pUser?.profile_image_url}
-                          name={pUser?.display_name || pUser?.full_name || 'S'}
-                          className="w-7 h-7"
-                          textClassName="text-[9px]"
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-                {participants.length > 5 && (
-                  <span className="text-[10px] font-semibold text-[#9EAAA4]">+{participants.length - 5}</span>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* CTA */}
-          <div className="px-4 pb-4">
-            <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`}>
+          {/* CTA row */}
+          <div className="flex gap-2">
+            <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`} className="flex-1">
               <motion.button
                 whileTap={{ scale: 0.97 }}
-                className="w-full h-11 rounded-xl flex items-center justify-center gap-2 text-white font-bold text-sm transition-colors"
+                className="w-full h-11 rounded-xl flex items-center justify-center gap-2 text-white font-bold text-[13px] transition-colors"
                 style={{
                   background: 'linear-gradient(180deg, #34C257 0%, #2BA84A 55%, #248232 100%)',
                   boxShadow: '0 6px 18px rgba(43,168,74,0.32), inset 0 1px 0 rgba(255,255,255,0.18)',
                 }}
               >
-                <span>Visa match</span>
+                Visa match
                 <ArrowRight className="w-4 h-4" strokeWidth={2.4} />
               </motion.button>
             </Link>
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              onClick={() => setShowShareModal(true)}
+              className="h-11 px-4 rounded-xl flex items-center justify-center gap-1.5 text-[#F4F7F5] font-semibold text-[12px] bg-white/[0.06] ring-1 ring-white/10 hover:bg-white/[0.09] transition-colors"
+              aria-label="Dela match"
+            >
+              <Share2 className="w-4 h-4" strokeWidth={2.3} />
+              <span className="hidden sm:inline">Dela</span>
+            </motion.button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </motion.div>
     </>
   );
 }

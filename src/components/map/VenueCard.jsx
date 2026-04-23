@@ -1,172 +1,198 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, Users } from "lucide-react";
-import { base44 } from "@/api/base44Client";
-
+import React, { useMemo } from 'react';
+import { MapPin, Calendar, Users, ArrowRight, CheckCircle2, Flame } from "lucide-react";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { getUsersByIds } from "@/components/supabase/services";
+import AvatarImage from "@/components/ui/avatar-image";
 
-export default function VenueCard({ venue, matches, isSelected, onClick, onMatchClick, userMatchIds = [], allParticipants = [] }) {
-  // Determine venue color based on user participation
+/**
+ * Premium venue card with rich match preview.
+ * Uses pre-loaded `allParticipants` for accurate player counts (no per-card fetching).
+ */
+export default function VenueCard({ venue, matches = [], isSelected, onClick, onMatchClick, userMatchIds = [], allParticipants = [] }) {
   const hasUserMatch = matches.some(m => userMatchIds.includes(m.id));
   const hasMatches = matches.length > 0;
-  
-  const [matchUsers, setMatchUsers] = useState({});
+  const topMatch = matches[0];
 
-  useEffect(() => {
-    if (matches && matches.length > 0) {
-      // Only load for the first match as we only show one
-      loadMatchUsers(matches[0]);
-    }
-  }, [matches, allParticipants]);
+  // Count participants for the top match using pre-loaded data — O(n), no fetch
+  const topMatchParticipants = useMemo(() => {
+    if (!topMatch) return [];
+    return allParticipants.filter(p => p.match_id === topMatch.id);
+  }, [topMatch, allParticipants]);
 
-  const loadMatchUsers = async (match) => {
-    if (!match) return;
-    
-    // Get participants for this match
-    const matchParticipants = allParticipants.filter(p => p.match_id === match.id);
-    
-    if (matchParticipants.length === 0) {
-      setMatchUsers(prev => ({ ...prev, [match.id]: [] }));
-      return;
-    }
+  // Fetch user details for the first few avatars (shared cache via React Query)
+  const topUserIds = topMatchParticipants.slice(0, 4).map(p => p.user_id).filter(Boolean);
+  const { data: topUsers = [] } = useQuery({
+    queryKey: ['venueCardUsers', ...topUserIds.sort()],
+    queryFn: () => getUsersByIds(topUserIds),
+    enabled: topUserIds.length > 0,
+    staleTime: 60_000,
+  });
 
-    try {
-      // Fetch user data for all participants
-      const userPromises = matchParticipants.map(p => 
-        base44.entities.User.get(p.user_id).catch(() => null)
-      );
-      
-      const users = await Promise.all(userPromises);
-      const validUsers = users.filter(u => u !== null);
-      
-      setMatchUsers(prev => ({ ...prev, [match.id]: validUsers }));
-    } catch (error) {
-      console.error("Error loading venue card users:", error);
-    }
-  };
-  
-  let statusColor = 'bg-[#2BA84A]/18 text-[#CFE8D6] ring-[#2BA84A]/25'; // Default green
-  let statusText = 'Tillgänglig';
-  
-  if (hasUserMatch) {
-    statusColor = 'bg-[#4169E1]/18 text-[#B0C4DE] ring-[#4169E1]/25'; // Blue
-    statusText = 'Du spelar här';
-  } else if (hasMatches) {
-    statusColor = 'bg-[#F4743B]/18 text-[#FDE3D2] ring-[#F4743B]/25'; // Orange
-    statusText = 'Matcher tillgängliga';
-  }
+  // Status config
+  const status = useMemo(() => {
+    if (hasUserMatch) return {
+      label: 'Du spelar här',
+      icon: CheckCircle2,
+      bg: 'bg-[#4169E1]/14', ring: 'ring-[#4169E1]/30', text: 'text-[#B0C4DE]',
+    };
+    if (hasMatches) return {
+      label: `${matches.length} aktiv${matches.length === 1 ? '' : 'a'}`,
+      icon: Flame,
+      bg: 'bg-[#F4743B]/14', ring: 'ring-[#F4743B]/30', text: 'text-[#FDE3D2]',
+    };
+    return {
+      label: 'Tillgänglig',
+      icon: null,
+      bg: 'bg-[#2BA84A]/12', ring: 'ring-[#2BA84A]/25', text: 'text-[#CFE8D6]',
+    };
+  }, [hasMatches, hasUserMatch, matches.length]);
+
+  const StatusIcon = status.icon;
+
+  const topMatchFull = topMatch && !topMatch.is_spontaneous
+    && topMatchParticipants.length >= (topMatch.max_players || 0);
 
   return (
-    <div
-      className={`cursor-pointer transition-all rounded-xl border shadow-sm ${
-        isSelected 
-          ? 'bg-[#18221E] border-[#2BA84A] ring-1 ring-[#2BA84A]/20' 
-          : 'bg-[#121715] border-[#223029] hover:border-[#2BA84A]/50'
-      }`}
+    <motion.div
+      whileTap={{ scale: 0.99 }}
       onClick={onClick}
+      className={`group cursor-pointer rounded-[18px] border overflow-hidden transition-all ${
+        isSelected
+          ? 'bg-[#151B18] border-[#2BA84A]/60 ring-1 ring-[#2BA84A]/20 shadow-[0_12px_30px_rgba(43,168,74,0.15)]'
+          : 'bg-[#121715] border-[#223029] hover:border-[#2BA84A]/35 hover:shadow-[0_10px_24px_rgba(0,0,0,0.35)]'
+      }`}
     >
       <div className="p-4">
-        <div className="flex items-start justify-between mb-2">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex-1 min-w-0">
-            <h4 className="text-base font-semibold text-white truncate mb-0.5">{venue.name}</h4>
-            <div className="flex items-center gap-1 text-sm text-secondary">
+            <div className="flex items-center gap-1.5 mb-1">
+              <h4 className="text-[15px] font-bold text-white truncate tracking-tight">{venue.name}</h4>
+              {venue.is_allplay && (
+                <span className="flex-shrink-0 inline-flex items-center h-[18px] px-1.5 rounded-md bg-[#2BA84A]/18 ring-1 ring-[#2BA84A]/35 text-[9px] font-black uppercase tracking-wider text-[#86EFAC]">
+                  ✓
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1 text-[12px] text-[#9EAAA4]">
+              <MapPin className="w-3 h-3 flex-shrink-0" />
               <span className="truncate">{venue.city}</span>
-              {venue.distance && (
-                <span>• {venue.distance.toFixed(1)}km</span>
+              {typeof venue.distance === 'number' && venue.distance !== Infinity && (
+                <>
+                  <span className="text-[#4a5550]">·</span>
+                  <span className="tabular-nums font-medium text-[#B6C2BC]">{venue.distance.toFixed(1)} km</span>
+                </>
               )}
             </div>
           </div>
 
+          {/* Status pill */}
+          <span
+            className={`flex-shrink-0 inline-flex items-center gap-1 h-6 px-2 rounded-full text-[10px] font-bold uppercase tracking-wider ring-1 ${status.bg} ${status.ring} ${status.text}`}
+          >
+            {StatusIcon && <StatusIcon className="w-3 h-3" strokeWidth={2.5} />}
+            {status.label}
+          </span>
         </div>
 
         {/* Formats */}
-        <div className="flex flex-wrap gap-1.5 mb-3">
-            {venue.formats_supported?.map(format => (
-              <span key={format} className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-[#18221E] border border-[#223029] text-secondary">
+        {venue.formats_supported?.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-3">
+            {venue.formats_supported.map(format => (
+              <span key={format} className="inline-flex items-center h-[22px] rounded-md px-1.5 text-[10px] font-bold bg-[#18221E] border border-[#223029] text-[#B6C2BC]">
                 {format}
               </span>
             ))}
-        </div>
+          </div>
+        )}
 
-        {/* Active Matches Preview */}
-        {matches && matches.length > 0 ? (
-          <div className="space-y-2 pt-2 border-t border-[#223029]">
-            <div className="flex items-center gap-2 text-xs font-medium text-[#F4743B]">
-               <Calendar className="w-3.5 h-3.5" />
-               <span>{matches.length} aktiv{matches.length === 1 ? '' : 'a'} matcher</span>
+        {/* Match preview OR "available" state */}
+        {topMatch ? (
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              onMatchClick?.(topMatch.id);
+            }}
+            className="rounded-[14px] bg-[#18221E] border border-[#223029] hover:border-[#2BA84A]/35 p-3 transition-colors cursor-pointer"
+          >
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-bold text-white truncate leading-tight">{topMatch.title}</p>
+                <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-[#9EAAA4]">
+                  <Calendar className="w-3 h-3" />
+                  <span className="tabular-nums">{topMatch.date} · {topMatch.time}</span>
+                </div>
+              </div>
+              <div className={`flex items-center gap-1 h-7 px-2 rounded-lg text-[11px] font-bold tabular-nums flex-shrink-0 ${
+                topMatchFull
+                  ? 'bg-[#F4743B]/15 text-[#FDE3D2] ring-1 ring-[#F4743B]/30'
+                  : 'bg-[#121715] text-[#F4F7F5] ring-1 ring-[#223029]'
+              }`}>
+                <Users className="w-3 h-3" />
+                {topMatch.is_spontaneous
+                  ? `${topMatchParticipants.length}`
+                  : `${topMatchParticipants.length}/${topMatch.max_players}`}
+              </div>
             </div>
-            {matches.slice(0, 1).map(match => {
-              const currentPlayers = allParticipants.filter(p => p.match_id === match.id).length;
-              const maxPlayers = match.max_players || 0;
-              const progressPercentage = maxPlayers > 0 ? (currentPlayers / maxPlayers) * 100 : 0;
-              const users = matchUsers[match.id] || [];
-              
-              return (
-                <div 
-                  key={match.id}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onMatchClick(match.id);
-                  }}
-                  className="bg-[#18221E] rounded-lg p-3 border border-[#223029] hover:border-[#2BA84A]/30 transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                      <div className="truncate pr-2">
-                          <span className="text-sm font-medium text-white block truncate">{match.title}</span>
-                          <span className="text-xs text-secondary block">{match.date} {match.time}</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-secondary bg-[#121715] px-2 py-1 rounded-md border border-[#223029]">
-                          <Users className="w-3 h-3" />
-                          {currentPlayers}/{maxPlayers}
-                      </div>
-                  </div>
 
-                  {/* Progress Bar */}
-                  <div className="h-1.5 bg-[#121715] rounded-full overflow-hidden border border-[#223029] mb-2">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${progressPercentage}%` }}
-                      transition={{ duration: 0.6, ease: "easeOut" }}
-                      className={`h-full rounded-full transition-all ${
-                        progressPercentage >= 90 
-                          ? 'bg-[#F4743B]'
-                          : 'bg-[#2BA84A]'
-                      }`}
-                    />
-                  </div>
+            {/* Progress */}
+            {!topMatch.is_spontaneous && topMatch.max_players > 0 && (
+              <div className="h-1 bg-[#121715] rounded-full overflow-hidden border border-[#223029]/50 mb-2">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(100, (topMatchParticipants.length / topMatch.max_players) * 100)}%` }}
+                  transition={{ duration: 0.5, ease: 'easeOut' }}
+                  className={`h-full rounded-full ${
+                    topMatchParticipants.length / topMatch.max_players >= 0.9 ? 'bg-[#F4743B]' : 'bg-[#2BA84A]'
+                  }`}
+                />
+              </div>
+            )}
 
-                  {/* Users Avatars */}
-                  {users.length > 0 && (
-                    <div className="flex -space-x-2 overflow-x-auto py-1 scrollbar-hide">
-                      {users.map((user, i) => (
-                        <div 
-                          key={user?.id || i}
-                          className="w-6 h-6 flex-shrink-0 rounded-full bg-gradient-to-br from-[#2BA84A] to-[#248232] border border-[#121715] flex items-center justify-center overflow-hidden"
-                          title={user?.full_name || 'User'}
-                        >
-                          {user?.profile_image_url ? (
-                            <img src={user.profile_image_url} alt={user.full_name || 'User'} className="w-full h-full object-cover" />
-                          ) : (
-                            <span className="text-[9px] font-semibold text-white">{user?.full_name?.[0] || '?'}</span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+            {/* Avatars + more count */}
+            <div className="flex items-center justify-between">
+              {topMatchParticipants.length > 0 ? (
+                <div className="flex items-center gap-1.5">
+                  <div className="flex -space-x-1.5">
+                    {topUsers.slice(0, 4).map((user, i) => (
+                      <div key={user?.id || i} className="ring-[1.5px] ring-[#18221E] rounded-full">
+                        <AvatarImage
+                          src={user?.avatar_url || user?.profile_image_url}
+                          name={user?.display_name || user?.full_name || 'S'}
+                          className="w-6 h-6"
+                          textClassName="text-[9px]"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  {topMatchParticipants.length > 4 && (
+                    <span className="text-[10px] font-semibold text-[#9EAAA4]">
+                      +{topMatchParticipants.length - 4}
+                    </span>
                   )}
                 </div>
-              );
-            })}
+              ) : (
+                <span className="text-[10px] text-[#8FA097] font-medium">Var först att anmäla dig</span>
+              )}
+
+              {matches.length > 1 && (
+                <span className="text-[10px] font-bold text-[#F4743B] bg-[#F4743B]/10 ring-1 ring-[#F4743B]/25 rounded-md px-1.5 h-[18px] inline-flex items-center">
+                  +{matches.length - 1} till
+                </span>
+              )}
+            </div>
           </div>
         ) : (
-          <div className="pt-2 border-t border-[#223029]">
-             <span className="text-xs text-secondary flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#2BA84A]"></div>
-                Tillgänglig för bokning
-             </span>
+          <div className="flex items-center justify-between rounded-[14px] bg-[#18221E]/50 border border-[#223029]/60 px-3 py-2.5">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#2BA84A] animate-pulse" />
+              <span className="text-[12px] text-[#B6C2BC] font-medium">Inga matcher · Skapa en</span>
+            </div>
+            <ArrowRight className="w-3.5 h-3.5 text-[#7B8A83] group-hover:text-[#2BA84A] group-hover:translate-x-0.5 transition-all" />
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

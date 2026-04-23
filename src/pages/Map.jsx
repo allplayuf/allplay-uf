@@ -370,6 +370,7 @@ export default function MapPage() {
                       onClick={() => handleShowDetails(venue)}
                       onMatchClick={handleMatchClick}
                       userMatchIds={userMatchIds}
+                      allParticipants={allParticipants}
                     />
                   </motion.div>
                 ))}

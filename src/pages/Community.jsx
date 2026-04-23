@@ -547,52 +547,11 @@ export default function CommunityPage() {
               </div>
             </div>
 
-            {/* Stats row — refined */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className={`grid ${isCupsEnabled() ? 'grid-cols-3' : 'grid-cols-2'} gap-2 sm:gap-3 mb-5`}
-            >
-              {[
-                { icon: Heart, value: friendsAccepted.length, label: 'Vänner', tint: 'rgba(43,168,74,0.12)', ring: 'rgba(43,168,74,0.25)', text: '#86EFAC' },
-                { icon: Users, value: myTeams.length, label: 'Lag', tint: 'rgba(147,112,219,0.12)', ring: 'rgba(147,112,219,0.25)', text: '#DDD6FE' },
-                ...(isCupsEnabled() ? [{ icon: Trophy, value: cupsCount, label: 'Cuper', tint: 'rgba(245,158,11,0.12)', ring: 'rgba(245,158,11,0.25)', text: '#FCD34D' }] : []),
-              ].map((stat, idx) => {
-                const Icon = stat.icon;
-                return (
-                  <motion.div
-                    key={idx}
-                    whileTap={{ scale: 0.97 }}
-                    className="relative rounded-2xl p-3 sm:p-4 ring-1 ring-white/5 bg-[#0F1513]/70 backdrop-blur-sm"
-                    style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)' }}
-                  >
-                    <div className="flex items-center gap-2.5 sm:gap-3">
-                      <div
-                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                        style={{ background: stat.tint, boxShadow: `inset 0 0 0 1px ${stat.ring}` }}
-                      >
-                        <Icon className="w-4 h-4 sm:w-[18px] sm:h-[18px]" style={{ color: stat.text }} strokeWidth={2.4} />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-[20px] sm:text-[22px] font-black text-white leading-none tabular-nums">
-                          {stat.value}
-                        </div>
-                        <div className="text-[10px] sm:text-[11px] text-[#8FA097] font-semibold uppercase tracking-wider mt-0.5">
-                          {stat.label}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
-
             {/* Action pills — smaller, refined */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25 }}
+              transition={{ delay: 0.2 }}
               className="grid grid-cols-2 gap-2 sm:gap-3"
             >
               <motion.button

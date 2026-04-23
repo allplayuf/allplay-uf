@@ -358,6 +358,7 @@ export default function MapView({
 }) {
   const [mapReady, setMapReady] = useState(false);
   const [mapVisible, setMapVisible] = useState(false);
+  const [showLegend, setShowLegend] = useState(false);
   const mapRef = useRef(null);
 
   const venueStatuses = useMemo(() => {
@@ -472,38 +473,62 @@ export default function MapView({
         )}
       </AnimatePresence>
 
-      {/* Legend */}
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: mapVisible ? 1 : 0, y: mapVisible ? 0 : 10 }}
-        transition={{ duration: 0.4, delay: 0.3, ease: "easeOut" }}
-        className="absolute bottom-3 left-3 z-[2] flex items-center gap-2 bg-[#121715]/92 backdrop-blur-md rounded-xl px-2.5 py-1.5 border border-[#223029] shadow-lg flex-wrap"
-      >
-        <div className="flex items-center gap-1">
-          <svg width="10" height="14" viewBox="0 0 10 14"><path d="M5 13C5 13 2.5 8.5 1.5 5.5a4 4 0 117 0C7.5 8.5 5 13 5 13z" fill="#0D2818" stroke="#2BA84A" strokeWidth="1.2" strokeLinejoin="round"/><circle cx="5" cy="5" r="1.5" fill="#4ADE80"/></svg>
-          <span className="text-[9px] font-medium text-[#9EAAA4]">Plan</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <svg width="10" height="14" viewBox="0 0 10 14"><path d="M5 13C5 13 2.5 8.5 1.5 5.5a4 4 0 117 0C7.5 8.5 5 13 5 13z" fill="#2A1208" stroke="#F4743B" strokeWidth="1.2" strokeLinejoin="round"/><circle cx="5" cy="5" r="1.5" fill="#FDBA74"/></svg>
-          <span className="text-[9px] font-medium text-[#9EAAA4]">Match</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <svg width="10" height="14" viewBox="0 0 10 14"><path d="M5 13C5 13 2.5 8.5 1.5 5.5a4 4 0 117 0C7.5 8.5 5 13 5 13z" fill="#2A0A1A" stroke="#EC4899" strokeWidth="1.2" strokeLinejoin="round"/><circle cx="5" cy="5" r="1.5" fill="#F9A8D4"/></svg>
-          <span className="text-[9px] font-medium text-[#9EAAA4]">Snart</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <svg width="10" height="14" viewBox="0 0 10 14"><path d="M5 13C5 13 2.5 8.5 1.5 5.5a4 4 0 117 0C7.5 8.5 5 13 5 13z" fill="#1A0D0D" stroke="#DC2626" strokeWidth="1.2" strokeLinejoin="round"/><circle cx="5" cy="5" r="1.5" fill="#FCA5A5"/></svg>
-          <span className="text-[9px] font-medium text-[#9EAAA4]">Full</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <svg width="10" height="14" viewBox="0 0 10 14"><path d="M5 13C5 13 2.5 8.5 1.5 5.5a4 4 0 117 0C7.5 8.5 5 13 5 13z" fill="#0E1B3D" stroke="#4169E1" strokeWidth="1.2" strokeLinejoin="round"/><circle cx="5" cy="5" r="1.5" fill="#93B4F5"/></svg>
-          <span className="text-[9px] font-medium text-[#9EAAA4]">Anmäld</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <svg width="10" height="14" viewBox="0 0 10 14"><path d="M5 13C5 13 2.5 8.5 1.5 5.5a4 4 0 117 0C7.5 8.5 5 13 5 13z" fill="#2A1F08" stroke="#F59E0B" strokeWidth="1.2" strokeLinejoin="round"/><circle cx="5" cy="5" r="1.5" fill="#FDE68A"/></svg>
-          <span className="text-[9px] font-medium text-[#9EAAA4]">Live</span>
-        </div>
-      </motion.div>
+      {/* Legend — collapsible info button. Hidden by default so pins breathe. */}
+      <AnimatePresence>
+        {mapVisible && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+            className="absolute bottom-3 left-3 z-[2]"
+          >
+            {showLegend ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                className="bg-[#121715]/95 backdrop-blur-md rounded-2xl p-3 border border-[#223029] shadow-[0_12px_32px_rgba(0,0,0,0.5)] min-w-[180px]"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-bold text-[#F4F7F5] uppercase tracking-wider">Pin-guide</span>
+                  <button
+                    onClick={() => setShowLegend(false)}
+                    className="w-6 h-6 rounded-lg bg-[#18221E] hover:bg-[#223029] flex items-center justify-center"
+                    aria-label="Stäng guide"
+                  >
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 1L9 9M9 1L1 9" stroke="#B6C2BC" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                  {[
+                    { fill: '#0D2818', stroke: '#2BA84A', dot: '#4ADE80', label: 'Plan' },
+                    { fill: '#2A1208', stroke: '#F4743B', dot: '#FDBA74', label: 'Match' },
+                    { fill: '#2A0A1A', stroke: '#EC4899', dot: '#F9A8D4', label: 'Snart' },
+                    { fill: '#1A0D0D', stroke: '#DC2626', dot: '#FCA5A5', label: 'Full' },
+                    { fill: '#0E1B3D', stroke: '#4169E1', dot: '#93B4F5', label: 'Anmäld' },
+                    { fill: '#2A1F08', stroke: '#F59E0B', dot: '#FDE68A', label: 'Live' },
+                  ].map((it, i) => (
+                    <div key={i} className="flex items-center gap-1.5">
+                      <svg width="10" height="14" viewBox="0 0 10 14" className="flex-shrink-0"><path d="M5 13C5 13 2.5 8.5 1.5 5.5a4 4 0 117 0C7.5 8.5 5 13 5 13z" fill={it.fill} stroke={it.stroke} strokeWidth="1.2" strokeLinejoin="round"/><circle cx="5" cy="5" r="1.5" fill={it.dot}/></svg>
+                      <span className="text-[10px] font-medium text-[#B6C2BC]">{it.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            ) : (
+              <motion.button
+                onClick={() => setShowLegend(true)}
+                whileTap={{ scale: 0.92 }}
+                className="w-10 h-10 rounded-full bg-[#121715]/92 backdrop-blur-md border border-[#223029] shadow-[0_8px_20px_rgba(0,0,0,0.4)] flex items-center justify-center text-[#B6C2BC] hover:text-[#F4F7F5] hover:border-[#2BA84A]/30 transition-colors"
+                aria-label="Visa pin-guide"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" strokeWidth="2.2" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+              </motion.button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <style>{`
         /* GPU-accelerate the entire map container for silky panning/zooming */
