@@ -237,7 +237,8 @@ export default function DashboardHero({
 }
 
 // ═══════════════════════════════════════════════════════════
-// Pitch pattern — the signature. Authored, not generic.
+// Pitch pattern — the signature. Full pitch with goal boxes.
+// Viewed from above, horizontal orientation: goals on left & right.
 // ═══════════════════════════════════════════════════════════
 function PitchPattern() {
   return (
@@ -249,51 +250,84 @@ function PitchPattern() {
     >
       <defs>
         <linearGradient id="pitchLineFade" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.12" />
-          <stop offset="50%" stopColor="#ffffff" stopOpacity="0.08" />
-          <stop offset="100%" stopColor="#ffffff" stopOpacity="0.04" />
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.16" />
+          <stop offset="50%" stopColor="#ffffff" stopOpacity="0.11" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0.06" />
         </linearGradient>
         <radialGradient id="pitchCenterGlow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#34C257" stopOpacity="0.18" />
-          <stop offset="60%" stopColor="#34C257" stopOpacity="0.05" />
+          <stop offset="0%" stopColor="#34C257" stopOpacity="0.22" />
+          <stop offset="60%" stopColor="#34C257" stopOpacity="0.06" />
           <stop offset="100%" stopColor="#34C257" stopOpacity="0" />
         </radialGradient>
       </defs>
 
       {/* Outer pitch boundary */}
       <rect
-        x="8"
-        y="14"
-        width="384"
-        height="272"
-        fill="none"
-        stroke="url(#pitchLineFade)"
-        strokeWidth="1.5"
-        rx="4"
+        x="8" y="14" width="384" height="272"
+        fill="none" stroke="url(#pitchLineFade)" strokeWidth="1.5" rx="4"
       />
 
       {/* Center line */}
-      <line
-        x1="200"
-        y1="14"
-        x2="200"
-        y2="286"
-        stroke="url(#pitchLineFade)"
-        strokeWidth="1.5"
-      />
+      <line x1="200" y1="14" x2="200" y2="286" stroke="url(#pitchLineFade)" strokeWidth="1.5" />
 
       {/* Center circle glow + ring */}
-      <circle cx="200" cy="150" r="48" fill="url(#pitchCenterGlow)" />
-      <circle
-        cx="200"
-        cy="150"
-        r="48"
-        fill="none"
-        stroke="url(#pitchLineFade)"
-        strokeWidth="1.5"
+      <circle cx="200" cy="150" r="44" fill="url(#pitchCenterGlow)" />
+      <circle cx="200" cy="150" r="44" fill="none" stroke="url(#pitchLineFade)" strokeWidth="1.5" />
+      <circle cx="200" cy="150" r="2" fill="#ffffff" fillOpacity="0.18" />
+
+      {/* ── LEFT side ─────────────────────────── */}
+      {/* Penalty box (large) */}
+      <rect
+        x="8" y="70" width="66" height="160"
+        fill="none" stroke="url(#pitchLineFade)" strokeWidth="1.5"
+      />
+      {/* Goal box (small) */}
+      <rect
+        x="8" y="112" width="24" height="76"
+        fill="none" stroke="url(#pitchLineFade)" strokeWidth="1.5"
+      />
+      {/* Penalty arc */}
+      <path
+        d="M 74 130 A 22 22 0 0 1 74 170"
+        fill="none" stroke="url(#pitchLineFade)" strokeWidth="1.5"
+      />
+      {/* Penalty spot */}
+      <circle cx="54" cy="150" r="1.6" fill="#ffffff" fillOpacity="0.18" />
+      {/* Goal (outside the pitch) */}
+      <rect
+        x="2" y="134" width="6" height="32"
+        fill="none" stroke="url(#pitchLineFade)" strokeWidth="1.5"
       />
 
+      {/* ── RIGHT side ────────────────────────── */}
+      {/* Penalty box (large) */}
+      <rect
+        x="326" y="70" width="66" height="160"
+        fill="none" stroke="url(#pitchLineFade)" strokeWidth="1.5"
+      />
+      {/* Goal box (small) */}
+      <rect
+        x="368" y="112" width="24" height="76"
+        fill="none" stroke="url(#pitchLineFade)" strokeWidth="1.5"
+      />
+      {/* Penalty arc */}
+      <path
+        d="M 326 130 A 22 22 0 0 0 326 170"
+        fill="none" stroke="url(#pitchLineFade)" strokeWidth="1.5"
+      />
+      {/* Penalty spot */}
+      <circle cx="346" cy="150" r="1.6" fill="#ffffff" fillOpacity="0.18" />
+      {/* Goal (outside the pitch) */}
+      <rect
+        x="392" y="134" width="6" height="32"
+        fill="none" stroke="url(#pitchLineFade)" strokeWidth="1.5"
+      />
 
+      {/* Corner arcs */}
+      <path d="M 8 18 A 4 4 0 0 1 12 14" fill="none" stroke="url(#pitchLineFade)" strokeWidth="1.2" />
+      <path d="M 388 14 A 4 4 0 0 1 392 18" fill="none" stroke="url(#pitchLineFade)" strokeWidth="1.2" />
+      <path d="M 12 286 A 4 4 0 0 1 8 282" fill="none" stroke="url(#pitchLineFade)" strokeWidth="1.2" />
+      <path d="M 392 282 A 4 4 0 0 1 388 286" fill="none" stroke="url(#pitchLineFade)" strokeWidth="1.2" />
     </svg>
   );
 }

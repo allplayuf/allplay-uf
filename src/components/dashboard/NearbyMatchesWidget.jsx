@@ -35,7 +35,7 @@ export default function NearbyMatchesWidget({
           </div>
           <div>
             <h3 className="text-base font-bold text-[#F4F7F5]">Matcher nära dig</h3>
-            <p className="text-[11px] text-[#9EAAA4]">{matches.length} inom 15 km</p>
+            <p className="text-[11px] text-[#9EAAA4]">{matches.length} öppna matcher</p>
           </div>
         </div>
         <Link 

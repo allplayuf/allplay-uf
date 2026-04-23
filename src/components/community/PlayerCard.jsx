@@ -28,7 +28,8 @@ export default function PlayerCard({ player, friendshipStatus = 'none', onAddFri
   const [imgError, setImgError] = useState(false);
   const isPrivate = player._isPrivate;
   const avatarUrl = getAvatarUrl(player);
-  const skillCfg = SKILL_CONFIG[player.skill_level || 'intermediate'];
+  const hasSkill = !!player.skill_level && !!SKILL_CONFIG[player.skill_level];
+  const skillCfg = hasSkill ? SKILL_CONFIG[player.skill_level] : SKILL_CONFIG.intermediate;
   const SkillIcon = skillCfg.icon;
 
   const displayName = player.display_name || player.full_name || 'Ny spelare';
@@ -42,7 +43,7 @@ export default function PlayerCard({ player, friendshipStatus = 'none', onAddFri
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, delay: Math.min(index, 10) * 0.03, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{ y: -2 }}
-      className="relative overflow-hidden rounded-[18px] border border-[#223029] bg-gradient-to-b from-[#161C19] to-[#121715] transition-[box-shadow,border-color,transform] duration-200 hover:border-[#2BA84A]/30"
+      className="relative overflow-hidden h-full flex flex-col rounded-[18px] border border-[#223029] bg-gradient-to-b from-[#161C19] to-[#121715] transition-[box-shadow,border-color,transform] duration-200 hover:border-[#2BA84A]/30"
       style={{ boxShadow: '0 8px 20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)' }}
     >
       {/* Skill accent bar */}
@@ -54,7 +55,7 @@ export default function PlayerCard({ player, friendshipStatus = 'none', onAddFri
         }}
       />
 
-      <div className="p-4">
+      <div className="p-4 flex-1 flex flex-col">
         {/* Head row */}
         <Link to={profileHref} className="block">
           <div className="flex items-center gap-3">
@@ -105,8 +106,8 @@ export default function PlayerCard({ player, friendshipStatus = 'none', onAddFri
                 )}
               </div>
 
-              {/* Skill chip */}
-              {!isPrivate && (
+              {/* Skill chip — only show if user actually has a level set */}
+              {!isPrivate && hasSkill && (
                 <span
                   className="inline-flex items-center gap-1 h-5 mt-1.5 px-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider"
                   style={{
@@ -132,8 +133,8 @@ export default function PlayerCard({ player, friendshipStatus = 'none', onAddFri
           </div>
         )}
 
-        {/* Action row */}
-        <div className="mt-3">
+        {/* Action row — mt-auto pushes it to the bottom so all cards align */}
+        <div className="mt-auto pt-3">
           {isPrivate ? (
             <div className="h-10 rounded-xl bg-[#0F1513] ring-1 ring-[#1E2724] flex items-center justify-center">
               <span className="text-[12px] font-semibold text-[#6B7A73] inline-flex items-center gap-1.5">

@@ -46,10 +46,25 @@ export default function CommunityHero({
             <stop offset="100%" stopColor="#34C257" stopOpacity="0" />
           </radialGradient>
         </defs>
+        {/* Outer */}
         <rect x="8" y="14" width="384" height="272" fill="none" stroke="url(#communityPitchFade)" strokeWidth="1.5" rx="4" />
+        {/* Center line + circle */}
         <line x1="200" y1="14" x2="200" y2="286" stroke="url(#communityPitchFade)" strokeWidth="1.5" />
-        <circle cx="200" cy="150" r="48" fill="url(#communityPitchGlow)" />
-        <circle cx="200" cy="150" r="48" fill="none" stroke="url(#communityPitchFade)" strokeWidth="1.5" />
+        <circle cx="200" cy="150" r="44" fill="url(#communityPitchGlow)" />
+        <circle cx="200" cy="150" r="44" fill="none" stroke="url(#communityPitchFade)" strokeWidth="1.5" />
+        <circle cx="200" cy="150" r="2" fill="#ffffff" fillOpacity="0.18" />
+        {/* Left penalty + goal box */}
+        <rect x="8" y="70" width="66" height="160" fill="none" stroke="url(#communityPitchFade)" strokeWidth="1.5" />
+        <rect x="8" y="112" width="24" height="76" fill="none" stroke="url(#communityPitchFade)" strokeWidth="1.5" />
+        <path d="M 74 130 A 22 22 0 0 1 74 170" fill="none" stroke="url(#communityPitchFade)" strokeWidth="1.5" />
+        <circle cx="54" cy="150" r="1.6" fill="#ffffff" fillOpacity="0.18" />
+        <rect x="2" y="134" width="6" height="32" fill="none" stroke="url(#communityPitchFade)" strokeWidth="1.5" />
+        {/* Right penalty + goal box */}
+        <rect x="326" y="70" width="66" height="160" fill="none" stroke="url(#communityPitchFade)" strokeWidth="1.5" />
+        <rect x="368" y="112" width="24" height="76" fill="none" stroke="url(#communityPitchFade)" strokeWidth="1.5" />
+        <path d="M 326 130 A 22 22 0 0 0 326 170" fill="none" stroke="url(#communityPitchFade)" strokeWidth="1.5" />
+        <circle cx="346" cy="150" r="1.6" fill="#ffffff" fillOpacity="0.18" />
+        <rect x="392" y="134" width="6" height="32" fill="none" stroke="url(#communityPitchFade)" strokeWidth="1.5" />
       </svg>
 
       {/* Ambient orbs */}

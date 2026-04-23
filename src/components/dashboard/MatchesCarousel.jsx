@@ -266,7 +266,7 @@ export default function MatchesCarousel({
           }
           description={
             activeTab === "nearby"
-              ? "Inga öppna matcher inom 15 km. Skapa din egen eller kolla in alla matcher."
+              ? "Inga öppna matcher just nu. Skapa din egen eller kolla in alla matcher."
               : isGuest
               ? "Logga in för att hitta och gå med i matcher nära dig."
               : "Hitta en match att gå med i eller skapa en egen på 10 sekunder!"
