@@ -224,9 +224,17 @@ export default function MatchesCarousel({
         />
       ) : (
         <div className="relative">
-          {/* Edge fade masks */}
-          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-[#0F1513] to-transparent z-10" />
-          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-[#0F1513] to-transparent z-10" />
+          {/* Edge fade masks — only when scrollable */}
+          <div
+            className={`pointer-events-none absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#0F1513] to-transparent z-10 transition-opacity duration-200 ${
+              canScrollLeft ? "opacity-100" : "opacity-0"
+            }`}
+          />
+          <div
+            className={`pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#0F1513] to-transparent z-10 transition-opacity duration-200 ${
+              canScrollRight ? "opacity-100" : "opacity-0"
+            }`}
+          />
 
           <motion.div
             key={activeTab}
@@ -238,7 +246,7 @@ export default function MatchesCarousel({
             onTouchEnd={() => setTimeout(() => setIsPaused(false), 3000)}
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
-            className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 -mx-3 px-3 sm:mx-0 sm:px-1"
+            className="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 -mx-4 px-4 sm:mx-0 sm:px-1"
             style={{
               scrollbarWidth: "none",
               msOverflowStyle: "none",
@@ -248,7 +256,7 @@ export default function MatchesCarousel({
             {matches.map((match, index) => (
               <div
                 key={match.id}
-                className="flex-shrink-0 snap-start w-[78%] sm:w-[340px] lg:w-[400px]"
+                className="flex-shrink-0 snap-start w-[calc(100%-3rem)] sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
               >
                 <MatchCard
                   match={match}
