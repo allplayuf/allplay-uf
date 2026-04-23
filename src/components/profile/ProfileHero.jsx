@@ -426,43 +426,6 @@ function PitchPattern() {
         stroke="url(#profilePitchFade)"
         strokeWidth="1.5"
       />
-      <circle cx="200" cy="150" r="2.5" fill="rgba(52,194,87,0.5)" />
-      <rect
-        x="8"
-        y="88"
-        width="70"
-        height="124"
-        fill="none"
-        stroke="url(#profilePitchFade)"
-        strokeWidth="1.5"
-      />
-      <rect
-        x="8"
-        y="118"
-        width="28"
-        height="64"
-        fill="none"
-        stroke="url(#profilePitchFade)"
-        strokeWidth="1.2"
-      />
-      <rect
-        x="322"
-        y="88"
-        width="70"
-        height="124"
-        fill="none"
-        stroke="url(#profilePitchFade)"
-        strokeWidth="1.5"
-      />
-      <rect
-        x="364"
-        y="118"
-        width="28"
-        height="64"
-        fill="none"
-        stroke="url(#profilePitchFade)"
-        strokeWidth="1.2"
-      />
     </svg>
   );
 }

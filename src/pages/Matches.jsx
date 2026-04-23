@@ -411,61 +411,59 @@ export default function MatchesPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
         >
-          <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-2xl p-3 sm:p-4">
-            {/* Segmented Control */}
-            <div className="flex gap-2 mb-4">
-              <motion.button
-                onClick={() => { triggerHaptic('light'); setActiveTab('browse'); }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className={`flex-1 h-14 sm:h-16 rounded-2xl font-semibold text-sm sm:text-base transition-all ${
-                  activeTab === 'browse'
-                    ? 'bg-[#2BA84A]/16 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30'
-                    : 'bg-[#18221E] text-[#B6C2BC] hover:bg-[#2BA84A]/8'
-                }`}
-              >
-                <div className="flex flex-col items-center justify-center gap-1">
-                  <span>Hitta</span>
-                  <span className="text-xs opacity-70">({allMatches.length})</span>
-                </div>
-              </motion.button>
-
-              <motion.button
-                onClick={() => { triggerHaptic('light'); setActiveTab('my-matches'); }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className={`flex-1 h-14 sm:h-16 rounded-2xl font-semibold text-sm sm:text-base transition-all ${
-                  activeTab === 'my-matches'
-                    ? 'bg-[#2BA84A]/16 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30'
-                    : 'bg-[#18221E] text-[#B6C2BC] hover:bg-[#2BA84A]/8'
-                }`}
-              >
-                <div className="flex flex-col items-center justify-center gap-1">
-                  <span>Anmälda</span>
-                  <span className="text-xs opacity-70">({myMatches.length})</span>
-                </div>
-              </motion.button>
-
-              <motion.button
-                onClick={() => { triggerHaptic('light'); setActiveTab('completed'); }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className={`flex-1 h-14 sm:h-16 rounded-2xl font-semibold text-sm sm:text-base transition-all ${
-                  activeTab === 'completed'
-                    ? 'bg-[#2BA84A]/16 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30'
-                    : 'bg-[#18221E] text-[#B6C2BC] hover:bg-[#2BA84A]/8'
-                }`}
-              >
-                <div className="flex flex-col items-center justify-center gap-1">
-                  <span>Spelade</span>
-                  <CheckCircle2 className="w-4 h-4 opacity-70" />
-                </div>
-              </motion.button>
+          <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-2xl p-2 sm:p-3">
+            {/* Premium segmented tabs — glidande pill, 3 lika breda */}
+            <div
+              role="tablist"
+              className="relative grid grid-cols-3 gap-0.5 p-1 bg-[#0F1513] border border-[#243029] rounded-2xl shadow-[inset_0_1px_2px_rgba(0,0,0,0.45)]"
+            >
+              {[
+                { id: 'browse', label: 'Hitta', count: allMatches.length, accent: '#34C257' },
+                { id: 'my-matches', label: 'Anmälda', count: myMatches.length, accent: '#FDBA74' },
+                { id: 'completed', label: 'Spelade', count: null, accent: '#C4B5FD' },
+              ].map((tab) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => { triggerHaptic('light'); setActiveTab(tab.id); }}
+                    className="relative h-11 sm:h-12 rounded-xl flex items-center justify-center gap-1.5 text-[13px] sm:text-[14px] font-bold transition-colors z-10"
+                    style={{ color: isActive ? '#FFFFFF' : '#9EAAA4' }}
+                  >
+                    {isActive && (
+                      <motion.span
+                        layoutId="matches-tab-pill"
+                        transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                        className="absolute inset-0 rounded-xl -z-10"
+                        style={{
+                          background: `linear-gradient(180deg, ${tab.accent}38 0%, ${tab.accent}14 100%)`,
+                          boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px ${tab.accent}55`,
+                        }}
+                        aria-hidden
+                      />
+                    )}
+                    <span>{tab.label}</span>
+                    {tab.count !== null && tab.count > 0 && (
+                      <span
+                        className="text-[10px] font-black tabular-nums min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center"
+                        style={{
+                          background: isActive ? `${tab.accent}30` : '#18221E',
+                          color: isActive ? tab.accent : '#6B7A73',
+                        }}
+                      >
+                        {tab.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Premium Filter Panel */}
             {activeTab === 'browse' && (
-              <div className="mt-1">
+              <div className="mt-3">
                 <FilterPanel
                   open={showFilters}
                   onToggle={() => setShowFilters(!showFilters)}

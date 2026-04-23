@@ -292,7 +292,7 @@ function PitchPattern() {
         stroke="url(#pitchLineFade)"
         strokeWidth="1.5"
       />
-      <circle cx="200" cy="150" r="2.5" fill="rgba(52,194,87,0.5)" />
+
 
     </svg>
   );

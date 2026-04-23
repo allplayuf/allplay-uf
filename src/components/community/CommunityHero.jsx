@@ -50,11 +50,6 @@ export default function CommunityHero({
         <line x1="200" y1="14" x2="200" y2="286" stroke="url(#communityPitchFade)" strokeWidth="1.5" />
         <circle cx="200" cy="150" r="48" fill="url(#communityPitchGlow)" />
         <circle cx="200" cy="150" r="48" fill="none" stroke="url(#communityPitchFade)" strokeWidth="1.5" />
-        <circle cx="200" cy="150" r="2.5" fill="rgba(52,194,87,0.5)" />
-        <rect x="8" y="88" width="70" height="124" fill="none" stroke="url(#communityPitchFade)" strokeWidth="1.5" />
-        <rect x="8" y="118" width="28" height="64" fill="none" stroke="url(#communityPitchFade)" strokeWidth="1.2" />
-        <rect x="322" y="88" width="70" height="124" fill="none" stroke="url(#communityPitchFade)" strokeWidth="1.5" />
-        <rect x="364" y="118" width="28" height="64" fill="none" stroke="url(#communityPitchFade)" strokeWidth="1.2" />
       </svg>
 
       {/* Ambient orbs */}
