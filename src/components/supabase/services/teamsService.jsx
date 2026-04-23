@@ -181,18 +181,14 @@ export async function deleteTeamRest(teamId) {
     console.warn('[teamsService] Edge delete_team unavailable, using REST soft-delete:', edgeError.message);
   }
 
-  // Soft-delete via REST PATCH
+  // Soft-delete via REST PATCH — only `is_active` exists in teams schema
   const headers = await supabaseHeaders();
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/teams?id=eq.${encodeURIComponent(teamId)}`,
     {
       method: 'PATCH',
       headers: { ...headers, 'Prefer': 'return=representation' },
-      body: JSON.stringify({
-        is_active: false,
-        deleted_at: new Date().toISOString(),
-        deleted_by: userId || null,
-      })
+      body: JSON.stringify({ is_active: false })
     }
   );
   const body = await res.text().catch(() => '');
