@@ -43,12 +43,15 @@ export default function MatchesCarousel({
     return nearbyMatches.map((m) => ({ ...m, _source: "nearby" }));
   }, [activeTab, myMatches, nearbyMatches]);
 
-  // Reset scroll on tab change
+  // Reset scroll on tab change (instant — we're switching contexts, not browsing)
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
+      scrollRef.current.scrollTo({ left: 0, behavior: "auto" });
       setActiveIndex(0);
+      // Recompute arrow state next frame once new cards are rendered
+      requestAnimationFrame(() => updateScrollState());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   // Measures card step (card width + gap) based on first child.
@@ -322,8 +325,8 @@ export default function MatchesCarousel({
             >
               {matches.map((match, index) => (
                 <div
-                  key={match.id}
-                  className="flex-shrink-0 snap-center sm:snap-start w-[86%] xs:w-[88%] sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
+                  key={`${activeTab}-${match.id}`}
+                  className="flex-shrink-0 snap-center sm:snap-start w-[82%] xs:w-[84%] sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
                 >
                   <MatchCard
                     match={match}

@@ -142,20 +142,12 @@ function LayoutInner({ children }) {
   // Scroll restoration is now handled by NavigationProvider.
   // No manual scrollTop = 0 here — that would fight scroll-position persistence.
   
-  // Handle tab click - navigate to root if already active, else to last path
-  // ALWAYS scroll to top when switching tabs (native app feel)
+  // Handle tab click - always navigate to the tab root and force scroll-to-top.
+  // NavigationProvider ALSO snaps to top on tab/push, but we do it here too so
+  // tapping the same active tab still scrolls up (native app feel).
   const handleTabClick = (item) => {
     triggerHaptic('light');
-    
-    const isCurrentTab = location.pathname.startsWith(item.url);
-    
-    if (isCurrentTab) {
-      navigate(item.url);
-    } else {
-      navigate(tabPaths[item.title] || item.url);
-    }
-    
-    // Always scroll main container to top on tab switch
+    navigate(item.url);
     requestAnimationFrame(() => {
       if (mainContentRef.current) {
         mainContentRef.current.scrollTo({ top: 0, behavior: 'auto' });

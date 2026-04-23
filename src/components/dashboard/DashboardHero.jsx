@@ -294,47 +294,6 @@ function PitchPattern() {
       />
       <circle cx="200" cy="150" r="2.5" fill="rgba(52,194,87,0.5)" />
 
-      {/* Left penalty area */}
-      <rect
-        x="8"
-        y="88"
-        width="70"
-        height="124"
-        fill="none"
-        stroke="url(#pitchLineFade)"
-        strokeWidth="1.5"
-      />
-      {/* Left 6-yard */}
-      <rect
-        x="8"
-        y="118"
-        width="28"
-        height="64"
-        fill="none"
-        stroke="url(#pitchLineFade)"
-        strokeWidth="1.2"
-      />
-
-      {/* Right penalty area */}
-      <rect
-        x="322"
-        y="88"
-        width="70"
-        height="124"
-        fill="none"
-        stroke="url(#pitchLineFade)"
-        strokeWidth="1.5"
-      />
-      {/* Right 6-yard */}
-      <rect
-        x="364"
-        y="118"
-        width="28"
-        height="64"
-        fill="none"
-        stroke="url(#pitchLineFade)"
-        strokeWidth="1.2"
-      />
     </svg>
   );
 }

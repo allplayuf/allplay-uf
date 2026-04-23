@@ -589,59 +589,98 @@ export default function BadgeCollection({ user }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Card className="relative overflow-hidden bg-gradient-to-br from-[#1F5C34] to-[#0A1F11] border border-[#2BA84A]/30 rounded-[16px] sm:rounded-[20px] shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
-          <div className="absolute top-[-20px] sm:top-[-30px] right-[-20px] sm:right-[-30px] w-24 sm:w-32 h-24 sm:h-32 bg-[#2BA84A]/20 rounded-full blur-2xl"></div>
-          <div className="absolute bottom-[-30px] sm:bottom-[-40px] left-[-30px] sm:left-[-40px] w-32 sm:w-40 h-32 sm:h-40 bg-[#0A1F11]/60 rounded-full blur-2xl"></div>
-          
-          <CardContent className="relative p-4 sm:p-6 z-10">
-            <div className="flex items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3">
-              <div className="flex-1 min-w-0">
-                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#EAF6EE] mb-1">Badge Samling</h3>
-                <p className="text-xs sm:text-sm text-[#CFE8D6]">
-                  <span className="font-bold text-[#2BA84A]">{unlockedCount}</span> av {totalPossible}
-                </p>
+        <Card
+          className="relative overflow-hidden border border-white/[0.07] rounded-[22px] sm:rounded-[28px]"
+          style={{
+            background:
+              'radial-gradient(140% 110% at 50% 0%, #0F2A18 0%, #0A1C10 45%, #05100A 100%)',
+            boxShadow:
+              '0 24px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)'
+          }}
+        >
+          {/* Ambient orb */}
+          <div
+            aria-hidden
+            className="absolute -top-24 -right-20 w-[320px] h-[320px] rounded-full blur-[90px] pointer-events-none opacity-70"
+            style={{ background: 'radial-gradient(circle, rgba(52,194,87,0.35) 0%, transparent 70%)' }}
+          />
+          {/* Top hairline */}
+          <div
+            aria-hidden
+            className="absolute inset-x-0 top-0 h-px pointer-events-none"
+            style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.18) 50%, transparent)' }}
+          />
+
+          <CardContent className="relative p-5 sm:p-7 z-10">
+            <div className="flex items-center justify-between gap-3 mb-5">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center flex-shrink-0">
+                  <Award className="w-[18px] h-[18px] text-[#86EFAC]" strokeWidth={2.4} />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.14em] text-white/55 leading-none">
+                    Badge-samling
+                  </div>
+                  <div className="mt-1.5 text-[18px] sm:text-[22px] font-black text-white leading-none tracking-[-0.02em]">
+                    <span className="tabular-nums">{unlockedCount}</span>
+                    <span className="text-white/50 font-bold"> / {totalPossible}</span>
+                  </div>
+                </div>
               </div>
-              <Button
+              <button
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                className="bg-[#FFFFFF]/10 backdrop-blur-sm border border-[#FFFFFF]/20 text-[#EAF6EE] hover:bg-[#FFFFFF]/15 h-9 sm:h-10 px-3 sm:px-4 rounded-xl font-semibold text-xs sm:text-sm flex-shrink-0"
+                className="flex-shrink-0 h-9 w-9 sm:w-auto sm:px-3.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] ring-1 ring-white/10 text-white/80 transition-colors flex items-center justify-center gap-1.5 text-[12px] font-semibold"
+                aria-label="Uppdatera"
               >
-                <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRefreshing ? 'animate-spin mr-0' : 'sm:mr-2'}`} />
+                <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} strokeWidth={2.4} />
                 <span className="hidden sm:inline">Uppdatera</span>
-              </Button>
+              </button>
             </div>
 
             {/* Progress bar */}
-            <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
-              <div className="flex justify-between text-xs sm:text-sm text-[#CFE8D6]">
-                <span className="font-medium">Total framsteg</span>
-                <span className="font-bold text-[#2BA84A]">{completionPercentage}%</span>
+            <div className="space-y-2 mb-5">
+              <div className="flex justify-between items-baseline text-[12px] text-white/65">
+                <span className="font-medium">Totalt framsteg</span>
+                <span className="font-black text-[#86EFAC] tabular-nums">{completionPercentage}%</span>
               </div>
-              <div className="w-full bg-[#0F1513]/60 rounded-full h-3 sm:h-4 overflow-hidden border border-[#2BA84A]/20 shadow-inner">
-                <motion.div 
+              <div className="w-full bg-black/45 rounded-full h-2 overflow-hidden ring-1 ring-white/5">
+                <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${completionPercentage}%` }}
-                  transition={{ duration: 1, ease: "easeOut" }}
-                  className="h-full bg-gradient-to-r from-[#2BA84A] to-[#248232]"
-                  style={{ boxShadow: '0 0 15px rgba(43, 168, 74, 0.5)' }}
+                  transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+                  className="h-full rounded-full"
+                  style={{
+                    background: 'linear-gradient(90deg, #86EFAC 0%, #34C257 55%, #22C55E 100%)',
+                    boxShadow: '0 0 14px rgba(52,194,87,0.55)'
+                  }}
                 />
               </div>
             </div>
 
-            {/* Tier breakdown */}
-            <div className="grid grid-cols-4 gap-2 sm:gap-3">
+            {/* Tier breakdown — compact cards */}
+            <div className="grid grid-cols-4 gap-2">
               {Object.entries(TIER_CONFIG).map(([tier, config]) => {
                 const count = earnedBadges.filter(b => b.tier === tier).length;
+                const emoji = { bronze: '🥉', silver: '🥈', gold: '🥇', diamond: '💎' }[tier];
                 return (
-                  <motion.div 
+                  <motion.div
                     key={tier}
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="bg-[#FFFFFF]/10 backdrop-blur-sm rounded-xl p-2 sm:p-3 text-center border border-[#FFFFFF]/20 hover:bg-[#FFFFFF]/15 transition-colors"
+                    transition={{ delay: 0.08 }}
+                    className="relative rounded-xl bg-white/[0.04] ring-1 ring-white/[0.07] p-2.5 text-center"
                   >
-                    <div className="text-xl sm:text-2xl font-bold text-[#EAF6EE] mb-0.5 sm:mb-1">{count}</div>
-                    <div className="text-[9px] sm:text-[10px] text-[#CFE8D6] font-medium">{config.name}</div>
+                    <div className="text-[16px] leading-none mb-1">{emoji}</div>
+                    <div
+                      className="text-[17px] sm:text-[20px] font-black tabular-nums leading-none"
+                      style={{ color: config.color }}
+                    >
+                      {count}
+                    </div>
+                    <div className="mt-1 text-[9px] sm:text-[10px] font-semibold text-white/55 uppercase tracking-wider leading-none">
+                      {config.name}
+                    </div>
                   </motion.div>
                 );
               })}

@@ -36,19 +36,23 @@ export function NavigationProvider({ children, mainContentRef }) {
     }
   }, [mainContentRef]);
 
-  // Restore scroll position after navigating
-  const restoreScroll = useCallback((pathname) => {
+  // Restore scroll position after navigating.
+  // RULE: when switching between tabs OR entering a new page we don't know,
+  // ALWAYS start at the top. Only restore when user navigates back (pop).
+  const restoreScroll = useCallback((pathname, dir) => {
     const el = mainContentRef?.current;
     if (!el) return;
 
     const saved = scrollPositionsRef.current[pathname];
-    // Use rAF to ensure DOM has rendered — only restore if we have a saved position
-    // Do NOT force scrollTop = 0 on new pages — that causes "jump" on mobile
-    if (saved !== undefined && saved > 0) {
-      requestAnimationFrame(() => {
+
+    requestAnimationFrame(() => {
+      if (dir === 'pop' && saved !== undefined && saved > 0) {
         el.scrollTop = saved;
-      });
-    }
+      } else {
+        // Tab switch or push → top
+        el.scrollTop = 0;
+      }
+    });
   }, [mainContentRef]);
 
   useEffect(() => {
@@ -64,24 +68,22 @@ export function NavigationProvider({ children, mainContentRef }) {
     const prevIsTab = TAB_PATHS.has(prev);
     const currIsTab = TAB_PATHS.has(curr);
 
+    let nextDir = 'tab';
     if (prevIsTab && currIsTab) {
-      // Switching between root tabs
-      setDirection('tab');
+      nextDir = 'tab';
     } else if (currIsTab && !prevIsTab) {
-      // Going back from a detail page to a tab
-      setDirection('pop');
+      nextDir = 'pop';
     } else if (!currIsTab && prevIsTab) {
-      // Pushing to a detail/sub page
-      setDirection('push');
+      nextDir = 'push';
     } else {
-      // Sub-page to sub-page (treat as push)
-      setDirection('push');
+      nextDir = 'push';
     }
+    setDirection(nextDir);
 
     prevPathRef.current = curr;
 
-    // Restore scroll for the new page (if we've been there before)
-    restoreScroll(curr);
+    // Restore scroll for the new page (only on 'pop'; tab/push → top)
+    restoreScroll(curr, nextDir);
   }, [location.pathname, saveScroll, restoreScroll]);
 
   // Listen for popstate (browser back) to force 'pop' direction
