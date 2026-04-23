@@ -55,29 +55,37 @@ export default function OtherProfileView({
     queryKey: ['mutualFriends', currentUser?.id, targetUser?.id],
     queryFn: async () => {
       if (!currentUser?.id || !targetUser?.id) return [];
-      // Target's friendships — requires RLS allowing read
-      const { getAuthHeaders, SUPABASE_URL } = await import('@/components/supabase/config');
-      const headers = await getAuthHeaders();
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/friendships?or=(requester_id.eq.${targetUser.id},addressee_id.eq.${targetUser.id})&status=eq.accepted&select=*`,
-        { headers }
-      );
-      if (!res.ok) return [];
-      const targetFriendships = await res.json();
 
-      // Get target's friend IDs
-      const theirFriendIds = new Set(
-        targetFriendships.map(f =>
-          f.requester_id === targetUser.id ? f.addressee_id : f.requester_id
-        )
-      );
+      let theirFriendIds = new Set();
+      try {
+        const { getAuthHeaders, SUPABASE_URL } = await import('@/components/supabase/config');
+        const headers = await getAuthHeaders();
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/friendships?or=(requester_id.eq.${targetUser.id},addressee_id.eq.${targetUser.id})&status=eq.accepted&select=*`,
+          { headers }
+        );
+        if (res.ok) {
+          const rows = await res.json();
+          rows.forEach(f => {
+            theirFriendIds.add(f.requester_id === targetUser.id ? f.addressee_id : f.requester_id);
+          });
+        }
+      } catch {
+        try {
+          const [sent, received] = await Promise.all([
+            base44.entities.Friendship.filter({ requester_id: targetUser.id, status: 'accepted' }).catch(() => []),
+            base44.entities.Friendship.filter({ addressee_id: targetUser.id, status: 'accepted' }).catch(() => []),
+          ]);
+          [...sent, ...received].forEach(f => {
+            theirFriendIds.add(f.requester_id === targetUser.id ? f.addressee_id : f.requester_id);
+          });
+        } catch { /* give up */ }
+      }
 
-      // Get my friend IDs
       const myFriendIds = (friendships || [])
         .filter(f => f.status === 'accepted')
         .map(f => (f.requester_id === currentUser.id ? f.addressee_id : f.requester_id));
 
-      // Intersection
       const mutualIds = myFriendIds.filter(id => theirFriendIds.has(id));
       if (mutualIds.length === 0) return [];
 

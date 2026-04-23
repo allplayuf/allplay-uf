@@ -276,52 +276,51 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
             />
           </div>
 
-          {/* Match Type Selection - ADJUSTED ICON POSITIONING */}
-          <div className="p-3 sm:p-4 bg-[#18221E] rounded-[14px] border border-[#223029]">
-            <Label className="text-[#F4F7F5] font-semibold text-base sm:text-lg mb-3 block">Matchtyp</Label>
+          {/* Match Type Selection — premium split card */}
+          <div>
+            <Label className="text-[#F4F7F5] font-semibold text-sm sm:text-base mb-2 block">Matchtyp</Label>
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
-              <Button
+              <button
                 type="button"
                 onClick={() => setFormData(prev => ({ ...prev, is_spontaneous: false, max_players: formatMaxPlayers[prev.format] }))}
-                className={`h-20 sm:h-24 flex-col gap-2 rounded-[12px] text-sm sm:text-base ${
+                className={`relative p-4 rounded-2xl text-left transition-all overflow-hidden ${
                   !formData.is_spontaneous
-                    ? 'bg-gradient-to-r from-[#2BA84A] to-[#248232] text-[#FFFFFF] border border-[#2BA84A] shadow-lg shadow-[#2BA84A]/30'
-                    : 'bg-[#121715] text-[#B6C2BC] border border-[#223029] hover:border-[#2BA84A] hover:text-[#F4F7F5]'
+                    ? 'bg-gradient-to-br from-[#2BA84A] to-[#1E7A36] text-white shadow-[0_8px_24px_rgba(43,168,74,0.35)]'
+                    : 'bg-[#18221E] text-[#B6C2BC] ring-1 ring-[#223029] hover:ring-[#2BA84A]/40 hover:bg-[#1E2724]'
                 }`}
               >
-                <Timer className="w-5 h-5 sm:w-6 sm:h-6 mt-2" />
-                <div className="text-center">
-                  <div className="font-bold text-sm sm:text-base">Standard</div>
-                  <div className="text-[10px] sm:text-xs font-normal">Fast antal</div>
+                {!formData.is_spontaneous && (
+                  <div className="absolute -top-6 -right-6 w-20 h-20 bg-white/10 rounded-full blur-2xl" />
+                )}
+                <div className={`relative w-9 h-9 rounded-xl flex items-center justify-center mb-2 ${
+                  !formData.is_spontaneous ? 'bg-white/20' : 'bg-[#0F1513] ring-1 ring-[#223029]'
+                }`}>
+                  <Timer className={`w-4 h-4 ${!formData.is_spontaneous ? 'text-white' : 'text-[#86EFAC]'}`} />
                 </div>
-              </Button>
+                <div className={`font-black text-base mb-0.5 ${!formData.is_spontaneous ? 'text-white' : 'text-[#F4F7F5]'}`}>Standard</div>
+                <div className={`text-[11px] ${!formData.is_spontaneous ? 'text-white/75' : 'text-[#9EAAA4]'}`}>Fast antal spelare</div>
+              </button>
 
-              <Button
+              <button
                 type="button"
                 onClick={() => setFormData(prev => ({ ...prev, is_spontaneous: true, max_players: null }))}
-                className={`h-20 sm:h-24 flex-col gap-2 rounded-[12px] text-sm sm:text-base ${
+                className={`relative p-4 rounded-2xl text-left transition-all overflow-hidden ${
                   formData.is_spontaneous
-                    ? 'bg-gradient-to-r from-[#F4743B] to-[#E5683A] text-[#FFFFFF] border border-[#F4743B] shadow-lg shadow-[#F4743B]/30'
-                    : 'bg-[#121715] text-[#B6C2BC] border border-[#223029] hover:border-[#F4743B] hover:text-[#F4F7F5]'
+                    ? 'bg-gradient-to-br from-[#F4743B] to-[#D95D26] text-white shadow-[0_8px_24px_rgba(244,116,59,0.35)]'
+                    : 'bg-[#18221E] text-[#B6C2BC] ring-1 ring-[#223029] hover:ring-[#F4743B]/40 hover:bg-[#1E2724]'
                 }`}
               >
-                <Zap className="w-5 h-5 sm:w-6 sm:h-6 mt-2" />
-                <div className="text-center">
-                  <div className="font-bold text-sm sm:text-base">Spontan</div>
-                  <div className="text-[10px] sm:text-xs font-normal">Obegränsat</div>
+                {formData.is_spontaneous && (
+                  <div className="absolute -top-6 -right-6 w-20 h-20 bg-white/10 rounded-full blur-2xl" />
+                )}
+                <div className={`relative w-9 h-9 rounded-xl flex items-center justify-center mb-2 ${
+                  formData.is_spontaneous ? 'bg-white/20' : 'bg-[#0F1513] ring-1 ring-[#223029]'
+                }`}>
+                  <Zap className={`w-4 h-4 ${formData.is_spontaneous ? 'text-white' : 'text-[#FED7AA]'}`} />
                 </div>
-              </Button>
-            </div>
-            <div className="mt-3 p-2 sm:p-3 bg-[#2BA84A]/10 rounded-lg border border-[#2BA84A]/30">
-              <div className="flex items-start gap-2">
-                <Info className="w-4 h-4 text-[#2BA84A] mt-0.5 flex-shrink-0" />
-                <p className="text-[11px] sm:text-xs text-[#CFE8D6]">
-                  {formData.is_spontaneous
-                    ? 'Spontana matcher har obegränsat antal spelare. Perfekt för casual spel!'
-                    : 'Standard matcher har fast antal spelare och resultat rapporteras.'
-                  }
-                </p>
-              </div>
+                <div className={`font-black text-base mb-0.5 ${formData.is_spontaneous ? 'text-white' : 'text-[#F4F7F5]'}`}>Spontan</div>
+                <div className={`text-[11px] ${formData.is_spontaneous ? 'text-white/75' : 'text-[#9EAAA4]'}`}>Obegränsat antal</div>
+              </button>
             </div>
           </div>
 
