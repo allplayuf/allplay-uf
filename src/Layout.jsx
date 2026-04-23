@@ -142,17 +142,16 @@ function LayoutInner({ children }) {
   // Scroll restoration is now handled by NavigationProvider.
   // No manual scrollTop = 0 here — that would fight scroll-position persistence.
   
-  // Handle tab click - always navigate to the tab root and force scroll-to-top.
-  // NavigationProvider ALSO snaps to top on tab/push, but we do it here too so
-  // tapping the same active tab still scrolls up (native app feel).
+  // Handle tab click. Scroll-to-top is handled by NavigationProvider on route
+  // change. We ONLY force scroll here when tapping the already-active tab,
+  // since that does not trigger a route change (native app "scroll up" feel).
   const handleTabClick = (item) => {
     triggerHaptic('light');
+    const isAlreadyActive = location.pathname === item.url;
     navigate(item.url);
-    requestAnimationFrame(() => {
-      if (mainContentRef.current) {
-        mainContentRef.current.scrollTo({ top: 0, behavior: 'auto' });
-      }
-    });
+    if (isAlreadyActive && mainContentRef.current) {
+      mainContentRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   // Use Supabase auth state for admin check
@@ -164,7 +163,6 @@ function LayoutInner({ children }) {
     
     if (isSupabaseAuth && supabaseUser) {
       checkIsAdmin({ forceRefresh: true }).then(result => {
-        console.log('[Layout] Admin check result:', result, 'for user:', supabaseUser.id);
         setIsAdmin(result);
         setAdminCheckDone(true);
       }).catch(() => {
@@ -235,7 +233,11 @@ function LayoutInner({ children }) {
                 Navigation
               </p>
               {navigationItems.map((item) => {
-                const isActive = location.pathname === item.url;
+                // Dashboard is at "/" so it would match every path with startsWith.
+                // Use exact match for Dashboard/home, startsWith for the rest.
+                const isActive = item.url === '/' || item.url === createPageUrl('Dashboard')
+                  ? location.pathname === item.url
+                  : location.pathname.startsWith(item.url);
                 return (
                   <button
                     key={item.title}
