@@ -1,6 +1,12 @@
 #env
 .env
 .env.*
+!.env.example
+
+# Claude Code local state (per-machine)
+.claude/
+# Windows folder metadata
+desktop.ini
 
 # Logs
 logs
