@@ -86,9 +86,9 @@ export default function InfinitePlayerList({
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3 mb-3">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#2BA84A] to-[#248232] flex items-center justify-center text-white font-semibold shadow-md flex-shrink-0">
-                      {player.profile_image_url ? (
-                        <img 
-                          src={player.profile_image_url} 
+                      {player.avatar_url ? (
+                        <img
+                          src={player.avatar_url}
                           alt={player.full_name}
                           className="w-full h-full object-cover rounded-full"
                         />

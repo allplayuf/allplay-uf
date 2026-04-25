@@ -140,7 +140,7 @@ export default function CommunityPage() {
 
   const { user: authUser, isGuest: isGuestUser, isAuthenticated: isAuthenticatedUser, isLoading: authLoading } = useSupabaseAuth();
 
-  // Fetch user profile from Supabase users table for profile_image_url etc.
+  // Fetch user profile from Supabase users table for avatar_url etc.
   const { data: userProfile, isLoading: profileLoading } = useQuery({
     queryKey: ['supabase-userProfile', authUser?.id],
     queryFn: () => getMyProfile(),
@@ -158,7 +158,7 @@ export default function CommunityPage() {
       ...authUser,
       ...userProfile,
       id: authUser.id,
-      profile_image_url: userProfile?.profile_image_url || userProfile?.avatar_url || authUser?.profile_image_url || authUser?.avatar_url,
+      avatar_url: userProfile?.avatar_url || authUser?.avatar_url,
       display_name: userProfile?.display_name || userProfile?.full_name || authUser?.display_name || authUser?.full_name,
       full_name: userProfile?.full_name || userProfile?.display_name || authUser?.full_name || authUser?.display_name,
     };

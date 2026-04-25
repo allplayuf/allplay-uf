@@ -41,8 +41,8 @@ export default function QRModal({ user, onClose }) {
           <div className="text-center space-y-6">
             <div className="space-y-2">
               <div className="w-16 h-16 bg-[#2BA84A]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                {user.profile_image_url ? (
-                  <img src={user.profile_image_url} className="w-full h-full rounded-full object-cover" />
+                {user.avatar_url ? (
+                  <img src={user.avatar_url} className="w-full h-full rounded-full object-cover" />
                 ) : (
                   <span className="text-2xl font-bold text-[#2BA84A]">{user.full_name?.[0]}</span>
                 )}

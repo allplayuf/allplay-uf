@@ -80,9 +80,9 @@ export default function MatchPlayersModal({ isOpen, onClose, participants = [], 
                           className="flex items-center gap-3 flex-1 group"
                         >
                           <div className="w-12 h-12 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0">
-                            {player.profile_image_url ? (
+                            {player.avatar_url ? (
                               <img
-                                src={player.profile_image_url}
+                                src={player.avatar_url}
                                 alt={player.display_name || player.full_name}
                                 className="w-full h-full object-cover rounded-xl"
                               />

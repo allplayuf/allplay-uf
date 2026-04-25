@@ -234,7 +234,7 @@ export default function OtherProfileView({
                   className="flex items-center gap-2 bg-[#18221E] hover:bg-[#1E2B25] rounded-full pl-1 pr-3 py-1 border border-[#223029] hover:border-[#2BA84A]/35 transition-all"
                 >
                   <AvatarImage
-                    src={f.avatar_url || f.profile_image_url}
+                    src={f.avatar_url}
                     name={f.display_name || f.full_name}
                     className="w-7 h-7"
                     textClassName="text-[10px]"

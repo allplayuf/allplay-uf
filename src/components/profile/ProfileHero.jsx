@@ -200,9 +200,9 @@ export default function ProfileHero({
               }}
             />
             <div className="relative w-[72px] h-[72px] sm:w-[84px] sm:h-[84px] lg:w-[96px] lg:h-[96px] rounded-[18px] sm:rounded-[20px] overflow-hidden ring-1 ring-white/15 bg-gradient-to-br from-white/[0.08] to-black/40 flex items-center justify-center shadow-[0_10px_24px_rgba(0,0,0,0.55)]">
-              {user?.profile_image_url || user?.avatar_url ? (
+              {user?.avatar_url ? (
                 <img
-                  src={user.profile_image_url || user.avatar_url}
+                  src={user.avatar_url}
                   alt={displayName}
                   className="w-full h-full object-cover"
                   loading="eager"

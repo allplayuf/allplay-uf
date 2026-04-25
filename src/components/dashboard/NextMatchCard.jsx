@@ -248,7 +248,7 @@ export default function NextMatchCard({ match, venue, participants = [] }) {
                   return (
                     <div key={p.id || i} className="ring-2 ring-[#111613] rounded-full">
                       <AvatarImage
-                        src={pUser?.avatar_url || pUser?.profile_image_url}
+                        src={pUser?.avatar_url}
                         name={pUser?.display_name || pUser?.full_name || 'S'}
                         className="w-7 h-7"
                         textClassName="text-[9px]"

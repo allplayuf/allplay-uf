@@ -48,8 +48,8 @@ export default function PersonalRecommendations({ players = [], teams = [], matc
                     <Link to={`${createPageUrl("Profile")}?userId=${player.id}`}>
                       <div className="flex items-center gap-3 p-3 bg-[#18221E] rounded-xl hover:bg-[#223029] transition-colors border border-[#223029]">
                         <div className="w-10 h-10 bg-gradient-to-br from-[#9370DB] to-[#7C3AED] rounded-xl flex items-center justify-center flex-shrink-0">
-                          {player.profile_image_url ? (
-                            <img src={player.profile_image_url} alt={player.full_name} className="w-full h-full object-cover rounded-xl" />
+                          {player.avatar_url ? (
+                            <img src={player.avatar_url} alt={player.full_name} className="w-full h-full object-cover rounded-xl" />
                           ) : (
                             <span className="text-white font-semibold text-sm">{player.full_name?.[0] || 'U'}</span>
                           )}

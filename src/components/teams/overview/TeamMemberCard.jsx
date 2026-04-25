@@ -40,7 +40,7 @@ export default function TeamMemberCard({ member, isCaptain, isViceCaptain, index
           <div className="flex items-center gap-3 mb-3">
             <div className="relative flex-shrink-0">
               <AvatarImage
-                src={member.profile_image_url}
+                src={member.avatar_url}
                 name={member.display_name || member.full_name}
                 className="w-14 h-14 rounded-xl"
                 textClassName="text-lg"

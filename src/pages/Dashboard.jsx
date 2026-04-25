@@ -87,7 +87,7 @@ export default function Dashboard() {
       ...userProfile,
       id: authUser.id,
       // Profile from users table takes priority, then enriched authUser fields
-      profile_image_url: userProfile?.profile_image_url || userProfile?.avatar_url || localAvatar || authUser?.profile_image_url || authUser?.avatar_url,
+      avatar_url: userProfile?.avatar_url || localAvatar || authUser?.avatar_url,
       display_name: userProfile?.display_name || userProfile?.full_name || authUser?.display_name || authUser?.full_name,
       full_name: userProfile?.full_name || userProfile?.display_name || authUser?.full_name || authUser?.display_name,
     };

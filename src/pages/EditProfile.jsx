@@ -78,7 +78,7 @@ export default function EditProfile() {
       skill_level: src.skill_level || '',
       city: src.city || '',
       date_of_birth: src.date_of_birth || '',
-      avatar_url: src.avatar_url || src.profile_image_url || authUser?.avatar_url || '',
+      avatar_url: src.avatar_url || authUser?.avatar_url || '',
     };
     setFormData(data);
     setInitialData(data);
@@ -154,8 +154,8 @@ export default function EditProfile() {
       ...old,
       ...payload,
       display_name: payload.full_name || old?.display_name,
-      profile_image_url:
-        payload.avatar_url !== undefined ? payload.avatar_url : old?.profile_image_url,
+      avatar_url:
+        payload.avatar_url !== undefined ? payload.avatar_url : old?.avatar_url,
     }));
 
     try {

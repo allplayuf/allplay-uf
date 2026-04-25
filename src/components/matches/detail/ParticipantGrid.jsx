@@ -115,8 +115,8 @@ function ParticipantCard({ participant, isCurrentUser, friendStatus, onAddFriend
         <div className="flex items-start gap-3 mb-3">
           <div className="relative flex-shrink-0">
             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#2BA84A] to-[#1E7A36] flex items-center justify-center overflow-hidden ring-2 ring-[#18221E]">
-              {participant.profile_image_url ? (
-                <img src={participant.profile_image_url} alt={name} className="w-full h-full object-cover" />
+              {participant.avatar_url ? (
+                <img src={participant.avatar_url} alt={name} className="w-full h-full object-cover" />
               ) : (
                 <span className="text-white font-bold text-sm">{initial}</span>
               )}

@@ -137,7 +137,6 @@ export function SupabaseAuthProvider({ children }) {
       // Flatten useful metadata to top level for convenience
       full_name: user.full_name || metadata.full_name || metadata.name || user.email?.split('@')[0],
       display_name: user.display_name || metadata.display_name || metadata.full_name || metadata.name || user.email?.split('@')[0],
-      profile_image_url: user.profile_image_url || metadata.avatar_url || metadata.picture,
       avatar_url: user.avatar_url || metadata.avatar_url || metadata.picture,
     };
   }, [user]);

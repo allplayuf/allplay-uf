@@ -249,9 +249,9 @@ export default function InboxNotifications({
                 <NotificationCard
                   key={request.id}
                   icon={({ className }) => (
-                    requester.profile_image_url || requester.avatar_url ? (
+                    requester.avatar_url ? (
                       <img
-                        src={requester.profile_image_url || requester.avatar_url}
+                        src={requester.avatar_url}
                         alt={requester.full_name}
                         className="w-full h-full object-cover rounded-xl"
                       />
@@ -296,9 +296,9 @@ export default function InboxNotifications({
                 <NotificationCard
                   key={request.id}
                   icon={({ className }) => (
-                    applicant.profile_image_url || applicant.avatar_url ? (
+                    applicant.avatar_url ? (
                       <img
-                        src={applicant.profile_image_url || applicant.avatar_url}
+                        src={applicant.avatar_url}
                         alt={applicant.full_name}
                         className="w-full h-full object-cover rounded-xl"
                       />

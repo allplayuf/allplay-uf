@@ -72,7 +72,7 @@ export default function TeamOverviewPage() {
     teamRole: m.role,
     display_name: m.user?.full_name || m.user?.username || 'Okänd spelare',
     full_name: m.user?.full_name || 'Okänd spelare',
-    profile_image_url: m.user?.avatar_url || null,
+    avatar_url: m.user?.avatar_url || null,
     city: m.user?.city || '',
     skill_level: m.user?.skill_level || null,
     matches_played: m.user?.matches_played || 0,

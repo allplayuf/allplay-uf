@@ -384,8 +384,8 @@ export default function MatchEndModal({
                               ? 'bg-gradient-to-br from-[#FFD700] to-[#F4743B] shadow-[0_8px_24px_rgba(255,215,0,0.4)]' 
                               : 'bg-gradient-to-br from-[#2BA84A] to-[#248232]'
                           }`}>
-                            {user.profile_image_url ?
-                      <img src={user.profile_image_url} alt={user.full_name} className="w-full h-full object-cover" /> :
+                            {user.avatar_url ?
+                      <img src={user.avatar_url} alt={user.full_name} className="w-full h-full object-cover" /> :
                       <span className="text-white font-bold text-2xl">{user.full_name?.[0] || 'U'}</span>
                       }
                           </div>
@@ -500,8 +500,8 @@ export default function MatchEndModal({
                 >
                   <div className="flex items-center gap-4 mb-4">
                     <div className="w-14 h-14 rounded-[16px] flex items-center justify-center flex-shrink-0 overflow-hidden bg-gradient-to-br from-[#2BA84A] to-[#248232]">
-                      {user.profile_image_url ?
-                        <img src={user.profile_image_url} alt={user.full_name} className="w-full h-full object-cover" /> :
+                      {user.avatar_url ?
+                        <img src={user.avatar_url} alt={user.full_name} className="w-full h-full object-cover" /> :
                         <span className="text-white font-bold text-xl">{user.full_name?.[0] || 'U'}</span>
                       }
                     </div>

@@ -72,8 +72,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
           id: p.user_id,
           full_name: p.full_name || p.display_name || 'Spelare',
           display_name: p.display_name || p.full_name || 'Spelare',
-          avatar_url: p.avatar_url || p.profile_image_url || null,
-          profile_image_url: p.profile_image_url || p.avatar_url || null,
+          avatar_url: p.avatar_url || null,
         };
       })
       .filter(Boolean);
@@ -279,7 +278,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
                 <div className="flex items-center gap-2 pt-1">
                   <div className="flex -space-x-2">
                     {participantUsers.slice(0, 5).map((pUser, i) => {
-                      const avatarSrc = pUser?.avatar_url || pUser?.profile_image_url;
+                      const avatarSrc = pUser?.avatar_url;
                       const name = pUser?.display_name || pUser?.full_name || 'S';
                       return (
                         <div key={pUser?.id || i} className="border border-[#121715] rounded-full">

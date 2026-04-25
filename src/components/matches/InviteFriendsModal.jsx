@@ -213,8 +213,8 @@ export default function InviteFriendsModal({ match, currentUser, onClose, onInvi
                         <div className="flex items-center gap-4">
                           {/* Avatar */}
                           <div className="w-12 h-12 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0">
-                            {friend.profile_image_url ? (
-                              <img src={friend.profile_image_url} alt={friend.full_name} className="w-full h-full object-cover rounded-xl" />
+                            {friend.avatar_url ? (
+                              <img src={friend.avatar_url} alt={friend.full_name} className="w-full h-full object-cover rounded-xl" />
                             ) : (
                               <span className="text-white font-semibold text-lg">{friend.full_name?.[0] || 'U'}</span>
                             )}

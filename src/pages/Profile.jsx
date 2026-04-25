@@ -97,7 +97,7 @@ export default function ProfilePage() {
   const urlParams = new URLSearchParams(location.search);
   const targetUserId = urlParams.get('userId');
 
-  // Fetch user profile from Supabase users table (has profile_image_url, etc.)
+  // Fetch user profile from Supabase users table (has avatar_url, etc.)
   const { data: userProfile } = useQuery({
     queryKey: ['supabase-userProfile', authUser?.id],
     queryFn: () => getMyProfile(),
@@ -107,7 +107,7 @@ export default function ProfilePage() {
 
   // Sync localStorage avatar cache when profile loads
   useEffect(() => {
-    const serverAvatar = userProfile?.profile_image_url || userProfile?.avatar_url;
+    const serverAvatar = userProfile?.avatar_url;
     if (serverAvatar) {
       localStorage.setItem('allplay_profile_image', serverAvatar);
     }
@@ -122,7 +122,7 @@ export default function ProfilePage() {
       ...authUser,
       ...userProfile,
       id: authUser.id,
-      profile_image_url: userProfile?.profile_image_url || userProfile?.avatar_url || localAvatar || authUser?.profile_image_url || authUser?.avatar_url,
+      avatar_url: userProfile?.avatar_url || localAvatar || authUser?.avatar_url,
       display_name: userProfile?.display_name || userProfile?.full_name || authUser?.display_name || authUser?.full_name,
       full_name: userProfile?.full_name || userProfile?.display_name || authUser?.full_name || authUser?.display_name,
       bio: userProfile?.bio || '',
@@ -261,7 +261,6 @@ export default function ProfilePage() {
       // Optimistic update of query cache
       queryClient.setQueryData(['supabase-userProfile', authUser?.id], old => ({
         ...old,
-        profile_image_url: file_url,
         avatar_url: file_url,
       }));
       
@@ -694,9 +693,9 @@ export default function ProfilePage() {
               >
                 <div className="absolute -inset-1 sm:-inset-1.5 bg-white/10 rounded-[20px] blur-md pointer-events-none" />
                 <div className="relative w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-2xl overflow-hidden ring-1 ring-white/15 bg-gradient-to-br from-white/8 to-black/30 backdrop-blur-sm flex items-center justify-center shadow-[0_10px_24px_rgba(0,0,0,0.5)]">
-                  {(displayUser?.profile_image_url || displayUser?.avatar_url) ? (
+                  {displayUser?.avatar_url ? (
                     <img
-                      src={displayUser.profile_image_url || displayUser.avatar_url}
+                      src={displayUser.avatar_url}
                       alt="Profile"
                       className="w-full h-full object-cover"
                       loading="eager"
@@ -925,7 +924,7 @@ export default function ProfilePage() {
                           {friends.map((friend, index) => {
                             const friendSkill = SKILL_LEVEL_CONFIG[friend.skill_level || 'intermediate'];
                             const FriendSkillIcon = friendSkill.icon;
-                            const friendAvatar = friend.profile_image_url || friend.avatar_url;
+                            const friendAvatar = friend.avatar_url;
                             
                             return (
                               <motion.div

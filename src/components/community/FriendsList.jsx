@@ -89,7 +89,7 @@ export default function FriendsList({ friends, incomingRequests, onAcceptRequest
         const friendSkill = SKILL_LEVEL_CONFIG[friend.skill_level || 'intermediate'];
         const FriendSkillIcon = friendSkill.icon;
 
-        const avatarUrl = friend.profile_image_url || friend.avatar_url;
+        const avatarUrl = friend.avatar_url;
         return (
           <motion.div
             key={friend.id}

@@ -29,7 +29,6 @@ export function applyPrivacy(player, currentUserId) {
     display_name: 'Okänd användare',
     username: null,
     avatar_url: null,
-    profile_image_url: null,
     city: null,
     _isPrivate: true
   };
@@ -37,9 +36,8 @@ export function applyPrivacy(player, currentUserId) {
 
 /**
  * Get the best avatar URL from a player object.
- * Handles multiple field names used across the app.
  */
 export function getAvatarUrl(player) {
   if (!player) return null;
-  return player.avatar_url || player.profile_image_url || null;
+  return player.avatar_url || null;
 }

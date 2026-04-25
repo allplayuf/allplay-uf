@@ -3,7 +3,7 @@
  * 
  * Fetches players from Supabase `users` view via REST API.
  * IMPORTANT: Only select columns that actually exist in the view.
- * Build display_name / profile_image_url locally as fallbacks.
+ * Build display_name locally as fallback when the upstream row only has full_name/username.
  */
 
 import { getAuthHeaders, SUPABASE_URL } from '../config';
@@ -32,15 +32,14 @@ function normalizePlayer(row) {
     full_name: name,
     username: row.username || null,
     display_name: name,
-    avatar_url: row.avatar_url || row.profile_image_url || null,
-    profile_image_url: row.profile_image_url || row.avatar_url || null,
+    avatar_url: row.avatar_url || null,
     bio: row.bio || null,
     city: row.city || null,
     skill_level: row.skill_level || null,
     birth_year: row.birth_year || null,
     matches_played: row.matches_played || 0,
     mvp_count: row.mvp_count || 0,
-    elo_rating: row.elo_rating || row.elo || null,
+    elo_rating: row.elo_rating || null,
     is_public: row.is_public !== false,
   };
 }

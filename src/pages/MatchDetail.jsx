@@ -154,7 +154,7 @@ export default function MatchDetailPage() {
       id: p.user_id,
       full_name: p.full_name || p.display_name || p.username || "Spelare",
       display_name: p.display_name || p.full_name || p.username || "Spelare",
-      profile_image_url: p.profile_image_url || p.avatar_url,
+      avatar_url: p.avatar_url,
       city: p.city,
       participantInfo: p,
     }));

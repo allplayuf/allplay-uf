@@ -158,7 +158,7 @@ export default function VenueCard({ venue, matches = [], isSelected, onClick, on
                     {topUsers.slice(0, 4).map((user, i) => (
                       <div key={user?.id || i} className="ring-[1.5px] ring-[#18221E] rounded-full">
                         <AvatarImage
-                          src={user?.avatar_url || user?.profile_image_url}
+                          src={user?.avatar_url}
                           name={user?.display_name || user?.full_name || 'S'}
                           className="w-6 h-6"
                           textClassName="text-[9px]"

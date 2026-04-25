@@ -92,8 +92,8 @@ export default function UserManagement({ users = [], isLoading, lastUpdated, onR
               <div key={user.id} className="p-4 hover:bg-[#18221E] transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    {user.avatar_url || user.profile_image_url ? (
-                      <img src={user.avatar_url || user.profile_image_url} alt="" className="w-full h-full object-cover" />
+                    {user.avatar_url ? (
+                      <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-white font-semibold text-sm">{(user.display_name || user.full_name || '?')[0]}</span>
                     )}

@@ -200,7 +200,7 @@ export default function ShareMatchModal({ match, onClose }) {
                     className="flex items-center gap-3 p-2.5 rounded-xl bg-[#18221E] border border-[#223029] hover:border-[#2BA84A]/25 transition-colors"
                   >
                     <AvatarImage
-                      src={friend.avatar_url || friend.profile_image_url}
+                      src={friend.avatar_url}
                       name={friend.display_name || friend.full_name || 'S'}
                       className="w-10 h-10 flex-shrink-0"
                       textClassName="text-sm font-semibold"

@@ -102,8 +102,8 @@ export default function DashboardHero({
         {/* ─── Top bar: greeting only, clean ─────────────── */}
         <header className="flex items-center gap-2.5 mb-7 sm:mb-9 lg:mb-11">
           <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-[10px] overflow-hidden ring-1 ring-white/12 bg-gradient-to-br from-white/[0.08] to-black/40 flex items-center justify-center flex-shrink-0 shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
-            {user?.profile_image_url ? (
-              <img src={user.profile_image_url} alt="" className="w-full h-full object-cover" />
+            {user?.avatar_url ? (
+              <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
             ) : (
               <span className="text-[13px] font-black text-white">
                 {firstName[0]?.toUpperCase() || "U"}

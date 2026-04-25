@@ -38,15 +38,14 @@ function normalizeUser(user) {
     full_name: user.full_name || user.username || (user.email ? user.email.split('@')[0] : 'Ny spelare'),
     username: user.username || null,
     display_name: user.display_name || user.full_name || user.username || (user.email ? user.email.split('@')[0] : 'Ny spelare'),
-    avatar_url: user.avatar_url || user.profile_image_url || null,
-    profile_image_url: user.profile_image_url || user.avatar_url || null,
+    avatar_url: user.avatar_url || null,
     bio: user.bio || null,
     city: user.city || null,
     skill_level: user.skill_level || null,
     birth_year: user.birth_year || null,
     matches_played: user.matches_played || 0,
     mvp_count: user.mvp_count || 0,
-    elo_rating: user.elo_rating || user.elo || null,
+    elo_rating: user.elo_rating || null,
     is_admin: user.is_admin || false
   };
 }
@@ -58,7 +57,6 @@ function createFallbackUser(userId) {
     username: null,
     display_name: 'Ny spelare',
     avatar_url: null,
-    profile_image_url: null,
     bio: null,
     city: null,
     skill_level: null,
