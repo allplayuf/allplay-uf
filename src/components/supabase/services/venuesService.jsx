@@ -77,9 +77,18 @@ export async function getVenueByExternalId(externalId) {
  * Create a new venue directly in Supabase via REST API
  * Used by admin panel to add venues
  */
+/**
+ * Create a new venue directly in Supabase via REST API
+ * Used by admin panel to add venues.
+ *
+ * Resilient to schema differences: starts with a minimal payload (only columns
+ * that are guaranteed to exist) and retries without the offending column when
+ * Postgres reports a missing column (PGRST204).
+ */
 export async function createVenue(venueData) {
   const headers = await getAuthHeaders();
-  
+
+  // Minimal core payload — only columns we know exist
   const payload = {
     name: venueData.name,
     address: venueData.address || null,
@@ -87,27 +96,56 @@ export async function createVenue(venueData) {
     lat: venueData.latitude ?? venueData.lat ?? null,
     lng: venueData.longitude ?? venueData.lng ?? null,
     external_id: venueData.external_id || `admin_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-    is_active: true,
-    is_verified: venueData.is_verified ?? true,
-    is_allplay: venueData.is_allplay ?? false,
-    formats_supported: venueData.formats_supported || ['5v5'],
-    facilities: venueData.facilities || [],
   };
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/venues`, {
-    method: 'POST',
-    headers: { ...headers, 'Prefer': 'return=representation' },
-    body: JSON.stringify(payload)
-  });
+  // Optional columns — only included if explicitly provided.
+  // If a column is missing in the DB schema, we'll strip it and retry.
+  if (venueData.is_verified !== undefined) payload.is_verified = venueData.is_verified;
+  if (venueData.is_allplay !== undefined) payload.is_allplay = venueData.is_allplay;
+  if (venueData.is_active !== undefined) payload.is_active = venueData.is_active;
+  if (venueData.formats_supported !== undefined) payload.formats_supported = venueData.formats_supported;
+  if (venueData.facilities !== undefined) payload.facilities = venueData.facilities;
+  if (venueData.parent_venue_id !== undefined) payload.parent_venue_id = venueData.parent_venue_id;
 
-  if (!res.ok) {
-    const err = await res.text().catch(() => '');
-    console.error('[venuesService] createVenue failed:', res.status, err);
-    throw new Error(`Kunde inte skapa plan: ${res.status}`);
+  const tryInsert = async (body) => {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/venues`, {
+      method: 'POST',
+      headers: { ...headers, 'Prefer': 'return=representation' },
+      body: JSON.stringify(body),
+    });
+    const text = await res.text().catch(() => '');
+    return { ok: res.ok, status: res.status, text };
+  };
+
+  // Retry up to a few times — each iteration removes a missing column reported by Postgres
+  let currentBody = { ...payload };
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const { ok, status, text } = await tryInsert(currentBody);
+
+    if (ok) {
+      try {
+        const rows = JSON.parse(text);
+        return rows[0] || null;
+      } catch {
+        return null;
+      }
+    }
+
+    // Try to detect "Could not find the 'X' column" and remove it
+    const missingColMatch = text.match(/Could not find the '([^']+)' column/i);
+    if (status === 400 && missingColMatch && missingColMatch[1] in currentBody) {
+      const missing = missingColMatch[1];
+      console.warn(`[venuesService] Column '${missing}' missing in DB — retrying without it.`);
+      const { [missing]: _, ...rest } = currentBody;
+      currentBody = rest;
+      continue;
+    }
+
+    console.error('[venuesService] createVenue failed:', status, text);
+    throw new Error(`Kunde inte skapa plan: ${status} ${text}`);
   }
 
-  const rows = await res.json();
-  return rows[0] || null;
+  throw new Error('Kunde inte skapa plan — för många schema-konflikter.');
 }
 
 /**
