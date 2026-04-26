@@ -18,7 +18,7 @@ import {
 
 import MapView from "../components/map/MapView";
 import VenueCard from "../components/map/VenueCard";
-import VenueDetailModal from "../components/map/VenueDetailModal";
+import VenueDetailModal from "../components/map/VenueDetailModal.jsx";
 import FilterSheet from "../components/map/FilterSheet";
 import AllPlayToggle from "../components/map/AllPlayToggle";
 
