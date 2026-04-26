@@ -90,7 +90,6 @@ export async function createVenue(venueData) {
     is_active: true,
     is_verified: venueData.is_verified ?? true,
     is_allplay: venueData.is_allplay ?? false,
-    added_by_admin: true,
     formats_supported: venueData.formats_supported || ['5v5'],
     facilities: venueData.facilities || [],
   };
