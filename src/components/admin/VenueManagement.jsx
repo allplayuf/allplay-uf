@@ -14,6 +14,7 @@ import { createVenue, deleteVenue } from "../supabase/services/venuesService";
 import { getAuthHeaders, SUPABASE_URL } from '../supabase/config';
 import VenueAvailabilityEditor from './VenueAvailabilityEditor';
 import SubPitchManager from './SubPitchManager';
+import SubPitchStatusBanner from './SubPitchStatusBanner';
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -263,6 +264,9 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
         </Select>
       </AdminSectionHeader>
 
+      {/* Sub-pitch system status — shows SQL to run if column missing */}
+      <SubPitchStatusBanner />
+
       {/* Duplicate warning */}
       {duplicateGroups.length > 0 && (
         <Card className="bg-[#F4743B]/10 border border-[#F4743B]/30 rounded-[16px]">
@@ -305,13 +309,27 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
         </TabsList>
 
         <TabsContent value="list">
+          {/* How-to instructions for sub-pitches */}
+          <Card className="bg-[#9370DB]/8 border border-[#9370DB]/25 rounded-[14px] mb-3">
+            <CardContent className="p-3">
+              <div className="flex items-start gap-2.5">
+                <LayoutGrid className="w-4 h-4 text-[#C4B5FD] flex-shrink-0 mt-0.5" />
+                <div className="text-[11px] leading-[16px] text-[#B6C2BC]">
+                  <strong className="text-[#F4F7F5]">Så lägger du till underplaner:</strong>{' '}
+                  Hitta huvudplanen (t.ex. "Hagstumosse IP") i listan → klicka <strong className="text-[#C4B5FD]">"Underplaner"</strong> (lila knapp) → lägg till "Hagstumosse 1", "Hagstumosse 2" osv.
+                  <span className="text-[#7B8A83]"> Knappen "Skapa ny plan" är bara för helt nya, fristående huvudplaner.</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Create new venue button */}
           <div className="mb-3">
             <Button
               onClick={() => setShowCreateForm(!showCreateForm)}
               className={`${showCreateForm ? 'bg-[#F4743B] hover:bg-[#E5683A]' : 'bg-[#2BA84A] hover:bg-[#248232]'} text-white rounded-xl h-10`}
             >
-              {showCreateForm ? <><X className="w-4 h-4 mr-1" />Avbryt</> : <><Plus className="w-4 h-4 mr-1" />Skapa ny plan</>}
+              {showCreateForm ? <><X className="w-4 h-4 mr-1" />Avbryt</> : <><Plus className="w-4 h-4 mr-1" />Skapa ny huvudplan</>}
             </Button>
           </div>
 
@@ -392,11 +410,18 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
                           <Button
                             size="sm" variant="outline"
                             onClick={() => setSubPitchVenue(venue)}
-                            className="h-8 px-2 text-xs rounded-lg border-[#9370DB]/30 text-[#C4B5FD] hover:bg-[#9370DB]/10 hover:border-[#9370DB]/50"
+                            className={`h-8 px-2 text-xs rounded-lg ${
+                              subPitchCountByParent[venue.id] > 0
+                                ? 'border-[#9370DB]/50 bg-[#9370DB]/10 text-[#C4B5FD] hover:bg-[#9370DB]/20'
+                                : 'border-[#9370DB]/30 text-[#C4B5FD] hover:bg-[#9370DB]/10 hover:border-[#9370DB]/50'
+                            }`}
                             title="Hantera underplaner"
                           >
                             <LayoutGrid className="w-3.5 h-3.5 mr-1" />
                             <span className="hidden sm:inline">Underplaner</span>
+                            {subPitchCountByParent[venue.id] > 0 && (
+                              <span className="ml-1 font-bold tabular-nums">({subPitchCountByParent[venue.id]})</span>
+                            )}
                           </Button>
                         )}
                         {/* Schedule button for AllPlay venues */}
