@@ -86,6 +86,11 @@ export default function MapPage() {
         return false;
       }
 
+      // Hide sub-pitches from the map — they're shown inside their parent venue's detail.
+      if (venue.parent_venue_id) {
+        return false;
+      }
+
       // AllPlay filter: only show non-allplay venues if toggle is on
       if (!showOtherVenues && !venue.is_allplay) {
         return false;

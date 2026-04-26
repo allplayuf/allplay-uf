@@ -11,17 +11,29 @@ import {
   Clock,
   Shield,
   Plus,
-  ChevronRight
+  ChevronRight,
+  LayoutGrid
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery } from '@tanstack/react-query';
+import { getSubPitches } from '@/components/supabase/services/subPitchesService';
 
 export default function VenueDetailModal({ venue, matches, onClose, onCreateMatch }) {
+  // Fetch sub-pitches for this venue — must be called before any early return
+  const { data: subPitches = [] } = useQuery({
+    queryKey: ['sub-pitches', venue?.id],
+    queryFn: () => getSubPitches(venue.id),
+    enabled: !!venue?.id,
+    staleTime: 60_000,
+  });
+
   if (!venue) return null;
 
   const upcomingMatches = matches.filter(m => m.status === 'upcoming').slice(0, 5);
   const ongoingMatches = matches.filter(m => m.status === 'ongoing');
+  const hasSubPitches = subPitches.length > 0;
 
   return (
     <AnimatePresence>
@@ -123,6 +135,47 @@ export default function VenueDetailModal({ venue, matches, onClose, onCreateMatc
                     <div className="text-[10px] text-[#B6C2BC]">Faciliteter</div>
                   </div>
                 </div>
+
+                {/* Sub-pitches list — shown for parent IPs with multiple pitches */}
+                {hasSubPitches && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-[#9FC9AC] mb-2 flex items-center gap-2">
+                      <LayoutGrid className="w-4 h-4 text-[#2BA84A]" />
+                      Planer på området ({subPitches.length})
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {subPitches.map(sub => (
+                        <button
+                          key={sub.id}
+                          onClick={() => {
+                            onCreateMatch(sub);
+                            onClose();
+                          }}
+                          className="text-left p-3 rounded-xl bg-[#18221E] border border-[#223029] hover:border-[#2BA84A]/40 hover:bg-[#1E2724] transition-all group"
+                        >
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <span className="text-[13px] font-bold text-[#F4F7F5] truncate">
+                              {sub.name.replace(/^.+?–\s*/, '')}
+                            </span>
+                            <ChevronRight className="w-4 h-4 text-[#7B8A83] group-hover:text-[#2BA84A] flex-shrink-0" />
+                          </div>
+                          {sub.formats_supported?.length > 0 && (
+                            <div className="flex gap-1 flex-wrap">
+                              {sub.formats_supported.map(f => (
+                                <span key={f} className="inline-flex h-[18px] items-center rounded-md px-1.5 text-[10px] font-bold bg-[#0F1513] text-[#B6C2BC] ring-1 ring-[#223029]">
+                                  {f}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-[11px] text-[#9EAAA4] mt-2">
+                      Tryck på en plan för att skapa match där.
+                    </p>
+                  </div>
+                )}
 
                 {/* Formats Supported */}
                 {venue.formats_supported && venue.formats_supported.length > 0 && (

@@ -14,6 +14,8 @@ import { MobileSelect } from "@/components/ui/mobile-select";
 import VenueAvailabilityBadge from "@/components/venues/VenueAvailabilityBadge";
 import { useQuery } from '@tanstack/react-query';
 import { listVenueAvailability } from '@/components/supabase/services/venueAvailabilityService';
+import SubPitchPicker from '@/components/venues/SubPitchPicker';
+import { getSubPitches } from '@/components/supabase/services/subPitchesService';
 
 export default function CreateMatchForm({ venues, user, onSubmit, onCancel, preselectedVenueId }) {
   const { isGuest } = useSupabaseAuth();
@@ -37,7 +39,10 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requestId] = useState(() => crypto.randomUUID()); // Generate once per form instance
 
+  // Only show parent venues / standalone venues in the dropdown.
+  // Sub-pitches are reached via their parent's sub-picker.
   const filteredVenues = venues.filter(venue => {
+    if (venue.parent_venue_id) return false; // hide sub-pitches from main search
     if (!venueSearch) return true;
     const search = venueSearch.toLowerCase();
     return (
@@ -52,7 +57,23 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
     return (a.name || '').localeCompare(b.name || '');
   });
 
+  // The venue (or sub-pitch) actually selected for booking
   const selectedVenue = venues.find(v => v.id === formData.venue_id);
+  // The parent — same as selectedVenue if it has no parent.
+  // We need parent.id to look up sub-pitches.
+  const parentVenueId = selectedVenue?.parent_venue_id || formData.venue_id;
+  const parentVenue = venues.find(v => v.id === parentVenueId) || selectedVenue;
+
+  // Detect whether the chosen parent has sub-pitches.
+  // We *peek* before rendering picker so we can require a sub-selection.
+  const { data: parentSubPitches = [] } = useQuery({
+    queryKey: ['sub-pitches-peek', parentVenueId],
+    queryFn: () => getSubPitches(parentVenueId),
+    enabled: !!parentVenueId,
+    staleTime: 60_000,
+  });
+  const hasSubPitches = parentSubPitches.length > 0;
+  const isSubSelected = !!selectedVenue?.parent_venue_id;
 
   // Fetch booked slots for the selected AllPlay venue + date
   const { data: bookedSlots = [] } = useQuery({
@@ -78,6 +99,12 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
 
     if (!formData.title || !formData.venue_id || !formData.date || !formData.time) {
       window.alert("Fyll i alla obligatoriska fält!");
+      return;
+    }
+
+    // If the chosen venue is a parent with sub-pitches, force user to pick one
+    if (hasSubPitches && !isSubSelected) {
+      window.alert("Den här idrottsplatsen har flera planer. Välj en specifik plan.");
       return;
     }
 
@@ -267,6 +294,39 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
             <p className="text-[11px] leading-[16px] text-[#9EAAA4]">
               Sök efter planens namn, stad eller adress
             </p>
+
+            {/* Sub-pitch picker — shown when chosen venue is a parent IP with multiple pitches */}
+            {hasSubPitches && parentVenue && (
+              <div className="mt-3 p-3 rounded-[14px] bg-[#0F1513] border border-[#2BA84A]/25">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div>
+                    <div className="text-[12px] font-bold text-[#86EFAC] uppercase tracking-wider">
+                      Välj specifik plan på {parentVenue.name.replace(/^(.+?)\s+(Idrottsplats|IP).*$/, '$1')}
+                    </div>
+                    <div className="text-[11px] text-[#9EAAA4]">
+                      {parentSubPitches.length} planer · välj en för bokning
+                    </div>
+                  </div>
+                  {isSubSelected && (
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, venue_id: parentVenueId }))}
+                      className="text-[10px] font-bold text-[#F4743B] hover:text-[#FF8A4D]"
+                    >
+                      Byt
+                    </button>
+                  )}
+                </div>
+                <SubPitchPicker
+                  parentVenueId={parentVenueId}
+                  selectedSubId={isSubSelected ? formData.venue_id : null}
+                  onSelect={(sub) => setFormData(prev => ({ ...prev, venue_id: sub.id }))}
+                  formatFilter={formData.format}
+                  compact
+                />
+              </div>
+            )}
+
             {/* Availability badge for AllPlay venues */}
             <VenueAvailabilityBadge
               venueId={formData.venue_id}
@@ -447,10 +507,10 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
           </button>
           <button
             onClick={handleSubmit}
-            disabled={!formData.title || !selectedVenue || !formData.date || !formData.time || isSubmitting}
+            disabled={!formData.title || !selectedVenue || !formData.date || !formData.time || (hasSubPitches && !isSubSelected) || isSubmitting}
             className="flex-1 h-12 rounded-[14px] bg-[#2BA84A] text-white hover:bg-[#248232] disabled:bg-[#18221E] disabled:text-[#9EAAA4] disabled:cursor-not-allowed transition-all font-bold"
           >
-            {isSubmitting ? 'Skapar...' : 'Skapa match'}
+            {isSubmitting ? 'Skapar...' : (hasSubPitches && !isSubSelected ? 'Välj plan först' : 'Skapa match')}
           </button>
         </div>
       </div>
