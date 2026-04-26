@@ -364,14 +364,13 @@ export default function MapView({
   const venueStatuses = useMemo(() => {
     const statusMap = {};
     venues.forEach(venue => {
+      // Match.venue_id is already rolled up to the parent by the caller (pages/Map),
+      // so a parent's matchCount includes matches on its sub-pitches.
       const venueMatches = matches.filter(m => m.venue_id === venue.id);
-      // Only count upcoming + ongoing as "active" matches for pin coloring
       const activeMatches = venueMatches.filter(m => m.status === 'upcoming' || m.status === 'ongoing');
       const ongoingMatch = activeMatches.find(m => m.status === 'ongoing');
       const hasUserMatch = activeMatches.some(m => userMatchIds.includes(m.id));
       const matchCount = activeMatches.length;
-      // Priority: BLUE (user joined) > ORANGE (match exists) > GREEN (no match)
-      // finished/cancelled matches => treated as no active match => GREEN
       statusMap[venue.id] = { isActive: !!ongoingMatch, hasUserMatch, matchCount };
     });
     return statusMap;

@@ -119,19 +119,10 @@ export default function MapPage() {
       return true;
     });
 
-    // Build a parent->subpitch index so matches on sub-pitches roll up to the parent.
-    const subIdsByParent = new Map();
-    venues.forEach(v => {
-      if (v.parent_venue_id) {
-        if (!subIdsByParent.has(v.parent_venue_id)) subIdsByParent.set(v.parent_venue_id, new Set());
-        subIdsByParent.get(v.parent_venue_id).add(v.id);
-      }
-    });
-
     filtered = filtered.map(venue => {
-      const ownIds = new Set([venue.id, ...(subIdsByParent.get(venue.id) || [])]);
       const venueMatches = matches.filter(m => {
-        if (!ownIds.has(m.venue_id)) return false;
+        // matches.venue_id is already rolled up to the parent in the load effect
+        if (m.venue_id !== venue.id) return false;
         if (m.status !== 'upcoming') return false;
         
         if (filters.skillLevel !== "all" && !m.is_team_match) {
@@ -232,10 +223,32 @@ export default function MapPage() {
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
   });
 
-  // Sync state from queries
+  // Sync state from queries.
+  // Sub-pitches are PARTS of a parent venue (same coords, no own pin/listing).
+  // Re-route any match that lives on a sub-pitch so its venue_id points to the parent
+  // for all UI lookups. Original pitch is preserved as `pitch_id` / `pitch_name` so we
+  // can still show "Plan 2" labels on a match.
   useEffect(() => {
-    if (mapData?.venues) setVenues(mapData.venues);
-    if (mapData?.matches) setMatches(mapData.matches);
+    if (!mapData) return;
+    const allVenues = mapData.venues || [];
+    const subToParent = new Map();
+    allVenues.forEach(v => {
+      if (v.parent_venue_id) subToParent.set(v.id, v);
+    });
+
+    const rolledMatches = (mapData.matches || []).map(m => {
+      const sub = subToParent.get(m.venue_id);
+      if (!sub) return m;
+      return {
+        ...m,
+        pitch_id: m.venue_id,
+        pitch_name: sub.name,
+        venue_id: sub.parent_venue_id, // re-route to parent for UI
+      };
+    });
+
+    setVenues(allVenues);
+    setMatches(rolledMatches);
   }, [mapData]);
 
   useEffect(() => {
@@ -551,13 +564,10 @@ export default function MapPage() {
       {showVenueModal && selectedVenueForModal && (
         <VenueDetailModal
           venue={selectedVenueForModal}
-          matches={matches.filter(m => {
-            if (m.status !== 'upcoming' && m.status !== 'ongoing') return false;
-            // Match is on this venue OR on one of its sub-pitches
-            if (m.venue_id === selectedVenueForModal.id) return true;
-            const sub = venues.find(v => v.id === m.venue_id);
-            return sub?.parent_venue_id === selectedVenueForModal.id;
-          })}
+          matches={matches.filter(m =>
+            m.venue_id === selectedVenueForModal.id &&
+            (m.status === 'upcoming' || m.status === 'ongoing')
+          )}
           onClose={() => {
             setShowVenueModal(false);
             setSelectedVenueForModal(null);

@@ -39,7 +39,9 @@ export default function VenueDetailModal({ venue, matches, onClose, onCreateMatc
   const matchesByPitch = useMemo(() => {
     const map = new Map();
     upcomingMatches.forEach(m => {
-      const key = m.venue_id || venue?.id;
+      // pitch_id is set by Map page when match lives on a sub-pitch.
+      // Falls back to venue_id (the parent) if it's not on a sub-pitch.
+      const key = m.pitch_id || m.venue_id || venue?.id;
       if (!map.has(key)) map.set(key, []);
       map.get(key).push(m);
     });
