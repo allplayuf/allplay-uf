@@ -341,6 +341,7 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
               onCancel={() => setShowCreateForm(false)}
               isLoading={actionLoading === 'create'}
               showCoords
+              parentCandidates={venues.filter(v => !v.parent_venue_id)}
             />
           )}
 
@@ -529,7 +530,7 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
   );
 }
 
-function QuickCreateModal({ position, onConfirm, onCancel, isLoading, showCoords }) {
+function QuickCreateModal({ position, onConfirm, onCancel, isLoading, showCoords, parentCandidates = [] }) {
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -537,15 +538,37 @@ function QuickCreateModal({ position, onConfirm, onCancel, isLoading, showCoords
     latitude: position?.lat ?? '',
     longitude: position?.lng ?? '',
     formats_supported: ['5v5'],
-    facilities: []
+    facilities: [],
+    parent_venue_id: '', // empty = top-level, otherwise = sub-pitch of selected parent
   });
+  const [parentSearch, setParentSearch] = useState('');
+
+  const filteredParents = useMemo(() => {
+    if (!parentSearch) return parentCandidates.slice(0, 8);
+    const q = parentSearch.toLowerCase();
+    return parentCandidates
+      .filter(v => v.name?.toLowerCase().includes(q) || v.city?.toLowerCase().includes(q))
+      .slice(0, 8);
+  }, [parentCandidates, parentSearch]);
+
+  const selectedParent = parentCandidates.find(v => v.id === formData.parent_venue_id);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // If parent is selected, inherit address/city/coords from parent so the sub
+    // is anchored to the same location and never appears as its own pin.
+    const useParent = !!selectedParent;
     onConfirm({
       ...formData,
-      latitude: position?.lat ?? (parseFloat(formData.latitude) || null),
-      longitude: position?.lng ?? (parseFloat(formData.longitude) || null),
+      address: useParent ? (selectedParent.address || formData.address) : formData.address,
+      city: useParent ? (selectedParent.city || formData.city) : formData.city,
+      latitude: useParent
+        ? (selectedParent.latitude ?? selectedParent.lat ?? null)
+        : (position?.lat ?? (parseFloat(formData.latitude) || null)),
+      longitude: useParent
+        ? (selectedParent.longitude ?? selectedParent.lng ?? null)
+        : (position?.lng ?? (parseFloat(formData.longitude) || null)),
+      parent_venue_id: formData.parent_venue_id || null,
     });
   };
 
@@ -555,35 +578,98 @@ function QuickCreateModal({ position, onConfirm, onCancel, isLoading, showCoords
       <Card className="bg-[#121715] border-2 border-[#2BA84A] rounded-2xl mb-3">
         <CardContent className="p-5">
           <form onSubmit={handleSubmit} className="space-y-3">
-            <h3 className="text-lg font-bold text-[#F4F7F5] mb-2">Ny plan</h3>
+            <h3 className="text-lg font-bold text-[#F4F7F5] mb-1">Ny plan</h3>
+
+            {/* Parent picker — KEY FIX: lets user create as sub-pitch directly */}
+            <div className="p-3 bg-[#9370DB]/8 border border-[#9370DB]/25 rounded-xl space-y-2">
+              <Label className="text-[#C4B5FD] text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                <LayoutGrid className="w-3.5 h-3.5" />
+                Tillhör denna plan en huvudplan?
+              </Label>
+              {selectedParent ? (
+                <div className="flex items-center justify-between gap-2 p-2.5 bg-[#9370DB]/15 border border-[#9370DB]/40 rounded-lg">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] text-[#C4B5FD] uppercase tracking-wider font-bold mb-0.5">Underplan till:</div>
+                    <div className="text-sm font-bold text-[#F4F7F5] truncate">{selectedParent.name}</div>
+                    <div className="text-[10px] text-[#9EAAA4] truncate">{selectedParent.city} • Ärver position automatiskt</div>
+                  </div>
+                  <Button
+                    type="button" size="sm" variant="ghost"
+                    onClick={() => { setFormData({ ...formData, parent_venue_id: '' }); setParentSearch(''); }}
+                    className="h-7 px-2 text-[10px] text-[#9EAAA4] hover:text-[#F4F7F5] flex-shrink-0"
+                  >
+                    Rensa
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <Input
+                    placeholder="Sök huvudplan (t.ex. Hagstumosse)... eller lämna tomt för fristående plan"
+                    value={parentSearch}
+                    onChange={e => setParentSearch(e.target.value)}
+                    className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-9 text-sm"
+                  />
+                  {parentSearch && filteredParents.length > 0 && (
+                    <div className="space-y-1 max-h-40 overflow-y-auto">
+                      {filteredParents.map(p => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => { setFormData({ ...formData, parent_venue_id: p.id }); setParentSearch(''); }}
+                          className="w-full flex items-center justify-between gap-2 p-2 rounded-lg bg-[#18221E] hover:bg-[#223029] text-left"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="text-xs font-semibold text-[#F4F7F5] truncate">{p.name}</div>
+                            <div className="text-[10px] text-[#7B8A83] truncate">{p.city}</div>
+                          </div>
+                          <span className="text-[10px] text-[#86EFAC] font-bold flex-shrink-0">Välj →</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {!parentSearch && (
+                    <p className="text-[10px] text-[#7B8A83]">
+                      Lämna tomt för att skapa en fristående huvudplan. Skriv för att söka och göra denna plan till en underplan.
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-[#F4F7F5] text-xs mb-1 block">Namn *</Label>
-                <Input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-9" />
+                <Input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-9" placeholder={selectedParent ? `t.ex. ${selectedParent.name} 1` : ''} />
               </div>
               <div>
-                <Label className="text-[#F4F7F5] text-xs mb-1 block">Stad *</Label>
-                <Input required value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-9" />
+                <Label className="text-[#F4F7F5] text-xs mb-1 block">
+                  Stad {selectedParent ? <span className="text-[#7B8A83]">(ärvs)</span> : '*'}
+                </Label>
+                <Input required={!selectedParent} disabled={!!selectedParent} value={selectedParent ? (selectedParent.city || '') : formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-9 disabled:opacity-50" />
               </div>
             </div>
             <div>
-              <Label className="text-[#F4F7F5] text-xs mb-1 block">Adress *</Label>
-              <Input required value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-9" />
+              <Label className="text-[#F4F7F5] text-xs mb-1 block">
+                Adress {selectedParent ? <span className="text-[#7B8A83]">(ärvs från huvudplan)</span> : '*'}
+              </Label>
+              <Input required={!selectedParent} disabled={!!selectedParent} value={selectedParent ? (selectedParent.address || '') : formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-9 disabled:opacity-50" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-[#F4F7F5] text-xs mb-1 block">Latitud</Label>
-                <Input type="number" step="any" value={formData.latitude} onChange={e => setFormData({ ...formData, latitude: e.target.value })} className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-9" placeholder="59.33" />
+            {!selectedParent && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-[#F4F7F5] text-xs mb-1 block">Latitud</Label>
+                  <Input type="number" step="any" value={formData.latitude} onChange={e => setFormData({ ...formData, latitude: e.target.value })} className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-9" placeholder="59.33" />
+                </div>
+                <div>
+                  <Label className="text-[#F4F7F5] text-xs mb-1 block">Longitud</Label>
+                  <Input type="number" step="any" value={formData.longitude} onChange={e => setFormData({ ...formData, longitude: e.target.value })} className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-9" placeholder="18.07" />
+                </div>
               </div>
-              <div>
-                <Label className="text-[#F4F7F5] text-xs mb-1 block">Longitud</Label>
-                <Input type="number" step="any" value={formData.longitude} onChange={e => setFormData({ ...formData, longitude: e.target.value })} className="bg-[#18221E] border-[#223029] text-[#F4F7F5] h-9" placeholder="18.07" />
-              </div>
-            </div>
+            )}
             <div className="flex gap-3 pt-2">
               <Button type="button" onClick={onCancel} variant="outline" className="flex-1 border-[#223029] text-[#B6C2BC]">Avbryt</Button>
-              <Button type="submit" disabled={isLoading} className="flex-1 bg-[#2BA84A] hover:bg-[#248232] text-white">
-                {isLoading ? 'Skapar...' : 'Skapa'}
+              <Button type="submit" disabled={isLoading} className={`flex-1 text-white ${selectedParent ? 'bg-[#9370DB] hover:bg-[#7C5BC9]' : 'bg-[#2BA84A] hover:bg-[#248232]'}`}>
+                {isLoading ? 'Skapar...' : (selectedParent ? 'Skapa underplan' : 'Skapa huvudplan')}
               </Button>
             </div>
           </form>
