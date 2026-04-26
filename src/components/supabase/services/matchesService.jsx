@@ -65,60 +65,32 @@ function normalizeLevel(level) {
 
 /**
  * Create a new match
- * 
- * The edge function `create_match` requires `external_id` (the venue's
- * external identifier) — NOT the Supabase UUID `venue_id`.
- * We look up the external_id via a REST query before calling the edge.
+ *
+ * Passes pitch_id (UUID) directly — create_match edge function resolves
+ * the venue internally, so the extra REST lookup is unnecessary.
  *
  * @param {object} payload - Match data from CreateMatchForm
- * @returns {Promise<{match_id: string, message: string}>}
+ * @returns {Promise<object>} - Created match object
  */
 export async function createMatch(payload) {
-  // Check if payload is wrapped in { match: ... } from CreateMatchForm
   const matchData = payload.match || payload;
-  
-  console.log('[matchesService] createMatch incoming:', { 
-    hasMatchWrapper: !!payload.match,
-    venue_id: matchData.venue_id,
-    matchData 
-  });
-  
-  // Normalize level to valid DB value
+
   const rawLevel = matchData.skill_bracket || matchData.level;
   const level = normalizeLevel(rawLevel);
-  
-  // Require venue_id (UUID) from frontend
+
   const venueUuid = matchData.venue_id;
   if (!venueUuid) {
     throw new Error('Välj en plats/plan');
   }
 
-  // ── Look up external_id from Supabase venues table ──
-  const headers = await getAuthHeaders();
-  const venueRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/venues?id=eq.${encodeURIComponent(venueUuid)}&select=external_id&limit=1`,
-    { method: 'GET', headers }
-  );
-  if (!venueRes.ok) {
-    throw new Error(`Kunde inte hämta plan-info: ${venueRes.status}`);
-  }
-  const venueRows = await venueRes.json();
-  const externalId = venueRows?.[0]?.external_id;
-
-  if (!externalId) {
-    throw new Error('Plan saknar external_id. Kontakta admin.');
-  }
-
-  // Build starts_at
   const startsAt = matchData.starts_at || (matchData.date && matchData.time ? `${matchData.date}T${matchData.time}:00` : null);
   if (!startsAt) {
     throw new Error('starts_at is required');
   }
 
-  // Build backend payload — use external_id, NOT venue_id
   const backendPayload = {
     request_id: matchData.request_id || null,
-    external_id: externalId,
+    pitch_id: venueUuid,
     starts_at: startsAt,
     level,
     is_public: matchData.is_public !== false && !matchData.is_private,
@@ -128,15 +100,8 @@ export async function createMatch(payload) {
     notes: matchData.notes || null,
     is_spontaneous: matchData.is_spontaneous || false
   };
-  
-  // Debug log right before invoke — verify external_id is present
-  console.log('[matchesService] createMatch → edge payload:', JSON.stringify(backendPayload, null, 2));
-  console.log('[matchesService] external_id present:', !!backendPayload.external_id);
 
-  // Edge Function returns { match_id, message } on success
-  const result = await callEdgeFunction(EDGE.createMatch, backendPayload);
-  console.log('[matchesService] createMatch result:', result);
-  return result;
+  return callEdgeFunction(EDGE.createMatch, backendPayload);
 }
 
 // Export for use in other components
@@ -189,36 +154,31 @@ export async function checkInMatch(matchId, userLat, userLng) {
  * 
  * @param {object} filters - Optional filters
  * @param {string} [filters.status] - Filter by status (upcoming/ongoing/completed)
+ * @param {number} [filters.limit=200] - Max rows to return
+ * @param {number} [filters.offset=0] - Row offset for pagination
  */
 export async function getPublicMatches(filters = {}) {
   const headers = await getAuthHeaders();
-  
-  // Build query - always sort by starts_at ASC (backend is source of truth)
-  let queryParams = 'select=*&order=starts_at.asc';
-  
-  if (filters.status === 'upcoming') {
+  const { status, limit = 200, offset = 0 } = filters;
+
+  let queryParams = `select=*&order=starts_at.asc&limit=${limit}&offset=${offset}`;
+
+  if (status === 'upcoming') {
     queryParams += '&status=eq.upcoming';
   }
-  
-  // NO frontend filtering of is_public - RLS handles this
-  
+
   const res = await fetch(`${SUPABASE_URL}/rest/v1/public_matches?${queryParams}`, {
     method: 'GET',
     headers
   });
-  
+
   if (!res.ok) {
     const error = await res.text().catch(() => '');
     console.error('[matchesService] Failed to fetch public_matches:', res.status, error);
     throw new Error(`Failed to fetch matches: ${res.status}`);
   }
-  
-  const matches = await res.json();
-  if (IS_DEV) {
-    console.log('[matchesService] Fetched', matches.length, 'matches');
-  }
-  
-  return matches;
+
+  return res.json();
 }
 
 /**
@@ -306,16 +266,6 @@ export async function getMatchParticipants(matchId) {
     if (!status) return true; // no status field → treat as active
     return !INACTIVE_STATUSES.has(status);
   });
-}
-
-/**
- * Get match feed - preferred method for listing matches
- * Uses get_match_feed Edge Function which respects RLS
- * 
- * @param {object} filters - Optional filters
- */
-export async function getMatchFeed(filters = {}) {
-  return callPublicEdgeFunction(EDGE.getMatchFeed, filters);
 }
 
 /**

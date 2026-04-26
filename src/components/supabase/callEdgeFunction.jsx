@@ -11,6 +11,9 @@
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config';
 import { sessionStore, waitForAuth } from './client';
 
+const IS_DEV = typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
 // ── GLOBAL DEBUG STATE (readable from any component) ──
 // This is THE way to see what's happening on iOS where console is invisible.
 const _debugLog = [];
@@ -23,8 +26,7 @@ export function getEdgeFunctionDebugLog() {
 function pushDebug(entry) {
   _debugLog.unshift({ ...entry, ts: new Date().toISOString() });
   if (_debugLog.length > MAX_DEBUG_ENTRIES) _debugLog.pop();
-  // Also console.log for web debugging
-  console.log(`[EdgeFn] ${entry.phase}:`, entry);
+  if (IS_DEV) console.log(`[EdgeFn] ${entry.phase}:`, entry);
 }
 
 // ── MODULE LOAD CHECK ──

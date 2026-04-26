@@ -89,36 +89,3 @@ export async function getParticipantsForMatches(matchIds) {
   }
 }
 
-/**
- * Get all participants (for compatibility during migration)
- * Returns all participants visible to the user based on RLS
- * Enriches with public user data from cache
- */
-export async function getAllParticipants() {
-  const headers = await getAuthHeaders();
-  
-  try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/match_participants?select=*`,
-      { method: 'GET', headers }
-    );
-    
-    if (!res.ok) {
-      throw new Error(`Failed to fetch all participants: ${res.status}`);
-    }
-    
-    const participantsRaw = await res.json();
-    const participants = participantsRaw.filter(isActiveParticipant);
-    
-    // Bulk-fetch user data for all participants
-    const userIds = [...new Set(participants.map(p => p.user_id).filter(Boolean))];
-    if (userIds.length > 0) {
-      await fetchUsersMissing(userIds);
-    }
-    
-    return participants;
-  } catch (e) {
-    console.error('[participantsService] Failed to fetch all participants:', e);
-    return [];
-  }
-}

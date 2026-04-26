@@ -13,6 +13,9 @@
 
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config';
 
+const IS_DEV = typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
 // Session storage keys
 const STORAGE_KEYS = {
   ACCESS_TOKEN: 'allplay_supabase_access_token',
@@ -203,7 +206,7 @@ class SupabaseClient {
 
     // Config is hardcoded — no async fetch needed
     this._config = { url: SUPABASE_URL, anonKey: SUPABASE_ANON_KEY };
-    console.log('[SupabaseClient] Config loaded, anonKey:', SUPABASE_ANON_KEY ? `${SUPABASE_ANON_KEY.slice(0, 8)}... (${SUPABASE_ANON_KEY.length} chars)` : 'MISSING');
+    if (IS_DEV) console.log('[SupabaseClient] Config loaded, anonKey:', SUPABASE_ANON_KEY ? `${SUPABASE_ANON_KEY.slice(0, 8)}... (${SUPABASE_ANON_KEY.length} chars)` : 'MISSING');
 
     // Handle token refresh BEFORE marking auth ready
     if (sessionStore.accessToken) {
@@ -234,7 +237,7 @@ class SupabaseClient {
 
     // CRITICAL: Mark auth ready AFTER token is valid
     markAuthReady();
-    console.log('[SupabaseClient] Auth ready, state:', sessionStore.authState);
+    if (IS_DEV) console.log('[SupabaseClient] Auth ready, state:', sessionStore.authState);
   }
 
   async refreshSession() {
@@ -266,8 +269,7 @@ class SupabaseClient {
     if (includeAuth && sessionStore.accessToken) {
       headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
     }
-    // Debug for iOS
-    console.log('[SupabaseClient._getHeaders]', {
+    if (IS_DEV) console.log('[SupabaseClient._getHeaders]', {
       apikey: SUPABASE_ANON_KEY ? `${SUPABASE_ANON_KEY.slice(0, 8)}...(${SUPABASE_ANON_KEY.length})` : 'MISSING',
       auth: headers['Authorization'] ? 'present' : 'absent'
     });

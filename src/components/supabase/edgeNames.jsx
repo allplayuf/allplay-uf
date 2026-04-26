@@ -19,7 +19,6 @@ export const EDGE = {
   checkInMatch: 'check_in_match',
   getMatchDetails: 'get_match_details',
   getMatchParticipants: 'get_match_participants',
-  getMatchFeed: 'get_match_feed',
   getMyParticipation: 'my_participation',
   endMatch: 'end_match',
   finishMatch: 'finish_match',
@@ -41,7 +40,10 @@ export const EDGE = {
   
   // Account
   deleteAccount: 'delete_account',
-  
+
+  // Friendships
+  friendshipsAction: 'friendships_action',
+
   // Legacy mappings (for migration period)
   checkInToMatch: 'check_in_match', // Old name -> new name
 };

@@ -1,6 +1,8 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { isCupsEnabled } from "@/lib/featureFlags";
+import { CUPS_QUERY_KEY } from "@/components/dashboard/CupsWidget";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,19 +50,21 @@ const STATUS_CONFIG = {
 };
 
 export default function CupsOverview({ user }) {
-  // Use separate query key so CupsOverview and CupsWidget don't share cached data
-  const { data: allCups = [], isLoading } = useQuery({
-    queryKey: ['cups-overview-list'],
-    queryFn: async () => {
-      const cups = await base44.entities.Cup.list('-created_date');
-      return cups.filter(c => c.is_public !== false);
-    },
+  const { data: rawCups = [], isLoading } = useQuery({
+    queryKey: CUPS_QUERY_KEY,
+    queryFn: () => base44.entities.Cup.list('-created_date'),
     staleTime: 60 * 1000,
     cacheTime: 5 * 60 * 1000,
+    enabled: isCupsEnabled(),
   });
 
+  const allCups = React.useMemo(
+    () => rawCups.filter(c => c.is_public !== false),
+    [rawCups]
+  );
+
   // Strict categorization — completed cups NEVER appear in upcoming/live
-  const upcomingCups = allCups.filter(c => 
+  const upcomingCups = allCups.filter(c =>
     c.status === 'upcoming' || c.status === 'registration_open' || c.status === 'registration_closed'
   );
   const liveCups = allCups.filter(c => c.status === 'ongoing');

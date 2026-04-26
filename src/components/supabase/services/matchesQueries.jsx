@@ -37,49 +37,48 @@ export async function getMatchesByIds(ids) {
 }
 
 /**
- * Get user's matches (matches they created or are participating in)
- * Uses match_participants to find user's matches
- * 
+ * Get user's matches (matches they are actively participating in).
+ * Single embedded REST call: match_players → matches → venues.
+ *
  * @param {string} userId - User ID
- * @param {string} status - Filter by status (optional: 'upcoming', 'finished')
+ * @param {string} status - Filter by match status (optional: 'upcoming', 'finished')
  */
 export async function getMyMatches(userId, status = null) {
   if (!userId) return [];
 
+  await waitForAuth();
   const headers = await getAuthHeaders();
-  
+
   try {
-    // First get user's participant match IDs
-    const participantRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/match_participants?user_id=eq.${userId}&select=match_id`,
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/match_players?user_id=eq.${userId}&status=in.(joined,checked_in)&select=match:matches(*,venue:venues(id,external_id,name,address,city,lat,lng))`,
       { method: 'GET', headers }
     );
-    
-    if (!participantRes.ok) {
-      throw new Error(`Failed to fetch participant match IDs: ${participantRes.status}`);
-    }
-    
-    const participantData = await participantRes.json();
-    const matchIds = participantData.map(p => p.match_id);
-    
-    if (matchIds.length === 0) {
-      return [];
-    }
-    
-    // Now fetch matches
-    let query = `${SUPABASE_URL}/rest/v1/public_matches?id=in.(${matchIds.join(',')})&select=*&order=starts_at.asc`;
-    
+
+    if (!res.ok) throw new Error(`Failed to fetch my matches: ${res.status}`);
+
+    const rows = await res.json();
+
+    let matches = rows
+      .map(row => row.match)
+      .filter(Boolean)
+      .map(m => ({
+        ...m,
+        venue_external_id: m.venue?.external_id ?? null,
+        venue_name: m.venue?.name ?? null,
+        venue_city: m.venue?.city ?? null,
+        venue_address: m.venue?.address ?? null,
+        venue_lat: m.venue?.lat ?? null,
+        venue_lng: m.venue?.lng ?? null,
+      }));
+
     if (status) {
-      query += `&status=eq.${status}`;
+      matches = matches.filter(m => m.status === status);
     }
-    
-    const matchesRes = await fetch(query, { method: 'GET', headers });
-    
-    if (!matchesRes.ok) {
-      throw new Error(`Failed to fetch matches: ${matchesRes.status}`);
-    }
-    
-    return await matchesRes.json();
+
+    matches.sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
+
+    return matches;
   } catch (e) {
     console.error('[matchesQueries] Failed to fetch my matches:', e);
     return [];

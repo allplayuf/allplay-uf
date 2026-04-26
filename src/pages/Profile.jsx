@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from "react";
+﻿import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { getUsersByIds, getUserById } from "../components/supabase/services/usersService";
@@ -42,11 +42,12 @@ import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { AuthGateModal } from "../components/ui/auth-gate-modal";
 import { LoginModal } from "../components/supabase";
 import { LogIn } from "lucide-react";
-import { 
+import {
   getMyProfile, updateProfile,
-  getMyFriendships, sendFriendRequest, acceptFriendRequest, 
+  getMyFriendships, sendFriendRequest, acceptFriendRequest,
   declineFriendRequest, removeFriendship, getFriendshipStatus
 } from "../components/supabase/services";
+import { getMyMatches, transformMatchData } from "../components/supabase/services/matchesQueries";
 import { supabaseClient } from "../components/supabase/client";
 
 // Lazy load components
@@ -60,7 +61,7 @@ const OtherProfileView = lazy(() => import("../components/profile/OtherProfileVi
 import ProfileHero from "../components/profile/ProfileHero";
 
 const SKILL_LEVEL_CONFIG = {
-  beginner: { label: 'Nybörjare', icon: Target, color: 'from-[#10B981] to-[#059669]', textColor: 'text-[#A7F3D0]' },
+  beginner: { label: 'NybÃ¶rjare', icon: Target, color: 'from-[#10B981] to-[#059669]', textColor: 'text-[#A7F3D0]' },
   intermediate: { label: 'Medel', icon: TrendingUp, color: 'from-[#14B8A6] to-[#0D9488]', textColor: 'text-[#99F6E4]' },
   advanced: { label: 'Avancerad', icon: Shield, color: 'from-[#8B5CF6] to-[#7C3AED]', textColor: 'text-[#DDD6FE]' },
   elite: { label: 'Elit', icon: Crown, color: 'from-[#F59E0B] to-[#D97706]', textColor: 'text-[#FDE68A]' }
@@ -141,7 +142,7 @@ export default function ProfilePage() {
       
       const foundUser = await getUserById(targetUserId);
       
-      if (!foundUser || foundUser.full_name === 'Spelare') throw new Error('Användaren hittades inte');
+      if (!foundUser || foundUser.full_name === 'Spelare') throw new Error('AnvÃ¤ndaren hittades inte');
       
       return foundUser;
     },
@@ -153,7 +154,7 @@ export default function ProfilePage() {
     }
   });
 
-  // Fetch all friendships — single source of truth via Supabase REST (RLS enforced)
+  // Fetch all friendships â€” single source of truth via Supabase REST (RLS enforced)
   const { data: friendships = [] } = useQuery({
     queryKey: QUERY_KEYS.friendships,
     queryFn: () => getMyFriendships(),
@@ -228,10 +229,8 @@ export default function ProfilePage() {
     queryKey: QUERY_KEYS.matchHistory(targetUserId || user?.id),
     queryFn: async () => {
       const userId = targetUserId || user.id;
-      const participations = await base44.entities.MatchParticipant.filter({ user_id: userId });
-      const matchIds = participations.map((p) => p.match_id);
-      const matches = await base44.entities.Match.list('-date', 50);
-      return matches.filter((m) => matchIds.includes(m.id)).slice(0, 10);
+      const rows = await getMyMatches(userId);
+      return rows.map(transformMatchData).filter(Boolean).slice(0, 10);
     },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
     enabled: !!user && !isGuest,
@@ -242,12 +241,12 @@ export default function ProfilePage() {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      await alert('Ogiltig fil', 'Vänligen välj en bild.', { type: 'alert' });
+      await alert('Ogiltig fil', 'VÃ¤nligen vÃ¤lj en bild.', { type: 'alert' });
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      await alert('Fil för stor', 'Bilden är för stor. Max 5MB tillåten.', { type: 'alert' });
+      await alert('Fil fÃ¶r stor', 'Bilden Ã¤r fÃ¶r stor. Max 5MB tillÃ¥ten.', { type: 'alert' });
       return;
     }
 
@@ -271,7 +270,7 @@ export default function ProfilePage() {
       
     } catch (error) {
       console.error("Error uploading profile image:", error);
-      await alert('Uppladdningsfel', 'Kunde inte ladda upp bild. Försök igen.', { type: 'alert' });
+      await alert('Uppladdningsfel', 'Kunde inte ladda upp bild. FÃ¶rsÃ¶k igen.', { type: 'alert' });
     }
   };
 
@@ -280,17 +279,17 @@ export default function ProfilePage() {
       await acceptFriendRequest(requestId);
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friends(user.id) });
-      await alert('Nya vänner! 🎉', 'Ni är nu vänner!', { type: 'success' });
+      await alert('Nya vÃ¤nner! ðŸŽ‰', 'Ni Ã¤r nu vÃ¤nner!', { type: 'success' });
     } catch (error) {
       console.error("Error accepting friend request:", error);
-      await alert('Fel vid vänförfrågan', error.message || 'Kunde inte acceptera förfrågan. Försök igen.', { type: 'alert' });
+      await alert('Fel vid vÃ¤nfÃ¶rfrÃ¥gan', error.message || 'Kunde inte acceptera fÃ¶rfrÃ¥gan. FÃ¶rsÃ¶k igen.', { type: 'alert' });
     }
   };
 
   const handleDeclineFriendRequest = async (requestId) => {
     const shouldDecline = await confirm(
-      'Neka vänförfrågan',
-      'Är du säker på att du vill neka denna vänförfrågan?',
+      'Neka vÃ¤nfÃ¶rfrÃ¥gan',
+      'Ã„r du sÃ¤ker pÃ¥ att du vill neka denna vÃ¤nfÃ¶rfrÃ¥gan?',
       { type: 'warning', confirmText: 'Ja, neka', cancelText: 'Avbryt' }
     );
     if (!shouldDecline) return;
@@ -300,7 +299,7 @@ export default function ProfilePage() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
     } catch (error) {
       console.error("Error declining friend request:", error);
-      await alert('Fel vid vänförfrågan', error.message || 'Kunde inte neka förfrågan. Försök igen.', { type: 'alert' });
+      await alert('Fel vid vÃ¤nfÃ¶rfrÃ¥gan', error.message || 'Kunde inte neka fÃ¶rfrÃ¥gan. FÃ¶rsÃ¶k igen.', { type: 'alert' });
     }
   };
 
@@ -309,17 +308,17 @@ export default function ProfilePage() {
       await base44.entities.TeamMember.update(inviteId, { status: 'active' });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamInvites(user.id) });
       
-      await alert('Välkommen till laget! 🎉', 'Du är nu medlem i laget!', { type: 'success' });
+      await alert('VÃ¤lkommen till laget! ðŸŽ‰', 'Du Ã¤r nu medlem i laget!', { type: 'success' });
     } catch (error) {
       console.error("Error accepting team invite:", error);
-      await alert('Fel vid laginbjudan', 'Kunde inte acceptera inbjudan. Försök igen.', { type: 'alert' });
+      await alert('Fel vid laginbjudan', 'Kunde inte acceptera inbjudan. FÃ¶rsÃ¶k igen.', { type: 'alert' });
     }
   };
 
   const handleDeclineTeamInvite = async (inviteId) => {
     const shouldDecline = await confirm(
       'Neka laginbjudan',
-      'Är du säker på att du vill neka denna laginbjudan?',
+      'Ã„r du sÃ¤ker pÃ¥ att du vill neka denna laginbjudan?',
       { type: 'warning', confirmText: 'Ja, neka', cancelText: 'Avbryt' }
     );
 
@@ -330,7 +329,7 @@ export default function ProfilePage() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamInvites(user.id) });
     } catch (error) {
       console.error("Error declining team invite:", error);
-      await alert('Fel vid laginbjudan', 'Kunde inte neka inbjudan. Försök igen.', { type: 'alert' });
+      await alert('Fel vid laginbjudan', 'Kunde inte neka inbjudan. FÃ¶rsÃ¶k igen.', { type: 'alert' });
     }
   };
 
@@ -356,11 +355,11 @@ export default function ProfilePage() {
     }
 
     const shouldAccept = await confirm(
-      'Godkänn ansökan',
-      `Vill du godkänna ${applicantName} som medlem i ${teamName}?`,
+      'GodkÃ¤nn ansÃ¶kan',
+      `Vill du godkÃ¤nna ${applicantName} som medlem i ${teamName}?`,
       { 
         type: 'confirm', 
-        confirmText: 'Ja, godkänn', 
+        confirmText: 'Ja, godkÃ¤nn', 
         cancelText: 'Avbryt' 
       }
     );
@@ -378,17 +377,17 @@ export default function ProfilePage() {
       
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamJoinRequests(user.id) });
       
-      await alert('Medlem godkänd! 🎉', `${applicantName} är nu medlem i ${teamName}!`, { type: 'success' });
+      await alert('Medlem godkÃ¤nd! ðŸŽ‰', `${applicantName} Ã¤r nu medlem i ${teamName}!`, { type: 'success' });
     } catch (error) {
       console.error("Error accepting join request:", error);
-      await alert('Fel vid ansökan', 'Kunde inte godkänna ansökan. Försök igen.', { type: 'alert' });
+      await alert('Fel vid ansÃ¶kan', 'Kunde inte godkÃ¤nna ansÃ¶kan. FÃ¶rsÃ¶k igen.', { type: 'alert' });
     }
   };
 
   const handleDeclineJoinRequest = async (requestId) => {
     const shouldDecline = await confirm(
-      'Neka ansökan',
-      'Är du säker på att du vill neka denna ansökan?',
+      'Neka ansÃ¶kan',
+      'Ã„r du sÃ¤ker pÃ¥ att du vill neka denna ansÃ¶kan?',
       { 
         type: 'warning', 
         confirmText: 'Ja, neka', 
@@ -402,17 +401,17 @@ export default function ProfilePage() {
       await base44.entities.TeamMember.update(requestId, { status: 'declined' });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamJoinRequests(user.id) });
       
-      await alert('Ansökan nekad', 'Ansökan har nekats.', { type: 'info' });
+      await alert('AnsÃ¶kan nekad', 'AnsÃ¶kan har nekats.', { type: 'info' });
     } catch (error) {
       console.error("Error declining join request:", error);
-      await alert('Fel vid ansökan', 'Kunde inte neka ansökan. Försök igen.', { type: 'alert' });
+      await alert('Fel vid ansÃ¶kan', 'Kunde inte neka ansÃ¶kan. FÃ¶rsÃ¶k igen.', { type: 'alert' });
     }
   };
 
   const handleLogout = async () => {
     const shouldLogout = await confirm(
       'Logga ut',
-      'Är du säker på att du vill logga ut?',
+      'Ã„r du sÃ¤ker pÃ¥ att du vill logga ut?',
       { 
         type: 'warning', 
         confirmText: 'Logga ut', 
@@ -436,17 +435,17 @@ export default function ProfilePage() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friends(user.id) });
       
       if (result.action === 'created') {
-        await alert('Vänförfrågan skickad! 🤝', `${targetUser.display_name || targetUser.full_name} får en notis.`, { type: 'success' });
+        await alert('VÃ¤nfÃ¶rfrÃ¥gan skickad! ðŸ¤', `${targetUser.display_name || targetUser.full_name} fÃ¥r en notis.`, { type: 'success' });
       } else if (result.action === 'accepted') {
-        await alert('Nya vänner! 🎉', 'Ni är nu vänner!', { type: 'success' });
+        await alert('Nya vÃ¤nner! ðŸŽ‰', 'Ni Ã¤r nu vÃ¤nner!', { type: 'success' });
       } else if (result.action === 'already_friends') {
-        await alert('Redan vänner', 'Ni är redan vänner!', { type: 'info' });
+        await alert('Redan vÃ¤nner', 'Ni Ã¤r redan vÃ¤nner!', { type: 'info' });
       } else if (result.action === 'already_sent') {
-        await alert('Förfrågan skickad', 'Du har redan skickat en vänförfrågan!', { type: 'info' });
+        await alert('FÃ¶rfrÃ¥gan skickad', 'Du har redan skickat en vÃ¤nfÃ¶rfrÃ¥gan!', { type: 'info' });
       }
     } catch (error) {
       console.error('Error adding friend:', error);
-      await alert('Fel vid vänförfrågan', error.message || 'Kunde inte skicka vänförfrågan. Försök igen.', { type: 'alert' });
+      await alert('Fel vid vÃ¤nfÃ¶rfrÃ¥gan', error.message || 'Kunde inte skicka vÃ¤nfÃ¶rfrÃ¥gan. FÃ¶rsÃ¶k igen.', { type: 'alert' });
     }
   };
 
@@ -479,7 +478,7 @@ export default function ProfilePage() {
         isOpen={showAuthGate}
         onClose={() => setShowAuthGate(false)}
         onLogin={() => setShowLoginModal(true)}
-        feature="se din profil och hantera vänner"
+        feature="se din profil och hantera vÃ¤nner"
       />
       
       <LoginModal 
@@ -496,8 +495,8 @@ export default function ProfilePage() {
           <div className="w-20 h-20 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-[#2BA84A]/20">
             <Users className="w-10 h-10 text-[#2BA84A]" />
           </div>
-          <h2 className="text-2xl font-bold text-[#F4F7F5] mb-3">Logga in för att se din profil</h2>
-          <p className="text-[#B6C2BC] mb-6">Skapa ett konto eller logga in för att se din profil, hantera vänner och mycket mer.</p>
+          <h2 className="text-2xl font-bold text-[#F4F7F5] mb-3">Logga in fÃ¶r att se din profil</h2>
+          <p className="text-[#B6C2BC] mb-6">Skapa ett konto eller logga in fÃ¶r att se din profil, hantera vÃ¤nner och mycket mer.</p>
           <Button 
             onClick={() => setShowAuthGate(true)}
             className="w-full bg-[#2BA84A] hover:bg-[#248232] text-white h-12 rounded-xl font-semibold"
@@ -544,7 +543,7 @@ export default function ProfilePage() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Profile Hero — mirrors Dashboard signature */}
+        {/* Profile Hero â€” mirrors Dashboard signature */}
         <ProfileHero
           user={displayUser}
           isViewingOtherProfile={isViewingOtherProfile}
@@ -556,277 +555,6 @@ export default function ProfilePage() {
           setShowMoreMenu={setShowMoreMenu}
           targetUserId={targetUser?.id}
         />
-        {false && (
-        <motion.div className="hidden" style={{display:'none'}}>
-          {/* HIDDEN — replaced by ProfileHero component */}
-          <svg className="absolute inset-0 w-full h-full opacity-[0.045] pointer-events-none" viewBox="0 0 400 300" preserveAspectRatio="none" aria-hidden>
-            <rect x="10" y="20" width="380" height="260" fill="none" stroke="white" strokeWidth="2" />
-            <circle cx="200" cy="150" r="45" fill="none" stroke="white" strokeWidth="2" />
-            <line x1="200" y1="20" x2="200" y2="280" stroke="white" strokeWidth="2" />
-            <rect x="10" y="90" width="80" height="120" fill="none" stroke="white" strokeWidth="2" />
-            <rect x="310" y="90" width="80" height="120" fill="none" stroke="white" strokeWidth="2" />
-          </svg>
-
-          {/* Grain overlay */}
-          <div
-            className="absolute inset-0 opacity-[0.04] pointer-events-none mix-blend-overlay"
-            style={{
-              backgroundImage:
-                "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
-            }}
-          />
-
-          {/* Ambient orbs — responsive */}
-          <motion.div
-            animate={{ scale: [1, 1.08, 1], opacity: [0.55, 0.75, 0.55] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -top-16 -right-14 sm:-top-24 sm:-right-20 w-56 h-56 sm:w-72 sm:h-72 lg:w-96 lg:h-96 rounded-full blur-3xl pointer-events-none"
-            style={{ background: "radial-gradient(circle, rgba(52,194,87,0.38) 0%, transparent 70%)" }}
-          />
-          <motion.div
-            animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.55, 0.4] }}
-            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-            className="absolute -bottom-16 -left-10 sm:-bottom-24 sm:-left-16 w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80 rounded-full blur-3xl pointer-events-none"
-            style={{ background: "radial-gradient(circle, rgba(244,116,59,0.14) 0%, transparent 70%)" }}
-          />
-
-          {/* Hairline top highlight */}
-          <div className="absolute inset-x-0 top-0 h-px pointer-events-none"
-            style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.16), transparent)" }}
-          />
-
-          {/* Deep bottom vignette */}
-          <div className="absolute inset-0 pointer-events-none"
-            style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(0,0,0,0.45) 100%)" }}
-          />
-
-          {/* Top Right Actions */}
-          {!isViewingOtherProfile ? (
-            <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 flex items-center gap-2">
-              <Link to={createPageUrl("AccountSettings")}>
-                <motion.button
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.7 }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 hover:text-white transition-all border border-white/10 shadow-lg"
-                  title="Kontoinställningar"
-                >
-                  <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
-                </motion.button>
-              </Link>
-              <motion.button
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.8 }}
-                whileHover={{ scale: 1.1, rotate: 90 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={handleLogout}
-                className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 hover:text-white transition-all border border-white/10 shadow-lg"
-                title="Logga ut"
-              >
-                <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
-              </motion.button>
-            </div>
-          ) : (
-            <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30">
-              <div className="relative">
-                <motion.button
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  onClick={() => setShowMoreMenu(!showMoreMenu)}
-                  className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 hover:text-white transition-all border border-white/10 shadow-lg"
-                >
-                  <MoreVertical className="w-4 h-4 sm:w-5 sm:h-5" />
-                </motion.button>
-                
-                <AnimatePresence>
-                  {showMoreMenu && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9, y: -10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.9, y: -10 }}
-                      className="absolute top-full right-0 mt-2 w-48 bg-[#121715] border border-[#223029] rounded-xl shadow-xl overflow-hidden z-50"
-                    >
-                      <button
-                        onClick={() => {
-                          setShowMoreMenu(false);
-                          setShowReportModal(true);
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#F4F7F5] hover:bg-[#18221E] transition-colors"
-                      >
-                        <Flag className="w-4 h-4 text-red-400" />
-                        Rapportera
-                      </button>
-                      <div className="px-4 py-2">
-                        <BlockUserButton 
-                          targetUserId={targetUser?.id}
-                          variant="ghost"
-                          className="w-full justify-start px-0"
-                        />
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
-          )}
-          
-          <div className="relative z-10 px-4 py-5 sm:px-6 sm:py-7 lg:px-9 lg:py-9">
-            {/* Eyebrow pill */}
-            <div className="inline-flex items-center gap-1.5 mb-3 sm:mb-4 px-2.5 py-1 rounded-full bg-white/[0.08] ring-1 ring-white/15 backdrop-blur-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34C257] animate-pulse" />
-              <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.14em] text-[#86EFAC]">
-                {isViewingOtherProfile ? "Profil" : "Min profil"}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3 sm:gap-4 lg:gap-5 mb-4 sm:mb-5 lg:mb-6">
-              
-              {/* Profile Image - Premium, responsive */}
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="relative flex-shrink-0"
-              >
-                <div className="absolute -inset-1 sm:-inset-1.5 bg-white/10 rounded-[20px] blur-md pointer-events-none" />
-                <div className="relative w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-2xl overflow-hidden ring-1 ring-white/15 bg-gradient-to-br from-white/8 to-black/30 backdrop-blur-sm flex items-center justify-center shadow-[0_10px_24px_rgba(0,0,0,0.5)]">
-                  {displayUser?.avatar_url ? (
-                    <img
-                      src={displayUser.avatar_url}
-                      alt="Profile"
-                      className="w-full h-full object-cover"
-                      loading="eager"
-                      fetchpriority="high"
-                    />
-                  ) : (
-                    <span className="text-4xl font-bold text-[#FFFFFF]">
-                      {displayUser?.full_name?.[0] || 'U'}
-                    </span>
-                  )}
-                </div>
-                {!isViewingOtherProfile && (
-                  <>
-                    <input
-                      type="file"
-                      id="profile-image-upload"
-                      accept="image/*"
-                      onChange={handleProfileImageUpload}
-                      className="hidden"
-                    />
-                    <label htmlFor="profile-image-upload">
-                      <button
-                        className="absolute -bottom-2 -right-2 w-8 h-8 sm:w-10 sm:h-10 bg-[#F4743B] rounded-xl flex items-center justify-center text-[#FFFFFF] ring-2 ring-[#FFFFFF] hover:bg-[#E5683A] transition-all duration-150 hover:shadow-lg hover:scale-105"
-                        onClick={() => document.getElementById('profile-image-upload').click()}
-                      >
-                        <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
-                      </button>
-                    </label>
-                  </>
-                )}
-              </motion.div>
-
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <motion.h1
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15, duration: 0.35 }}
-                  className="text-[20px] sm:text-[26px] lg:text-[34px] leading-[1.1] font-black text-white tracking-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)] truncate"
-                >
-                  {displayUser?.display_name || displayUser?.full_name}
-                </motion.h1>
-
-                <motion.p
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2, duration: 0.35 }}
-                  className="mt-1 sm:mt-1.5 text-white/75 text-[12px] sm:text-[13px] lg:text-[14px] font-medium leading-snug sm:leading-relaxed line-clamp-2"
-                >
-                  {displayUser?.bio || (isViewingOtherProfile ? '' : 'Tryck på Redigera för att lägga till en bio')}
-                </motion.p>
-
-                {/* Chips */}
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.25, duration: 0.35 }}
-                  className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-2.5 sm:mt-3"
-                >
-                  <span className="inline-flex h-6 sm:h-7 items-center gap-1.5 px-2 sm:px-2.5 rounded-full bg-white/[0.08] ring-1 ring-white/15 backdrop-blur-sm text-[10px] sm:text-[11px] font-semibold text-white">
-                    <MapPin className="w-3 h-3" />
-                    {displayUser?.city || 'Stockholm'}
-                  </span>
-                  <span className="inline-flex h-6 sm:h-7 items-center gap-1.5 px-2 sm:px-2.5 rounded-full bg-white/[0.08] ring-1 ring-white/15 backdrop-blur-sm text-[10px] sm:text-[11px] font-semibold text-white">
-                    <SkillIcon className="w-3 h-3" />
-                    {skillLevel.label}
-                  </span>
-                </motion.div>
-              </div>
-            </div>
-
-            {/* Stats Grid */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="grid grid-cols-3 gap-2 sm:gap-3 mb-3 sm:mb-4"
-            >
-              {[
-                { value: displayUser?.matches_played || 0, label: 'Matcher', icon: Trophy, iconColor: 'text-[#86EFAC]', bg: 'bg-white/8 border-white/10' },
-                { value: displayUser?.mvp_count || 0, label: 'MVPs', icon: Award, iconColor: 'text-[#FDE3D2]', bg: 'bg-[#F4743B]/8 border-[#F4743B]/15' },
-                { value: displayUser?.current_streak || 0, label: 'Streak', icon: Trophy, iconColor: 'text-[#FDE68A]', bg: 'bg-[#F59E0B]/8 border-[#F59E0B]/15' },
-              ].map((stat, i) => {
-                const StatIcon = stat.icon;
-                return (
-                  <div 
-                    key={i}
-                    className={`backdrop-blur-md border rounded-2xl p-3.5 sm:p-4 text-center transition-all ${stat.bg}`}
-                  >
-                    <StatIcon className={`w-4 h-4 sm:w-5 sm:h-5 ${stat.iconColor} mx-auto mb-1.5`} strokeWidth={2.5} />
-                    <div className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-0.5">
-                      {stat.value}
-                    </div>
-                    <div className="text-[10px] sm:text-xs text-white/60 font-semibold">{stat.label}</div>
-                  </div>
-                );
-              })}
-            </motion.div>
-
-            {/* Action Buttons - In Hero */}
-            {!isViewingOtherProfile && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
-                className="grid grid-cols-2 gap-2 sm:gap-3"
-              >
-                <Link to={createPageUrl("EditProfile")} className="block">
-                  <motion.button
-                    whileHover={{ y: -4, scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="h-12 sm:h-12 lg:h-14 w-full bg-gradient-to-r from-[#FFFFFF]/20 to-[#FFFFFF]/10 hover:from-[#FFFFFF]/30 hover:to-[#FFFFFF]/20 backdrop-blur-xl border border-white/30 hover:border-white/50 rounded-2xl flex items-center justify-center gap-1.5 sm:gap-2 text-white font-black text-sm sm:text-sm lg:text-base transition-all shadow-xl"
-                  >
-                    <Edit className="w-4 h-4 lg:w-5 lg:h-5" strokeWidth={2.5} />
-                    <span>Redigera</span>
-                  </motion.button>
-                </Link>
-                <motion.button
-                  whileHover={{ y: -4, scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => { triggerHaptic('light'); setShowQRModal(true); }}
-                  className="h-12 sm:h-12 lg:h-14 bg-gradient-to-r from-[#FFFFFF]/20 to-[#FFFFFF]/10 hover:from-[#FFFFFF]/30 hover:to-[#FFFFFF]/20 backdrop-blur-xl border border-white/30 hover:border-white/50 rounded-2xl flex items-center justify-center gap-1.5 sm:gap-2 text-white font-black text-sm sm:text-sm lg:text-base transition-all shadow-xl"
-                >
-                  <QrCode className="w-4 h-4 lg:w-5 lg:h-5" strokeWidth={2.5} />
-                  <span>Bjud in</span>
-                </motion.button>
-              </motion.div>
-            )}
-          </div>
-        </motion.div>
-        )}
 
         {/* Content based on if viewing other profile */}
         {isViewingOtherProfile ? (
@@ -910,7 +638,7 @@ export default function ProfilePage() {
                       <div>
                         <div className="flex items-center justify-between mb-4 mt-6">
                           <h3 className="text-lg font-bold text-[#F4F7F5]">
-                            Dina vänner ({friends.length})
+                            Dina vÃ¤nner ({friends.length})
                           </h3>
                           <button 
                             onClick={() => setShowQRModal(true)}
@@ -950,7 +678,7 @@ export default function ProfilePage() {
                                             <h4 className="font-bold text-[#F4F7F5] text-sm truncate">{friend.display_name || friend.full_name}</h4>
                                             <div className="flex items-center gap-1.5 text-xs text-[#9EAAA4]">
                                               <MapPin className="w-3 h-3" />
-                                              {friend.city || 'Okänd stad'}
+                                              {friend.city || 'OkÃ¤nd stad'}
                                             </div>
                                           </div>
                                           <Badge className={`bg-gradient-to-r ${friendSkill.color} ${friendSkill.textColor} text-[10px] font-bold border-0 px-2 h-6`}>
@@ -1003,17 +731,17 @@ export default function ProfilePage() {
                     exit={{ opacity: 0, y: -4 }}
                     transition={TRANSITIONS.tab}
                   >
-                    <h3 className="text-lg font-bold text-[#F4F7F5] mb-4">Lås upp utmärkelser genom att spela</h3>
+                    <h3 className="text-lg font-bold text-[#F4F7F5] mb-4">LÃ¥s upp utmÃ¤rkelser genom att spela</h3>
                     {(displayUser?.matches_played || 0) === 0 ? (
                       <Card className="bg-[#121715] border border-[#223029] rounded-2xl p-12 text-center">
                         <div className="w-20 h-20 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-[#2BA84A]/20">
                           <Award className="w-10 h-10 text-[#2BA84A]" />
                         </div>
                         <h3 className="text-2xl font-bold text-[#F4F7F5] mb-3">
-                          Spela din första match
+                          Spela din fÃ¶rsta match
                         </h3>
                         <p className="text-base text-[#B6C2BC]">
-                          Dina upplåsta utmärkelser kommer att visas här.
+                          Dina upplÃ¥sta utmÃ¤rkelser kommer att visas hÃ¤r.
                         </p>
                       </Card>
                     ) : (
@@ -1045,10 +773,10 @@ export default function ProfilePage() {
                           <Trophy className="w-8 h-8 text-[#2BA84A]" />
                         </div>
                         <h3 className="text-xl font-bold text-[#F4F7F5] mb-2">
-                          Du har inga matcher än
+                          Du har inga matcher Ã¤n
                         </h3>
                         <p className="text-sm text-[#9EAAA4]">
-                          Spelade matcher kommer att synas här.
+                          Spelade matcher kommer att synas hÃ¤r.
                         </p>
                       </Card>
                     )}

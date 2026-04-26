@@ -1,6 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { isCupsEnabled } from '@/lib/featureFlags';
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, MapPin, Calendar, Users, ArrowRight, Sparkles, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -35,32 +36,30 @@ const STATUS_CONFIG = {
 };
 
 export default function CupsWidget() {
-  // Use shared query key for platform-wide sync
-  const { data: cups = [], isLoading } = useQuery({
+  const { data: rawCups = [], isLoading } = useQuery({
     queryKey: CUPS_QUERY_KEY,
-    queryFn: async () => {
-      const allCups = await base44.entities.Cup.list('-created_date');
-      const today = new Date().toISOString().split('T')[0];
-      
-      return allCups
-        .filter(cup => {
-          if (cup.is_public === false) return false;
-          // NEVER show completed cups on dashboard
-          if (cup.status === 'completed') return false;
-          // Only show cups whose start_date hasn't passed yet, or are currently ongoing
-          if (cup.status === 'ongoing') return true;
-          if (cup.start_date && cup.start_date < today && cup.status !== 'ongoing') return false;
-          return cup.status === 'registration_open' || cup.status === 'upcoming';
-        })
-        .sort((a, b) => {
-          const statusOrder = { ongoing: 0, registration_open: 1, upcoming: 2 };
-          return (statusOrder[a.status] || 3) - (statusOrder[b.status] || 3);
-        })
-        .slice(0, 3);
-    },
+    queryFn: () => base44.entities.Cup.list('-created_date'),
     staleTime: 60 * 1000,
     cacheTime: 5 * 60 * 1000,
+    enabled: isCupsEnabled(),
   });
+
+  const cups = React.useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    return rawCups
+      .filter(cup => {
+        if (cup.is_public === false) return false;
+        if (cup.status === 'completed') return false;
+        if (cup.status === 'ongoing') return true;
+        if (cup.start_date && cup.start_date < today && cup.status !== 'ongoing') return false;
+        return cup.status === 'registration_open' || cup.status === 'upcoming';
+      })
+      .sort((a, b) => {
+        const statusOrder = { ongoing: 0, registration_open: 1, upcoming: 2 };
+        return (statusOrder[a.status] || 3) - (statusOrder[b.status] || 3);
+      })
+      .slice(0, 3);
+  }, [rawCups]);
 
   if (isLoading) {
     return (

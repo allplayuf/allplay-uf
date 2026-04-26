@@ -73,7 +73,6 @@ export {
   getMatchDetails,
   getMyParticipation,
   getMatchParticipants,
-  getMatchFeed,
   VALID_LEVELS,
   LEVEL_MAP,
   normalizeLevel,
@@ -92,7 +91,6 @@ export {
   // Participants
   getMyParticipantMatchIds,
   getParticipantsForMatches,
-  getAllParticipants,
   // Reports
   reportUser,
   getReports,

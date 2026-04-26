@@ -25,7 +25,6 @@ export {
   getMatchDetails,
   getMyParticipation,
   getMatchParticipants,
-  getMatchFeed,
   VALID_LEVELS,
   LEVEL_MAP,
   normalizeLevel
@@ -71,7 +70,6 @@ export {
 export {
   getMyParticipantMatchIds,
   getParticipantsForMatches,
-  getAllParticipants
 } from './participantsService';
 
 // Players

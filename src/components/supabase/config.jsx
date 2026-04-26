@@ -8,6 +8,9 @@
  * call failed silently and left apikey=null.
  */
 
+const IS_DEV = typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
 export const SUPABASE_URL = 'https://vqfjjokqmykqawjlgevj.supabase.co';
 export const SUPABASE_FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;
 
@@ -67,8 +70,7 @@ export async function getAuthHeaders({ includeAuth = true, json = true } = {}) {
     headers['Authorization'] = `Bearer ${sessionStore.accessToken}`;
   }
 
-  // Debug log for iOS troubleshooting
-  console.log('[getAuthHeaders] built headers:', {
+  if (IS_DEV) console.log('[getAuthHeaders] built headers:', {
     apikey: headers['apikey'] ? `${headers['apikey'].slice(0, 8)}... (${headers['apikey'].length} chars)` : 'MISSING',
     auth: headers['Authorization'] ? 'present' : 'absent'
   });

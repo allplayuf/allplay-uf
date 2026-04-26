@@ -100,49 +100,34 @@ export async function fetchUsersMissing(userIds) {
       const chunks = [];
       for (let i = 0; i < missingIds.length; i += 50) chunks.push(missingIds.slice(i, i + 50));
 
-      let allUsers = [];
-      for (const chunk of chunks) {
-        let users = [];
-
-        // Try Edge Function
+      const chunkResults = await Promise.all(chunks.map(async (chunk) => {
+        // Try Edge Function first
         try {
           const response = await callEdgeFunction(EDGE.getUsersByIds, { user_ids: chunk });
-          users = response?.users || [];
-          // DEBUG: Log edge function response
-          if (users.length > 0) {
-            console.log('[userCache] Edge response sample (first 3):', JSON.stringify(users.slice(0, 3).map(u => ({
-              id: u.id,
-              full_name: u.full_name,
-              username: u.username,
-              email: u.email,
-              _allKeys: Object.keys(u)
-            }))));
-          }
+          const users = response?.users || [];
+          if (users.length > 0) return users;
         } catch (edgeError) {
           console.warn('[userCache] Edge failed, trying REST:', edgeError.message);
         }
 
         // REST fallback
-        if (users.length === 0) {
-          try {
-            const headers = await getAuthHeaders();
-            const idsParam = `(${chunk.join(',')})`;
-            const res = await fetch(
-              `${SUPABASE_URL}/rest/v1/users?id=in.${idsParam}&select=${USER_COLUMNS}`,
-              { method: 'GET', headers }
-            );
-            if (res.ok) {
-              users = await res.json();
-            } else {
-              console.warn(`[userCache] REST fallback failed: ${res.status}`);
-            }
-          } catch (restError) {
-            console.warn('[userCache] REST network error:', restError.message);
-          }
+        try {
+          const headers = await getAuthHeaders();
+          const idsParam = `(${chunk.join(',')})`;
+          const res = await fetch(
+            `${SUPABASE_URL}/rest/v1/users?id=in.${idsParam}&select=${USER_COLUMNS}`,
+            { method: 'GET', headers }
+          );
+          if (res.ok) return await res.json();
+          console.warn(`[userCache] REST fallback failed: ${res.status}`);
+        } catch (restError) {
+          console.warn('[userCache] REST network error:', restError.message);
         }
 
-        allUsers = allUsers.concat(users);
-      }
+        return [];
+      }));
+
+      const allUsers = chunkResults.flat();
 
       primeUsers(allUsers);
 
