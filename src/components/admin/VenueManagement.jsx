@@ -8,11 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   MapPin, Plus, Trash2, Save, X, CheckCircle,
-  Map as MapIcon, List, Keyboard, Filter, RefreshCw, Star, Clock, LayoutGrid, Sparkles
+  Map as MapIcon, List, Keyboard, Filter, RefreshCw, Star, Clock, LayoutGrid
 } from "lucide-react";
 import { createVenue, deleteVenue } from "../supabase/services/venuesService";
 import { getAuthHeaders, SUPABASE_URL } from '../supabase/config';
-import { callEdgeFunction } from '../supabase/callEdgeFunction';
 import VenueAvailabilityEditor from './VenueAvailabilityEditor';
 import SubPitchManager from './SubPitchManager';
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMapEvents, useMap } from 'react-leaflet';
@@ -85,7 +84,6 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
   const [scheduleVenue, setScheduleVenue] = useState(null);
   const [subPitchVenue, setSubPitchVenue] = useState(null);
   const [filterAllplay, setFilterAllplay] = useState('all'); // 'all' | 'allplay' | 'other'
-  const [seedRunning, setSeedRunning] = useState(false);
 
   // Map of parent_venue_id -> sub-pitch count, computed from the same venues list
   const subPitchCountByParent = useMemo(() => {
@@ -95,29 +93,6 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
     });
     return m;
   }, [propVenues]);
-
-  const handleSeedSubPitches = async () => {
-    if (!confirm('Skapa de 4 idrottsplatserna (Kristineberg, Östermalm, Stadshagen, Tanto) med alla underplaner? Säkert att köra flera gånger.')) return;
-    setSeedRunning(true);
-    try {
-      const result = await callEdgeFunction('adminSeedSubPitches', {});
-      if (result?.error) {
-        if (result.sql_to_run) {
-          window.alert('Kolumnen `parent_venue_id` saknas. Kör denna SQL i Supabase SQL Editor:\n\n' + result.sql_to_run.join('\n') + '\n\nKör sedan knappen igen.');
-        } else {
-          window.alert('Fel: ' + result.error);
-        }
-      } else {
-        const s = result.summary;
-        window.alert(`Klart!\nFöräldraplaner skapade: ${s.parents_created} (befintliga: ${s.parents_existing})\nUnderplaner skapade: ${s.sub_pitches_created} (befintliga: ${s.sub_pitches_existing})`);
-        onRefresh();
-      }
-    } catch (e) {
-      window.alert('Kunde inte köra seed: ' + (e.message || 'okänt fel'));
-    } finally {
-      setSeedRunning(false);
-    }
-  };
 
   // Deduplicate venues by id (Supabase is source of truth)
   const venues = useMemo(() => {
@@ -287,33 +262,6 @@ export default function VenueManagement({ venues: propVenues = [], isLoading, la
           </SelectContent>
         </Select>
       </AdminSectionHeader>
-
-      {/* Seed sub-pitches button — one-click creation of multi-pitch IPs */}
-      <Card className="bg-gradient-to-br from-[#2BA84A]/10 to-[#F4743B]/05 border border-[#2BA84A]/30 rounded-[16px]">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-start gap-3 flex-1 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-[#2BA84A]/15 ring-1 ring-[#2BA84A]/30 flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-5 h-5 text-[#2BA84A]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-[#F4F7F5] text-sm mb-0.5">Stockholms IP:er med underplaner</h3>
-                <p className="text-xs text-[#9EAAA4]">
-                  Skapar Kristineberg, Östermalm, Stadshagen, Tanto + alla underplaner. Idempotent — säkert att köra flera gånger.
-                </p>
-              </div>
-            </div>
-            <Button
-              size="sm"
-              onClick={handleSeedSubPitches}
-              disabled={seedRunning}
-              className="bg-[#2BA84A] hover:bg-[#248232] text-white rounded-xl"
-            >
-              {seedRunning ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />Kör...</> : 'Kör seed'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Duplicate warning */}
       {duplicateGroups.length > 0 && (

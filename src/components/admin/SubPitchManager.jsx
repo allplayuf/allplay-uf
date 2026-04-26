@@ -49,6 +49,9 @@ export default function SubPitchManager({ parentVenue, allVenues = [], onClose, 
     if (!newName.trim()) return;
     setAdding(true);
     try {
+      // Create with parent_venue_id directly — atomic insert.
+      // If parent_venue_id column is missing, createVenue will retry without it
+      // and we then patch with setParentVenue as a fallback.
       const created = await createVenue({
         name: newName.trim(),
         address: parentVenue.address || '',
@@ -59,10 +62,26 @@ export default function SubPitchManager({ parentVenue, allVenues = [], onClose, 
         facilities: parentVenue.facilities || ['artificial_grass'],
         is_allplay: parentVenue.is_allplay || false,
         is_verified: true,
+        parent_venue_id: parentVenue.id,
       });
-      if (created?.id) {
-        await setParentVenue(created.id, parentVenue.id);
+
+      // Verify the parent link was actually persisted.
+      // If the DB column was stripped due to missing column, we'd see no link.
+      if (created?.id && !created?.parent_venue_id) {
+        try {
+          await setParentVenue(created.id, parentVenue.id);
+        } catch (linkErr) {
+          // Most likely cause: parent_venue_id column doesn't exist in DB.
+          window.alert(
+            'Underplanen skapades men kunde inte länkas till huvudplanen.\n\n' +
+            'Kör denna SQL i Supabase SQL Editor:\n\n' +
+            'ALTER TABLE public.venues ADD COLUMN IF NOT EXISTS parent_venue_id uuid REFERENCES public.venues(id) ON DELETE CASCADE;\n' +
+            'CREATE INDEX IF NOT EXISTS idx_venues_parent ON public.venues(parent_venue_id);\n' +
+            'NOTIFY pgrst, \'reload schema\';'
+          );
+        }
       }
+
       setNewName('');
       setNewFormats(['5v5']);
       refresh();
