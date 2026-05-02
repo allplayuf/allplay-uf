@@ -11,6 +11,9 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { sessionStore, supabaseClient, AUTH_STATES, waitForAuth } from './client';
 import { primeUsers } from './services/userCache';
 import { checkIsAdmin, clearAdminCache } from './services/adminService';
+import { initPushNotifications } from '@/lib/pushNotifications';
+
+let pushInitializedFor = null;
 
 // Auth context
 const AuthContext = createContext(null);
@@ -75,6 +78,10 @@ export function SupabaseAuthProvider({ children }) {
       // Prime cache with current user
       if (state.authState === AUTH_STATES.AUTHENTICATED && state.user?.id) {
         primeUsers([state.user]);
+        if (pushInitializedFor !== state.user.id) {
+          pushInitializedFor = state.user.id;
+          initPushNotifications(state.user.id).catch((err) => console.warn('[Push] init failed', err));
+        }
       }
     });
 

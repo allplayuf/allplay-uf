@@ -44,6 +44,10 @@ export const EDGE = {
   // Friendships
   friendshipsAction: 'friendships_action',
 
+  // Push notifications
+  sendPush: 'send_push',
+  processNotifications: 'process_notifications',
+
   // Legacy mappings (for migration period)
   checkInToMatch: 'check_in_match', // Old name -> new name
 };
