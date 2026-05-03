@@ -15,13 +15,13 @@ const config: CapacitorConfig = {
   },
   ios: {
     contentInset: 'automatic',
-    backgroundColor: '#121212',
+    backgroundColor: '#0F1513',
     preferredContentMode: 'mobile',
   },
   plugins: {
     StatusBar: {
       style: 'DARK',
-      backgroundColor: '#121212',
+      backgroundColor: '#0F1513',
     },
     SplashScreen: {
       launchShowDuration: 2000,
