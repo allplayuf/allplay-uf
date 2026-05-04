@@ -134,7 +134,7 @@ export default function PlayerCard({ player, friendshipStatus = 'none', onAddFri
               <Stat icon={Shield}  value={player.current_streak || 0}  label="Streak"  accent="#FDE68A" />
             </div>
             <div className="mt-2.5 flex justify-center">
-              <RankBadge matchesPlayed={player.matches_played || 0} size="sm" showLabel />
+              <RankBadge matchesPlayed={player.matches_played || 0} size="sm" showLabel currentStreak={player.current_streak || 0} />
             </div>
           </>
         )}

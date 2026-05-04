@@ -1,182 +1,188 @@
 import { getRankFromMatches } from '@/lib/rankEngine';
 
-const DIVISION_COLORS = {
-  Brons:  '#CD7F32',
-  Silver: '#C0C0C0',
-  Guld:   '#FFD700',
-};
+const C = 50;
 
-const SIZE = { sm: 28, md: 40, lg: 56 };
-const FONT = { sm: 6, md: 8, lg: 11 };
-const DOT  = { sm: 3, md: 4, lg: 5.5 };
+function poly(n, r, angleDeg = -90) {
+  return Array.from({ length: n }, (_, i) => {
+    const a = ((i / n) * 360 + angleDeg) * (Math.PI / 180);
+    return `${(C + r * Math.cos(a)).toFixed(2)},${(C + r * Math.sin(a)).toFixed(2)}`;
+  }).join(' ');
+}
 
-// Each tier: a function(accent, s) => SVG inner content (no <svg> wrapper)
+function star(n, rO, rI, angleDeg = -90) {
+  return Array.from({ length: n * 2 }, (_, i) => {
+    const a = ((i / (n * 2)) * 360 + angleDeg) * (Math.PI / 180);
+    const radius = i % 2 === 0 ? rO : rI;
+    return `${(C + radius * Math.cos(a)).toFixed(2)},${(C + radius * Math.sin(a)).toFixed(2)}`;
+  }).join(' ');
+}
+
+// viewBox "0 0 100 100". Outer: accent25 fill + accent stroke. Inner: accent fill ~0.82 opacity.
 const SHAPES = {
-  // Tier 1 — simple ring
-  1: (accent, s) => (
-    <circle cx={s/2} cy={s/2} r={s*0.38} fill="none" stroke={accent} strokeWidth={s*0.08} />
+  1: (a) => (
+    <>
+      <circle cx={C} cy={C} r={40} fill={`${a}25`} stroke={a} strokeWidth={5} />
+      <circle cx={C} cy={C} r={23} fill={a} opacity={0.82} />
+    </>
   ),
-  // Tier 2 — diamond (rotated square)
-  2: (accent, s) => {
-    const c = s / 2, r = s * 0.38;
-    const pts = `${c},${c-r} ${c+r},${c} ${c},${c+r} ${c-r},${c}`;
-    return <polygon points={pts} fill="none" stroke={accent} strokeWidth={s*0.07} />;
-  },
-  // Tier 3 — upward triangle
-  3: (accent, s) => {
-    const c = s / 2, r = s * 0.40;
-    const pts = `${c},${c-r} ${c+r*0.87},${c+r*0.5} ${c-r*0.87},${c+r*0.5}`;
-    return <polygon points={pts} fill="none" stroke={accent} strokeWidth={s*0.07} />;
-  },
-  // Tier 4 — pentagon shield
-  4: (accent, s) => {
-    const c = s / 2, r = s * 0.38;
-    const pts = Array.from({ length: 5 }, (_, i) => {
-      const a = (i * 72 - 90) * (Math.PI / 180);
-      return `${c + r * Math.cos(a)},${c + r * Math.sin(a)}`;
-    }).join(' ');
-    return <polygon points={pts} fill="none" stroke={accent} strokeWidth={s*0.07} />;
-  },
-  // Tier 5 — hexagon
-  5: (accent, s) => {
-    const c = s / 2, r = s * 0.40;
-    const pts = Array.from({ length: 6 }, (_, i) => {
-      const a = (i * 60 - 30) * (Math.PI / 180);
-      return `${c + r * Math.cos(a)},${c + r * Math.sin(a)}`;
-    }).join(' ');
-    return <polygon points={pts} fill={`${accent}18`} stroke={accent} strokeWidth={s*0.07} />;
-  },
-  // Tier 6 — 8-pointed star (two overlapping squares)
-  6: (accent, s) => {
-    const c = s / 2, r = s * 0.38, ri = r * 0.55;
-    const pts = Array.from({ length: 16 }, (_, i) => {
-      const a = (i * 22.5 - 90) * (Math.PI / 180);
-      const radius = i % 2 === 0 ? r : ri;
-      return `${c + radius * Math.cos(a)},${c + radius * Math.sin(a)}`;
-    }).join(' ');
-    return <polygon points={pts} fill={`${accent}22`} stroke={accent} strokeWidth={s*0.06} />;
-  },
-  // Tier 7 — 6-pointed star (hexagram)
-  7: (accent, s) => {
-    const c = s / 2, r = s * 0.40, ri = r * 0.5;
-    const pts = Array.from({ length: 12 }, (_, i) => {
-      const a = (i * 30 - 90) * (Math.PI / 180);
-      const radius = i % 2 === 0 ? r : ri;
-      return `${c + radius * Math.cos(a)},${c + radius * Math.sin(a)}`;
-    }).join(' ');
-    return <polygon points={pts} fill={`${accent}22`} stroke={accent} strokeWidth={s*0.06} />;
-  },
-  // Tier 8 — crown
-  8: (accent, s) => {
-    const c = s / 2, t = s * 0.18, b = s * 0.72, spike = s * 0.15;
-    const pts = [
-      `${s*0.15},${b}`,
-      `${s*0.15},${t+spike}`,
-      `${c},${t+spike*1.8}`,
-      `${s*0.85},${t+spike}`,
-      `${s*0.85},${b}`,
-    ].join(' ');
-    return (
-      <>
-        <polygon points={pts} fill={`${accent}25`} stroke={accent} strokeWidth={s*0.06} />
-        <circle cx={s*0.15} cy={t+spike} r={s*0.05} fill={accent} />
-        <circle cx={c}      cy={t+spike*0.4} r={s*0.05} fill={accent} />
-        <circle cx={s*0.85} cy={t+spike} r={s*0.05} fill={accent} />
-      </>
-    );
-  },
-  // Tier 9 — faceted crystal (elongated octagon)
-  9: (accent, s) => {
-    const c = s / 2, r = s * 0.40, ri = r * 0.65;
-    const pts = Array.from({ length: 8 }, (_, i) => {
-      const a = (i * 45 - 90) * (Math.PI / 180);
-      const radius = i % 2 === 0 ? r : ri;
-      return `${c + radius * Math.cos(a)},${c + radius * Math.sin(a)}`;
-    }).join(' ');
-    return (
-      <>
-        <polygon points={pts} fill={`${accent}28`} stroke={accent} strokeWidth={s*0.07} />
-        <line x1={c} y1={s*0.12} x2={c} y2={s*0.88} stroke={`${accent}55`} strokeWidth={s*0.03} />
-        <line x1={s*0.12} y1={c} x2={s*0.88} y2={c} stroke={`${accent}55`} strokeWidth={s*0.03} />
-      </>
-    );
-  },
-  // Tier 10 — 12-pointed burst
-  10: (accent, s) => {
-    const c = s / 2, r = s * 0.42, ri = r * 0.72;
-    const pts = Array.from({ length: 24 }, (_, i) => {
-      const a = (i * 15 - 90) * (Math.PI / 180);
-      const radius = i % 2 === 0 ? r : ri;
-      return `${c + radius * Math.cos(a)},${c + radius * Math.sin(a)}`;
-    }).join(' ');
-    return (
-      <>
-        <polygon points={pts} fill={`${accent}30`} stroke={accent} strokeWidth={s*0.055} />
-        <circle cx={c} cy={c} r={s*0.14} fill={`${accent}60`} stroke={accent} strokeWidth={s*0.04} />
-      </>
-    );
-  },
+  2: (a) => (
+    <>
+      <polygon points={poly(4, 40, 0)} fill={`${a}25`} stroke={a} strokeWidth={5} />
+      <polygon points={poly(4, 24, 0)} fill={a} opacity={0.82} />
+    </>
+  ),
+  3: (a) => (
+    <>
+      <polygon points={poly(3, 40, -90)} fill={`${a}25`} stroke={a} strokeWidth={5} />
+      <polygon points={poly(3, 24, -90)} fill={a} opacity={0.82} />
+    </>
+  ),
+  4: (a) => (
+    <>
+      <polygon points={poly(5, 40, -90)} fill={`${a}25`} stroke={a} strokeWidth={5} />
+      <polygon points={poly(5, 24, -90)} fill={a} opacity={0.82} />
+    </>
+  ),
+  5: (a) => (
+    <>
+      <polygon points={poly(6, 40, -30)} fill={`${a}25`} stroke={a} strokeWidth={5} />
+      <polygon points={poly(6, 24, -30)} fill={a} opacity={0.82} />
+    </>
+  ),
+  6: (a) => (
+    <>
+      <polygon points={star(8, 40, 20, -90)} fill={`${a}25`} stroke={a} strokeWidth={4} />
+      <polygon points={star(8, 24, 12, -90)} fill={a} opacity={0.82} />
+    </>
+  ),
+  7: (a) => (
+    <>
+      <polygon points={star(6, 40, 20, -90)} fill={`${a}25`} stroke={a} strokeWidth={4} />
+      <polygon points={star(6, 24, 12, -90)} fill={a} opacity={0.82} />
+    </>
+  ),
+  8: (a) => (
+    <>
+      <polygon points="15,78 15,34 50,20 85,34 85,78" fill={`${a}25`} stroke={a} strokeWidth={5} />
+      <circle cx={15} cy={34} r={7} fill={a} opacity={0.85} />
+      <circle cx={50} cy={20} r={7} fill={a} opacity={0.85} />
+      <circle cx={85} cy={34} r={7} fill={a} opacity={0.85} />
+    </>
+  ),
+  9: (a) => (
+    <>
+      <polygon points={star(8, 40, 26, -90)} fill={`${a}25`} stroke={a} strokeWidth={4} />
+      <polygon points={star(8, 24, 16, -90)} fill={a} opacity={0.82} />
+    </>
+  ),
+  10: (a) => (
+    <>
+      <polygon points={star(12, 40, 28, -90)} fill={`${a}25`} stroke={a} strokeWidth={4} />
+      <polygon points={star(12, 24, 17, -90)} fill={a} opacity={0.82} />
+    </>
+  ),
 };
 
-function DivisionDots({ division, accent, size }) {
-  if (!division) return null;
-  const count = division === 'Brons' ? 1 : division === 'Silver' ? 2 : 3;
-  const color = DIVISION_COLORS[division];
-  const r = DOT[size];
-  const gap = r * 2.6;
-  const total = count * gap - (gap - r * 2);
+const SIZES = { sm: 24, md: 44, lg: 68 };
 
+function DivChip({ roman, division, divColor, fontSize = 11 }) {
+  if (!roman || !division) return null;
   return (
-    <svg
-      width={total + r * 2}
-      height={r * 2 + 2}
-      style={{ display: 'block', margin: '2px auto 0' }}
-    >
-      {Array.from({ length: count }, (_, i) => (
-        <circle
-          key={i}
-          cx={r + i * gap}
-          cy={r + 1}
-          r={r}
-          fill={color}
-        />
-      ))}
-    </svg>
+    <span style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      padding: '2px 8px',
+      borderRadius: 100,
+      background: `${divColor}25`,
+      border: `1px solid ${divColor}`,
+      fontSize,
+      fontWeight: 700,
+      color: divColor,
+      letterSpacing: '0.05em',
+      lineHeight: 1.5,
+      whiteSpace: 'nowrap',
+    }}>
+      {roman} · {division}
+    </span>
   );
 }
 
-export default function RankBadge({ matchesPlayed = 0, size = 'md', showLabel = false }) {
-  const rank = getRankFromMatches(matchesPlayed);
-  const s = SIZE[size] ?? SIZE.md;
-  const ShapeFn = SHAPES[rank.tier];
+export default function RankBadge({ matchesPlayed = 0, currentStreak = 0, size = 'md', showLabel = false }) {
+  const rank = getRankFromMatches(matchesPlayed, currentStreak);
+  const { accent, divColor, tier, name, roman, division, label } = rank;
+  const ShapeFn = SHAPES[tier];
+  const px = SIZES[size] ?? SIZES.md;
+
+  if (size === 'sm') {
+    return (
+      <span style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 5,
+        padding: '3px 8px 3px 4px',
+        borderRadius: 100,
+        background: `${accent}18`,
+        border: `1px solid ${accent}40`,
+      }}>
+        <span style={{ position: 'relative', display: 'inline-block', width: px, height: px, flexShrink: 0 }}>
+          <svg width={px} height={px} viewBox="0 0 100 100" style={{ display: 'block', filter: `drop-shadow(0 0 3px ${accent}80)` }}>
+            <rect width={100} height={100} rx={20} fill="#0F1513" />
+            {ShapeFn ? ShapeFn(accent) : null}
+          </svg>
+          {currentStreak > 0 && (
+            <span style={{ position: 'absolute', bottom: -3, right: -4, fontSize: 8, lineHeight: 1 }}>🔥</span>
+          )}
+        </span>
+        {showLabel && (
+          <span style={{ fontSize: 10, fontWeight: 700, color: accent, letterSpacing: '0.04em', lineHeight: 1, whiteSpace: 'nowrap' }}>
+            {label}
+          </span>
+        )}
+      </span>
+    );
+  }
 
   return (
-    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-      <svg
-        width={s}
-        height={s}
-        viewBox={`0 0 ${s} ${s}`}
-        style={{ display: 'block', filter: `drop-shadow(0 0 ${s*0.08}px ${rank.accent}88)` }}
-      >
-        <rect width={s} height={s} rx={s * 0.18} fill="#0F1513" />
-        {ShapeFn ? ShapeFn(rank.accent, s) : null}
-      </svg>
+    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+      <span style={{ position: 'relative', display: 'inline-block' }}>
+        <svg
+          width={px}
+          height={px}
+          viewBox="0 0 100 100"
+          style={{ display: 'block', filter: `drop-shadow(0 0 ${Math.round(px * 0.12)}px ${accent}88)` }}
+        >
+          <rect width={100} height={100} rx={20} fill="#0F1513" />
+          {ShapeFn ? ShapeFn(accent) : null}
+        </svg>
+        {currentStreak > 0 && (
+          <span style={{
+            position: 'absolute',
+            bottom: -5,
+            right: -8,
+            fontSize: size === 'lg' ? 11 : 9,
+            fontWeight: 800,
+            background: 'rgba(0,0,0,0.78)',
+            borderRadius: 8,
+            padding: '1px 4px',
+            color: '#FDE68A',
+            lineHeight: 1.4,
+            whiteSpace: 'nowrap',
+          }}>🔥×2</span>
+        )}
+      </span>
 
-      <DivisionDots division={rank.division} accent={rank.accent} size={size} />
+      <DivChip roman={roman} division={division} divColor={divColor} fontSize={size === 'lg' ? 11 : 9} />
 
       {showLabel && (
-        <span
-          style={{
-            fontSize: FONT[size],
-            fontWeight: 600,
-            color: rank.accent,
-            letterSpacing: '0.04em',
-            textTransform: 'uppercase',
-            marginTop: 2,
-            lineHeight: 1,
-          }}
-        >
-          {rank.label}
+        <span style={{
+          fontSize: size === 'lg' ? 12 : 9,
+          fontWeight: 700,
+          color: accent,
+          letterSpacing: '0.05em',
+          textTransform: 'uppercase',
+          lineHeight: 1,
+        }}>
+          {name}
         </span>
       )}
     </div>

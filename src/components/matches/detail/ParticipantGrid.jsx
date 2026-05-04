@@ -147,7 +147,7 @@ function ParticipantCard({ participant, isCurrentUser, friendStatus, onAddFriend
           <StatPill label="MVP" value={participant.mvp_count || 0} accent />
         </div>
         <div className="mt-2 flex justify-center">
-          <RankBadge matchesPlayed={participant.matches_played || 0} size="sm" showLabel />
+          <RankBadge matchesPlayed={participant.matches_played || 0} size="sm" showLabel currentStreak={participant.current_streak || 0} />
         </div>
       </Link>
 

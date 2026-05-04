@@ -23,6 +23,7 @@ import { triggerHaptic } from "../utils/motionTokens";
 import BlockUserButton from "../user/BlockUserButton";
 import RankBadge from "@/components/rank/RankBadge";
 import RankProgressBar from "@/components/rank/RankProgressBar";
+import { getRankFromMatches } from "@/lib/rankEngine";
 
 /**
  * ProfileHero — mirrors the DashboardHero design language.
@@ -57,6 +58,9 @@ export default function ProfileHero({
   const SkillIcon = skill.icon;
   const displayName = user?.display_name || user?.full_name || "Spelare";
   const city = user?.city || "Stockholm";
+  const matchesPlayed = user?.matches_played || 0;
+  const currentStreak = user?.current_streak || 0;
+  const rank = getRankFromMatches(matchesPlayed, currentStreak);
 
   return (
     <motion.section
@@ -301,10 +305,42 @@ export default function ProfileHero({
           />
         </div>
 
-        {/* Rank badge + progress */}
-        <div className="mt-4 sm:mt-5 flex flex-col items-center gap-2.5">
-          <RankBadge matchesPlayed={user?.matches_played || 0} size="lg" showLabel />
-          <RankProgressBar matchesPlayed={user?.matches_played || 0} className="w-full max-w-[220px]" />
+        {/* Rank panel */}
+        <div
+          className="mt-4 sm:mt-5 rounded-2xl overflow-hidden"
+          style={{ background: `${rank.accent}0D`, border: `1px solid ${rank.accent}22` }}
+        >
+          <div className="flex items-center gap-4 px-4 pt-4 pb-3">
+            <RankBadge matchesPlayed={matchesPlayed} currentStreak={currentStreak} size="lg" />
+            <div className="flex-1 min-w-0">
+              <div className="text-lg font-black text-white leading-tight">{rank.name}</div>
+              {rank.division && rank.roman && (
+                <span
+                  className="inline-flex items-center mt-1.5"
+                  style={{
+                    padding: '2px 10px',
+                    borderRadius: 100,
+                    background: `${rank.divColor}25`,
+                    border: `1px solid ${rank.divColor}`,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: rank.divColor,
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  {rank.roman} · {rank.division}
+                </span>
+              )}
+              {rank.streakBonus && (
+                <p className="text-[11px] text-amber-400 font-semibold mt-1.5">
+                  🔥 Streakbonus aktiv
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="px-4 pb-4">
+            <RankProgressBar matchesPlayed={matchesPlayed} currentStreak={currentStreak} />
+          </div>
         </div>
 
         {/* Actions — only for own profile */}
