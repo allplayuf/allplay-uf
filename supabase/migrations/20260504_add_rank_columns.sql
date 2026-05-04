@@ -1,16 +1,37 @@
--- Add rank columns to users table
-ALTER TABLE public.users
+-- Add rank columns to the base profiles table
+ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS rank_tier     INT  DEFAULT 1,
   ADD COLUMN IF NOT EXISTS rank_division TEXT DEFAULT 'Brons';
 
--- Function: compute rank_tier and rank_division from matches_played
+-- Recreate the public.users view to expose rank columns
+CREATE OR REPLACE VIEW public.users AS
+  SELECT
+    id,
+    COALESCE(full_name, display_name) AS full_name,
+    username,
+    avatar_url,
+    bio,
+    city,
+    skill_level,
+    birth_year,
+    COALESCE(elo_rating, 1000)      AS elo_rating,
+    COALESCE(matches_played, 0)     AS matches_played,
+    COALESCE(mvp_count, 0)          AS mvp_count,
+    is_admin,
+    display_name,
+    email,
+    rank_tier,
+    rank_division
+  FROM public.profiles p;
+
+-- Function: compute rank from matches_played (immutable, reusable)
 CREATE OR REPLACE FUNCTION public.compute_rank(p_matches INT)
 RETURNS TABLE(tier INT, division TEXT)
 LANGUAGE plpgsql IMMUTABLE AS $$
 DECLARE
-  v_tier INT;
-  v_min  INT;
-  v_max  INT;
+  v_tier  INT;
+  v_min   INT;
+  v_max   INT;
   v_third INT;
 BEGIN
   IF    p_matches <= 2   THEN v_tier := 1;  v_min := 0;   v_max := 2;
@@ -43,7 +64,7 @@ BEGIN
 END;
 $$;
 
--- Trigger function
+-- Trigger function on profiles
 CREATE OR REPLACE FUNCTION public.sync_rank()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 DECLARE
@@ -56,16 +77,15 @@ BEGIN
 END;
 $$;
 
--- Drop and recreate trigger (idempotent)
-DROP TRIGGER IF EXISTS trg_sync_rank ON public.users;
+DROP TRIGGER IF EXISTS trg_sync_rank ON public.profiles;
 CREATE TRIGGER trg_sync_rank
   BEFORE INSERT OR UPDATE OF matches_played
-  ON public.users
+  ON public.profiles
   FOR EACH ROW EXECUTE FUNCTION public.sync_rank();
 
 -- Back-fill existing rows
-UPDATE public.users u
+UPDATE public.profiles p
 SET
   rank_tier     = r.tier,
   rank_division = r.division
-FROM public.compute_rank(COALESCE(u.matches_played, 0)) r;
+FROM public.compute_rank(COALESCE(p.matches_played, 0)) r;
