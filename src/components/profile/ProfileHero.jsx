@@ -21,6 +21,8 @@ import {
 import { createPageUrl } from "@/utils";
 import { triggerHaptic } from "../utils/motionTokens";
 import BlockUserButton from "../user/BlockUserButton";
+import RankBadge from "@/components/rank/RankBadge";
+import RankProgressBar from "@/components/rank/RankProgressBar";
 
 /**
  * ProfileHero — mirrors the DashboardHero design language.
@@ -297,6 +299,12 @@ export default function ProfileHero({
             label="Streak"
             accent="#FDE68A"
           />
+        </div>
+
+        {/* Rank badge + progress */}
+        <div className="mt-4 sm:mt-5 flex flex-col items-center gap-2.5">
+          <RankBadge matchesPlayed={user?.matches_played || 0} size="lg" showLabel />
+          <RankProgressBar matchesPlayed={user?.matches_played || 0} className="w-full max-w-[220px]" />
         </div>
 
         {/* Actions — only for own profile */}

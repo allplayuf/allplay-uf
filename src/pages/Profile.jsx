@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, Suspense, lazy } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { getUsersByIds, getUserById } from "../components/supabase/services/usersService";
@@ -61,7 +61,7 @@ const OtherProfileView = lazy(() => import("../components/profile/OtherProfileVi
 import ProfileHero from "../components/profile/ProfileHero";
 
 const SKILL_LEVEL_CONFIG = {
-  beginner: { label: 'NybÃ¶rjare', icon: Target, color: 'from-[#10B981] to-[#059669]', textColor: 'text-[#A7F3D0]' },
+  beginner: { label: 'Nybörjare', icon: Target, color: 'from-[#10B981] to-[#059669]', textColor: 'text-[#A7F3D0]' },
   intermediate: { label: 'Medel', icon: TrendingUp, color: 'from-[#14B8A6] to-[#0D9488]', textColor: 'text-[#99F6E4]' },
   advanced: { label: 'Avancerad', icon: Shield, color: 'from-[#8B5CF6] to-[#7C3AED]', textColor: 'text-[#DDD6FE]' },
   elite: { label: 'Elit', icon: Crown, color: 'from-[#F59E0B] to-[#D97706]', textColor: 'text-[#FDE68A]' }
@@ -74,7 +74,7 @@ const QUERY_KEYS = {
   friendships: ['friendships'],
   friendRequests: (userId) => ['friendRequests', userId],
   teamInvites: (userId) => ['teamInvites', userId],
-  teamJoinRequests: (userId) => ['teamJoinRequests', userId], // NEW
+  teamJoinRequests: (userId) => ['teamJoinRequests', userId],
   friends: (userId) => ['friends', userId],
   matchHistory: (userId) => ['matchHistory', userId]
 };
@@ -92,8 +92,6 @@ export default function ProfilePage() {
   const queryClient = useQueryClient();
   const location = useLocation();
   const { isGuest, isAuthenticated, user: authUser } = useSupabaseAuth();
-
-  // Inbox tab label (computed after data loaded)
 
   const urlParams = new URLSearchParams(location.search);
   const targetUserId = urlParams.get('userId');
@@ -115,7 +113,6 @@ export default function ProfilePage() {
   }, [userProfile]);
 
   // Merge auth user with Supabase profile data (profile has priority)
-  // localStorage fallback ensures avatar always displays even if backend is down
   const user = React.useMemo(() => {
     if (!authUser) return null;
     const localAvatar = localStorage.getItem('allplay_profile_image');
@@ -139,11 +136,11 @@ export default function ProfilePage() {
     queryKey: QUERY_KEYS.targetUser(targetUserId),
     queryFn: async () => {
       if (!targetUserId || targetUserId === user?.id) return null;
-      
+
       const foundUser = await getUserById(targetUserId);
-      
-      if (!foundUser || foundUser.full_name === 'Spelare') throw new Error('AnvÃ¤ndaren hittades inte');
-      
+
+      if (!foundUser || foundUser.full_name === 'Spelare') throw new Error('Användaren hittades inte');
+
       return foundUser;
     },
     enabled: !!targetUserId && !!user && targetUserId !== user?.id,
@@ -154,7 +151,7 @@ export default function ProfilePage() {
     }
   });
 
-  // Fetch all friendships â€” single source of truth via Supabase REST (RLS enforced)
+  // Fetch all friendships — single source of truth via Supabase REST (RLS enforced)
   const { data: friendships = [] } = useQuery({
     queryKey: QUERY_KEYS.friendships,
     queryFn: () => getMyFriendships(),
@@ -181,7 +178,7 @@ export default function ProfilePage() {
       const acceptedFriendships = friendships.filter(
         (f) => (f.requester_id === user.id || f.addressee_id === user.id) && f.status === 'accepted'
       );
-      const friendIds = acceptedFriendships.map(f => 
+      const friendIds = acceptedFriendships.map(f =>
         f.requester_id === user.id ? f.addressee_id : f.requester_id
       );
       if (friendIds.length === 0) return [];
@@ -210,14 +207,14 @@ export default function ProfilePage() {
     queryFn: async () => {
       const captainTeams = await base44.entities.Team.filter({ captain_id: user.id });
       const captainTeamIds = captainTeams.map(t => t.id);
-      
+
       if (captainTeamIds.length === 0) return [];
-      
+
       const allPendingMembers = await base44.entities.TeamMember.list();
       const joinRequests = allPendingMembers.filter(
         tm => captainTeamIds.includes(tm.team_id) && tm.status === 'pending'
       );
-      
+
       return joinRequests;
     },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
@@ -241,36 +238,36 @@ export default function ProfilePage() {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      await alert('Ogiltig fil', 'VÃ¤nligen vÃ¤lj en bild.', { type: 'alert' });
+      await alert('Ogiltig fil', 'Vänligen välj en bild.', { type: 'alert' });
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      await alert('Fil fÃ¶r stor', 'Bilden Ã¤r fÃ¶r stor. Max 5MB tillÃ¥ten.', { type: 'alert' });
+      await alert('Fil för stor', 'Bilden är för stor. Max 5MB tillåten.', { type: 'alert' });
       return;
     }
 
     try {
       // Upload via Base44 (always works, no backend dependency)
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
+
       // Save to localStorage immediately for instant display
       localStorage.setItem('allplay_profile_image', file_url);
-      
+
       // Optimistic update of query cache
       queryClient.setQueryData(['supabase-userProfile', authUser?.id], old => ({
         ...old,
         avatar_url: file_url,
       }));
-      
+
       // Try to persist to Supabase profile (fire-and-forget)
       updateProfile({ avatar_url: file_url }).catch(err => {
         console.warn('[Profile] Backend avatar save failed (image still available):', err.message);
       });
-      
+
     } catch (error) {
       console.error("Error uploading profile image:", error);
-      await alert('Uppladdningsfel', 'Kunde inte ladda upp bild. FÃ¶rsÃ¶k igen.', { type: 'alert' });
+      await alert('Uppladdningsfel', 'Kunde inte ladda upp bild. Försök igen.', { type: 'alert' });
     }
   };
 
@@ -279,17 +276,17 @@ export default function ProfilePage() {
       await acceptFriendRequest(requestId);
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friends(user.id) });
-      await alert('Nya vÃ¤nner! ðŸŽ‰', 'Ni Ã¤r nu vÃ¤nner!', { type: 'success' });
+      await alert('Nya vänner! 🎉', 'Ni är nu vänner!', { type: 'success' });
     } catch (error) {
       console.error("Error accepting friend request:", error);
-      await alert('Fel vid vÃ¤nfÃ¶rfrÃ¥gan', error.message || 'Kunde inte acceptera fÃ¶rfrÃ¥gan. FÃ¶rsÃ¶k igen.', { type: 'alert' });
+      await alert('Fel vid vänförfrågan', error.message || 'Kunde inte acceptera förfrågan. Försök igen.', { type: 'alert' });
     }
   };
 
   const handleDeclineFriendRequest = async (requestId) => {
     const shouldDecline = await confirm(
-      'Neka vÃ¤nfÃ¶rfrÃ¥gan',
-      'Ã„r du sÃ¤ker pÃ¥ att du vill neka denna vÃ¤nfÃ¶rfrÃ¥gan?',
+      'Neka vänförfrågan',
+      'Är du säker på att du vill neka denna vänförfrågan?',
       { type: 'warning', confirmText: 'Ja, neka', cancelText: 'Avbryt' }
     );
     if (!shouldDecline) return;
@@ -299,7 +296,7 @@ export default function ProfilePage() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
     } catch (error) {
       console.error("Error declining friend request:", error);
-      await alert('Fel vid vÃ¤nfÃ¶rfrÃ¥gan', error.message || 'Kunde inte neka fÃ¶rfrÃ¥gan. FÃ¶rsÃ¶k igen.', { type: 'alert' });
+      await alert('Fel vid vänförfrågan', error.message || 'Kunde inte neka förfrågan. Försök igen.', { type: 'alert' });
     }
   };
 
@@ -307,18 +304,18 @@ export default function ProfilePage() {
     try {
       await base44.entities.TeamMember.update(inviteId, { status: 'active' });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamInvites(user.id) });
-      
-      await alert('VÃ¤lkommen till laget! ðŸŽ‰', 'Du Ã¤r nu medlem i laget!', { type: 'success' });
+
+      await alert('Välkommen till laget! 🎉', 'Du är nu medlem i laget!', { type: 'success' });
     } catch (error) {
       console.error("Error accepting team invite:", error);
-      await alert('Fel vid laginbjudan', 'Kunde inte acceptera inbjudan. FÃ¶rsÃ¶k igen.', { type: 'alert' });
+      await alert('Fel vid laginbjudan', 'Kunde inte acceptera inbjudan. Försök igen.', { type: 'alert' });
     }
   };
 
   const handleDeclineTeamInvite = async (inviteId) => {
     const shouldDecline = await confirm(
       'Neka laginbjudan',
-      'Ã„r du sÃ¤ker pÃ¥ att du vill neka denna laginbjudan?',
+      'Är du säker på att du vill neka denna laginbjudan?',
       { type: 'warning', confirmText: 'Ja, neka', cancelText: 'Avbryt' }
     );
 
@@ -329,7 +326,7 @@ export default function ProfilePage() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamInvites(user.id) });
     } catch (error) {
       console.error("Error declining team invite:", error);
-      await alert('Fel vid laginbjudan', 'Kunde inte neka inbjudan. FÃ¶rsÃ¶k igen.', { type: 'alert' });
+      await alert('Fel vid laginbjudan', 'Kunde inte neka inbjudan. Försök igen.', { type: 'alert' });
     }
   };
 
@@ -341,13 +338,13 @@ export default function ProfilePage() {
     // Get user and team info for confirmation
     let applicantName = 'denna spelare';
     let teamName = 'laget';
-    
+
     try {
       const [applicantData, team] = await Promise.all([
         getUserById(joinRequest.user_id).catch(() => null),
         base44.entities.Team.get(joinRequest.team_id).catch(() => null)
       ]);
-      
+
       if (applicantData) applicantName = applicantData.display_name || applicantData.full_name;
       if (team) teamName = team.name;
     } catch (err) {
@@ -355,12 +352,12 @@ export default function ProfilePage() {
     }
 
     const shouldAccept = await confirm(
-      'GodkÃ¤nn ansÃ¶kan',
-      `Vill du godkÃ¤nna ${applicantName} som medlem i ${teamName}?`,
-      { 
-        type: 'confirm', 
-        confirmText: 'Ja, godkÃ¤nn', 
-        cancelText: 'Avbryt' 
+      'Godkänn ansökan',
+      `Vill du godkänna ${applicantName} som medlem i ${teamName}?`,
+      {
+        type: 'confirm',
+        confirmText: 'Ja, godkänn',
+        cancelText: 'Avbryt'
       }
     );
 
@@ -368,30 +365,30 @@ export default function ProfilePage() {
 
     try {
       await base44.entities.TeamMember.update(requestId, { status: 'active' });
-      
+
       // Update team member count
       const team = await base44.entities.Team.get(joinRequest.team_id);
       await base44.entities.Team.update(joinRequest.team_id, {
         current_members: (team.current_members || 0) + 1
       });
-      
+
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamJoinRequests(user.id) });
-      
-      await alert('Medlem godkÃ¤nd! ðŸŽ‰', `${applicantName} Ã¤r nu medlem i ${teamName}!`, { type: 'success' });
+
+      await alert('Medlem godkänd! 🎉', `${applicantName} är nu medlem i ${teamName}!`, { type: 'success' });
     } catch (error) {
       console.error("Error accepting join request:", error);
-      await alert('Fel vid ansÃ¶kan', 'Kunde inte godkÃ¤nna ansÃ¶kan. FÃ¶rsÃ¶k igen.', { type: 'alert' });
+      await alert('Fel vid ansökan', 'Kunde inte godkänna ansökan. Försök igen.', { type: 'alert' });
     }
   };
 
   const handleDeclineJoinRequest = async (requestId) => {
     const shouldDecline = await confirm(
-      'Neka ansÃ¶kan',
-      'Ã„r du sÃ¤ker pÃ¥ att du vill neka denna ansÃ¶kan?',
-      { 
-        type: 'warning', 
-        confirmText: 'Ja, neka', 
-        cancelText: 'Avbryt' 
+      'Neka ansökan',
+      'Är du säker på att du vill neka denna ansökan?',
+      {
+        type: 'warning',
+        confirmText: 'Ja, neka',
+        cancelText: 'Avbryt'
       }
     );
 
@@ -400,21 +397,21 @@ export default function ProfilePage() {
     try {
       await base44.entities.TeamMember.update(requestId, { status: 'declined' });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamJoinRequests(user.id) });
-      
-      await alert('AnsÃ¶kan nekad', 'AnsÃ¶kan har nekats.', { type: 'info' });
+
+      await alert('Ansökan nekad', 'Ansökan har nekats.', { type: 'info' });
     } catch (error) {
       console.error("Error declining join request:", error);
-      await alert('Fel vid ansÃ¶kan', 'Kunde inte neka ansÃ¶kan. FÃ¶rsÃ¶k igen.', { type: 'alert' });
+      await alert('Fel vid ansökan', 'Kunde inte neka ansökan. Försök igen.', { type: 'alert' });
     }
   };
 
   const handleLogout = async () => {
     const shouldLogout = await confirm(
       'Logga ut',
-      'Ã„r du sÃ¤ker pÃ¥ att du vill logga ut?',
-      { 
-        type: 'warning', 
-        confirmText: 'Logga ut', 
+      'Är du säker på att du vill logga ut?',
+      {
+        type: 'warning',
+        confirmText: 'Logga ut',
         cancelText: 'Avbryt'
       }
     );
@@ -433,19 +430,19 @@ export default function ProfilePage() {
       const result = await sendFriendRequest(targetUser.id);
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friends(user.id) });
-      
+
       if (result.action === 'created') {
-        await alert('VÃ¤nfÃ¶rfrÃ¥gan skickad! ðŸ¤', `${targetUser.display_name || targetUser.full_name} fÃ¥r en notis.`, { type: 'success' });
+        await alert('Vänförfrågan skickad! 🤝', `${targetUser.display_name || targetUser.full_name} får en notis.`, { type: 'success' });
       } else if (result.action === 'accepted') {
-        await alert('Nya vÃ¤nner! ðŸŽ‰', 'Ni Ã¤r nu vÃ¤nner!', { type: 'success' });
+        await alert('Nya vänner! 🎉', 'Ni är nu vänner!', { type: 'success' });
       } else if (result.action === 'already_friends') {
-        await alert('Redan vÃ¤nner', 'Ni Ã¤r redan vÃ¤nner!', { type: 'info' });
+        await alert('Redan vänner', 'Ni är redan vänner!', { type: 'info' });
       } else if (result.action === 'already_sent') {
-        await alert('FÃ¶rfrÃ¥gan skickad', 'Du har redan skickat en vÃ¤nfÃ¶rfrÃ¥gan!', { type: 'info' });
+        await alert('Förfrågan skickad', 'Du har redan skickat en vänförfrågan!', { type: 'info' });
       }
     } catch (error) {
       console.error('Error adding friend:', error);
-      await alert('Fel vid vÃ¤nfÃ¶rfrÃ¥gan', error.message || 'Kunde inte skicka vÃ¤nfÃ¶rfrÃ¥gan. FÃ¶rsÃ¶k igen.', { type: 'alert' });
+      await alert('Fel vid vänförfrågan', error.message || 'Kunde inte skicka vänförfrågan. Försök igen.', { type: 'alert' });
     }
   };
 
@@ -474,14 +471,14 @@ export default function ProfilePage() {
   if (isGuest && !targetUserId) {
     return (
       <>
-      <AuthGateModal 
+      <AuthGateModal
         isOpen={showAuthGate}
         onClose={() => setShowAuthGate(false)}
         onLogin={() => setShowLoginModal(true)}
-        feature="se din profil och hantera vÃ¤nner"
+        feature="se din profil och hantera vänner"
       />
-      
-      <LoginModal 
+
+      <LoginModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
         onSuccess={() => {
@@ -489,15 +486,15 @@ export default function ProfilePage() {
           setShowAuthGate(false);
         }}
       />
-      
+
       <div className="min-h-screen bg-[#0F1513] flex items-center justify-center p-4">
         <Card className="bg-[#121715] border border-[#223029] rounded-[20px] p-8 max-w-md w-full text-center">
           <div className="w-20 h-20 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-[#2BA84A]/20">
             <Users className="w-10 h-10 text-[#2BA84A]" />
           </div>
-          <h2 className="text-2xl font-bold text-[#F4F7F5] mb-3">Logga in fÃ¶r att se din profil</h2>
-          <p className="text-[#B6C2BC] mb-6">Skapa ett konto eller logga in fÃ¶r att se din profil, hantera vÃ¤nner och mycket mer.</p>
-          <Button 
+          <h2 className="text-2xl font-bold text-[#F4F7F5] mb-3">Logga in för att se din profil</h2>
+          <p className="text-[#B6C2BC] mb-6">Skapa ett konto eller logga in för att se din profil, hantera vänner och mycket mer.</p>
+          <Button
             onClick={() => setShowAuthGate(true)}
             className="w-full bg-[#2BA84A] hover:bg-[#248232] text-white h-12 rounded-xl font-semibold"
           >
@@ -520,7 +517,7 @@ export default function ProfilePage() {
 
   const getFriendshipStatus = () => {
     if (!isViewingOtherProfile || !user || !targetUser) return null;
-    
+
     const friendship = friendships.find(f =>
       (f.requester_id === user.id && f.addressee_id === targetUser.id) ||
       (f.requester_id === targetUser.id && f.addressee_id === user.id)
@@ -540,10 +537,10 @@ export default function ProfilePage() {
     <PullToRefresh onRefresh={handleRefresh}>
     <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
       <DialogContainer />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        
-        {/* Profile Hero â€” mirrors Dashboard signature */}
+
+        {/* Profile Hero — mirrors Dashboard signature */}
         <ProfileHero
           user={displayUser}
           isViewingOtherProfile={isViewingOtherProfile}
@@ -633,14 +630,14 @@ export default function ProfilePage() {
                         onDeclineJoinRequest={handleDeclineJoinRequest}
                       />
                     </Suspense>
-                    
+
                     {friends.length > 0 && (
                       <div>
                         <div className="flex items-center justify-between mb-4 mt-6">
                           <h3 className="text-lg font-bold text-[#F4F7F5]">
-                            Dina vÃ¤nner ({friends.length})
+                            Dina vänner ({friends.length})
                           </h3>
-                          <button 
+                          <button
                             onClick={() => setShowQRModal(true)}
                             className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-[#2BA84A]/10 px-4 text-xs font-semibold text-[#2BA84A] ring-1 ring-[#2BA84A]/30 hover:bg-[#2BA84A]/20 transition-all duration-150"
                           >
@@ -653,7 +650,7 @@ export default function ProfilePage() {
                             const friendSkill = SKILL_LEVEL_CONFIG[friend.skill_level || 'intermediate'];
                             const FriendSkillIcon = friendSkill.icon;
                             const friendAvatar = friend.avatar_url;
-                            
+
                             return (
                               <motion.div
                                 key={friend.id}
@@ -669,7 +666,7 @@ export default function ProfilePage() {
                                       <div className="p-4">
                                         <div className="flex items-center gap-3 mb-3">
                                           <div className="w-11 h-11 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                            {friendAvatar ? 
+                                            {friendAvatar ?
                                               <img src={friendAvatar} alt={friend.full_name} className="w-full h-full object-cover" loading="lazy" /> :
                                               <span className="text-[#FFFFFF] font-semibold text-base">{friend.full_name?.[0] || 'U'}</span>
                                             }
@@ -678,7 +675,7 @@ export default function ProfilePage() {
                                             <h4 className="font-bold text-[#F4F7F5] text-sm truncate">{friend.display_name || friend.full_name}</h4>
                                             <div className="flex items-center gap-1.5 text-xs text-[#9EAAA4]">
                                               <MapPin className="w-3 h-3" />
-                                              {friend.city || 'OkÃ¤nd stad'}
+                                              {friend.city || 'Okänd stad'}
                                             </div>
                                           </div>
                                           <Badge className={`bg-gradient-to-r ${friendSkill.color} ${friendSkill.textColor} text-[10px] font-bold border-0 px-2 h-6`}>
@@ -731,17 +728,17 @@ export default function ProfilePage() {
                     exit={{ opacity: 0, y: -4 }}
                     transition={TRANSITIONS.tab}
                   >
-                    <h3 className="text-lg font-bold text-[#F4F7F5] mb-4">LÃ¥s upp utmÃ¤rkelser genom att spela</h3>
+                    <h3 className="text-lg font-bold text-[#F4F7F5] mb-4">Lås upp utmärkelser genom att spela</h3>
                     {(displayUser?.matches_played || 0) === 0 ? (
                       <Card className="bg-[#121715] border border-[#223029] rounded-2xl p-12 text-center">
                         <div className="w-20 h-20 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-[#2BA84A]/20">
                           <Award className="w-10 h-10 text-[#2BA84A]" />
                         </div>
                         <h3 className="text-2xl font-bold text-[#F4F7F5] mb-3">
-                          Spela din fÃ¶rsta match
+                          Spela din första match
                         </h3>
                         <p className="text-base text-[#B6C2BC]">
-                          Dina upplÃ¥sta utmÃ¤rkelser kommer att visas hÃ¤r.
+                          Dina upplåsta utmärkelser kommer att visas här.
                         </p>
                       </Card>
                     ) : (
@@ -773,10 +770,10 @@ export default function ProfilePage() {
                           <Trophy className="w-8 h-8 text-[#2BA84A]" />
                         </div>
                         <h3 className="text-xl font-bold text-[#F4F7F5] mb-2">
-                          Du har inga matcher Ã¤n
+                          Du har inga matcher än
                         </h3>
                         <p className="text-sm text-[#9EAAA4]">
-                          Spelade matcher kommer att synas hÃ¤r.
+                          Spelade matcher kommer att synas här.
                         </p>
                       </Card>
                     )}
@@ -791,8 +788,8 @@ export default function ProfilePage() {
       {/* QR Modal */}
       {!isViewingOtherProfile && showQRModal && user && (
         <Suspense fallback={null}>
-          <QRModal 
-            user={user} 
+          <QRModal
+            user={user}
             onClose={() => setShowQRModal(false)}
           />
         </Suspense>

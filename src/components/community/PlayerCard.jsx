@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { getAvatarUrl } from "@/components/utils/privacyMask";
+import RankBadge from "@/components/rank/RankBadge";
 
 /**
  * PlayerCard v2 — premium card for the Community "Hitta spelare" grid.
@@ -126,11 +127,16 @@ export default function PlayerCard({ player, friendshipStatus = 'none', onAddFri
 
         {/* Stats strip */}
         {!isPrivate && (
-          <div className="mt-3 grid grid-cols-3 gap-1.5">
-            <Stat icon={Trophy} value={player.matches_played || 0} label="Matcher" accent="#86EFAC" />
-            <Stat icon={Flame}   value={player.mvp_count || 0}       label="MVPs"    accent="#FDBA74" />
-            <Stat icon={Shield}  value={player.current_streak || 0}  label="Streak"  accent="#FDE68A" />
-          </div>
+          <>
+            <div className="mt-3 grid grid-cols-3 gap-1.5">
+              <Stat icon={Trophy} value={player.matches_played || 0} label="Matcher" accent="#86EFAC" />
+              <Stat icon={Flame}   value={player.mvp_count || 0}       label="MVPs"    accent="#FDBA74" />
+              <Stat icon={Shield}  value={player.current_streak || 0}  label="Streak"  accent="#FDE68A" />
+            </div>
+            <div className="mt-2.5 flex justify-center">
+              <RankBadge matchesPlayed={player.matches_played || 0} size="sm" showLabel />
+            </div>
+          </>
         )}
 
         {/* Action row — mt-auto pushes it to the bottom so all cards align */}

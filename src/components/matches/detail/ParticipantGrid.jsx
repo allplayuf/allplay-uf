@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { CheckCircle2, UserPlus, Users as UsersIcon, Clock, Crown } from "lucide-react";
 import { createPageUrl } from "@/utils";
+import RankBadge from "@/components/rank/RankBadge";
 
 const SKILL_DOTS = {
   beginner: "#86EFAC",
@@ -144,6 +145,9 @@ function ParticipantCard({ participant, isCurrentUser, friendStatus, onAddFriend
         <div className="grid grid-cols-2 gap-1.5">
           <StatPill label="Matcher" value={participant.matches_played || 0} />
           <StatPill label="MVP" value={participant.mvp_count || 0} accent />
+        </div>
+        <div className="mt-2 flex justify-center">
+          <RankBadge matchesPlayed={participant.matches_played || 0} size="sm" showLabel />
         </div>
       </Link>
 

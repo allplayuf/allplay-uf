@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -135,24 +136,27 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
 
   return (
     <>
-    {/* Auth Gate Modal */}
-    <AuthGateModal 
-      isOpen={showAuthGate}
-      onClose={() => setShowAuthGate(false)}
-      onLogin={() => setShowLoginModal(true)}
-      feature="se matchdetaljer, spelare och anmäla dig"
-    />
-    
-    {/* Login Modal */}
-    <LoginModal 
-      isOpen={showLoginModal}
-      onClose={() => setShowLoginModal(false)}
-      onSuccess={() => {
-        setShowLoginModal(false);
-        setShowAuthGate(false);
-      }}
-    />
-    
+    {/* Portaled modals — rendered at document.body to escape carousel transform stacking context */}
+    {createPortal(
+      <>
+        <AuthGateModal
+          isOpen={showAuthGate}
+          onClose={() => setShowAuthGate(false)}
+          onLogin={() => setShowLoginModal(true)}
+          feature="se matchdetaljer, spelare och anmäla dig"
+        />
+        <LoginModal
+          isOpen={showLoginModal}
+          onClose={() => setShowLoginModal(false)}
+          onSuccess={() => {
+            setShowLoginModal(false);
+            setShowAuthGate(false);
+          }}
+        />
+      </>,
+      document.body
+    )}
+
     <div className="h-full">
       <Card className={`bg-[#121715] border border-[#243029] rounded-[18px] shadow-[0_8px_20px_rgba(0,0,0,0.35)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.42),0_0_0_1px_rgba(43,168,74,0.25)] hover:border-[#2BA84A]/40 hover:-translate-y-0.5 transition-[transform,box-shadow,border-color] duration-200 h-full min-h-[220px] flex flex-col overflow-hidden group ${
         match.status === 'completed' ? 'opacity-75' : ''
