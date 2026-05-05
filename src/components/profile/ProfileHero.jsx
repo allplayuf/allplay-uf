@@ -6,7 +6,6 @@ import {
   MapPin,
   Trophy,
   Award,
-  Flame,
   Edit,
   QrCode,
   Settings,
@@ -286,7 +285,7 @@ export default function ProfileHero({
           </div>
         </div>
 
-        {/* Stats — 3 columns, generous spacing */}
+        {/* Stats — Matcher | Rank | MVPs */}
         <div className="grid grid-cols-3 gap-2 sm:gap-2.5 mt-6 sm:mt-7 lg:mt-8">
           <StatCell
             icon={Trophy}
@@ -294,57 +293,42 @@ export default function ProfileHero({
             label="Matcher"
             accent="#86EFAC"
           />
+          {/* Rank — center cell, badge + name */}
+          <div
+            className="relative rounded-2xl px-2 py-3 sm:py-4 bg-white/[0.035] ring-1 ring-white/[0.07] backdrop-blur-sm overflow-hidden flex flex-col items-center justify-center gap-2"
+          >
+            <div
+              aria-hidden
+              className="absolute inset-0 opacity-40 pointer-events-none"
+              style={{ background: `radial-gradient(ellipse at 50% 30%, ${rank.accent}22 0%, transparent 70%)` }}
+            />
+            <div className="relative">
+              <RankBadge matchesPlayed={matchesPlayed} currentStreak={currentStreak} size="md" showLabel={false} showDivChip={false} />
+            </div>
+            <div
+              className="relative text-[10px] sm:text-[11px] font-bold text-center leading-none tracking-wide uppercase"
+              style={{ color: rank.accent }}
+            >
+              {rank.name}
+            </div>
+          </div>
           <StatCell
             icon={Award}
             value={user?.mvp_count || 0}
             label="MVPs"
             accent="#FDE3D2"
           />
-          <StatCell
-            icon={Flame}
-            value={user?.current_streak || 0}
-            label="Streak"
-            accent="#FDE68A"
-          />
         </div>
 
-        {/* Rank panel */}
+        {/* Progress bar */}
         <div
-          className="mt-4 sm:mt-5 rounded-2xl overflow-hidden"
-          style={{ background: `${rank.accent}0D`, border: `1px solid ${rank.accent}22` }}
+          className="mt-3 sm:mt-4 rounded-2xl px-4 py-3"
+          style={{ background: `${rank.accent}0D`, border: `1px solid ${rank.accent}1A` }}
         >
-          <div className="flex items-center gap-2.5 flex-wrap px-4 pt-4 pb-3">
-            <RankBadge matchesPlayed={matchesPlayed} currentStreak={currentStreak} size="sm" showLabel={false} />
-            <span className="text-[17px] font-black text-white leading-none">{rank.name}</span>
-            {rank.division && (
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  padding: '2px 10px',
-                  borderRadius: 100,
-                  background: `${rank.divColor}25`,
-                  border: `1px solid ${rank.divColor}`,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: rank.divColor,
-                  letterSpacing: '0.05em',
-                  lineHeight: 1.5,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {rank.division}
-              </span>
-            )}
-            {rank.streakBonus && (
-              <span className="text-[11px] text-amber-400 font-semibold whitespace-nowrap">
-                🔥 Streakbonus aktiv
-              </span>
-            )}
-          </div>
-          <div className="px-4 pb-4">
-            <RankProgressBar matchesPlayed={matchesPlayed} currentStreak={currentStreak} />
-          </div>
+          {rank.streakBonus && (
+            <p className="text-[11px] text-amber-400 font-semibold mb-2 text-center">🔥 Streakbonus aktiv</p>
+          )}
+          <RankProgressBar matchesPlayed={matchesPlayed} currentStreak={currentStreak} />
         </div>
 
         {/* Actions — only for own profile */}
