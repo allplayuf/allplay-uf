@@ -253,14 +253,17 @@ export default function ProfileHero({
 
           {/* Name + meta */}
           <div className="flex-1 min-w-0 pt-1">
-            <motion.h1
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15, duration: 0.4 }}
-              className="text-[22px] sm:text-[30px] lg:text-[38px] font-black text-white tracking-[-0.03em] leading-[1.05] truncate drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]"
-            >
-              {displayName}
-            </motion.h1>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <motion.h1
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15, duration: 0.4 }}
+                className="text-[22px] sm:text-[30px] lg:text-[38px] font-black text-white tracking-[-0.03em] leading-[1.05] drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]"
+              >
+                {displayName}
+              </motion.h1>
+              <RankBadge matchesPlayed={matchesPlayed} currentStreak={currentStreak} size="sm" showLabel={false} />
+            </div>
 
             {/* Meta chips — wrapped so they always fit */}
             <div className="flex flex-wrap items-center gap-1.5 mt-2.5 sm:mt-3">
@@ -310,36 +313,34 @@ export default function ProfileHero({
           className="mt-4 sm:mt-5 rounded-2xl overflow-hidden"
           style={{ background: `${rank.accent}0D`, border: `1px solid ${rank.accent}22` }}
         >
-          <div className="flex items-center gap-3.5 px-4 pt-4 pb-3">
-            <RankBadge matchesPlayed={matchesPlayed} currentStreak={currentStreak} size="md" showDivChip={false} />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[18px] font-black text-white leading-tight">{rank.name}</span>
-                {rank.division && (
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      padding: '2px 10px',
-                      borderRadius: 100,
-                      background: `${rank.divColor}25`,
-                      border: `1px solid ${rank.divColor}`,
-                      fontSize: 11,
-                      fontWeight: 700,
-                      color: rank.divColor,
-                      letterSpacing: '0.05em',
-                    }}
-                  >
-                    {rank.division}
-                  </span>
-                )}
-              </div>
-              {rank.streakBonus && (
-                <p className="text-[11px] text-amber-400 font-semibold mt-1">
-                  🔥 Streakbonus aktiv
-                </p>
-              )}
-            </div>
+          <div className="flex items-center gap-2.5 flex-wrap px-4 pt-4 pb-3">
+            <RankBadge matchesPlayed={matchesPlayed} currentStreak={currentStreak} size="sm" showLabel={false} />
+            <span className="text-[17px] font-black text-white leading-none">{rank.name}</span>
+            {rank.division && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  padding: '2px 10px',
+                  borderRadius: 100,
+                  background: `${rank.divColor}25`,
+                  border: `1px solid ${rank.divColor}`,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: rank.divColor,
+                  letterSpacing: '0.05em',
+                  lineHeight: 1.5,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {rank.division}
+              </span>
+            )}
+            {rank.streakBonus && (
+              <span className="text-[11px] text-amber-400 font-semibold whitespace-nowrap">
+                🔥 Streakbonus aktiv
+              </span>
+            )}
           </div>
           <div className="px-4 pb-4">
             <RankProgressBar matchesPlayed={matchesPlayed} currentStreak={currentStreak} />
