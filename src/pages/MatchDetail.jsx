@@ -196,7 +196,7 @@ export default function MatchDetailPage() {
     }
   });
 
-  const handleJoin = () => !isActionLoading && joinMatchMutation.mutate();
+  const handleJoin = () => !isActionLoading && !joinMatchMutation.isPending && joinMatchMutation.mutate();
 
   const handleLeave = async () => {
     if (isActionLoading) return;

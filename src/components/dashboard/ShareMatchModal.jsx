@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { X, Search, Copy, Check, Link2, Share2, UserPlus, MessageCircle } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import feedback from "@/components/ui/feedback-toast";
 import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
 import { base44 } from "@/api/base44Client";
 import AvatarImage from "@/components/ui/avatar-image";
@@ -77,10 +77,10 @@ export default function ShareMatchModal({ match, onClose }) {
     try {
       await navigator.clipboard.writeText(matchUrl);
       setCopied(true);
-      toast.success('Länk kopierad!');
+      feedback.success('Länk kopierad!');
       setTimeout(() => setCopied(false), 2500);
     } catch {
-      toast.error('Kunde inte kopiera länken');
+      feedback.error('Kunde inte kopiera länken');
     }
   };
 
@@ -95,9 +95,9 @@ export default function ShareMatchModal({ match, onClose }) {
     },
     onSuccess: (_, friendId) => {
       setSentTo(prev => new Set([...prev, friendId]));
-      toast.success('Inbjudan skickad');
+      feedback.success('Inbjudan skickad');
     },
-    onError: () => toast.error('Kunde inte skicka inbjudan'),
+    onError: () => feedback.error('Kunde inte skicka inbjudan'),
   });
 
   return (

@@ -34,6 +34,7 @@ import {
 } from "../components/supabase/services";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { haversineDistance } from "../utils/geo";
+import feedback from "../components/ui/feedback-toast";
 
 // Query keys
 const QUERY_KEYS = {
@@ -260,23 +261,15 @@ export default function MatchesPage() {
   const handleJoinMatch = async (matchId) => {
     try {
       const match = allMatches.find(m => m.id === matchId);
-      
+
       // Let backend handle all validation (auth, duplicates, capacity, skill level)
       await joinMatchMutation.mutateAsync({ matchId });
 
-      await alert(
-        'Anmäld! 🎉',
-        `Du har anmält dig till "${match?.title || 'matchen'}". Vi ses där!`,
-        { type: 'success' }
-      );
+      feedback.success('Du är med! ⚽', { description: `Anmäld till "${match?.title || 'matchen'}"` });
 
     } catch (error) {
       console.error("Error joining match:", error);
-      await alert(
-        'Kunde inte gå med',
-        error.message || 'Det gick inte att gå med i matchen. Försök igen.',
-        { type: 'alert' }
-      );
+      feedback.error(error.message || 'Det gick inte att gå med i matchen. Försök igen.');
     }
   };
 

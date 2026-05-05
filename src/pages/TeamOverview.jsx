@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
 import { Shield, Users, Trophy, Swords, Loader2 } from "lucide-react";
 import { createPageUrl } from "@/utils";
-import { toast } from "sonner";
+import feedback from "@/components/ui/feedback-toast";
 
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import {
@@ -94,13 +94,13 @@ export default function TeamOverviewPage() {
     try {
       const result = await requestJoinTeam(team.id);
       if (result?.reason === 'already_exists') {
-        toast.info('Du har redan en förfrågan eller är medlem');
+        feedback.info('Du har redan en förfrågan eller är medlem');
       } else {
-        toast.success('Förfrågan skickad — kaptenen måste godkänna');
+        feedback.success('Förfrågan skickad — kaptenen måste godkänna');
       }
       queryClient.invalidateQueries({ queryKey: ['team-members', teamId] });
     } catch (error) {
-      toast.error(error.message || 'Kunde inte skicka förfrågan');
+      feedback.error(error.message || 'Kunde inte skicka förfrågan');
     } finally {
       setIsJoining(false);
     }

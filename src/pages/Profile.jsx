@@ -39,6 +39,7 @@ import ReportModal from "../components/report/ReportModal";
 import BlockUserButton from "../components/user/BlockUserButton";
 import { PullToRefresh } from "../components/ui/pull-to-refresh";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
+import feedback from "../components/ui/feedback-toast";
 import { AuthGateModal } from "../components/ui/auth-gate-modal";
 import { LoginModal } from "../components/supabase";
 import { LogIn } from "lucide-react";
@@ -432,17 +433,17 @@ export default function ProfilePage() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friends(user.id) });
 
       if (result.action === 'created') {
-        await alert('Vänförfrågan skickad! 🤝', `${targetUser.display_name || targetUser.full_name} får en notis.`, { type: 'success' });
+        feedback.success('Vänförfrågan skickad 🤝', { description: `${targetUser.display_name || targetUser.full_name} får en notis.` });
       } else if (result.action === 'accepted') {
-        await alert('Nya vänner! 🎉', 'Ni är nu vänner!', { type: 'success' });
+        feedback.success('Ni är nu vänner! 🎉');
       } else if (result.action === 'already_friends') {
-        await alert('Redan vänner', 'Ni är redan vänner!', { type: 'info' });
+        feedback.info('Ni är redan vänner');
       } else if (result.action === 'already_sent') {
-        await alert('Förfrågan skickad', 'Du har redan skickat en vänförfrågan!', { type: 'info' });
+        feedback.info('Vänförfrågan redan skickad');
       }
     } catch (error) {
       console.error('Error adding friend:', error);
-      await alert('Fel vid vänförfrågan', error.message || 'Kunde inte skicka vänförfrågan. Försök igen.', { type: 'alert' });
+      feedback.error(error.message || 'Kunde inte skicka vänförfrågan. Försök igen.');
     }
   };
 
