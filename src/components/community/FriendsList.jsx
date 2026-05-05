@@ -83,10 +83,10 @@ function FriendCard({ friend, index }) {
         {/* Stats */}
         <div className="mt-3 grid grid-cols-3 gap-1.5">
           <StatPill icon={Trophy} value={friend.matches_played || 0} label="Matcher" accent="#86EFAC" />
-          <StatPill icon={Flame}  value={friend.mvp_count || 0}      label="MVPs"    accent="#FDBA74" />
           <div className="relative rounded-lg bg-[#0F1513] ring-1 ring-[#1E2724] overflow-hidden flex items-center justify-center py-2">
             <RankBadge matchesPlayed={friend.matches_played || 0} currentStreak={friend.current_streak || 0} size="sm" showLabel={false} />
           </div>
+          <StatPill icon={Flame}  value={friend.mvp_count || 0}      label="MVPs"    accent="#FDBA74" />
         </div>
 
         {/* Profile link */}
@@ -105,7 +105,7 @@ function FriendCard({ friend, index }) {
 
 function StatPill({ icon: Icon, value, label, accent }) {
   return (
-    <div className="relative rounded-lg px-2 py-2 bg-[#0F1513] ring-1 ring-[#1E2724] overflow-hidden">
+    <div className="relative rounded-lg px-2 py-2 bg-[#0F1513] ring-1 ring-[#1E2724] overflow-hidden flex items-center justify-center">
       <div aria-hidden className="absolute inset-0 opacity-[0.10] pointer-events-none" style={{ background: `linear-gradient(140deg, ${accent} 0%, transparent 55%)` }} />
       <div className="relative flex items-center justify-center gap-1.5">
         <Icon className="w-3 h-3 flex-shrink-0" style={{ color: accent }} strokeWidth={2.6} />

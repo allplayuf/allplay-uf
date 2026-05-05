@@ -129,10 +129,10 @@ export default function PlayerCard({ player, friendshipStatus = 'none', onAddFri
         {!isPrivate && (
           <div className="mt-3 grid grid-cols-3 gap-1.5">
             <Stat icon={Trophy} value={player.matches_played || 0} label="Matcher" accent="#86EFAC" />
-            <Stat icon={Flame}   value={player.mvp_count || 0}       label="MVPs"    accent="#FDBA74" />
             <div className="relative rounded-lg bg-[#0F1513] ring-1 ring-[#1E2724] overflow-hidden flex items-center justify-center py-2">
               <RankBadge matchesPlayed={player.matches_played || 0} currentStreak={player.current_streak || 0} size="sm" showLabel={false} />
             </div>
+            <Stat icon={Flame} value={player.mvp_count || 0} label="MVPs" accent="#FDBA74" />
           </div>
         )}
 
@@ -199,7 +199,7 @@ export default function PlayerCard({ player, friendshipStatus = 'none', onAddFri
 
 function Stat({ icon: Icon, value, label, accent }) {
   return (
-    <div className="relative rounded-lg px-2 py-2 bg-[#0F1513] ring-1 ring-[#1E2724] overflow-hidden">
+    <div className="relative rounded-lg px-2 py-2 bg-[#0F1513] ring-1 ring-[#1E2724] overflow-hidden flex items-center justify-center">
       <div
         aria-hidden
         className="absolute inset-0 opacity-[0.12] pointer-events-none"
