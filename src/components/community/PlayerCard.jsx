@@ -205,7 +205,7 @@ function Stat({ icon: Icon, value, label, accent }) {
         className="absolute inset-0 opacity-[0.12] pointer-events-none"
         style={{ background: `linear-gradient(140deg, ${accent} 0%, transparent 55%)` }}
       />
-      <div className="relative flex items-center gap-1.5">
+      <div className="relative flex items-center justify-center gap-1.5">
         <Icon className="w-3 h-3 flex-shrink-0" style={{ color: accent }} strokeWidth={2.6} />
         <div className="flex items-baseline gap-1 min-w-0">
           <span className="text-[13px] font-black text-white tabular-nums leading-none">{value}</span>

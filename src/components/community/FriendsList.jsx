@@ -107,7 +107,7 @@ function StatPill({ icon: Icon, value, label, accent }) {
   return (
     <div className="relative rounded-lg px-2 py-2 bg-[#0F1513] ring-1 ring-[#1E2724] overflow-hidden">
       <div aria-hidden className="absolute inset-0 opacity-[0.10] pointer-events-none" style={{ background: `linear-gradient(140deg, ${accent} 0%, transparent 55%)` }} />
-      <div className="relative flex items-center gap-1.5">
+      <div className="relative flex items-center justify-center gap-1.5">
         <Icon className="w-3 h-3 flex-shrink-0" style={{ color: accent }} strokeWidth={2.6} />
         <div className="flex items-baseline gap-1 min-w-0">
           <span className="text-[13px] font-black text-white tabular-nums leading-none">{value}</span>
