@@ -17,76 +17,114 @@ function star(n, rO, rI, angleDeg = -90) {
   }).join(' ');
 }
 
-// viewBox "0 0 100 100". Outer: accent25 fill + accent stroke. Inner: accent fill ~0.82 opacity.
 const SHAPES = {
+  // Tier 1 – Nykomlingen: circle + soccer ball
   1: (a) => (
     <>
-      <circle cx={C} cy={C} r={40} fill={`${a}25`} stroke={a} strokeWidth={5} />
-      <circle cx={C} cy={C} r={23} fill={a} opacity={0.82} />
+      <circle cx="50" cy="50" r="40" fill={`${a}25`} stroke={a} strokeWidth="5" />
+      <circle cx="50" cy="50" r="20" fill="none" stroke={a} strokeWidth="2.5" opacity="0.65" />
+      <polygon points={poly(5, 9, -90)} fill={a} opacity="0.9" />
+      <line x1="50" y1="41" x2="50" y2="30" stroke={a} strokeWidth="2" opacity="0.6" />
+      <line x1="59" y1="47" x2="69" y2="44" stroke={a} strokeWidth="2" opacity="0.6" />
+      <line x1="55" y1="57" x2="62" y2="66" stroke={a} strokeWidth="2" opacity="0.6" />
+      <line x1="45" y1="57" x2="38" y2="66" stroke={a} strokeWidth="2" opacity="0.6" />
+      <line x1="41" y1="47" x2="31" y2="44" stroke={a} strokeWidth="2" opacity="0.6" />
     </>
   ),
+
+  // Tier 2 – Gatubollaren: flat-top hex + double upward chevron
   2: (a) => (
     <>
-      <polygon points={poly(4, 40, 0)} fill={`${a}25`} stroke={a} strokeWidth={5} />
-      <polygon points={poly(4, 24, 0)} fill={a} opacity={0.82} />
+      <polygon points={poly(6, 40, -30)} fill={`${a}25`} stroke={a} strokeWidth="5" />
+      <polyline points="33,68 50,52 67,68" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" opacity="0.85" />
+      <polyline points="33,48 50,32 67,48" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" opacity="0.85" />
     </>
   ),
+
+  // Tier 3 – Regularen: circle + crosshair target
   3: (a) => (
     <>
-      <polygon points={poly(3, 40, -90)} fill={`${a}25`} stroke={a} strokeWidth={5} />
-      <polygon points={poly(3, 24, -90)} fill={a} opacity={0.82} />
+      <circle cx="50" cy="50" r="40" fill={`${a}25`} stroke={a} strokeWidth="5" />
+      <circle cx="50" cy="50" r="18" fill="none" stroke={a} strokeWidth="3" opacity="0.85" />
+      <circle cx="50" cy="50" r="5" fill={a} opacity="0.9" />
+      <line x1="50" y1="20" x2="50" y2="29" stroke={a} strokeWidth="3.5" strokeLinecap="round" opacity="0.85" />
+      <line x1="50" y1="71" x2="50" y2="80" stroke={a} strokeWidth="3.5" strokeLinecap="round" opacity="0.85" />
+      <line x1="20" y1="50" x2="29" y2="50" stroke={a} strokeWidth="3.5" strokeLinecap="round" opacity="0.85" />
+      <line x1="71" y1="50" x2="80" y2="50" stroke={a} strokeWidth="3.5" strokeLinecap="round" opacity="0.85" />
     </>
   ),
+
+  // Tier 4 – Hustlern: pentagon + lightning bolt
   4: (a) => (
     <>
-      <polygon points={poly(5, 40, -90)} fill={`${a}25`} stroke={a} strokeWidth={5} />
-      <polygon points={poly(5, 24, -90)} fill={a} opacity={0.82} />
+      <polygon points={poly(5, 40, -90)} fill={`${a}25`} stroke={a} strokeWidth="5" />
+      <polyline points="55,22 40,52 53,52 45,78" fill="none" stroke={a} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.88" />
     </>
   ),
+
+  // Tier 5 – Veteranen: vertex-top hex + three rising signal bars
   5: (a) => (
     <>
-      <polygon points={poly(6, 40, -30)} fill={`${a}25`} stroke={a} strokeWidth={5} />
-      <polygon points={poly(6, 24, -30)} fill={a} opacity={0.82} />
+      <polygon points={poly(6, 40, -90)} fill={`${a}25`} stroke={a} strokeWidth="5" />
+      <rect x="28" y="58" width="11" height="14" rx="3" fill={a} opacity="0.85" />
+      <rect x="44" y="48" width="11" height="24" rx="3" fill={a} opacity="0.85" />
+      <rect x="60" y="38" width="11" height="34" rx="3" fill={a} opacity="0.85" />
     </>
   ),
+
+  // Tier 6 – Specialisten: flat-top hex + faceted diamond gem
   6: (a) => (
     <>
-      <polygon points={star(8, 40, 20, -90)} fill={`${a}25`} stroke={a} strokeWidth={4} />
-      <polygon points={star(8, 24, 12, -90)} fill={a} opacity={0.82} />
+      <polygon points={poly(6, 40, -30)} fill={`${a}25`} stroke={a} strokeWidth="5" />
+      <polygon points="30,50 50,26 70,50" fill={a} opacity="0.85" />
+      <polygon points="30,50 70,50 50,74" fill={a} opacity="0.65" />
+      <line x1="50" y1="26" x2="40" y2="50" stroke={a} strokeWidth="2" opacity="0.4" />
+      <line x1="50" y1="26" x2="60" y2="50" stroke={a} strokeWidth="2" opacity="0.4" />
     </>
   ),
+
+  // Tier 7 – Elitspelaren: flat-top hex + crown
   7: (a) => (
     <>
-      <polygon points={star(6, 40, 20, -90)} fill={`${a}25`} stroke={a} strokeWidth={4} />
-      <polygon points={star(6, 24, 12, -90)} fill={a} opacity={0.82} />
+      <polygon points={poly(6, 40, -30)} fill={`${a}25`} stroke={a} strokeWidth="5" />
+      <path d="M28,70 L28,46 L38,57 L50,30 L62,57 L72,46 L72,70 Z" fill={a} opacity="0.82" />
+      <circle cx="28" cy="44" r="5" fill={a} opacity="0.92" />
+      <circle cx="50" cy="28" r="5" fill={a} opacity="0.92" />
+      <circle cx="72" cy="44" r="5" fill={a} opacity="0.92" />
     </>
   ),
+
+  // Tier 8 – Legenden: octagon + 4-point star
   8: (a) => (
     <>
-      <polygon points="15,78 15,34 50,20 85,34 85,78" fill={`${a}25`} stroke={a} strokeWidth={5} />
-      <circle cx={15} cy={34} r={7} fill={a} opacity={0.85} />
-      <circle cx={50} cy={20} r={7} fill={a} opacity={0.85} />
-      <circle cx={85} cy={34} r={7} fill={a} opacity={0.85} />
+      <polygon points={poly(8, 40, -22.5)} fill={`${a}25`} stroke={a} strokeWidth="5" />
+      <polygon points={star(4, 26, 10, -90)} fill={a} opacity="0.85" />
     </>
   ),
+
+  // Tier 9 – Ikonen: octagon + 5-point star
   9: (a) => (
     <>
-      <polygon points={star(8, 40, 26, -90)} fill={`${a}25`} stroke={a} strokeWidth={4} />
-      <polygon points={star(8, 24, 16, -90)} fill={a} opacity={0.82} />
+      <polygon points={poly(8, 40, -22.5)} fill={`${a}25`} stroke={a} strokeWidth="5" />
+      <polygon points={star(5, 26, 11, -90)} fill={a} opacity="0.85" />
     </>
   ),
+
+  // Tier 10 – Odödlig: double-ring circle + 8-point radiant star + accent diamond
   10: (a) => (
     <>
-      <polygon points={star(12, 40, 28, -90)} fill={`${a}25`} stroke={a} strokeWidth={4} />
-      <polygon points={star(12, 24, 17, -90)} fill={a} opacity={0.82} />
+      <circle cx="50" cy="50" r="40" fill={`${a}25`} stroke={a} strokeWidth="4" />
+      <circle cx="50" cy="50" r="33" fill="none" stroke={a} strokeWidth="1.5" opacity="0.4" />
+      <polygon points={star(8, 22, 9, -90)} fill={a} opacity="0.88" />
+      <polygon points={star(4, 36, 33, -45)} fill={a} opacity="0.32" />
     </>
   ),
 };
 
 const SIZES = { sm: 24, md: 44, lg: 68 };
 
-function DivChip({ roman, division, divColor, fontSize = 11 }) {
-  if (!roman || !division) return null;
+function DivChip({ division, divColor, fontSize = 11 }) {
+  if (!division) return null;
   return (
     <span style={{
       display: 'inline-flex',
@@ -102,14 +140,14 @@ function DivChip({ roman, division, divColor, fontSize = 11 }) {
       lineHeight: 1.5,
       whiteSpace: 'nowrap',
     }}>
-      {roman} · {division}
+      {division}
     </span>
   );
 }
 
-export default function RankBadge({ matchesPlayed = 0, currentStreak = 0, size = 'md', showLabel = false }) {
+export default function RankBadge({ matchesPlayed = 0, currentStreak = 0, size = 'md', showLabel = false, showDivChip = true }) {
   const rank = getRankFromMatches(matchesPlayed, currentStreak);
-  const { accent, divColor, tier, name, roman, division, label } = rank;
+  const { accent, divColor, tier, name, division, label } = rank;
   const ShapeFn = SHAPES[tier];
   const px = SIZES[size] ?? SIZES.md;
 
@@ -171,7 +209,7 @@ export default function RankBadge({ matchesPlayed = 0, currentStreak = 0, size =
         )}
       </span>
 
-      <DivChip roman={roman} division={division} divColor={divColor} fontSize={size === 'lg' ? 11 : 9} />
+      {showDivChip && <DivChip division={division} divColor={divColor} fontSize={size === 'lg' ? 11 : 9} />}
 
       {showLabel && (
         <span style={{

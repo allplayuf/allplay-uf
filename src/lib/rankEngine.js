@@ -34,14 +34,13 @@ export function getRankFromMatches(n, streak = 0) {
   const td  = TIERS.find(t => eff <= t.max) || TIERS[TIERS.length - 1];
   const di  = divIdx(eff, td.min, td.max);
   const division = di !== null ? DIVISIONS[di] : null;
-  const roman    = di !== null ? ROMAN[di] : null;
   return {
     tier:        td.tier,
     name:        td.name,
     division,
-    roman,
+    roman:       null,
     divColor:    division ? DIV_COLORS[division] : td.accent,
-    label:       division ? `${td.name} ${roman}` : td.name,
+    label:       division ? `${td.name} ${division}` : td.name,
     accent:      td.accent,
     streakBonus: streak > 0,
   };
@@ -75,7 +74,7 @@ export function getProgressToNext(n, streak = 0) {
   if (isLast && nextTd) {
     nextLabel = nextTd.name;
   } else if (!isLast) {
-    nextLabel = `${td.name} ${ROMAN[di + 1]}`;
+    nextLabel = `${td.name} ${DIVISIONS[di + 1]}`;
   } else {
     nextLabel = null;
   }

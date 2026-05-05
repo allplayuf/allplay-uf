@@ -310,29 +310,32 @@ export default function ProfileHero({
           className="mt-4 sm:mt-5 rounded-2xl overflow-hidden"
           style={{ background: `${rank.accent}0D`, border: `1px solid ${rank.accent}22` }}
         >
-          <div className="flex items-center gap-4 px-4 pt-4 pb-3">
-            <RankBadge matchesPlayed={matchesPlayed} currentStreak={currentStreak} size="lg" />
+          <div className="flex items-center gap-3.5 px-4 pt-4 pb-3">
+            <RankBadge matchesPlayed={matchesPlayed} currentStreak={currentStreak} size="md" showDivChip={false} />
             <div className="flex-1 min-w-0">
-              <div className="text-lg font-black text-white leading-tight">{rank.name}</div>
-              {rank.division && rank.roman && (
-                <span
-                  className="inline-flex items-center mt-1.5"
-                  style={{
-                    padding: '2px 10px',
-                    borderRadius: 100,
-                    background: `${rank.divColor}25`,
-                    border: `1px solid ${rank.divColor}`,
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: rank.divColor,
-                    letterSpacing: '0.05em',
-                  }}
-                >
-                  {rank.roman} · {rank.division}
-                </span>
-              )}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[18px] font-black text-white leading-tight">{rank.name}</span>
+                {rank.division && (
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      padding: '2px 10px',
+                      borderRadius: 100,
+                      background: `${rank.divColor}25`,
+                      border: `1px solid ${rank.divColor}`,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: rank.divColor,
+                      letterSpacing: '0.05em',
+                    }}
+                  >
+                    {rank.division}
+                  </span>
+                )}
+              </div>
               {rank.streakBonus && (
-                <p className="text-[11px] text-amber-400 font-semibold mt-1.5">
+                <p className="text-[11px] text-amber-400 font-semibold mt-1">
                   🔥 Streakbonus aktiv
                 </p>
               )}
