@@ -127,16 +127,13 @@ export default function PlayerCard({ player, friendshipStatus = 'none', onAddFri
 
         {/* Stats strip */}
         {!isPrivate && (
-          <>
-            <div className="mt-3 grid grid-cols-3 gap-1.5">
-              <Stat icon={Trophy} value={player.matches_played || 0} label="Matcher" accent="#86EFAC" />
-              <Stat icon={Flame}   value={player.mvp_count || 0}       label="MVPs"    accent="#FDBA74" />
-              <Stat icon={Shield}  value={player.current_streak || 0}  label="Streak"  accent="#FDE68A" />
+          <div className="mt-3 grid grid-cols-3 gap-1.5">
+            <Stat icon={Trophy} value={player.matches_played || 0} label="Matcher" accent="#86EFAC" />
+            <Stat icon={Flame}   value={player.mvp_count || 0}       label="MVPs"    accent="#FDBA74" />
+            <div className="relative rounded-lg bg-[#0F1513] ring-1 ring-[#1E2724] overflow-hidden flex items-center justify-center py-2">
+              <RankBadge matchesPlayed={player.matches_played || 0} currentStreak={player.current_streak || 0} size="sm" showLabel={false} />
             </div>
-            <div className="mt-2.5 flex justify-center">
-              <RankBadge matchesPlayed={player.matches_played || 0} size="sm" showLabel currentStreak={player.current_streak || 0} />
-            </div>
-          </>
+          </div>
         )}
 
         {/* Action row — mt-auto pushes it to the bottom so all cards align */}

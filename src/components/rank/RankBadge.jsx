@@ -153,18 +153,9 @@ export default function RankBadge({ matchesPlayed = 0, currentStreak = 0, size =
 
   if (size === 'sm') {
     return (
-      <span style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 5,
-        padding: '3px 8px 3px 4px',
-        borderRadius: 100,
-        background: `${accent}18`,
-        border: `1px solid ${accent}40`,
-      }}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
         <span style={{ position: 'relative', display: 'inline-block', width: px, height: px, flexShrink: 0 }}>
-          <svg width={px} height={px} viewBox="0 0 100 100" style={{ display: 'block', filter: `drop-shadow(0 0 3px ${accent}80)` }}>
-            <rect width={100} height={100} rx={20} fill="#0F1513" />
+          <svg width={px} height={px} viewBox="0 0 100 100" style={{ display: 'block', filter: `drop-shadow(0 0 4px ${accent}99)` }}>
             {ShapeFn ? ShapeFn(accent) : null}
           </svg>
           {currentStreak > 0 && (
@@ -187,9 +178,8 @@ export default function RankBadge({ matchesPlayed = 0, currentStreak = 0, size =
           width={px}
           height={px}
           viewBox="0 0 100 100"
-          style={{ display: 'block', filter: `drop-shadow(0 0 ${Math.round(px * 0.12)}px ${accent}88)` }}
+          style={{ display: 'block', filter: `drop-shadow(0 0 ${Math.round(px * 0.14)}px ${accent}99)` }}
         >
-          <rect width={100} height={100} rx={20} fill="#0F1513" />
           {ShapeFn ? ShapeFn(accent) : null}
         </svg>
         {currentStreak > 0 && (
