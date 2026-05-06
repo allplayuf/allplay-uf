@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, useLayoutEffect, useCallback } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Calendar, ArrowRight, ChevronLeft, ChevronRight, UserCheck, Radar } from "lucide-react";
@@ -6,12 +6,6 @@ import { createPageUrl } from "@/utils";
 import MatchCard from "../matches/MatchCard";
 import PremiumEmptyState from "../ui/premium-empty-state";
 import { triggerHaptic } from "../utils/motionTokens";
-
-// Gap sizes that match the Tailwind classes on the scroll container
-const GAP_SM = 16; // gap-4 (sm+)
-const GAP_XS = 12; // gap-3 (mobile)
-// How much of the NEXT card to reveal on mobile (peek amount minus gap = visible slice)
-const MOBILE_PEEK_TOTAL = 52; // card leaves 52px for gap+peek → ~40px visible peek
 
 export default function MatchesCarousel({
   nearbyMatches = [],
@@ -32,39 +26,8 @@ export default function MatchesCarousel({
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  // Opacity fade on tab switch — no AnimatePresence so scrollRef is never remounted
   const [tabFading, setTabFading] = useState(false);
-
-  // Measured container width — the web equivalent of useWindowDimensions().
-  // ResizeObserver keeps it accurate on every layout change / orientation flip.
-  const [containerWidth, setContainerWidth] = useState(0);
-
-  useLayoutEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const measure = () => setContainerWidth(el.clientWidth);
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  // Pixel-exact card width derived from the measured container.
-  // Removes the ambiguity of CSS calc(100% - X) on flex items inside overflow-x containers.
-  const cardWidth = useMemo(() => {
-    if (!containerWidth) return null;
-    const w = containerWidth;
-    const vw = window.innerWidth;
-    if (vw < 640) {
-      // Mobile: one full card + peek of next card
-      return w - MOBILE_PEEK_TOTAL;
-    }
-    if (vw < 1024) {
-      // sm: 2 cards side by side, gap-4 (16px)
-      return Math.floor((w - GAP_SM) / 2);
-    }
-    // lg: 3 cards, gap-4 × 2 (32px total)
-    return Math.floor((w - GAP_SM * 2) / 3);
-  }, [containerWidth]);
 
   const matches = useMemo(() => {
     if (activeTab === "mine") {
@@ -73,8 +36,7 @@ export default function MatchesCarousel({
     return nearbyMatches.map((m) => ({ ...m, _source: "nearby" }));
   }, [activeTab, myMatches, nearbyMatches]);
 
-  // Tab change: fade out → instant scroll reset → fade in.
-  // Scroll container is never remounted so scrollRef stays valid.
+  // Tab change: fade out → instant scroll reset → fade in
   useEffect(() => {
     setTabFading(true);
     setActiveIndex(0);
@@ -84,15 +46,11 @@ export default function MatchesCarousel({
       requestAnimationFrame(updateScrollState);
     }, 160);
     return () => clearTimeout(t);
-  }, [activeTab]); // intentionally omits updateScrollState — runs after DOM settles
+  }, [activeTab]); // intentionally omits updateScrollState — called after DOM settles
 
-  // Step = card width + gap. Uses measured cardWidth when available; falls back to DOM.
   const getCardStep = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return 0;
-    if (cardWidth) {
-      return cardWidth + (window.innerWidth >= 640 ? GAP_SM : GAP_XS);
-    }
     if (el.children.length >= 2) {
       const step =
         el.children[1].getBoundingClientRect().left -
@@ -101,10 +59,10 @@ export default function MatchesCarousel({
     }
     if (el.firstElementChild) {
       const w = el.firstElementChild.getBoundingClientRect().width;
-      if (w > 0) return w + (window.innerWidth >= 640 ? GAP_SM : GAP_XS);
+      if (w > 0) return w + (window.innerWidth >= 640 ? 16 : 12);
     }
     return el.clientWidth;
-  }, [cardWidth]);
+  }, []);
 
   const updateScrollState = useCallback(() => {
     const el = scrollRef.current;
@@ -147,10 +105,8 @@ export default function MatchesCarousel({
     pauseAutoScroll();
   };
 
-  // Auto-rotate: skip while tab is fading to avoid scrolling a transitioning container
   useEffect(() => {
     if (matches.length <= 1 || isPaused || tabFading) return;
-
     const interval = setInterval(() => {
       const el = scrollRef.current;
       if (!el) return;
@@ -159,7 +115,6 @@ export default function MatchesCarousel({
       const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
       el.scrollTo({ left: atEnd ? 0 : el.scrollLeft + step, behavior: "smooth" });
     }, 4500);
-
     return () => clearInterval(interval);
   }, [matches.length, isPaused, tabFading, activeTab, getCardStep]);
 
@@ -218,7 +173,7 @@ export default function MatchesCarousel({
 
   return (
     <div>
-      {/* HEADER — one row on all breakpoints */}
+      {/* HEADER */}
       <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 px-1">
         <div className="flex items-center gap-2 flex-shrink-0">
           <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
@@ -231,7 +186,6 @@ export default function MatchesCarousel({
           <SegmentedControl />
         </div>
 
-        {/* Desktop arrows */}
         <div className="hidden lg:flex items-center gap-1.5 flex-shrink-0">
           <button
             onClick={() => scrollByAmount(-1)}
@@ -304,10 +258,8 @@ export default function MatchesCarousel({
           accent="green"
         />
       ) : (
-        // overflow-hidden on this wrapper ensures nothing from the carousel
-        // bleeds into the page scroll container and causes horizontal scrollability
-        <div className="relative overflow-hidden">
-          {/* Edge fades — hint at scrollable content */}
+        <div className="relative">
+          {/* Edge fades */}
           <div
             className={`pointer-events-none absolute left-0 top-0 bottom-0 w-6 sm:w-8 bg-gradient-to-r from-[#0F1513] to-transparent z-10 transition-opacity duration-200 ${
               canScrollLeft ? "opacity-100" : "opacity-0"
@@ -320,10 +272,12 @@ export default function MatchesCarousel({
           />
 
           {/*
-            Scroll container: never remounted — ref stays valid across tab switches.
-            overflow-x-auto handles scrolling; the parent clips any bleed.
-            Card widths are set via JS (cardWidth) once ResizeObserver fires,
-            with CSS calc fallback for the first paint.
+            Card widths use CSS only — no JS measurement.
+            Mobile:  calc(100% - 3rem) → leaves ~36px of next card peeking
+            sm:      calc((100% - 1rem) / 2) → exactly 2 cards
+            lg:      calc((100% - 2rem) / 3) → exactly 3 cards
+            overflow-x-auto on this container contains horizontal scroll;
+            NO overflow-hidden on the wrapper — that was causing page-level misalignment.
           */}
           <div
             ref={scrollRef}
@@ -343,12 +297,7 @@ export default function MatchesCarousel({
             {matches.map((match) => (
               <div
                 key={`${activeTab}-${match.id}`}
-                className="flex-shrink-0 snap-start snap-always"
-                style={
-                  cardWidth
-                    ? { width: `${cardWidth}px`, minWidth: `${cardWidth}px`, maxWidth: `${cardWidth}px` }
-                    : undefined
-                }
+                className="flex-shrink-0 snap-start w-[calc(100%-3rem)] sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
               >
                 <MatchCard
                   match={match}
@@ -363,7 +312,6 @@ export default function MatchesCarousel({
             ))}
           </div>
 
-          {/* Mobile progress dots */}
           {matches.length > 1 && (
             <div className="flex lg:hidden justify-center gap-1.5 mt-3">
               {matches.slice(0, Math.min(matches.length, 8)).map((_, i) => (
