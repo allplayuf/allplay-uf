@@ -172,7 +172,7 @@ export default function MatchesCarousel({
   );
 
   return (
-    <div>
+    <div className="pt-2 sm:pt-3">
       {/* HEADER */}
       <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 px-1">
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -258,7 +258,7 @@ export default function MatchesCarousel({
           accent="green"
         />
       ) : (
-        <div className="relative min-h-[300px]">
+        <div className="relative">
           {/* Edge fades */}
           <div
             className={`pointer-events-none absolute left-0 top-0 bottom-0 w-6 sm:w-8 bg-gradient-to-r from-[#0F1513] to-transparent z-10 transition-opacity duration-200 ${
