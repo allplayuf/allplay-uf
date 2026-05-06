@@ -1,21 +1,12 @@
-import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Calendar, ArrowRight, ChevronLeft, ChevronRight, UserCheck, Radar } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import MatchCard from "../matches/MatchCard";
 import PremiumEmptyState from "../ui/premium-empty-state";
 import { triggerHaptic } from "../utils/motionTokens";
 
-/**
- * Dashboard matches carousel.
- *
- * Design goals:
- *  - Single-line header on all breakpoints: [Matcher] [Segmented] [Visa alla]
- *  - One full card visible on mobile with a small peek of the next
- *  - Auto-rotate by snapping to the next card every 4.5s (pauses on interaction)
- *  - Dots indicator on mobile, arrows on desktop
- */
 export default function MatchesCarousel({
   nearbyMatches = [],
   myMatches = [],
@@ -35,6 +26,8 @@ export default function MatchesCarousel({
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  // Controls opacity fade when switching tabs — avoids AnimatePresence unmounting the scroll container
+  const [tabFading, setTabFading] = useState(false);
 
   const matches = useMemo(() => {
     if (activeTab === "mine") {
@@ -43,30 +36,37 @@ export default function MatchesCarousel({
     return nearbyMatches.map((m) => ({ ...m, _source: "nearby" }));
   }, [activeTab, myMatches, nearbyMatches]);
 
-  // Reset scroll on tab change (instant — we're switching contexts, not browsing)
+  // Tab change: fade out → reset scroll → fade in. Scroll container is never remounted.
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTo({ left: 0, behavior: "auto" });
-      setActiveIndex(0);
-      // Recompute arrow state next frame once new cards are rendered
-      requestAnimationFrame(() => updateScrollState());
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+    setTabFading(true);
+    setActiveIndex(0);
+    const t = setTimeout(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollLeft = 0;
+      }
+      setTabFading(false);
+      requestAnimationFrame(updateScrollState);
+    }, 160);
+    return () => clearTimeout(t);
+  }, [activeTab]); // intentionally omits updateScrollState — called after DOM settles
 
-  // Measures card step (card width + gap) based on first child.
+  // Step = card width + gap. Measured from DOM; falls back to container width.
   const getCardStep = useCallback(() => {
     const el = scrollRef.current;
-    if (!el || !el.firstElementChild) return 0;
-    const first = el.firstElementChild;
-    const second = el.children[1];
-    if (second) {
-      return second.getBoundingClientRect().left - first.getBoundingClientRect().left;
+    if (!el) return 0;
+    if (el.children.length >= 2) {
+      const step =
+        el.children[1].getBoundingClientRect().left -
+        el.children[0].getBoundingClientRect().left;
+      if (step > 0) return step;
     }
-    return first.getBoundingClientRect().width + 12;
+    if (el.firstElementChild) {
+      const w = el.firstElementChild.getBoundingClientRect().width;
+      if (w > 0) return w + (window.innerWidth >= 640 ? 16 : 12);
+    }
+    return el.clientWidth;
   }, []);
 
-  // Track scroll position: enable arrows + active index
   const updateScrollState = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -91,63 +91,42 @@ export default function MatchesCarousel({
     };
   }, [updateScrollState]);
 
-  // Pause auto-rotate for 6s on any user interaction
   const pauseAutoScroll = useCallback(() => {
     setIsPaused(true);
     if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current);
     pauseTimerRef.current = setTimeout(() => setIsPaused(false), 6000);
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current);
-    };
-  }, []);
+  useEffect(() => () => { if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current); }, []);
 
   const scrollByAmount = (dir) => {
     const el = scrollRef.current;
     if (!el) return;
-    const step = getCardStep() || el.clientWidth * 0.85;
+    const step = getCardStep() || el.clientWidth;
     el.scrollBy({ left: dir * step, behavior: "smooth" });
     triggerHaptic("light");
     pauseAutoScroll();
   };
 
-  // Auto-rotate: snap to next card every 4.5s. Loops back to 0 at end.
+  // Auto-rotate: skip while tab is fading to avoid scrolling a transitioning container
   useEffect(() => {
-    if (matches.length <= 1 || isPaused) return;
+    if (matches.length <= 1 || isPaused || tabFading) return;
 
     const interval = setInterval(() => {
       const el = scrollRef.current;
       if (!el) return;
-
       const step = getCardStep();
       if (step <= 0) return;
-
       const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
-      if (atEnd) {
-        el.scrollTo({ left: 0, behavior: "smooth" });
-      } else {
-        el.scrollBy({ left: step, behavior: "smooth" });
-      }
+      el.scrollTo({ left: atEnd ? 0 : el.scrollLeft + step, behavior: "smooth" });
     }, 4500);
 
     return () => clearInterval(interval);
-  }, [matches.length, isPaused, activeTab, getCardStep]);
+  }, [matches.length, isPaused, tabFading, activeTab, getCardStep]);
 
   const tabs = [
-    {
-      id: "nearby",
-      label: "I närheten",
-      icon: Radar,
-      count: nearbyMatches.length,
-    },
-    {
-      id: "mine",
-      label: isGuest ? "Kommande" : "Anmäld",
-      icon: UserCheck,
-      count: myMatches.length,
-    },
+    { id: "nearby", label: "I närheten", icon: Radar, count: nearbyMatches.length },
+    { id: "mine", label: isGuest ? "Kommande" : "Anmäld", icon: UserCheck, count: myMatches.length },
   ];
 
   const SegmentedControl = () => (
@@ -164,6 +143,7 @@ export default function MatchesCarousel({
             role="tab"
             aria-selected={isActive}
             onClick={() => {
+              if (activeTab === tab.id) return;
               triggerHaptic("light");
               setActiveTab(tab.id);
               pauseAutoScroll();
@@ -201,7 +181,6 @@ export default function MatchesCarousel({
     <div>
       {/* HEADER — one row on all breakpoints */}
       <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 px-1">
-        {/* Title — icon only on mobile, icon + text on sm+ */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
             <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-[#2BA84A]" strokeWidth={2.5} />
@@ -209,7 +188,6 @@ export default function MatchesCarousel({
           <h2 className="hidden sm:block text-xl font-bold text-[#F4F7F5]">Matcher</h2>
         </div>
 
-        {/* Segmented control takes remaining space, centered */}
         <div className="flex-1 flex justify-center min-w-0">
           <SegmentedControl />
         </div>
@@ -242,7 +220,6 @@ export default function MatchesCarousel({
           </button>
         </div>
 
-        {/* "Visa alla" — always visible, icon-only on narrow mobile */}
         <Link
           to={createPageUrl("Matches")}
           className="text-[12px] sm:text-sm font-semibold text-[#2BA84A] hover:text-[#CFE8D6] flex items-center gap-0.5 sm:gap-1 transition-colors flex-shrink-0"
@@ -301,45 +278,44 @@ export default function MatchesCarousel({
             }`}
           />
 
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -16 }}
-              transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
-              ref={scrollRef}
-              onTouchStart={pauseAutoScroll}
-              onMouseEnter={() => setIsPaused(true)}
-              onMouseLeave={() => setIsPaused(false)}
-              onFocusCapture={pauseAutoScroll}
-              className="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2"
-              style={{
-                scrollbarWidth: "none",
-                msOverflowStyle: "none",
-                WebkitOverflowScrolling: "touch",
-                scrollSnapType: "x mandatory",
-              }}
-            >
-              {matches.map((match, index) => (
-                <div
-                  key={`${activeTab}-${match.id}`}
-                  className="flex-shrink-0 snap-start w-full sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
-                >
-                  <MatchCard
-                    match={match}
-                    venues={venues}
-                    user={user}
-                    participants={(allParticipants || []).filter(
-                      (p) => p.match_id === match.id
-                    )}
-                    onJoin={onJoin}
-                    index={index}
-                  />
-                </div>
-              ))}
-            </motion.div>
-          </AnimatePresence>
+          {/*
+            Scroll container is NEVER remounted — ref stays valid across tab switches.
+            Opacity fades via inline style, no AnimatePresence wrapping this element.
+            Mobile cards use calc(100% - 2.5rem) so the next card peeks by ~28px.
+          */}
+          <div
+            ref={scrollRef}
+            onTouchStart={pauseAutoScroll}
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+            onFocusCapture={pauseAutoScroll}
+            className="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory pb-2"
+            style={{
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+              WebkitOverflowScrolling: "touch",
+              opacity: tabFading ? 0 : 1,
+              transition: "opacity 0.15s ease",
+            }}
+          >
+            {matches.map((match, index) => (
+              <div
+                key={`${activeTab}-${match.id}`}
+                className="flex-shrink-0 snap-start w-[calc(100%-2.5rem)] sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
+              >
+                <MatchCard
+                  match={match}
+                  venues={venues}
+                  user={user}
+                  participants={(allParticipants || []).filter(
+                    (p) => p.match_id === match.id
+                  )}
+                  onJoin={onJoin}
+                  index={index}
+                />
+              </div>
+            ))}
+          </div>
 
           {/* Mobile progress dots */}
           {matches.length > 1 && (
