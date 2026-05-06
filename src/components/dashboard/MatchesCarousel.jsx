@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useState, useMemo, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Calendar, ArrowRight, ChevronLeft, ChevronRight, UserCheck, Radar } from "lucide-react";
@@ -6,6 +6,12 @@ import { createPageUrl } from "@/utils";
 import MatchCard from "../matches/MatchCard";
 import PremiumEmptyState from "../ui/premium-empty-state";
 import { triggerHaptic } from "../utils/motionTokens";
+
+// Gap sizes that match the Tailwind classes on the scroll container
+const GAP_SM = 16; // gap-4 (sm+)
+const GAP_XS = 12; // gap-3 (mobile)
+// How much of the NEXT card to reveal on mobile (peek amount minus gap = visible slice)
+const MOBILE_PEEK_TOTAL = 52; // card leaves 52px for gap+peek → ~40px visible peek
 
 export default function MatchesCarousel({
   nearbyMatches = [],
@@ -26,8 +32,39 @@ export default function MatchesCarousel({
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  // Controls opacity fade when switching tabs — avoids AnimatePresence unmounting the scroll container
   const [tabFading, setTabFading] = useState(false);
+
+  // Measured container width — the web equivalent of useWindowDimensions().
+  // ResizeObserver keeps it accurate on every layout change / orientation flip.
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const measure = () => setContainerWidth(el.clientWidth);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Pixel-exact card width derived from the measured container.
+  // Removes the ambiguity of CSS calc(100% - X) on flex items inside overflow-x containers.
+  const cardWidth = useMemo(() => {
+    if (!containerWidth) return null;
+    const w = containerWidth;
+    const vw = window.innerWidth;
+    if (vw < 640) {
+      // Mobile: one full card + peek of next card
+      return w - MOBILE_PEEK_TOTAL;
+    }
+    if (vw < 1024) {
+      // sm: 2 cards side by side, gap-4 (16px)
+      return Math.floor((w - GAP_SM) / 2);
+    }
+    // lg: 3 cards, gap-4 × 2 (32px total)
+    return Math.floor((w - GAP_SM * 2) / 3);
+  }, [containerWidth]);
 
   const matches = useMemo(() => {
     if (activeTab === "mine") {
@@ -36,24 +73,26 @@ export default function MatchesCarousel({
     return nearbyMatches.map((m) => ({ ...m, _source: "nearby" }));
   }, [activeTab, myMatches, nearbyMatches]);
 
-  // Tab change: fade out → reset scroll → fade in. Scroll container is never remounted.
+  // Tab change: fade out → instant scroll reset → fade in.
+  // Scroll container is never remounted so scrollRef stays valid.
   useEffect(() => {
     setTabFading(true);
     setActiveIndex(0);
     const t = setTimeout(() => {
-      if (scrollRef.current) {
-        scrollRef.current.scrollLeft = 0;
-      }
+      if (scrollRef.current) scrollRef.current.scrollLeft = 0;
       setTabFading(false);
       requestAnimationFrame(updateScrollState);
     }, 160);
     return () => clearTimeout(t);
-  }, [activeTab]); // intentionally omits updateScrollState — called after DOM settles
+  }, [activeTab]); // intentionally omits updateScrollState — runs after DOM settles
 
-  // Step = card width + gap. Measured from DOM; falls back to container width.
+  // Step = card width + gap. Uses measured cardWidth when available; falls back to DOM.
   const getCardStep = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return 0;
+    if (cardWidth) {
+      return cardWidth + (window.innerWidth >= 640 ? GAP_SM : GAP_XS);
+    }
     if (el.children.length >= 2) {
       const step =
         el.children[1].getBoundingClientRect().left -
@@ -62,10 +101,10 @@ export default function MatchesCarousel({
     }
     if (el.firstElementChild) {
       const w = el.firstElementChild.getBoundingClientRect().width;
-      if (w > 0) return w + (window.innerWidth >= 640 ? 16 : 12);
+      if (w > 0) return w + (window.innerWidth >= 640 ? GAP_SM : GAP_XS);
     }
     return el.clientWidth;
-  }, []);
+  }, [cardWidth]);
 
   const updateScrollState = useCallback(() => {
     const el = scrollRef.current;
@@ -265,7 +304,9 @@ export default function MatchesCarousel({
           accent="green"
         />
       ) : (
-        <div className="relative">
+        // overflow-hidden on this wrapper ensures nothing from the carousel
+        // bleeds into the page scroll container and causes horizontal scrollability
+        <div className="relative overflow-hidden">
           {/* Edge fades — hint at scrollable content */}
           <div
             className={`pointer-events-none absolute left-0 top-0 bottom-0 w-6 sm:w-8 bg-gradient-to-r from-[#0F1513] to-transparent z-10 transition-opacity duration-200 ${
@@ -279,9 +320,10 @@ export default function MatchesCarousel({
           />
 
           {/*
-            Scroll container is NEVER remounted — ref stays valid across tab switches.
-            Opacity fades via inline style, no AnimatePresence wrapping this element.
-            Mobile cards use calc(100% - 2.5rem) so the next card peeks by ~28px.
+            Scroll container: never remounted — ref stays valid across tab switches.
+            overflow-x-auto handles scrolling; the parent clips any bleed.
+            Card widths are set via JS (cardWidth) once ResizeObserver fires,
+            with CSS calc fallback for the first paint.
           */}
           <div
             ref={scrollRef}
@@ -298,10 +340,15 @@ export default function MatchesCarousel({
               transition: "opacity 0.15s ease",
             }}
           >
-            {matches.map((match, index) => (
+            {matches.map((match) => (
               <div
                 key={`${activeTab}-${match.id}`}
-                className="flex-shrink-0 snap-start w-[calc(100%-2.5rem)] sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
+                className="flex-shrink-0 snap-start snap-always"
+                style={
+                  cardWidth
+                    ? { width: `${cardWidth}px`, minWidth: `${cardWidth}px`, maxWidth: `${cardWidth}px` }
+                    : undefined
+                }
               >
                 <MatchCard
                   match={match}
@@ -311,7 +358,6 @@ export default function MatchesCarousel({
                     (p) => p.match_id === match.id
                   )}
                   onJoin={onJoin}
-                  index={index}
                 />
               </div>
             ))}
