@@ -258,7 +258,7 @@ export default function MatchesCarousel({
           accent="green"
         />
       ) : (
-        <div className="relative">
+        <div className="relative min-h-[300px]">
           {/* Edge fades */}
           <div
             className={`pointer-events-none absolute left-0 top-0 bottom-0 w-6 sm:w-8 bg-gradient-to-r from-[#0F1513] to-transparent z-10 transition-opacity duration-200 ${

@@ -435,9 +435,9 @@ export default function Dashboard() {
 
         {/* Main Content */}
         <div className="grid lg:grid-cols-12 gap-5 sm:gap-8">
-          <div className="lg:col-span-8 space-y-5 sm:space-y-8">
+          <div className="lg:col-span-8 min-w-0 space-y-5 sm:space-y-8">
             {/* Unified Matches Carousel */}
-            <motion.div variants={VARIANTS.item}>
+            <motion.div variants={VARIANTS.item} className="min-w-0">
               {matchesLoading || venuesLoading ? (
                 <MatchGridSkeleton count={2} />
               ) : (
