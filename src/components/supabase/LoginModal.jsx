@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, Lock, LogIn, AlertCircle, Eye, EyeOff, User, UserPlus, CheckCircle, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,8 +14,19 @@ import { useSupabaseAuth } from './AuthProvider';
 import ConsentGate from '@/components/legal/ConsentGate';
 import { CONSENT_VERSION, CONSENT_DOC } from '@/components/legal/consentConstants';
 
+function AppleLogo({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 814 1000" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-37.5-167.2-105C184.3 672 80 502.5 80 339.2c0-250.1 161.5-380.9 320.4-380.9 84.8 0 155.5 55.6 207.7 55.6 50 0 128.1-58.9 222.3-58.9zm-182.8-89.1c-42.8-50-98.1-72.1-149.1-72.1-5.8 0-11.6 0-17.4.6 27.2 35.3 34.5 70.5 34.5 70.5S576.1 257.3 605.3 251.8z" />
+    </svg>
+  );
+}
+
+// Show Apple button on web and native iOS; not on Android
+const showAppleSignIn = !Capacitor.isNativePlatform() || Capacitor.getPlatform() === 'ios';
+
 export default function LoginModal({ isOpen, onClose, onSuccess }) {
-  const { login, error, clearError } = useSupabaseAuth();
+  const { login, signInWithApple, error, clearError } = useSupabaseAuth();
   const [mode, setMode] = useState('login'); // 'login', 'register', or 'consent'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,6 +38,25 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
   const [successMessage, setSuccessMessage] = useState(null);
   const [consentError, setConsentError] = useState(null);
   const [consentLoading, setConsentLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
+
+  const handleAppleSignIn = async () => {
+    setLocalError(null);
+    setAppleLoading(true);
+    try {
+      const result = await signInWithApple();
+      if (result?.redirecting) return; // page is navigating away
+      if (result?.cancelled) return;
+      if (result?.success) {
+        onSuccess?.();
+        onClose();
+      }
+    } catch (_) {
+      setLocalError('Apple-inloggning misslyckades. Försök igen.');
+    } finally {
+      setAppleLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -464,6 +495,30 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
                   <span className="text-xs text-[#4A5E52] font-medium">eller</span>
                   <div className="flex-1 h-px bg-[#1E2D23]" />
                 </div>
+
+                {/* Apple Sign In */}
+                {showAppleSignIn && (
+                  <button
+                    type="button"
+                    onClick={handleAppleSignIn}
+                    disabled={appleLoading || isLoading}
+                    className="w-full flex items-center justify-center gap-3 bg-black hover:bg-neutral-900 active:bg-neutral-800 text-white rounded-xl font-medium text-[15px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed select-none"
+                    style={{ height: '52px' }}
+                  >
+                    {appleLoading ? (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                        className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+                      />
+                    ) : (
+                      <>
+                        <AppleLogo className="w-5 h-5 flex-shrink-0" />
+                        <span>Logga in med Apple</span>
+                      </>
+                    )}
+                  </button>
+                )}
 
                 {/* Toggle mode */}
                 <button

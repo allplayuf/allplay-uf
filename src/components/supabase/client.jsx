@@ -318,6 +318,44 @@ class SupabaseClient {
     return { data: { user: sessionStore.user, roles: sessionStore.roles } };
   }
 
+  async signInWithIdToken(provider, idToken, rawNonce) {
+    const body = { provider, id_token: idToken };
+    if (rawNonce) body.nonce = rawNonce;
+    const result = await this._fetch('/auth/v1/token?grant_type=id_token', {
+      method: 'POST',
+      includeAuth: false,
+      body: JSON.stringify(body)
+    });
+    if (result.error) return result;
+    const { access_token, refresh_token, expires_in, user } = result.data;
+    sessionStore.setTokens(access_token, refresh_token, expires_in || 3600);
+    if (user) sessionStore.setUser(user);
+    sessionStore.setAuthState(AUTH_STATES.AUTHENTICATED);
+    markAuthReady();
+    if (user) this.syncUserToPublicProfile(user).catch(() => {});
+    await this.fetchUserRoles();
+    return { data: { user: sessionStore.user, roles: sessionStore.roles } };
+  }
+
+  async exchangeCodeForSession(code, codeVerifier, redirectTo) {
+    const body = { auth_code: code, code_verifier: codeVerifier };
+    if (redirectTo) body.redirect_to = redirectTo;
+    const result = await this._fetch('/auth/v1/token?grant_type=pkce', {
+      method: 'POST',
+      includeAuth: false,
+      body: JSON.stringify(body)
+    });
+    if (result.error) return result;
+    const { access_token, refresh_token, expires_in, user } = result.data;
+    sessionStore.setTokens(access_token, refresh_token, expires_in || 3600);
+    if (user) sessionStore.setUser(user);
+    sessionStore.setAuthState(AUTH_STATES.AUTHENTICATED);
+    markAuthReady();
+    if (user) this.syncUserToPublicProfile(user).catch(() => {});
+    await this.fetchUserRoles();
+    return { data: { user: sessionStore.user, roles: sessionStore.roles } };
+  }
+
   logout() {
     import('./services/adminService').then(m => m.clearAdminCache()).catch(() => {});
     sessionStore.clear();

@@ -4,6 +4,7 @@ import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
+import AuthCallback from './pages/AuthCallback';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -32,6 +33,7 @@ function AppRoutes() {
           }
         />
       ))}
+      <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

@@ -8,10 +8,13 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { sessionStore, supabaseClient, AUTH_STATES, waitForAuth } from './client';
 import { primeUsers } from './services/userCache';
 import { checkIsAdmin, clearAdminCache } from './services/adminService';
 import { initPushNotifications } from '@/lib/pushNotifications';
+import { generateCodeVerifier, generateCodeChallenge, generateRawNonce, hashNonce } from '@/lib/pkce';
+import { SUPABASE_URL } from './config';
 
 let pushInitializedFor = null;
 
@@ -113,6 +116,62 @@ export function SupabaseAuthProvider({ children }) {
     setError(null);
   }, []);
 
+  // Apple Sign In — native iOS uses Capacitor plugin + id_token grant,
+  // web uses PKCE OAuth redirect to /auth/callback
+  const signInWithApple = useCallback(async () => {
+    setError(null);
+    try {
+      const isNativeIOS = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
+
+      if (isNativeIOS) {
+        const rawNonce = generateRawNonce();
+        const hashedNonce = await hashNonce(rawNonce);
+
+        const { SignInWithApple } = await import('@capacitor-community/apple-sign-in');
+        const result = await SignInWithApple.authorize({
+          clientId: 'unused-on-native',
+          redirectURI: 'unused-on-native',
+          scopes: 'email name',
+          nonce: hashedNonce,
+        });
+
+        const { identityToken, givenName, familyName } = result.response;
+        if (!identityToken) throw new Error('No identity token from Apple');
+
+        // Apple only sends name on the very first authorization — capture it for profile sync
+        if (givenName || familyName) {
+          const fullName = [givenName, familyName].filter(Boolean).join(' ');
+          if (fullName) {
+            try { localStorage.setItem('allplay_pending_fullname', fullName); } catch (_) {}
+          }
+        }
+
+        const authResult = await supabaseClient.signInWithIdToken('apple', identityToken, rawNonce);
+        if (authResult.error) {
+          setError(authResult.error.message);
+          return { success: false, error: authResult.error };
+        }
+        return { success: true };
+      } else {
+        // Web: PKCE redirect
+        const verifier = generateCodeVerifier();
+        const challenge = await generateCodeChallenge(verifier);
+        sessionStorage.setItem('allplay_pkce_verifier', verifier);
+        const callbackUrl = `${window.location.origin}/auth/callback`;
+        window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=apple&redirect_to=${encodeURIComponent(callbackUrl)}&code_challenge=${challenge}&code_challenge_method=s256`;
+        return { success: true, redirecting: true };
+      }
+    } catch (err) {
+      const msg = (err?.message || '').toLowerCase();
+      if (msg.includes('cancel') || msg.includes('dismiss') || msg.includes('user_cancelled')) {
+        return { success: false, cancelled: true };
+      }
+      console.error('[signInWithApple]', err);
+      setError('Apple-inloggning misslyckades. Försök igen.');
+      return { success: false, error: err };
+    }
+  }, []);
+
   // Role check helpers
   const hasRole = useCallback((role) => {
     return roles.includes(role);
@@ -165,6 +224,7 @@ export function SupabaseAuthProvider({ children }) {
     // Actions
     login,
     logout,
+    signInWithApple,
     
     // Role checks
     hasRole,
