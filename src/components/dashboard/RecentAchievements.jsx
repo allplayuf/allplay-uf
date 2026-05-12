@@ -1,116 +1,94 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Award, Star, Target, Users } from "lucide-react";
 
+const RARITY = {
+  common:    { label: "Vanlig",    color: "#9EAAA4" },
+  rare:      { label: "Sällsynt",  color: "#86EFAC" },
+  epic:      { label: "Episk",     color: "#C4B5FD" },
+  legendary: { label: "Legendarisk", color: "#FCD34D" },
+};
+
 export default function RecentAchievements({ user }) {
-  // Mock achievements based on user stats
   const achievements = [
-    {
-      id: 1,
-      name: "Första matchen",
-      description: "Spelade din första match!",
-      icon: Target,
-      earned: user?.matches_played >= 1,
-      rarity: "common",
-      date: "2024-01-15"
-    },
-    {
-      id: 2,
-      name: "MVP-stjärna",
-      description: "Blev MVP i en match",
-      icon: Star,
-      earned: user?.mvp_count >= 1,
-      rarity: "rare",
-      date: "2024-01-20"
-    },
-    {
-      id: 3,
-      name: "Veteran",
-      description: "Spelat 10 matcher",
-      icon: Award,
-      earned: user?.matches_played >= 10,
-      rarity: "epic",
-      date: null
-    },
-    {
-      id: 4,
-      name: "Lagspelare",
-      description: "Spelat med 5 olika spelare",
-      icon: Users,
-      earned: false,
-      rarity: "rare",
-      date: null
-    }
+    { id: 1, name: "Första matchen",  description: "Spelade din första match!",   icon: Target, earned: user?.matches_played >= 1,  rarity: "common" },
+    { id: 2, name: "MVP-stjärna",     description: "Blev MVP i en match",          icon: Star,   earned: user?.mvp_count >= 1,         rarity: "rare" },
+    { id: 3, name: "Veteran",         description: "Spelat 10 matcher",            icon: Award,  earned: user?.matches_played >= 10,   rarity: "epic" },
+    { id: 4, name: "Lagspelare",      description: "Spelat med 5 olika spelare",   icon: Users,  earned: false,                        rarity: "rare" },
   ];
 
-  const earnedAchievements = achievements.filter(a => a.earned);
-  const nextAchievement = achievements.find(a => !a.earned);
-
-  const getRarityColor = (rarity) => {
-    switch (rarity) {
-      case 'common': return 'bg-gray-100 text-gray-800 border-gray-200';
-      case 'rare': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'epic': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'legendary': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
+  const earned = achievements.filter(a => a.earned);
+  const next = achievements.find(a => !a.earned);
 
   return (
-    <Card className="shadow-allplay border-0 bg-white/90 backdrop-blur-sm">
-      <CardHeader className="border-b border-gray-100">
-        <CardTitle className="text-lg font-bold text-gray-900 flex items-center gap-2">
-          <Award className="w-5 h-5 text-primary-green" />
-          Utmärkelser
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-6 space-y-4">
-        {earnedAchievements.length === 0 ? (
-          <div className="text-center py-4">
-            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Award className="w-6 h-6 text-gray-400" />
-            </div>
-            <p className="text-sm text-gray-600">Inga utmärkelser än</p>
-            <p className="text-xs text-gray-500 mt-1">Spela dina första matcher!</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-gray-700">Senaste utmärkelser</h4>
-            {earnedAchievements.slice(0, 3).map((achievement) => (
-              <div key={achievement.id} className="flex items-center gap-3 p-3 bg-green-50/50 rounded-lg border border-green-100">
-                <div className="w-10 h-10 bg-primary-green rounded-full flex items-center justify-center">
-                  <achievement.icon className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h5 className="font-medium text-gray-900">{achievement.name}</h5>
-                    <Badge variant="outline" className={getRarityColor(achievement.rarity)}>
-                      {achievement.rarity}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-gray-600">{achievement.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+    <div
+      className="relative overflow-hidden rounded-[22px] border border-[#223029] p-5"
+      style={{
+        background: "linear-gradient(135deg, #151B18 0%, #111613 55%, #0C100E 100%)",
+        boxShadow: "0 6px 18px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05)",
+      }}
+    >
+      <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent)" }} />
 
-        {nextAchievement && (
-          <div className="pt-4 border-t border-gray-100">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">Nästa utmärkelse</h4>
-            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                <nextAchievement.icon className="w-5 h-5 text-gray-500" />
+      <div className="flex items-center gap-2 mb-4">
+        <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-[#C4B5FD]/15 ring-1 ring-[#C4B5FD]/25">
+          <Award className="w-4 h-4 text-[#C4B5FD]" strokeWidth={2.2} />
+        </div>
+        <h3 className="font-bold text-[15px] text-[#F4F7F5] tracking-tight">Utmärkelser</h3>
+      </div>
+
+      {earned.length === 0 ? (
+        <div className="text-center py-4">
+          <div className="w-12 h-12 bg-[#18221E] rounded-2xl flex items-center justify-center mx-auto mb-3 ring-1 ring-[#223029]">
+            <Award className="w-6 h-6 text-[#4a5550]" strokeWidth={2} />
+          </div>
+          <p className="text-[13px] font-semibold text-[#9EAAA4]">Inga utmärkelser än</p>
+          <p className="text-[11px] text-[#6B7A73] mt-1">Spela dina första matcher!</p>
+        </div>
+      ) : (
+        <div className="space-y-2 mb-3">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#6B7A73] mb-3">Senaste</p>
+          {earned.slice(0, 3).map((a) => {
+            const r = RARITY[a.rarity] || RARITY.common;
+            return (
+              <div key={a.id} className="flex items-center gap-3 p-3 rounded-xl border border-[#223029] bg-[#18221E]/60">
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: `${r.color}20`, border: `1px solid ${r.color}30` }}
+                >
+                  <a.icon className="w-4 h-4" style={{ color: r.color }} strokeWidth={2.4} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[13px] font-bold text-[#F4F7F5] truncate">{a.name}</span>
+                    <span
+                      className="text-[9px] font-extrabold uppercase tracking-[0.08em] px-1.5 py-0.5 rounded-full flex-shrink-0"
+                      style={{ background: `${r.color}20`, color: r.color }}
+                    >
+                      {r.label}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#8FA097] mt-0.5">{a.description}</p>
+                </div>
               </div>
-              <div className="flex-1">
-                <h5 className="font-medium text-gray-700">{nextAchievement.name}</h5>
-                <p className="text-xs text-gray-600">{nextAchievement.description}</p>
-              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {next && (
+        <div className="border-t border-[#223029] pt-3">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#6B7A73] mb-2">Nästa</p>
+          <div className="flex items-center gap-3 p-3 rounded-xl border border-dashed border-[#223029] opacity-60">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-[#18221E] ring-1 ring-[#223029]">
+              <next.icon className="w-4 h-4 text-[#4a5550]" strokeWidth={2} />
+            </div>
+            <div>
+              <p className="text-[13px] font-bold text-[#9EAAA4]">{next.name}</p>
+              <p className="text-[11px] text-[#6B7A73]">{next.description}</p>
             </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </div>
+      )}
+    </div>
   );
 }

@@ -156,3 +156,217 @@ button:focus-visible {
     @apply bg-background text-foreground;
   }
 }
+
+/* ============================================================
+   AllPlay UF — Design System Tokens
+   Dark-first Swedish football matchmaking PWA.
+   Source of truth for colors, typography, shadows, radii,
+   spacing and motion. Components should reference these vars.
+   ============================================================ */
+
+:root {
+  /* Surfaces */
+  --ap-bg:           #0F1513;
+  --ap-surface:      #121715;
+  --ap-surface-2:    #18221E;
+  --ap-surface-3:    #223029;
+  --ap-border:       #223029;
+  --ap-border-soft:  #243029;
+  --ap-divider:      rgba(255,255,255,0.07);
+  --ap-hairline:     rgba(255,255,255,0.16);
+
+  /* Brand greens */
+  --ap-green-50:     #EAF6EE;
+  --ap-green-100:    #CFE8D6;
+  --ap-green-200:    #B8F0C6;
+  --ap-green-300:    #86EFAC;
+  --ap-green-400:    #34C257;
+  --ap-green-500:    #2BA84A;
+  --ap-green-600:    #248232;
+  --ap-green-700:    #1E7A36;
+
+  /* Accent — Orange (admin / urgent / spontan) */
+  --ap-orange-100:   #FDE3D2;
+  --ap-orange-200:   #FDBA74;
+  --ap-orange-500:   #F4743B;
+
+  /* Accent — Purple (Teams / Lag) */
+  --ap-purple-100:   #DDD6FE;
+  --ap-purple-200:   #C4B5FD;
+  --ap-purple-500:   #9370DB;
+  --ap-purple-600:   #7C3AED;
+
+  /* Accent — Amber (Cups / Trophies) */
+  --ap-amber-300:    #FCD34D;
+  --ap-amber-500:    #F59E0B;
+
+  /* Destructive */
+  --ap-red-500:      #DC2626;
+  --ap-red-600:      #B91C1C;
+
+  /* Text ramp */
+  --ap-fg:           #F4F7F5;
+  --ap-fg-strong:    #FFFFFF;
+  --ap-fg-2:         #B6C2BC;
+  --ap-fg-3:         #9EAAA4;
+  --ap-fg-4:         #8FA097;
+  --ap-fg-disabled:  #7B8A83;
+  --ap-fg-fade:      #4a5550;
+
+  /* Semantic */
+  --ap-success:      var(--ap-green-500);
+  --ap-warning:      var(--ap-orange-500);
+  --ap-danger:       var(--ap-red-500);
+  --ap-info:         var(--ap-purple-500);
+
+  /* Gradients */
+  --ap-grad-green:   linear-gradient(180deg, #3BD163 0%, #2BA84A 55%, #1E7A36 100%);
+  --ap-grad-green-2: linear-gradient(180deg, #34C257 0%, #2BA84A 55%, #248232 100%);
+  --ap-grad-pitch:   radial-gradient(140% 110% at 50% 0%, #0F2A18 0%, #0A1C10 45%, #05100A 100%);
+  --ap-grad-card:    linear-gradient(135deg, #151B18 0%, #111613 55%, #0C100E 100%);
+  --ap-grad-about:   linear-gradient(135deg, #141917 0%, #0F1513 100%);
+  --ap-grad-text-green: linear-gradient(95deg, #86EFAC 0%, #34C257 45%, #22C55E 100%);
+
+  /* Glass surfaces */
+  --ap-glass-bg:     rgba(18,23,20,0.55);
+  --ap-glass-blur:   saturate(180%) blur(26px);
+  --ap-glass-border: rgba(255,255,255,0.08);
+  --ap-glass-inner-hi: rgba(255,255,255,0.06);
+
+  /* Shadows */
+  --ap-shadow-1:  0 4px 12px rgba(0,0,0,0.4);
+  --ap-shadow-2:  0 6px 18px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05);
+  --ap-shadow-3:  0 8px 24px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.06);
+  --ap-shadow-4:  0 10px 28px rgba(0,0,0,0.4),  inset 0 1px 0 rgba(255,255,255,0.06);
+  --ap-shadow-5:  0 20px 48px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05);
+  --ap-shadow-6:  0 28px 70px rgba(0,0,0,0.7),  0 2px 4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+  --ap-glow-green: 0 14px 36px rgba(43,168,74,0.45), 0 2px 6px rgba(0,0,0,0.3),
+                   inset 0 1px 0 rgba(255,255,255,0.28), inset 0 -1px 0 rgba(0,0,0,0.2);
+  --ap-glow-green-sm: 0 6px 18px rgba(43,168,74,0.32), inset 0 1px 0 rgba(255,255,255,0.18);
+  --ap-glow-purple-sm: 0 4px 16px rgba(147,112,219,0.4);
+  --ap-glow-orange-sm: 0 4px 14px rgba(244,116,59,0.38), inset 0 1px 0 rgba(255,255,255,0.18);
+
+  /* Radii */
+  --ap-r-xs:  6px;
+  --ap-r-sm:  8px;
+  --ap-r-md:  12px;
+  --ap-r-lg:  16px;
+  --ap-r-xl:  18px;
+  --ap-r-2xl: 20px;
+  --ap-r-3xl: 22px;
+  --ap-r-hero: 28px;
+  --ap-r-hero-lg: 32px;
+  --ap-r-full: 9999px;
+
+  /* Spacing (8pt grid) */
+  --ap-s-1: 4px;   --ap-s-2: 8px;   --ap-s-3: 12px;
+  --ap-s-4: 16px;  --ap-s-5: 20px;  --ap-s-6: 24px;
+  --ap-s-7: 28px;  --ap-s-8: 32px;  --ap-s-10: 40px;
+  --ap-s-11: 44px;
+
+  /* Motion */
+  --ap-ease-signature: cubic-bezier(0.16, 1, 0.3, 1);
+  --ap-ease-snap:      cubic-bezier(0.4, 0, 0.2, 1);
+  --ap-dur-fast:   150ms;
+  --ap-dur-base:   300ms;
+  --ap-dur-slow:   500ms;
+  --ap-dur-hero:   600ms;
+
+  /* Typography */
+  --ap-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --ap-font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --ap-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Tracking */
+  --ap-track-display: -0.03em;
+  --ap-track-tight:   -0.01em;
+  --ap-track-normal:  0em;
+  --ap-track-eyebrow: 0.14em;
+  --ap-track-label:   0.06em;
+}
+
+/* ── Typography utilities ── */
+.ap-display {
+  font-family: var(--ap-font-display);
+  font-weight: 900;
+  font-size: clamp(30px, 5.4vw, 48px);
+  line-height: 1.02;
+  letter-spacing: var(--ap-track-display);
+  color: var(--ap-fg-strong);
+}
+.ap-h1 { font-weight: 800; font-size: 28px; line-height: 32px; letter-spacing: var(--ap-track-tight); color: var(--ap-fg); }
+.ap-h2 { font-weight: 800; font-size: 22px; line-height: 28px; letter-spacing: var(--ap-track-tight); color: var(--ap-fg); }
+.ap-h3 { font-weight: 700; font-size: 18px; line-height: 24px; letter-spacing: var(--ap-track-tight); color: var(--ap-fg); }
+.ap-h4 { font-weight: 700; font-size: 16px; line-height: 22px; color: var(--ap-fg); }
+.ap-body  { font-weight: 400; font-size: 14px; line-height: 20px; color: var(--ap-fg-2); }
+.ap-body-strong { font-weight: 600; font-size: 14px; line-height: 20px; color: var(--ap-fg); }
+.ap-meta  { font-weight: 500; font-size: 12px; line-height: 16px; color: var(--ap-fg-3); }
+.ap-meta-strong { font-weight: 700; font-size: 12px; line-height: 16px; color: var(--ap-fg); }
+.ap-caption { font-weight: 500; font-size: 11px; line-height: 14px; color: var(--ap-fg-3); }
+.ap-eyebrow-text {
+  font-weight: 800; font-size: 10px; line-height: 1;
+  letter-spacing: var(--ap-track-eyebrow); text-transform: uppercase;
+  color: rgba(255,255,255,0.85);
+}
+.ap-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ── Eyebrow pill ── */
+.ap-eyebrow-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 11px; border-radius: var(--ap-r-full);
+  background: rgba(43,168,74,0.18); border: 1px solid rgba(43,168,74,0.35);
+  color: rgba(255,255,255,0.92); font-weight: 800; font-size: 10px;
+  letter-spacing: var(--ap-track-eyebrow); text-transform: uppercase;
+}
+.ap-eyebrow-pill .ap-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #34C257; box-shadow: 0 0 10px #34C257;
+  animation: ap-pulse-dot 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+.ap-eyebrow-pill.orange { background: rgba(244,116,59,0.18); border-color: rgba(244,116,59,0.35); }
+.ap-eyebrow-pill.orange .ap-dot { background: #F4743B; box-shadow: 0 0 10px #F4743B; }
+.ap-eyebrow-pill.purple { background: rgba(147,112,219,0.20); border-color: rgba(147,112,219,0.40); }
+.ap-eyebrow-pill.amber { background: rgba(245,158,11,0.18); border-color: rgba(245,158,11,0.4); color: #FCD34D; }
+
+/* ── Status badge (compact pill without dot) ── */
+.ap-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: var(--ap-r-full);
+  font-weight: 800; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  border: 1px solid transparent;
+}
+.ap-badge.green  { background: rgba(43,168,74,0.18);  border-color: rgba(43,168,74,0.35);  color: #CFE8D6; }
+.ap-badge.orange { background: rgba(244,116,59,0.18); border-color: rgba(244,116,59,0.35); color: #FDE3D2; }
+.ap-badge.purple { background: rgba(147,112,219,0.20);border-color: rgba(147,112,219,0.40);color: #DDD6FE; }
+.ap-badge.amber  { background: rgba(245,158,11,0.18); border-color: rgba(245,158,11,0.4);  color: #FCD34D; }
+.ap-badge.red    { background: rgba(220,38,38,0.16);  border-color: rgba(220,38,38,0.4);   color: #FCA5A5; }
+.ap-badge.solid  { background: #2BA84A; border-color: rgba(255,255,255,0.18); color: #fff; }
+
+/* ── Keyframes ── */
+@keyframes ap-pulse-dot {
+  50% { opacity: 0.45; transform: scale(0.85); }
+}
+@keyframes ap-shine {
+  0%, 70% { transform: translateX(-100%); }
+  90%, 100% { transform: translateX(200%); }
+}
+@keyframes ap-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ap-pulse-bg {
+  0%, 100% { opacity: .9; transform: scale(1); }
+  50%       { opacity: 1;  transform: scale(1.08); }
+}
+@keyframes ap-cta-glow {
+  0%, 100% { box-shadow: 0 8px 22px rgba(244,116,59,0.38), inset 0 1px 0 rgba(255,255,255,0.18); }
+  50%       { box-shadow: 0 12px 30px rgba(244,116,59,0.55), inset 0 1px 0 rgba(255,255,255,0.22); }
+}
+@keyframes ap-sweep {
+  0%, 100% { left: -33%; }
+  50%       { left: 100%; }
+}
