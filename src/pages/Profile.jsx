@@ -40,7 +40,6 @@ import BlockUserButton from "../components/user/BlockUserButton";
 import { PullToRefresh } from "../components/ui/pull-to-refresh";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import feedback from "../components/ui/feedback-toast";
-import { AuthGateModal } from "../components/ui/auth-gate-modal";
 import { LoginModal } from "../components/supabase";
 import { LogIn } from "lucide-react";
 import {
@@ -86,7 +85,6 @@ export default function ProfilePage() {
   const [showSettingsSheet, setShowSettingsSheet] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
-  const [showAuthGate, setShowAuthGate] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   const { confirm, alert, DialogContainer } = useCustomDialog();
@@ -472,20 +470,10 @@ export default function ProfilePage() {
   if (isGuest && !targetUserId) {
     return (
       <>
-      <AuthGateModal
-        isOpen={showAuthGate}
-        onClose={() => setShowAuthGate(false)}
-        onLogin={() => setShowLoginModal(true)}
-        feature="se din profil och hantera vänner"
-      />
-
       <LoginModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
-        onSuccess={() => {
-          setShowLoginModal(false);
-          setShowAuthGate(false);
-        }}
+        onSuccess={() => setShowLoginModal(false)}
       />
 
       <div className="min-h-screen bg-[#0F1513] flex items-center justify-center p-4">
@@ -496,7 +484,7 @@ export default function ProfilePage() {
           <h2 className="text-2xl font-bold text-[#F4F7F5] mb-3">Logga in för att se din profil</h2>
           <p className="text-[#B6C2BC] mb-6">Skapa ett konto eller logga in för att se din profil, hantera vänner och mycket mer.</p>
           <Button
-            onClick={() => setShowAuthGate(true)}
+            onClick={() => setShowLoginModal(true)}
             className="w-full bg-[#2BA84A] hover:bg-[#248232] text-white h-12 rounded-xl font-semibold"
           >
             <LogIn className="w-5 h-5 mr-2" />
