@@ -172,6 +172,23 @@ export function SupabaseAuthProvider({ children }) {
     }
   }, []);
 
+  // Google Sign In — PKCE OAuth redirect to /auth/callback (web + Android)
+  const signInWithGoogle = useCallback(async () => {
+    setError(null);
+    try {
+      const verifier = generateCodeVerifier();
+      const challenge = await generateCodeChallenge(verifier);
+      sessionStorage.setItem('allplay_pkce_verifier', verifier);
+      const callbackUrl = `${window.location.origin}/auth/callback`;
+      window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(callbackUrl)}&code_challenge=${challenge}&code_challenge_method=s256`;
+      return { success: true, redirecting: true };
+    } catch (err) {
+      console.error('[signInWithGoogle]', err);
+      setError('Google-inloggning misslyckades. Försök igen.');
+      return { success: false, error: err };
+    }
+  }, []);
+
   // Role check helpers
   const hasRole = useCallback((role) => {
     return roles.includes(role);
@@ -225,7 +242,8 @@ export function SupabaseAuthProvider({ children }) {
     login,
     logout,
     signInWithApple,
-    
+    signInWithGoogle,
+
     // Role checks
     hasRole,
     isAdmin,
