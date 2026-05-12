@@ -204,6 +204,22 @@ class SupabaseClient {
     // Load persisted session
     sessionStore.load();
 
+    // detectSessionInUrl: pick up hash-based tokens from implicit OAuth flow
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      if (hash && hash.includes('access_token')) {
+        const hp = new URLSearchParams(hash.substring(1));
+        const accessToken = hp.get('access_token');
+        const refreshToken = hp.get('refresh_token');
+        const expiresIn = hp.get('expires_in');
+        if (accessToken) {
+          sessionStore.setTokens(accessToken, refreshToken || '', Number(expiresIn) || 3600);
+          sessionStore.setAuthState(AUTH_STATES.AUTHENTICATED);
+          try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch (_) {}
+        }
+      }
+    }
+
     // Config is hardcoded — no async fetch needed
     this._config = { url: SUPABASE_URL, anonKey: SUPABASE_ANON_KEY };
     if (IS_DEV) console.log('[SupabaseClient] Config loaded, anonKey:', SUPABASE_ANON_KEY ? `${SUPABASE_ANON_KEY.slice(0, 8)}... (${SUPABASE_ANON_KEY.length} chars)` : 'MISSING');

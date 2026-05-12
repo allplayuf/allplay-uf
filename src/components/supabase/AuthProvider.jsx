@@ -156,7 +156,7 @@ export function SupabaseAuthProvider({ children }) {
         // Web: PKCE redirect
         const verifier = generateCodeVerifier();
         const challenge = await generateCodeChallenge(verifier);
-        sessionStorage.setItem('allplay_pkce_verifier', verifier);
+        localStorage.setItem('allplay_pkce_verifier', verifier);
         const callbackUrl = `${window.location.origin}/auth/callback`;
         window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=apple&redirect_to=${encodeURIComponent(callbackUrl)}&code_challenge=${challenge}&code_challenge_method=s256`;
         return { success: true, redirecting: true };
@@ -178,7 +178,7 @@ export function SupabaseAuthProvider({ children }) {
     try {
       const verifier = generateCodeVerifier();
       const challenge = await generateCodeChallenge(verifier);
-      sessionStorage.setItem('allplay_pkce_verifier', verifier);
+      localStorage.setItem('allplay_pkce_verifier', verifier);
       const callbackUrl = `${window.location.origin}/auth/callback`;
       window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(callbackUrl)}&code_challenge=${challenge}&code_challenge_method=s256`;
       return { success: true, redirecting: true };
