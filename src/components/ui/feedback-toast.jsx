@@ -6,6 +6,16 @@
 import { toast } from "sonner";
 import { triggerHaptic } from "@/components/utils/motionTokens";
 
+// Prevent the same toast from firing twice within 1.5 seconds
+const DEDUP_MS = 1500;
+const lastFired = new Map();
+function isDuplicate(key) {
+  const now = Date.now();
+  if (lastFired.has(key) && now - lastFired.get(key) < DEDUP_MS) return true;
+  lastFired.set(key, now);
+  return false;
+}
+
 const baseStyle = {
   background: "#121715",
   color: "#F4F7F5",
@@ -19,6 +29,7 @@ const baseStyle = {
 
 export const feedback = {
   success(message, opts = {}) {
+    if (isDuplicate(`success:${message}`)) return;
     triggerHaptic("success");
     return toast.success(message, {
       duration: 2800,
@@ -33,6 +44,7 @@ export const feedback = {
   },
 
   error(message, opts = {}) {
+    if (isDuplicate(`error:${message}`)) return;
     triggerHaptic("error");
     return toast.error(message, {
       duration: 4000,
@@ -47,6 +59,7 @@ export const feedback = {
   },
 
   info(message, opts = {}) {
+    if (isDuplicate(`info:${message}`)) return;
     triggerHaptic("light");
     return toast(message, {
       duration: 2800,

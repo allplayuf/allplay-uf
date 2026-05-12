@@ -16,27 +16,6 @@ import { X, Bug, RefreshCw } from 'lucide-react';
 export default function EdgeFunctionDebugPanel() {
   const [isOpen, setIsOpen] = useState(false);
   const [logs, setLogs] = useState([]);
-  const [tapCount, setTapCount] = useState(0);
-  const [lastTap, setLastTap] = useState(0);
-
-  // Secret activation: 5 rapid taps within 3 seconds
-  const handleSecretTap = () => {
-    const now = Date.now();
-    if (now - lastTap > 3000) {
-      setTapCount(1);
-    } else {
-      setTapCount(prev => prev + 1);
-    }
-    setLastTap(now);
-  };
-
-  useEffect(() => {
-    if (tapCount >= 5) {
-      setIsOpen(true);
-      setTapCount(0);
-      refreshLogs();
-    }
-  }, [tapCount]);
 
   const refreshLogs = () => {
     setLogs(getEdgeFunctionDebugLog());
@@ -50,15 +29,8 @@ export default function EdgeFunctionDebugPanel() {
     }
   }, [isOpen]);
 
-  // Invisible tap target (renders in top-right of screen)
   if (!isOpen) {
-    return (
-      <div
-        onClick={handleSecretTap}
-        className="fixed top-2 right-2 w-10 h-10 z-[9999]"
-        style={{ opacity: 0 }}
-      />
-    );
+    return null;
   }
 
   const anonKeyInfo = {

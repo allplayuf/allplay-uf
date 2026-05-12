@@ -729,24 +729,9 @@ export default function ProfilePage() {
                     exit={{ opacity: 0, y: -4 }}
                     transition={TRANSITIONS.tab}
                   >
-                    <h3 className="text-lg font-bold text-[#F4F7F5] mb-4">Lås upp utmärkelser genom att spela</h3>
-                    {(displayUser?.matches_played || 0) === 0 ? (
-                      <Card className="bg-[#121715] border border-[#223029] rounded-2xl p-12 text-center">
-                        <div className="w-20 h-20 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-[#2BA84A]/20">
-                          <Award className="w-10 h-10 text-[#2BA84A]" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-[#F4F7F5] mb-3">
-                          Spela din första match
-                        </h3>
-                        <p className="text-base text-[#B6C2BC]">
-                          Dina upplåsta utmärkelser kommer att visas här.
-                        </p>
-                      </Card>
-                    ) : (
-                      <Suspense fallback={<TabSkeletonGrid count={6} />}>
-                        <BadgeCollection user={displayUser} />
-                      </Suspense>
-                    )}
+                    <Suspense fallback={<TabSkeletonGrid count={6} />}>
+                      <BadgeCollection user={displayUser} />
+                    </Suspense>
                   </motion.div>
                 )}
 

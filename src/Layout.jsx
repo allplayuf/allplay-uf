@@ -276,15 +276,22 @@ function LayoutInner({ children }) {
           </nav>
 
           <div className="p-4 border-t border-[#223029]">
-            <div className="flex items-center gap-3 px-3 py-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-full flex items-center justify-center">
-                <span className="text-[#EAF6EE] font-semibold text-sm">U</span>
+            <button
+              onClick={() => navigate(createPageUrl("AccountSettings"))}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[#18221E] transition-colors text-left group"
+            >
+              <div className="w-10 h-10 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-[#EAF6EE] font-semibold text-sm">
+                  {supabaseUser?.display_name?.[0]?.toUpperCase() || supabaseUser?.full_name?.[0]?.toUpperCase() || 'U'}
+                </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-[#F4F7F5] text-[13px] leading-[18px] truncate">User</p>
-                <p className="text-[11px] leading-[16px] text-[#2BA84A] font-semibold truncate">Redo att spela!</p>
+                <p className="font-semibold text-[#F4F7F5] text-[13px] leading-[18px] truncate">
+                  {supabaseUser?.display_name || supabaseUser?.full_name || 'Inställningar'}
+                </p>
+                <p className="text-[11px] leading-[16px] text-[#2BA84A] font-semibold truncate">Inställningar</p>
               </div>
-            </div>
+            </button>
           </div>
         </aside>
 

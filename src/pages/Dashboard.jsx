@@ -433,6 +433,17 @@ export default function Dashboard() {
           </motion.div>
         )}
 
+        {/* Next Match Card — full width, above the carousel */}
+        {!isGuest && myUpcomingMatches.length > 0 && (
+          <motion.div variants={VARIANTS.item}>
+            <NextMatchCard
+              match={myUpcomingMatches[0]}
+              venue={myUpcomingMatches[0]?.venue || venues.find(v => v.id === myUpcomingMatches[0]?.venue_id)}
+              participants={myUpcomingMatches[0] ? allParticipants.filter(p => p.match_id === myUpcomingMatches[0].id) : []}
+            />
+          </motion.div>
+        )}
+
         {/* Main Content */}
         <div className="grid lg:grid-cols-12 gap-5 sm:gap-8">
           <div className="lg:col-span-8 min-w-0 space-y-5 sm:space-y-8">
@@ -460,15 +471,6 @@ export default function Dashboard() {
             variants={VARIANTS.item}
             className="lg:col-span-4 space-y-5 sm:space-y-8 sticky top-24 self-start"
           >
-            {/* Next Match Card — only show if user is actually signed up */}
-            {!isGuest && myUpcomingMatches.length > 0 && (
-              <NextMatchCard 
-                match={myUpcomingMatches[0]} 
-                venue={myUpcomingMatches[0]?.venue || venues.find(v => v.id === myUpcomingMatches[0]?.venue_id)}
-                participants={myUpcomingMatches[0] ? allParticipants.filter(p => p.match_id === myUpcomingMatches[0].id) : []}
-              />
-            )}
-
             {/* Cups Widget in sidebar on desktop */}
             {isCupsEnabled() && (
               <div className="hidden lg:block">

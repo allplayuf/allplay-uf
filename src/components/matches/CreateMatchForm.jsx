@@ -108,11 +108,13 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
       return;
     }
 
-    // Validate skill_bracket is a valid DB value
+    // Validate skill_bracket — not required for spontaneous matches
     const validLevels = ['beginner', 'intermediate', 'advanced', 'pro'];
-    if (!formData.skill_bracket || !validLevels.includes(formData.skill_bracket)) {
-      window.alert("Välj en giltig matchnivå!");
-      return;
+    if (!formData.is_spontaneous) {
+      if (!formData.skill_bracket || !validLevels.includes(formData.skill_bracket)) {
+        window.alert("Välj en giltig matchnivå!");
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -130,7 +132,7 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
       format: formData.format,
       max_players: formData.is_spontaneous ? null : formData.max_players,
       is_spontaneous: formData.is_spontaneous,
-      skill_bracket: formData.skill_bracket,
+      skill_bracket: (formData.is_spontaneous || formData.skill_bracket === 'open') ? null : formData.skill_bracket,
       is_open: true,
       notes: formData.notes
       // Backend sets: organizer_id, current_players, status
@@ -164,7 +166,9 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
   };
 
   // Valid levels matching Supabase constraint: beginner, intermediate, advanced, pro
+  // 'open' is a UI-only sentinel that maps to null on submit (anyone can join)
   const skillBracketOptions = [
+    { value: 'open', label: 'Alla nivåer', desc: 'Öppet för alla spelare' },
     { value: 'beginner', label: 'Nybörjare', desc: 'Lär sig fortfarande grunderna' },
     { value: 'intermediate', label: 'Medel', desc: 'Spelar regelbundet, god förståelse' },
     { value: 'advanced', label: 'Avancerad', desc: 'Hög teknisk nivå och spelförståelse' },
@@ -446,19 +450,14 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
             )}
           </div>
 
-          {/* Skill Bracket */}
+          {/* Skill Bracket — hidden for spontaneous matches (anyone can join) */}
+          {!formData.is_spontaneous && (
           <div className="space-y-2">
             <Label className="text-[#F4F7F5] font-semibold flex items-center gap-2 text-sm sm:text-base">
               <Target className="w-4 h-4 text-[#2BA84A]" />
               Matchnivå *
             </Label>
-            <div className="flex items-start gap-2 p-2 sm:p-3 bg-[#2BA84A]/10 rounded-lg border border-[#2BA84A]/30 mb-3">
-              <Info className="w-4 h-4 text-[#2BA84A] mt-0.5 flex-shrink-0" />
-              <p className="text-[11px] sm:text-xs lg:text-sm text-[#CFE8D6]">
-                Välj en nivå som passar matchen. Detta hjälper spelare hitta rätt matcher.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
               {skillBracketOptions.map((option) => (
                 <Button
                   key={option.value}
@@ -478,6 +477,7 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
               ))}
             </div>
           </div>
+          )}
 
           {/* Private match toggle removed per design */}
 
