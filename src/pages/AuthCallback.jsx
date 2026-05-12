@@ -1,10 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabaseClient, sessionStore, AUTH_STATES } from '@/components/supabase/client';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
   const didNavigate = useRef(false);
+  const [callbackError, setCallbackError] = useState(null);
 
   function goToDashboard() {
     if (!didNavigate.current) {
@@ -15,6 +16,28 @@ export default function AuthCallback() {
 
   useEffect(() => {
     let isMounted = true;
+
+    // Capture diagnostic info BEFORE anything modifies URL or storage
+    const rawSearch = window.location.search;
+    const rawHash = window.location.hash;
+    const pkceVerifier = localStorage.getItem('allplay_pkce_verifier') || '';
+
+    // Check for error params from Supabase redirect
+    const searchParams = new URLSearchParams(rawSearch);
+    const hashParams = new URLSearchParams(rawHash.substring(1));
+    const oauthError = searchParams.get('error') || hashParams.get('error');
+    const oauthErrorDesc = searchParams.get('error_description') || hashParams.get('error_description');
+
+    if (oauthError) {
+      setCallbackError({
+        stage: 'oauth_redirect',
+        message: oauthErrorDesc || oauthError,
+        rawSearch,
+        rawHash,
+        hadVerifier: !!pkceVerifier,
+      });
+      return;
+    }
 
     // Listen for SIGNED_IN equivalent — navigate as soon as session is confirmed
     const unsubscribe = sessionStore.subscribe((state) => {
@@ -34,26 +57,51 @@ export default function AuthCallback() {
           return;
         }
 
-        const params = new URLSearchParams(window.location.search);
-        const code = params.get('code');
+        const code = searchParams.get('code');
 
         if (code) {
           // PKCE flow — verifier stored in localStorage (survives cross-origin redirects)
-          const verifier = localStorage.getItem('allplay_pkce_verifier') || '';
           localStorage.removeItem('allplay_pkce_verifier');
           const redirectTo = `${window.location.origin}/auth/callback`;
-          const result = await supabaseClient.exchangeCodeForSession(code, verifier, redirectTo);
+          const result = await supabaseClient.exchangeCodeForSession(code, pkceVerifier, redirectTo);
           if (result.error) {
-            console.error('[AuthCallback] PKCE exchange failed:', result.error);
+            if (isMounted) {
+              setCallbackError({
+                stage: 'pkce_exchange',
+                message: result.error.message || 'Kodutbyte misslyckades',
+                code: result.error.code,
+                rawSearch,
+                rawHash,
+                hadVerifier: !!pkceVerifier,
+              });
+            }
+            return;
           }
           // exchangeCodeForSession sets AUTHENTICATED on success → subscriber above navigates
+        } else {
+          // No code and no hash token — nothing to exchange
+          if (isMounted) {
+            setCallbackError({
+              stage: 'no_code',
+              message: 'Ingen auth-kod hittades i URL:en',
+              rawSearch,
+              rawHash,
+              hadVerifier: !!pkceVerifier,
+            });
+          }
         }
       } catch (e) {
         console.error('[AuthCallback]', e);
+        if (isMounted) {
+          setCallbackError({
+            stage: 'exception',
+            message: e.message || 'Okänt fel',
+            rawSearch,
+            rawHash,
+            hadVerifier: !!pkceVerifier,
+          });
+        }
       }
-
-      // Fallback redirect after 4 s in case subscriber never fires
-      setTimeout(() => isMounted && goToDashboard(), 4000);
     }
 
     handleCallback();
@@ -63,6 +111,47 @@ export default function AuthCallback() {
       unsubscribe();
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (callbackError) {
+    return (
+      <div
+        className="min-h-screen bg-[#0F1513] flex flex-col items-center justify-center gap-6 p-6"
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+      >
+        <div className="w-full max-w-sm bg-[#121715] border border-red-900/40 rounded-2xl p-6 flex flex-col gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-red-900/30 flex items-center justify-center shrink-0">
+              <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3C7.03 3 3 7.03 3 12s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9z" />
+              </svg>
+            </div>
+            <h2 className="text-[#F4F7F5] font-semibold text-base">Inloggning misslyckades</h2>
+          </div>
+
+          <p className="text-[#B6C2BC] text-sm">{callbackError.message}</p>
+
+          {/* Diagnostic block — dev-visible on iOS Safari since no console */}
+          <details className="text-xs text-[#8FA097] border border-[#223029] rounded-lg p-3 cursor-pointer">
+            <summary className="font-mono select-none">Diagnostik</summary>
+            <div className="mt-2 space-y-1 font-mono break-all">
+              <div><span className="text-[#2BA84A]">stage:</span> {callbackError.stage}</div>
+              {callbackError.code != null && <div><span className="text-[#2BA84A]">code:</span> {callbackError.code}</div>}
+              <div><span className="text-[#2BA84A]">verifier:</span> {callbackError.hadVerifier ? 'hittades' : 'saknas'}</div>
+              <div><span className="text-[#2BA84A]">search:</span> {callbackError.rawSearch || '(tom)'}</div>
+              <div><span className="text-[#2BA84A]">hash:</span> {callbackError.rawHash || '(tom)'}</div>
+            </div>
+          </details>
+
+          <button
+            onClick={() => window.location.replace('/')}
+            className="w-full h-11 rounded-xl bg-[#2BA84A] hover:bg-[#248232] text-white font-semibold text-sm transition-colors"
+          >
+            Logga in igen
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
