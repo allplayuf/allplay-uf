@@ -507,13 +507,15 @@ export default function Dashboard() {
 
               <div className="flex flex-col sm:flex-row items-stretch gap-0 relative z-10">
                 {/* Image with overlay */}
-                <div className="relative w-full sm:w-[42%] h-48 sm:h-auto flex-shrink-0 overflow-hidden">
-                  <motion.img
+                <motion.div
+                  whileHover={{ scale: 1.04 }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
+                  className="relative w-full sm:w-[42%] h-48 sm:h-auto flex-shrink-0 overflow-hidden rounded-t-[24px] sm:rounded-t-none sm:rounded-l-[24px]"
+                >
+                  <img
                     src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/afd97d702_P10905801.jpg"
                     alt="AllPlay Team"
                     className="w-full h-full object-cover"
-                    whileHover={{ scale: 1.04 }}
-                    transition={{ duration: 0.6, ease: 'easeOut' }}
                   />
                   {/* Readability gradient */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#0F1513] opacity-70 hidden sm:block" />
@@ -526,7 +528,7 @@ export default function Dashboard() {
                       Om oss
                     </span>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Content */}
                 <div className="flex-1 flex flex-col justify-center gap-4 p-5 sm:p-7">
