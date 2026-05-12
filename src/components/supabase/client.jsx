@@ -395,13 +395,11 @@ class SupabaseClient {
 
   async syncUserToPublicProfile(authUser) {
     if (!authUser?.id) return;
-    
-    // Try multiple sources for full_name
-    let fullName = authUser.user_metadata?.full_name 
-                || authUser.raw_user_meta_data?.full_name 
+
+    let fullName = authUser.user_metadata?.full_name
+                || authUser.raw_user_meta_data?.full_name
                 || null;
-    
-    // Fallback: check localStorage (set during signup when email verification is required)
+
     if (!fullName) {
       try {
         const pendingName = localStorage.getItem('allplay_pending_fullname');
@@ -411,43 +409,23 @@ class SupabaseClient {
         }
       } catch (e) { /* ignore */ }
     }
-    
+
     const email = authUser.email || null;
-    
-    if (!fullName && !email) return;
-    
+    // Always upsert — PATCH on a missing row silently does nothing, so use POST upsert instead
+    const body = {
+      id: authUser.id,
+      username: email ? email.split('@')[0] : authUser.id.slice(0, 8),
+    };
+    if (fullName) { body.full_name = fullName; body.display_name = fullName; }
+    if (email) body.email = email;
+
     try {
       const headers = this._getHeaders(true);
-      headers['Prefer'] = 'resolution=merge-duplicates';
-      
-      const body = { id: authUser.id };
-      if (fullName) {
-        body.full_name = fullName;
-        body.display_name = fullName;
-      }
-      if (email) body.email = email;
-      
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/users?id=eq.${authUser.id}`,
-        { method: 'PATCH', headers, body: JSON.stringify(body) }
-      );
-      
-      if (!res.ok) {
-        console.warn('[SupabaseClient] syncUserToPublicProfile PATCH failed:', res.status);
-        if (res.status === 404 || res.status === 406) {
-          body.username = email ? email.split('@')[0] : authUser.id.slice(0, 8);
-          await fetch(
-            `${SUPABASE_URL}/rest/v1/users`,
-            {
-              method: 'POST',
-              headers: { ...headers, 'Prefer': 'resolution=merge-duplicates' },
-              body: JSON.stringify(body)
-            }
-          );
-        }
-      } else {
-        console.log('[SupabaseClient] syncUserToPublicProfile OK for', authUser.id, fullName);
-      }
+      await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+        method: 'POST',
+        headers: { ...headers, 'Prefer': 'resolution=merge-duplicates' },
+        body: JSON.stringify(body),
+      });
     } catch (e) {
       console.warn('[SupabaseClient] syncUserToPublicProfile error:', e.message);
     }

@@ -23,8 +23,9 @@ export function generateRawNonce() {
   return Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// GoTrue expects the nonce embedded in Apple's JWT to be hex-encoded SHA-256
 export async function hashNonce(rawNonce) {
   const data = new TextEncoder().encode(rawNonce);
   const hash = await crypto.subtle.digest('SHA-256', data);
-  return base64UrlEncode(new Uint8Array(hash));
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
