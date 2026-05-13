@@ -204,6 +204,19 @@ class SupabaseClient {
     // Load persisted session
     sessionStore.load();
 
+    // If Supabase redirected the OAuth code to the site root (instead of /auth/callback
+    // because /auth/callback wasn't in the allowed redirect URLs list), catch it here
+    // and send the browser to the correct callback page so AuthCallback can do the exchange.
+    if (typeof window !== 'undefined') {
+      const search = window.location.search;
+      const code = new URLSearchParams(search).get('code');
+      const hasVerifier = !!localStorage.getItem('allplay_pkce_verifier');
+      if (code && hasVerifier && !window.location.pathname.startsWith('/auth')) {
+        window.location.replace('/auth/callback' + search);
+        return;
+      }
+    }
+
     // detectSessionInUrl: pick up hash-based tokens from implicit OAuth flow
     if (typeof window !== 'undefined') {
       const hash = window.location.hash;
