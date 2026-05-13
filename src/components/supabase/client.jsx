@@ -51,10 +51,15 @@ function markAuthReady() {
 /**
  * Wait for auth initialization to complete.
  * All services MUST call this before any network request.
+ * Safety timeout: resolves after 8s even if init never calls markAuthReady,
+ * preventing infinite hangs on stuck Google OAuth sessions.
  */
 export function waitForAuth() {
   if (_authReady) return Promise.resolve();
-  return authReadyPromise;
+  return Promise.race([
+    authReadyPromise,
+    new Promise(resolve => setTimeout(resolve, 8000))
+  ]);
 }
 
 /**

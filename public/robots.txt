@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Private / authenticated routes
+Disallow: /admin
+Disallow: /admincleanu
+Disallow: /editprofile
+Disallow: /accountsettings
+Disallow: /feedback
+Disallow: /authcallback
+
+Sitemap: https://allplayuf.se/sitemap.xml

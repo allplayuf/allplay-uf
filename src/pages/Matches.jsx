@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useSEO } from "@/components/hooks/useSEO";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
@@ -67,6 +68,7 @@ const PageLoadingSkeleton = () => (
 
 
 export default function MatchesPage() {
+  useSEO({ title: 'Matcher – Hitta fotbollsmatcher', description: 'Bläddra bland öppna fotbollsmatcher i din stad. Gå med, skapa eller filtrera efter nivå och datum på AllPlay UF.', canonicalPath: '/matches' });
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [activeTab, setActiveTab] = useState("browse");
   const [sortBy, setSortBy] = useState("all");

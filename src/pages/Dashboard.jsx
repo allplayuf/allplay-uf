@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSEO } from "@/components/hooks/useSEO";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
@@ -53,6 +54,7 @@ const QUERY_KEYS = {
 };
 
 export default function Dashboard() {
+  useSEO({ title: 'Hem', description: 'Se dina kommande matcher, hitta spelare nära dig och boka planer direkt via AllPlay UF.', canonicalPath: '/dashboard' });
   const [userLocation, setUserLocation] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
   const [showErrorDialog, setShowErrorDialog] = useState(false);

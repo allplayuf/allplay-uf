@@ -1,9 +1,11 @@
 import React from "react";
+import { useSEO } from "@/components/hooks/useSEO";
 import { ShieldCheck } from "lucide-react";
 import PolicyRenderer from "../components/legal/PolicyRenderer";
 import { CONSENT_VERSION } from "../components/legal/consentConstants";
 
 export default function LegalPolicyPage() {
+  useSEO({ title: 'Integritetspolicy', description: 'Läs om hur AllPlay UF hanterar dina personuppgifter och skyddar din integritet enligt GDPR.', canonicalPath: '/legalpolicy' });
   return (
     <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
       {/* Sticky topbar */}

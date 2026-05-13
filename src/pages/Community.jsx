@@ -1,4 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
+import { useSEO } from "@/components/hooks/useSEO";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { SUPABASE_URL, getAuthHeaders } from "@/components/supabase";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -110,6 +111,7 @@ const TAB_COLORS = {
 };
 
 export default function CommunityPage() {
+  useSEO({ title: 'Community – Lag och spelare', description: 'Hitta lag, träffa spelare och bygg ditt fotbollsnätverk i Sverige med AllPlay UF.', canonicalPath: '/community' });
   const navigate = useNavigate();
   const locationHook = useLocation();
   const urlParams = new URLSearchParams(locationHook.search);

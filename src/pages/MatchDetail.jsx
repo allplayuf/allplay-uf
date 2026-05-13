@@ -244,8 +244,11 @@ export default function MatchDetailPage() {
   };
 
   const handleAddFriend = async (participantId) => {
+    const loadingId = feedback.loading("Skickar förfrågan...");
     try {
       const result = await sendFriendRequest(participantId);
+      feedback.dismiss(loadingId);
+      queryClient.invalidateQueries({ queryKey: ["friendships", user?.id] });
       if (result.action === "created") {
         feedback.success("Vänförfrågan skickad 🤝");
       } else if (result.action === "accepted") {
@@ -255,8 +258,8 @@ export default function MatchDetailPage() {
       } else if (result.action === "already_friends") {
         feedback.info("Ni är redan vänner");
       }
-      queryClient.invalidateQueries({ queryKey: ["friendships", user?.id] });
     } catch (error) {
+      feedback.dismiss(loadingId);
       feedback.error("Kunde inte skicka", { description: error.message || "Försök igen." });
     }
   };

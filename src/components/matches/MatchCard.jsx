@@ -55,6 +55,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
   // ALWAYS call hooks first, before any conditional returns
   const [showAuthGate, setShowAuthGate] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isJoining, setIsJoining] = useState(false);
   const { isGuest } = useSupabaseAuth();
 
   // Read participant users SYNCHRONOUSLY from the shared cache — no extra network call.
@@ -112,21 +113,20 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
   const handleJoinClick = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    // Check if guest
+    if (isJoining) return;
+
     if (isGuest) {
       setShowAuthGate(true);
       return;
     }
-    
+
+    setIsJoining(true);
     triggerHaptic('success');
-    
-    // Let backend handle auth - onJoin will show error if guest
-    if (onJoin) {
-      await onJoin(match.id);
-    }
-    if (onRefresh) {
-      await onRefresh();
+    try {
+      if (onJoin) await onJoin(match.id);
+      if (onRefresh) await onRefresh();
+    } finally {
+      setIsJoining(false);
     }
   };
 
@@ -314,7 +314,8 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
               {canJoin && (
                 <motion.button
                   onClick={handleJoinClick}
-                  whileTap={{ scale: 0.96 }}
+                  disabled={isJoining}
+                  whileTap={{ scale: isJoining ? 1 : 0.96 }}
                   animate={{
                     boxShadow: [
                       '0 8px 22px rgba(244,116,59,0.38), inset 0 1px 0 rgba(255,255,255,0.18)',
@@ -323,7 +324,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
                     ],
                   }}
                   transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-                  className="flex-1 relative overflow-hidden text-white text-[14px] font-extrabold uppercase tracking-wide h-10 rounded-[12px] flex items-center justify-center gap-2 ring-1 ring-white/10"
+                  className={`flex-1 relative overflow-hidden text-white text-[14px] font-extrabold uppercase tracking-wide h-10 rounded-[12px] flex items-center justify-center gap-2 ring-1 ring-white/10 ${isJoining ? 'opacity-60 cursor-not-allowed' : ''}`}
                   style={{
                     background:
                       'linear-gradient(180deg, #FF8A4D 0%, #F4743B 55%, #D95D26 100%)',

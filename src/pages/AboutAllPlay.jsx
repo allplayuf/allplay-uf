@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSEO } from "@/components/hooks/useSEO";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Globe, Instagram, Music, ExternalLink, Users, Target, Zap, Shield, MapPin, Calendar, ChevronDown, ChevronUp, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -78,6 +79,7 @@ function PolicyBlock() {
 }
 
 export default function AboutAllPlay() {
+  useSEO({ title: 'Om AllPlay UF', description: 'AllPlay UF är en ideell ungdomsförening som kopplar ihop fotbollsspelare i Sverige. Hitta matcher, boka planer och spela mer fotboll.', canonicalPath: '/aboutallplay' });
   return (
     <div className="min-h-screen bg-[#0A0E0C] pb-24 lg:pb-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-7">

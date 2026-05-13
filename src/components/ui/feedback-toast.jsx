@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { triggerHaptic } from "@/components/utils/motionTokens";
 
 // Prevent the same toast from firing twice within 1.5 seconds
-const DEDUP_MS = 1500;
+const DEDUP_MS = 5000;
 const lastFired = new Map();
 function isDuplicate(key) {
   const now = Date.now();

@@ -100,14 +100,19 @@ export async function callEdgeFunction(name, body = {}, options = {}) {
   };
   pushDebug(preDebug);
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
   let res;
   try {
     res = await fetch(url, {
       method,
       headers,
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
+      signal: controller.signal
     });
   } catch (networkErr) {
+    clearTimeout(timeoutId);
     const netDebug = {
       phase: 'NETWORK_ERROR',
       fn: name,
@@ -121,6 +126,8 @@ export async function callEdgeFunction(name, body = {}, options = {}) {
     error.functionName = name;
     throw error;
   }
+
+  clearTimeout(timeoutId);
 
   // ── READ RESPONSE ──
   let rawText = '';

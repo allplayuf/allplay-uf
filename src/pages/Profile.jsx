@@ -1,4 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
+import { useSEO } from "@/components/hooks/useSEO";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { getUsersByIds, getUserById } from "../components/supabase/services/usersService";
@@ -80,6 +81,7 @@ const QUERY_KEYS = {
 };
 
 export default function ProfilePage() {
+  useSEO({ title: 'Profil', description: 'Hantera din profil, statistik och inställningar på AllPlay UF.' });
   const [showQRModal, setShowQRModal] = useState(false);
   const [activeTab, setActiveTab] = useState('inbox');
   const [showSettingsSheet, setShowSettingsSheet] = useState(false);
@@ -425,8 +427,10 @@ export default function ProfilePage() {
 
   const handleAddFriendFromProfile = async () => {
     if (!targetUser || !user) return;
+    const loadingId = feedback.loading("Skickar förfrågan...");
     try {
       const result = await sendFriendRequest(targetUser.id);
+      feedback.dismiss(loadingId);
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friends(user.id) });
 
@@ -440,6 +444,7 @@ export default function ProfilePage() {
         feedback.info('Vänförfrågan redan skickad');
       }
     } catch (error) {
+      feedback.dismiss(loadingId);
       console.error('Error adding friend:', error);
       feedback.error(error.message || 'Kunde inte skicka vänförfrågan. Försök igen.');
     }

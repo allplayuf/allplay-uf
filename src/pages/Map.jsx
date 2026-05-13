@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSEO } from "@/components/hooks/useSEO";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapPin, Filter, Search, Navigation, SlidersHorizontal, List, Map as MapIcon } from "lucide-react";
@@ -23,6 +24,7 @@ import FilterSheet from "../components/map/FilterSheet";
 import AllPlayToggle from "../components/map/AllPlayToggle";
 
 export default function MapPage() {
+  useSEO({ title: 'Karta – Fotbollsplaner nära dig', description: 'Hitta fotbollsplaner och aktiva matcher på kartan. Se var folk spelar och hoppa in direkt med AllPlay UF.', canonicalPath: '/map' });
   const navigate = useNavigate();
   const [venues, setVenues] = useState([]);
   const [matches, setMatches] = useState([]);
