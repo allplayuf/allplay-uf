@@ -392,7 +392,13 @@ class SupabaseClient {
       return true; // Treat as "still valid" to avoid clearing on transient failures
     }
     if (!result.data?.ok) return false;
-    const userData = result.data.user || sessionStore.user || null;
+    const meUser = result.data.user; // minimal { id, email } — don't downgrade stored user
+    const existingUser = sessionStore.user;
+    // Preserve the richer stored user (with user_metadata / OAuth fields).
+    // me() only confirms the session is valid; trust it for ID but keep existing data.
+    const userData = (existingUser?.id && existingUser.id === meUser?.id)
+      ? existingUser
+      : (meUser || existingUser || null);
     const roles = Array.isArray(result.data.roles) ? result.data.roles : [];
     sessionStore.setUser(userData);
     sessionStore.setRoles(roles);
@@ -427,17 +433,22 @@ class SupabaseClient {
     }
 
     const email = authUser.email || null;
-    // Always upsert — PATCH on a missing row silently does nothing, so use POST upsert instead
-    const body = {
-      id: authUser.id,
-      username: email ? email.split('@')[0] : authUser.id.slice(0, 8),
-    };
+    const avatarUrl = authUser.user_metadata?.avatar_url
+                   || authUser.user_metadata?.picture
+                   || null;
+
+    // Upsert to public.profiles (the real table — public.users is a non-updatable view).
+    // Don't include username — it has a UNIQUE constraint that would break the upsert
+    // if two OAuth users share an email prefix.
+    const body = { id: authUser.id };
     if (fullName) { body.full_name = fullName; body.display_name = fullName; }
     if (email) body.email = email;
+    if (avatarUrl) body.avatar_url = avatarUrl;
 
     try {
       const headers = this._getHeaders(true);
-      await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+      // Write to public.profiles (the real table), not public.users (a non-updatable view)
+      await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
         method: 'POST',
         headers: { ...headers, 'Prefer': 'resolution=merge-duplicates' },
         body: JSON.stringify(body),

@@ -46,9 +46,8 @@ export default function GlassHeader({ showBack }) {
         }}
       >
         <motion.header
-          initial={{ y: -10, opacity: 0 }}
+          initial={{ y: 0, opacity: 1 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
           className="pointer-events-auto relative mx-auto max-w-3xl overflow-hidden rounded-[22px] border border-white/[0.08]"
           style={{
             background: "rgba(18,23,20,0.55)",

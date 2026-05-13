@@ -118,6 +118,19 @@ export const base44 = {
       }
       return sessionStore.user;
     },
+    async updateMe(payload) {
+      // Map ConsentChecker fields to update_profile edge function payload
+      const mapped = { ...payload };
+      if ('tos_version_accepted' in payload) {
+        mapped.terms_version = payload.tos_version_accepted;
+        delete mapped.tos_version_accepted;
+      }
+      if ('tos_accepted_at' in payload) {
+        mapped.accepted_terms_at = payload.tos_accepted_at;
+        delete mapped.tos_accepted_at;
+      }
+      return callEdgeFunction('update_profile', mapped);
+    },
     logout() {
       sessionStore.clear();
     },
