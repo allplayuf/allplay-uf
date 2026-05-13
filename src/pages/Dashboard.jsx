@@ -400,28 +400,17 @@ export default function Dashboard() {
           </motion.div>
         )}
 
-        {/* Next Match Card — full width, above the carousel */}
-        {!isGuest && myUpcomingMatches.length > 0 && (
-          <motion.div variants={VARIANTS.item}>
-            <NextMatchCard
-              match={myUpcomingMatches[0]}
-              venue={myUpcomingMatches[0]?.venue || venues.find(v => v.id === myUpcomingMatches[0]?.venue_id)}
-              participants={myUpcomingMatches[0] ? allParticipants.filter(p => p.match_id === myUpcomingMatches[0].id) : []}
-            />
-          </motion.div>
-        )}
-
-        {/* Main Content */}
+        {/* Main Content — Matches Carousel first */}
         <div className={`grid gap-5 sm:gap-8 ${isCupsEnabled() ? 'lg:grid-cols-12' : ''}`}>
           <div className={`${isCupsEnabled() ? 'lg:col-span-8' : ''} min-w-0 space-y-5 sm:space-y-8`}>
-            {/* Unified Matches Carousel — skip first match when already shown in NextMatchCard */}
+            {/* Unified Matches Carousel */}
             <motion.div variants={VARIANTS.item} className="min-w-0">
               {matchesLoading || venuesLoading ? (
                 <MatchGridSkeleton count={2} />
               ) : (
                 <MatchesCarousel
                   nearbyMatches={nearbyMatches}
-                  myMatches={!isGuest && myUpcomingMatches.length > 0 ? myUpcomingMatches.slice(1) : myUpcomingMatches}
+                  myMatches={myUpcomingMatches}
                   allParticipants={allParticipants}
                   venues={venues}
                   user={user}
@@ -445,6 +434,23 @@ export default function Dashboard() {
             </motion.div>
           )}
         </div>
+
+        {/* Next Match Card — below the carousel */}
+        {!isGuest && (
+          <motion.div variants={VARIANTS.item}>
+            {myUpcomingMatches.length > 0 ? (
+              <NextMatchCard
+                match={myUpcomingMatches[0]}
+                venue={myUpcomingMatches[0]?.venue || venues.find(v => v.id === myUpcomingMatches[0]?.venue_id)}
+                participants={myUpcomingMatches[0] ? allParticipants.filter(p => p.match_id === myUpcomingMatches[0].id) : []}
+              />
+            ) : (
+              <div className="w-[calc(100%-3rem)] sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]">
+                <NextMatchCard match={null} venue={null} participants={[]} />
+              </div>
+            )}
+          </motion.div>
+        )}
 
         {/* Cups Widget on mobile */}
         {isCupsEnabled() && (
