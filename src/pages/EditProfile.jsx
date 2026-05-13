@@ -27,7 +27,6 @@ import {
   Save,
   User,
   Target,
-  Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -195,7 +194,7 @@ export default function EditProfile() {
   const firstName = (formData.display_name || '').trim().split(' ')[0] || 'Du';
 
   return (
-    <div className="min-h-screen bg-[#0F1513] pb-28 lg:pb-8">
+    <div className="min-h-screen bg-[#0F1513] pb-32 lg:pb-8">
       {/* ── Sticky header ─────────────────────────────── */}
       <div className="sticky top-0 z-30 bg-[#0F1513]/92 backdrop-blur-xl border-b border-[#223029]/70">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-3">
@@ -409,12 +408,12 @@ export default function EditProfile() {
         </Section>
 
         {/* Desktop-only inline save row */}
-        <div className="hidden lg:flex gap-3 pt-1">
+        <div className="hidden lg:flex gap-3 pt-1 pb-2">
           <Button
             type="button"
             variant="outline"
             onClick={() => navigate(-1)}
-            className="flex-1 border-[#243029] text-[#F4F7F5] hover:bg-[#18221E] h-11"
+            className="flex-1 border-[#2C3830] bg-[#141917] text-[#C8D5CF] hover:bg-[#18221E] hover:text-[#F4F7F5] h-11 rounded-xl font-semibold transition-all"
             disabled={isSubmitting}
           >
             Avbryt
@@ -422,7 +421,11 @@ export default function EditProfile() {
           <Button
             type="submit"
             disabled={isSubmitting || saved || !hasChanges}
-            className="flex-1 bg-[#2BA84A] hover:bg-[#34C257] text-white h-11 font-semibold disabled:opacity-40"
+            className="flex-[2] h-11 rounded-xl font-bold transition-all disabled:opacity-40"
+            style={{
+              background: 'linear-gradient(135deg, #2BA84A 0%, #22C55E 100%)',
+              boxShadow: hasChanges && !saved ? '0 6px 18px rgba(43,168,74,0.3)' : undefined,
+            }}
           >
             {isSubmitting ? (
               <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sparar...</>
@@ -436,43 +439,42 @@ export default function EditProfile() {
       </form>
 
       {/* ── Sticky bottom save bar (mobile) ─────────── */}
-      <AnimatePresence>
-        {(hasChanges || isSubmitting || saved) && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-            className="lg:hidden fixed left-0 right-0 bottom-0 z-40 px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-gradient-to-t from-[#0F1513] via-[#0F1513]/95 to-transparent"
+      <div className="lg:hidden fixed left-0 right-0 bottom-0 z-40 px-4 pt-3 pb-[calc(0.875rem+env(safe-area-inset-bottom))] bg-gradient-to-t from-[#0A100D] via-[#0F1513]/97 to-transparent border-t border-[#1C2820]/60">
+        <div className="max-w-2xl mx-auto flex gap-2.5">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate(-1)}
+            disabled={isSubmitting}
+            className="flex-1 border-[#2C3830] bg-[#141917] text-[#C8D5CF] hover:bg-[#18221E] hover:text-[#F4F7F5] h-12 rounded-2xl font-semibold transition-all"
           >
-            <div className="max-w-2xl mx-auto flex gap-2.5">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate(-1)}
-                disabled={isSubmitting}
-                className="flex-1 border-[#243029] bg-[#141917] text-[#F4F7F5] hover:bg-[#18221E] h-12 rounded-xl"
-              >
-                Avbryt
-              </Button>
-              <Button
-                type="button"
-                onClick={handleSubmit}
-                disabled={isSubmitting || saved || !hasChanges}
-                className="flex-[2] bg-[#2BA84A] hover:bg-[#34C257] text-white h-12 rounded-xl font-bold disabled:opacity-40 shadow-[0_10px_24px_rgba(43,168,74,0.4)]"
-              >
-                {isSubmitting ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sparar...</>
-                ) : saved ? (
-                  <><CheckCircle2 className="w-4 h-4 mr-2" /> Sparat!</>
-                ) : (
-                  <><Save className="w-4 h-4 mr-2" /> Spara ändringar</>
-                )}
-              </Button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            Avbryt
+          </Button>
+          <Button
+            type="button"
+            onClick={handleSubmit}
+            disabled={isSubmitting || saved || !hasChanges}
+            className="flex-[2] h-12 rounded-2xl font-bold transition-all"
+            style={{
+              background: hasChanges && !saved && !isSubmitting
+                ? 'linear-gradient(135deg, #2BA84A 0%, #22C55E 100%)'
+                : undefined,
+              boxShadow: hasChanges && !saved && !isSubmitting
+                ? '0 8px 20px rgba(43,168,74,0.35)'
+                : undefined,
+              opacity: (!hasChanges || saved) && !isSubmitting ? 0.45 : 1,
+            }}
+          >
+            {isSubmitting ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sparar...</>
+            ) : saved ? (
+              <><CheckCircle2 className="w-4 h-4 mr-2" /> Sparat!</>
+            ) : (
+              <><Save className="w-4 h-4 mr-2" /> Spara ändringar</>
+            )}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

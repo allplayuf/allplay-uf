@@ -40,7 +40,8 @@ export default function GlassHeader({ showBack }) {
       <div
         className="lg:hidden fixed left-0 right-0 z-[100] pointer-events-none"
         style={{
-          top: "calc(env(safe-area-inset-top) + 8px)",
+          top: 0,
+          paddingTop: "calc(env(safe-area-inset-top) + 8px)",
           paddingLeft: "calc(env(safe-area-inset-left) + 12px)",
           paddingRight: "calc(env(safe-area-inset-right) + 12px)",
         }}
