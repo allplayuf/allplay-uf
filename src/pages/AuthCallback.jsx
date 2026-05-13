@@ -17,12 +17,10 @@ export default function AuthCallback() {
   useEffect(() => {
     let isMounted = true;
 
-    // Capture diagnostic info BEFORE anything modifies URL or storage
     const rawSearch = window.location.search;
     const rawHash = window.location.hash;
     const pkceVerifier = localStorage.getItem('allplay_pkce_verifier') || '';
 
-    // Check for error params from Supabase redirect
     const searchParams = new URLSearchParams(rawSearch);
     const hashParams = new URLSearchParams(rawHash.substring(1));
     const oauthError = searchParams.get('error') || hashParams.get('error');
@@ -39,7 +37,7 @@ export default function AuthCallback() {
       return;
     }
 
-    // Listen for SIGNED_IN equivalent — navigate as soon as session is confirmed
+    // Navigate as soon as session becomes AUTHENTICATED (set by exchange below)
     const unsubscribe = sessionStore.subscribe((state) => {
       if (isMounted && state.authState === AUTH_STATES.AUTHENTICATED) {
         goToDashboard();
@@ -48,19 +46,14 @@ export default function AuthCallback() {
 
     async function handleCallback() {
       try {
-        // init() loads persisted session and runs detectSessionInUrl (hash tokens)
         await supabaseClient.init();
-
-        // If init() already resolved a session (hash tokens or existing session), we're done
-        if (sessionStore.authState === AUTH_STATES.AUTHENTICATED) {
-          goToDashboard();
-          return;
-        }
 
         const code = searchParams.get('code');
 
         if (code) {
-          // PKCE flow — verifier stored in localStorage (survives cross-origin redirects)
+          // Always exchange the code when present — never skip this based on
+          // an existing session, because the user intentionally went through
+          // OAuth and must get a session for that provider.
           localStorage.removeItem('allplay_pkce_verifier');
           const redirectTo = `${window.location.origin}/auth/callback`;
           const result = await supabaseClient.exchangeCodeForSession(code, pkceVerifier, redirectTo);
@@ -77,9 +70,12 @@ export default function AuthCallback() {
             }
             return;
           }
-          // exchangeCodeForSession sets AUTHENTICATED on success → subscriber above navigates
+          // exchangeCodeForSession calls setAuthState(AUTHENTICATED) on success
+          // → the subscriber above fires and calls goToDashboard()
+        } else if (sessionStore.authState === AUTH_STATES.AUTHENTICATED) {
+          // No code in URL but already authenticated — go straight to app
+          goToDashboard();
         } else {
-          // No code and no hash token — nothing to exchange
           if (isMounted) {
             setCallbackError({
               stage: 'no_code',
@@ -130,7 +126,6 @@ export default function AuthCallback() {
 
           <p className="text-[#B6C2BC] text-sm">{callbackError.message}</p>
 
-          {/* Diagnostic block — dev-visible on iOS Safari since no console */}
           <details className="text-xs text-[#8FA097] border border-[#223029] rounded-lg p-3 cursor-pointer">
             <summary className="font-mono select-none">Diagnostik</summary>
             <div className="mt-2 space-y-1 font-mono break-all">
