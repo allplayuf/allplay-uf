@@ -20,6 +20,7 @@ import {
   Zap,
   TrendingUp
 } from "lucide-react";
+import feedback from "../components/ui/feedback-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { HeroSkeleton, MatchGridSkeleton, SectionSkeleton } from "../components/ui/section-skeleton";
@@ -56,8 +57,6 @@ const QUERY_KEYS = {
 export default function Dashboard() {
   useSEO({ title: 'Hem', description: 'Se dina kommande matcher, hitta spelare nära dig och boka planer direkt via AllPlay UF.', canonicalPath: '/dashboard' });
   const [userLocation, setUserLocation] = useState(null);
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [showCreateMatchModal, setShowCreateMatchModal] = useState(false);
   const [showAuthGate, setShowAuthGate] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -146,23 +145,12 @@ export default function Dashboard() {
         },
         (error) => {
           console.error('Error getting location:', error);
-          displayError('Kunde inte hämta din plats. Kontrollera dina platsinställningar.');
           setUserLocation({ lat: 59.3293, lng: 18.0686 });
         }
       );
     } else {
-      displayError('Din webbläsare stöder inte geolokalisering. Använder standardplats.');
       setUserLocation({ lat: 59.3293, lng: 18.0686 });
     }
-  };
-
-  const displayError = (message) => {
-    setErrorMessage(message);
-    setShowErrorDialog(true);
-    setTimeout(() => {
-      setShowErrorDialog(false);
-      setErrorMessage(null);
-    }, 5000);
   };
 
 
@@ -195,7 +183,7 @@ export default function Dashboard() {
       queryClient.invalidateQueries({ queryKey: ['dashboard-feed'] });
     } catch (error) {
       console.error("Error joining match:", error);
-      displayError(error.message || 'Kunde inte gå med i matchen.');
+      feedback.error(error.message || 'Kunde inte gå med i matchen.');
     }
   };
 
@@ -222,7 +210,7 @@ export default function Dashboard() {
       
     } catch (error) {
       console.error("Error creating match:", error);
-      displayError(error.message || 'Kunde inte skapa match. Försök igen.');
+      feedback.error(error.message || 'Kunde inte skapa match. Försök igen.');
     }
   };
 
@@ -318,10 +306,9 @@ export default function Dashboard() {
     goal: 5
   };
 
-  // Handle rate limit errors gracefully
   useEffect(() => {
     if (userError?.message?.includes('rate limit') || userError?.message?.includes('Rate limit')) {
-      displayError('För många förfrågningar. Vänta en stund och uppdatera sidan.');
+      feedback.error('För många förfrågningar. Vänta en stund och uppdatera sidan.');
     }
   }, [userError]);
 
@@ -362,28 +349,6 @@ export default function Dashboard() {
       animate="visible"
       className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8"
     >
-      {/* Error Dialog */}
-      <AnimatePresence>
-        {showErrorDialog && errorMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -50 }}
-            transition={{ duration: 0.3 }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 p-4 rounded-lg shadow-lg bg-red-600 text-white flex items-center justify-between space-x-4 max-w-sm w-full"
-          >
-            <p className="text-sm font-medium flex-grow">{errorMessage}</p>
-            <button
-              onClick={() => setShowErrorDialog(false)}
-              className="p-1 rounded-full hover:bg-red-700 transition-colors"
-              aria-label="Stäng meddelande"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Create Match Modal */}
       <AnimatePresence>
         {showCreateMatchModal && (
@@ -447,16 +412,16 @@ export default function Dashboard() {
         )}
 
         {/* Main Content */}
-        <div className="grid lg:grid-cols-12 gap-5 sm:gap-8">
-          <div className="lg:col-span-8 min-w-0 space-y-5 sm:space-y-8">
-            {/* Unified Matches Carousel */}
+        <div className={`grid gap-5 sm:gap-8 ${isCupsEnabled() ? 'lg:grid-cols-12' : ''}`}>
+          <div className={`${isCupsEnabled() ? 'lg:col-span-8' : ''} min-w-0 space-y-5 sm:space-y-8`}>
+            {/* Unified Matches Carousel — skip first match when already shown in NextMatchCard */}
             <motion.div variants={VARIANTS.item} className="min-w-0">
               {matchesLoading || venuesLoading ? (
                 <MatchGridSkeleton count={2} />
               ) : (
                 <MatchesCarousel
                   nearbyMatches={nearbyMatches}
-                  myMatches={myUpcomingMatches}
+                  myMatches={!isGuest && myUpcomingMatches.length > 0 ? myUpcomingMatches.slice(1) : myUpcomingMatches}
                   allParticipants={allParticipants}
                   venues={venues}
                   user={user}
@@ -468,21 +433,20 @@ export default function Dashboard() {
             </motion.div>
           </div>
 
-          {/* Right Column */}
-          <motion.div
-            variants={VARIANTS.item}
-            className="lg:col-span-4 space-y-5 sm:space-y-8 sticky top-24 self-start"
-          >
-            {/* Cups Widget in sidebar on desktop */}
-            {isCupsEnabled() && (
+          {/* Right Column — only rendered when cups are enabled */}
+          {isCupsEnabled() && (
+            <motion.div
+              variants={VARIANTS.item}
+              className="lg:col-span-4 space-y-5 sm:space-y-8 sticky top-24 self-start"
+            >
               <div className="hidden lg:block">
                 <CupsWidget />
               </div>
-            )}
-          </motion.div>
+            </motion.div>
+          )}
         </div>
 
-        {/* Cups Widget on mobile - between matches and about section */}
+        {/* Cups Widget on mobile */}
         {isCupsEnabled() && (
           <motion.div variants={VARIANTS.item} className="lg:hidden">
             <CupsWidget />
@@ -514,7 +478,7 @@ export default function Dashboard() {
                 <motion.div
                   whileHover={{ scale: 1.04 }}
                   transition={{ duration: 0.6, ease: 'easeOut' }}
-                  className="relative w-full sm:w-[42%] h-48 sm:h-auto flex-shrink-0 overflow-hidden rounded-t-[24px] sm:rounded-t-none sm:rounded-l-[24px]"
+                  className="relative w-full sm:w-[42%] h-48 sm:h-auto flex-shrink-0 overflow-hidden"
                 >
                   <img
                     src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/afd97d702_P10905801.jpg"

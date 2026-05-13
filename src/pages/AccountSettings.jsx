@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import {
   ArrowLeft, Trash2, Bell, Shield, EyeOff, Lock, Mail,
   FileText, ShieldCheck, ExternalLink, AlertTriangle,
-  Loader2, ChevronRight, Globe, Megaphone
+  Loader2, ChevronRight, Globe, Megaphone, LogOut
 } from "lucide-react";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
@@ -250,6 +250,27 @@ export default function AccountSettingsPage() {
               onClick={() => navigate(createPageUrl("LegalPolicy"))}
               trailingIcon={ExternalLink}
             />
+          </SettingsCard>
+
+          {/* ─── Logga ut ──────────────────── */}
+          <SettingsCard
+            title="Konto"
+            desc="Session och inloggning"
+            icon={LogOut}
+            iconAccent="#F87171"
+          >
+            <button
+              onClick={async () => {
+                const ok = await confirm('Logga ut', 'Är du säker på att du vill logga ut?', {
+                  type: 'warning', confirmText: 'Logga ut', cancelText: 'Avbryt'
+                });
+                if (ok) logout();
+              }}
+              className="w-full h-12 flex items-center gap-3 px-3.5 rounded-xl bg-[#0F1513] ring-1 ring-[#DC2626]/20 hover:bg-[#DC2626]/8 hover:ring-[#DC2626]/30 text-[#F87171] transition-all text-left"
+            >
+              <LogOut className="w-4 h-4 flex-shrink-0" strokeWidth={2.3} />
+              <span className="text-[13.5px] font-bold">Logga ut</span>
+            </button>
           </SettingsCard>
 
           {/* ─── Danger zone ───────────────── */}

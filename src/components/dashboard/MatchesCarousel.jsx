@@ -259,14 +259,14 @@ export default function MatchesCarousel({
         />
       ) : (
         <div className="relative">
-          {/* Edge fades */}
+          {/* Edge fades — z-[1] so card hover glows (z-[2]) render above them */}
           <div
-            className={`pointer-events-none absolute left-0 top-0 bottom-0 w-6 sm:w-8 bg-gradient-to-r from-[#0F1513] to-transparent z-10 transition-opacity duration-200 ${
+            className={`pointer-events-none absolute left-0 top-0 bottom-0 w-6 sm:w-8 bg-gradient-to-r from-[#0F1513] to-transparent z-[1] transition-opacity duration-200 ${
               canScrollLeft ? "opacity-100" : "opacity-0"
             }`}
           />
           <div
-            className={`pointer-events-none absolute right-0 top-0 bottom-0 w-6 sm:w-8 bg-gradient-to-l from-[#0F1513] to-transparent z-10 transition-opacity duration-200 ${
+            className={`pointer-events-none absolute right-0 top-0 bottom-0 w-6 sm:w-8 bg-gradient-to-l from-[#0F1513] to-transparent z-[1] transition-opacity duration-200 ${
               canScrollRight ? "opacity-100" : "opacity-0"
             }`}
           />
@@ -297,7 +297,7 @@ export default function MatchesCarousel({
             {matches.map((match) => (
               <div
                 key={`${activeTab}-${match.id}`}
-                className="flex-shrink-0 snap-start w-[calc(100%-3rem)] sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
+                className="relative z-[2] flex-shrink-0 snap-start w-[calc(100%-3rem)] sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
               >
                 <MatchCard
                   match={match}

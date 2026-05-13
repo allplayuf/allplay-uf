@@ -32,12 +32,12 @@ export const feedback = {
     if (isDuplicate(`success:${message}`)) return;
     triggerHaptic("success");
     return toast.success(message, {
-      duration: 2800,
+      duration: 2000,
       description: opts.description,
       style: {
         ...baseStyle,
-        borderColor: "rgba(43, 168, 74, 0.35)",
-        boxShadow: "0 0 0 1px rgba(43, 168, 74, 0.18), 0 12px 32px rgba(0, 0, 0, 0.45)",
+        borderColor: "rgba(43, 168, 74, 0.4)",
+        boxShadow: "0 0 0 1px rgba(43, 168, 74, 0.2), 0 16px 40px rgba(0,0,0,0.55)",
       },
       ...opts,
     });
@@ -47,12 +47,12 @@ export const feedback = {
     if (isDuplicate(`error:${message}`)) return;
     triggerHaptic("error");
     return toast.error(message, {
-      duration: 4000,
+      duration: 3000,
       description: opts.description,
       style: {
         ...baseStyle,
-        borderColor: "rgba(220, 38, 38, 0.4)",
-        boxShadow: "0 0 0 1px rgba(220, 38, 38, 0.2), 0 12px 32px rgba(0, 0, 0, 0.45)",
+        borderColor: "rgba(220, 38, 38, 0.45)",
+        boxShadow: "0 0 0 1px rgba(220, 38, 38, 0.22), 0 16px 40px rgba(0,0,0,0.55)",
       },
       ...opts,
     });
@@ -62,9 +62,12 @@ export const feedback = {
     if (isDuplicate(`info:${message}`)) return;
     triggerHaptic("light");
     return toast(message, {
-      duration: 2800,
+      duration: 2000,
       description: opts.description,
-      style: baseStyle,
+      style: {
+        ...baseStyle,
+        borderColor: "rgba(62, 100, 80, 0.5)",
+      },
       ...opts,
     });
   },

@@ -194,18 +194,24 @@ function LayoutInner({ children }) {
         <ConsentChecker>
 
         <div className="h-screen flex w-full bg-[#0F1513] overflow-hidden">
-        <Toaster 
-          position="bottom-center"
+        <Toaster
+          position="top-center"
           theme="dark"
+          closeButton
           toastOptions={{
             style: {
               background: '#121715',
               color: '#F4F7F5',
               border: '1px solid #223029',
+              borderRadius: '14px',
+              boxShadow: '0 16px 40px rgba(0,0,0,0.55), 0 4px 12px rgba(0,0,0,0.3)',
+              fontSize: '14px',
+              fontWeight: 500,
             },
           }}
           containerStyle={{
-            bottom: 'calc(5rem + env(safe-area-inset-bottom))',
+            top: '42%',
+            transform: 'translateY(-50%)',
           }}
         />
         

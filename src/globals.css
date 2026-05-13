@@ -166,6 +166,27 @@
   }
 }
 
+/* ── Sonner toast close button ─────────────────────────────── */
+[data-sonner-toast] [data-close-button] {
+  background: #1E2724 !important;
+  border: 1px solid #2E3D34 !important;
+  color: #9EAAA4 !important;
+  border-radius: 8px !important;
+  top: 8px !important;
+  right: 8px !important;
+  left: auto !important;
+  width: 22px !important;
+  height: 22px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: background 0.15s, color 0.15s !important;
+}
+[data-sonner-toast] [data-close-button]:hover {
+  background: #2E3D34 !important;
+  color: #F4F7F5 !important;
+}
+
 /* AllPlay themed scrollbars – dark theme */
 * {
   scrollbar-width: thin;
