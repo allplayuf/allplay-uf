@@ -174,7 +174,7 @@ export default function MatchesCarousel({
   return (
     <div className="pt-2 sm:pt-3">
       {/* HEADER */}
-      <div className="flex items-center gap-2 sm:gap-3 mb-5 sm:mb-7 px-1">
+      <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 px-1">
         <div className="flex items-center gap-2 flex-shrink-0">
           <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
             <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-[#2BA84A]" strokeWidth={2.5} />

@@ -431,20 +431,14 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Next Match Card — below the carousel */}
-        {!isGuest && (
+        {/* Next Match Card — below the carousel, only when user has an upcoming match */}
+        {!isGuest && myUpcomingMatches.length > 0 && (
           <motion.div variants={VARIANTS.item}>
-            {myUpcomingMatches.length > 0 ? (
-              <NextMatchCard
-                match={myUpcomingMatches[0]}
-                venue={myUpcomingMatches[0]?.venue || venues.find(v => v.id === myUpcomingMatches[0]?.venue_id)}
-                participants={myUpcomingMatches[0] ? allParticipants.filter(p => p.match_id === myUpcomingMatches[0].id) : []}
-              />
-            ) : (
-              <div className="w-[calc(100%-3rem)] sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]">
-                <NextMatchCard match={null} venue={null} participants={[]} />
-              </div>
-            )}
+            <NextMatchCard
+              match={myUpcomingMatches[0]}
+              venue={myUpcomingMatches[0]?.venue || venues.find(v => v.id === myUpcomingMatches[0]?.venue_id)}
+              participants={allParticipants.filter(p => p.match_id === myUpcomingMatches[0].id)}
+            />
           </motion.div>
         )}
 

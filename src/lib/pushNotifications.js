@@ -52,7 +52,8 @@ export async function initPushNotifications(userId) {
 
     PushNotifications.addListener('pushNotificationActionPerformed', (event) => {
       const data = event.notification?.data;
-      if (data?.match_id) {
+      const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (data?.match_id && UUID_RE.test(data.match_id)) {
         window.location.href = `/matchdetail?id=${data.match_id}`;
       }
     });

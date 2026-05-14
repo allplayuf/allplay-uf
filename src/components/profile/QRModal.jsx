@@ -16,9 +16,9 @@ export default function QRModal({ user, onClose }) {
   };
 
   const handleScanResult = async (scannedId) => {
-    // Handle finding user by ID
     setShowScanner(false);
-    // Logic to navigate to user profile or add friend would go here
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!UUID_RE.test(scannedId)) return;
     window.location.href = `/profile?userId=${scannedId}`;
     onClose();
   };
