@@ -302,7 +302,7 @@ function LayoutInner({ children }) {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col bg-[#0F1513] min-h-screen lg:min-h-0">
+        <main className="flex-1 flex flex-col bg-[#0F1513] min-h-screen lg:min-h-0 overflow-hidden">
           {/* Safe-area backdrop — matches app bg so the notch/status bar isn't a different color */}
           <div
             className="lg:hidden fixed top-0 left-0 right-0 z-[90] pointer-events-none bg-[#0F1513]"

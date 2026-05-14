@@ -57,7 +57,6 @@ export default function DashboardHero({
           background:
             "radial-gradient(circle, rgba(52,194,87,0.4) 0%, rgba(52,194,87,0.1) 40%, transparent 70%)",
           animation: "ambient-breathe 8s ease-in-out infinite",
-          willChange: "opacity",
         }}
       />
       <div
