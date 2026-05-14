@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useSEO } from "@/components/hooks/useSEO";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
@@ -214,97 +214,93 @@ export default function Dashboard() {
     }
   };
 
-  // Process data when available
-  const today = new Date().toISOString().split('T')[0];
-  const upcomingMatches = (allMatchesRaw || []).filter(m =>
-    m && m.status === 'upcoming' && m.date >= today
+  // Process data when available — all derived arrays are memoized so haversine+sort
+  // don't re-run on every state change (e.g. modal open, geolocation resolve, auto-scroll ticks).
+  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
+
+  const upcomingMatches = useMemo(() =>
+    (allMatchesRaw || []).filter(m => m && m.status === 'upcoming' && m.date >= today),
+    [allMatchesRaw, today]
   );
 
+  // Set for O(1) membership checks used in several derived arrays below.
+  const userMatchIdSet = useMemo(() => new Set(myParticipantMatchIds), [myParticipantMatchIds]);
   const userMatchIds = myParticipantMatchIds;
 
   // For authenticated users: show their matches
   // For guests: show all upcoming matches
-  const myUpcomingMatches = isGuest 
-    ? upcomingMatches
-        .sort((a, b) => {
-          const dateTimeA = new Date(`${a.date}T${a.time}`);
-          const dateTimeB = new Date(`${b.date}T${b.time}`);
-          return dateTimeA - dateTimeB;
-        })
-        .slice(0, 4)
-    : upcomingMatches
-        .filter(m => userMatchIds.includes(m.id) || m.organizer_id === authUser?.id)
-        .sort((a, b) => {
-          const dateTimeA = new Date(`${a.date}T${a.time}`);
-          const dateTimeB = new Date(`${b.date}T${b.time}`);
-          return dateTimeA - dateTimeB;
-        })
-        .slice(0, 12);
+  const myUpcomingMatches = useMemo(() => {
+    if (isGuest) {
+      return [...upcomingMatches]
+        .sort((a, b) => new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`))
+        .slice(0, 4);
+    }
+    return upcomingMatches
+      .filter(m => userMatchIdSet.has(m.id) || m.organizer_id === authUser?.id)
+      .sort((a, b) => new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`))
+      .slice(0, 12);
+  }, [upcomingMatches, isGuest, userMatchIdSet, authUser?.id]);
 
-  const quickPlayMatches = upcomingMatches
-    .filter(m =>
-      m.is_open &&
-      !userMatchIds.includes(m.id) &&
-      m.organizer_id !== authUser?.id &&
-      (m.is_spontaneous || m.current_players < m.max_players) &&
-      (!m.skill_bracket || m.skill_bracket === 'mixed' || m.skill_bracket === userProfile?.skill_level)
-    )
-    .slice(0, 5);
+  const quickPlayMatches = useMemo(() =>
+    upcomingMatches
+      .filter(m =>
+        m.is_open &&
+        !userMatchIdSet.has(m.id) &&
+        m.organizer_id !== authUser?.id &&
+        (m.is_spontaneous || m.current_players < m.max_players) &&
+        (!m.skill_bracket || m.skill_bracket === 'mixed' || m.skill_bracket === userProfile?.skill_level)
+      )
+      .slice(0, 5),
+    [upcomingMatches, userMatchIdSet, authUser?.id, userProfile?.skill_level]
+  );
 
   // "I närheten" = ALLA kommande matcher (inget avståndsfilter).
   // Sortera på datum/tid (närmast i tid först).
-  const nearbyMatches = upcomingMatches
-    .map(match => {
-      const venueLat = match._venue_lat || match.venue_lat;
-      const venueLng = match._venue_lng || match.venue_lng;
-
-      let distance = Infinity;
-      if (userLocation && venueLat && venueLng) {
-        distance = haversineDistance(
-          userLocation.lat,
-          userLocation.lng,
-          parseFloat(venueLat),
-          parseFloat(venueLng)
-        );
-      }
-
-      return {
-        ...match,
-        distance,
-        venue: {
-          name: match._venue_name || match.venue_name || 'Okänd plan',
-          city: match._venue_city || match.venue_city,
-          address: match._venue_address || match.venue_address,
-          latitude: venueLat,
-          longitude: venueLng
+  const nearbyMatches = useMemo(() =>
+    upcomingMatches
+      .map(match => {
+        const venueLat = match._venue_lat || match.venue_lat;
+        const venueLng = match._venue_lng || match.venue_lng;
+        let distance = Infinity;
+        if (userLocation && venueLat && venueLng) {
+          distance = haversineDistance(
+            userLocation.lat, userLocation.lng,
+            parseFloat(venueLat), parseFloat(venueLng)
+          );
         }
-      };
-    })
-    .sort((a, b) => {
-      const ta = new Date(`${a.date}T${a.time}`).getTime();
-      const tb = new Date(`${b.date}T${b.time}`).getTime();
-      return ta - tb;
-    })
-    .slice(0, 12);
+        return {
+          ...match,
+          distance,
+          venue: {
+            name: match._venue_name || match.venue_name || 'Okänd plan',
+            city: match._venue_city || match.venue_city,
+            address: match._venue_address || match.venue_address,
+            latitude: venueLat,
+            longitude: venueLng
+          }
+        };
+      })
+      .sort((a, b) =>
+        new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime()
+      )
+      .slice(0, 12),
+    [upcomingMatches, userLocation]
+  );
 
   // Calculate weekly stats
-  const weekAgo = new Date();
-  weekAgo.setDate(weekAgo.getDate() - 7);
-
-  const weeklyMatches = (allMatchesRaw || []).filter(m => {
-    if (!m || m.status !== 'completed') return false;
-    if (!m.completed_at) return false;
-    const completedDate = new Date(m.completed_at);
-    return completedDate > weekAgo && userMatchIds.includes(m.id);
-  });
-
-  const weeklyMvps = weeklyMatches.filter(m => m.mvp_user_id === authUser?.id).length;
-
-  const weeklyStats = {
-    matchesPlayed: weeklyMatches.length,
-    mvps: weeklyMvps,
-    goal: 5
-  };
+  const weeklyStats = useMemo(() => {
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const weeklyMatches = (allMatchesRaw || []).filter(m => {
+      if (!m || m.status !== 'completed' || !m.completed_at) return false;
+      return new Date(m.completed_at) > weekAgo && userMatchIdSet.has(m.id);
+    });
+    return {
+      matchesPlayed: weeklyMatches.length,
+      mvps: weeklyMatches.filter(m => m.mvp_user_id === authUser?.id).length,
+      goal: 5
+    };
+  }, [allMatchesRaw, userMatchIdSet, authUser?.id]);
 
   useEffect(() => {
     if (userError?.message?.includes('rate limit') || userError?.message?.includes('Rate limit')) {

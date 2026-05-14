@@ -50,14 +50,14 @@ export default function DashboardHero({
       <PitchPattern />
 
       {/* ═══ Layer 2: Ambient lighting ══════════════════════ */}
-      <motion.div
+      <div
         aria-hidden
-        animate={{ opacity: [0.5, 0.75, 0.5] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         className="absolute -top-32 -right-28 w-[380px] h-[380px] sm:w-[500px] sm:h-[500px] rounded-full blur-[110px] pointer-events-none"
         style={{
           background:
             "radial-gradient(circle, rgba(52,194,87,0.4) 0%, rgba(52,194,87,0.1) 40%, transparent 70%)",
+          animation: "ambient-breathe 8s ease-in-out infinite",
+          willChange: "opacity",
         }}
       />
       <div
