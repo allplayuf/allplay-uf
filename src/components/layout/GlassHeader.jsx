@@ -44,6 +44,8 @@ export default function GlassHeader({ showBack }) {
           paddingTop: "calc(env(safe-area-inset-top) + 8px)",
           paddingLeft: "calc(env(safe-area-inset-left) + 12px)",
           paddingRight: "calc(env(safe-area-inset-right) + 12px)",
+          transform: "translateZ(0)",
+          WebkitTransform: "translateZ(0)",
         }}
       >
         <motion.header

@@ -167,7 +167,7 @@ export function SupabaseAuthProvider({ children }) {
         return { success: false, cancelled: true };
       }
       console.error('[signInWithApple]', err);
-      setError('Apple-inloggning misslyckades. Försök igen.');
+      setError(err?.message || 'Apple-inloggning misslyckades. Försök igen.');
       return { success: false, error: err };
     }
   }, []);

@@ -75,7 +75,7 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
       if (result?.redirecting) return;
       if (result?.cancelled) return;
       if (result?.success) { onSuccess?.(); onClose(); }
-      else if (result?.error) setLocalError('Apple-inloggning misslyckades. Försök igen.');
+      else if (result?.error) setLocalError(result.error?.message || 'Apple-inloggning misslyckades. Försök igen.');
     } catch {
       setLocalError('Apple-inloggning misslyckades. Försök igen.');
     } finally {

@@ -290,14 +290,20 @@ export default function MatchEndModal({
   }
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center px-4"
+      style={{
+        paddingTop: 'calc(env(safe-area-inset-top) + 64px)',
+        paddingBottom: 'calc(env(safe-area-inset-bottom) + 5.5rem)',
+      }}
+    >
       <div
         className="absolute inset-0 bg-black/90 backdrop-blur-md"
         onClick={onClose} />
 
       {showConfetti && <Confetti />}
 
-      <Card className="relative w-full max-w-2xl bg-gradient-to-br from-[#121715] to-[#0F1513] border border-[#2BA84A]/20 shadow-[0_20px_60px_rgba(0,0,0,0.8)] rounded-[32px]">
+      <Card className="relative w-full max-w-2xl bg-gradient-to-br from-[#121715] to-[#0F1513] border border-[#2BA84A]/20 shadow-[0_20px_60px_rgba(0,0,0,0.8)] rounded-[32px] flex flex-col max-h-full overflow-hidden">
 
         {/* Step 1: MVP Voting */}
         {step === 1 &&
@@ -305,12 +311,12 @@ export default function MatchEndModal({
           initial={{ opacity: 0, y: 20 }} 
           animate={{ opacity: 1, y: 0 }} 
           exit={{ opacity: 0, y: -20 }}
-          className="relative"
+          className="relative flex flex-col min-h-0 flex-1"
         >
             {/* Gradient header background */}
             <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-b from-[#F4743B]/20 to-transparent rounded-t-[32px] pointer-events-none" />
             
-            <div className="p-8 border-b border-[#223029]/50 relative">
+            <div className="p-8 border-b border-[#223029]/50 relative flex-shrink-0">
               <button
                 onClick={onClose}
                 className="absolute top-6 right-6 w-12 h-12 flex items-center justify-center rounded-2xl bg-[#18221E]/80 backdrop-blur-sm hover:bg-[#223029] text-[#B6C2BC] hover:text-white transition-all">
@@ -331,7 +337,7 @@ export default function MatchEndModal({
               </div>
             </div>
 
-            <CardContent className="p-8 space-y-4 max-h-[50vh] overflow-y-auto">
+            <CardContent className="p-8 space-y-4 flex-1 min-h-0 overflow-y-auto">
               {hasVoted && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -427,7 +433,7 @@ export default function MatchEndModal({
             }
             </CardContent>
 
-            <div className="p-8 pt-6 border-t border-[#223029]/50 space-y-3 bg-gradient-to-b from-transparent to-[#0A0D0B]">
+            <div className="p-8 pt-6 border-t border-[#223029]/50 space-y-3 bg-gradient-to-b from-transparent to-[#0A0D0B] flex-shrink-0">
               <Button
               onClick={handleMVPVote}
               disabled={!selectedMVP || isSubmitting || hasVoted}
@@ -465,11 +471,11 @@ export default function MatchEndModal({
           initial={{ opacity: 0, y: 20 }} 
           animate={{ opacity: 1, y: 0 }} 
           exit={{ opacity: 0, y: -20 }}
-          className="relative"
+          className="relative flex flex-col min-h-0 flex-1"
         >
             <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-b from-[#4169E1]/20 to-transparent rounded-t-[32px] pointer-events-none" />
             
-            <div className="p-8 border-b border-[#223029]/50 relative">
+            <div className="p-8 border-b border-[#223029]/50 relative flex-shrink-0">
               <button
                 onClick={onClose}
                 className="absolute top-6 right-6 w-12 h-12 flex items-center justify-center rounded-2xl bg-[#18221E]/80 backdrop-blur-sm hover:bg-[#223029] text-[#B6C2BC] hover:text-white transition-all">
@@ -490,7 +496,7 @@ export default function MatchEndModal({
               </div>
             </div>
 
-            <CardContent className="p-8 space-y-4 max-h-[50vh] overflow-y-auto">
+            <CardContent className="p-8 space-y-4 flex-1 min-h-0 overflow-y-auto">
               {usersList.map((user) => (
                 <motion.div
                   key={user.id}
@@ -541,7 +547,7 @@ export default function MatchEndModal({
               ))}
             </CardContent>
 
-            <div className="p-8 pt-6 border-t border-[#223029]/50 space-y-3 bg-gradient-to-b from-transparent to-[#0A0D0B]">
+            <div className="p-8 pt-6 border-t border-[#223029]/50 space-y-3 bg-gradient-to-b from-transparent to-[#0A0D0B] flex-shrink-0">
               <Button
                 onClick={handleRatingsSubmit}
                 disabled={isSubmitting}
@@ -573,11 +579,11 @@ export default function MatchEndModal({
           initial={{ opacity: 0, y: 20 }} 
           animate={{ opacity: 1, y: 0 }} 
           exit={{ opacity: 0, y: -20 }}
-          className="relative"
+          className="relative flex flex-col min-h-0 flex-1"
         >
             <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-b from-[#2BA84A]/20 to-transparent rounded-t-[32px] pointer-events-none" />
             
-            <div className="p-8 border-b border-[#223029]/50 relative">
+            <div className="p-8 border-b border-[#223029]/50 relative flex-shrink-0">
               <button
                 onClick={onClose}
                 className="absolute top-6 right-6 w-12 h-12 flex items-center justify-center rounded-2xl bg-[#18221E]/80 backdrop-blur-sm hover:bg-[#223029] text-[#B6C2BC] hover:text-white transition-all">
@@ -598,7 +604,7 @@ export default function MatchEndModal({
               </div>
             </div>
 
-            <CardContent className="p-8 space-y-6">
+            <CardContent className="p-8 space-y-6 flex-1 min-h-0 overflow-y-auto">
               <div>
                 <Label className="text-[#F4F7F5] text-lg font-bold mb-4 block">Slutresultat</Label>
                 <Input
@@ -641,7 +647,7 @@ export default function MatchEndModal({
               </div>
             </CardContent>
 
-            <div className="p-8 pt-6 border-t border-[#223029]/50 space-y-3 bg-gradient-to-b from-transparent to-[#0A0D0B]">
+            <div className="p-8 pt-6 border-t border-[#223029]/50 space-y-3 bg-gradient-to-b from-transparent to-[#0A0D0B] flex-shrink-0">
               <Button
                 onClick={handleResultSubmit}
                 disabled={!finalScore.trim() || isSubmitting}
@@ -676,13 +682,13 @@ export default function MatchEndModal({
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }} 
           animate={{ opacity: 1, scale: 1 }} 
-          className="text-center relative overflow-hidden"
+          className="text-center relative overflow-hidden flex flex-col min-h-0 flex-1"
         >
             {/* Multi-layer background effects */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#2BA84A]/10 via-transparent to-[#FFD700]/10 pointer-events-none" />
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-96 bg-gradient-to-b from-[#2BA84A]/20 to-transparent blur-3xl pointer-events-none" />
             
-            <div className="p-10 pb-0 relative z-10">
+            <div className="p-10 pb-0 relative z-10 flex-1 min-h-0 overflow-y-auto">
               <motion.div 
                 initial={{ scale: 0, rotate: -180 }}
                 animate={{ scale: 1, rotate: 0 }}
@@ -771,7 +777,7 @@ export default function MatchEndModal({
               )}
             </div>
 
-            <div className="p-8 space-y-4 bg-gradient-to-b from-transparent to-[#0A0D0B] relative z-10 border-t border-[#223029]/50">
+            <div className="p-8 space-y-4 bg-gradient-to-b from-transparent to-[#0A0D0B] relative z-10 border-t border-[#223029]/50 flex-shrink-0">
               <Button
                 onClick={handlePlayAgain}
                 disabled={isSubmitting}

@@ -21,6 +21,8 @@ export default function GlassBottomNav({ items = [], onTabClick }) {
         bottom: "calc(env(safe-area-inset-bottom) + 10px)",
         paddingLeft: "calc(env(safe-area-inset-left) + 12px)",
         paddingRight: "calc(env(safe-area-inset-right) + 12px)",
+        transform: "translateZ(0)",
+        WebkitTransform: "translateZ(0)",
       }}
     >
       <motion.div

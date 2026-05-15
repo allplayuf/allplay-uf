@@ -9,6 +9,7 @@ import { PageTransition } from "@/components/ui/page-transition";
 import { RouteProgress } from "@/components/ui/route-progress";
 import { RouteGuard } from "@/components/ui/route-guard";
 import { OnboardingModal } from "@/components/ui/onboarding-modal";
+import { ProfileSetupModal } from "@/components/profile/ProfileSetupModal";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import OfflineDetector from "@/components/ui/offline-detector";
 import { canAccessAdminPanel } from "./components/utils/permissions";
@@ -185,6 +186,7 @@ function LayoutInner({ children }) {
         <PushNotificationInit />
         <RouteProgress />
         <OnboardingModal />
+        <ProfileSetupModal />
         <OfflineDetector />
 
         {/* Guest Banner - shown when browsing as guest */}
@@ -319,7 +321,6 @@ function LayoutInner({ children }) {
             style={{ 
               paddingTop: 'calc(env(safe-area-inset-top) + 60px)',
               paddingBottom: 'calc(5.5rem + env(safe-area-inset-bottom))',
-              WebkitOverflowScrolling: 'touch',
               overscrollBehaviorY: 'none',
               overscrollBehavior: 'none',
               backgroundColor: '#0F1513',

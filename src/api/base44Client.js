@@ -160,6 +160,7 @@ export const base44 = {
         Report: 'reports',
         Badge: 'badges',
         UserBadge: 'user_badges',
+        MVPVote: 'mvp_votes',
       };
       const table = TABLE_MAP[name] || String(name).replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase() + 's';
       return makeEntity(table);
