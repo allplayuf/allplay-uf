@@ -1,108 +1,104 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, LogIn, UserPlus } from "lucide-react";
-import { Button } from "./button";
-import { base44 } from "@/api/base44Client";
+import { Lock, LogIn, UserPlus, ArrowRight } from "lucide-react";
 import { useSupabaseAuth, LoginModal } from "@/components/supabase";
+import { triggerHaptic } from "@/components/utils/motionTokens";
 
 /**
- * GuestBlocker - UI gating for guest users
- * 
- * ARCHITECTURE: UI-only protection
- * - These components only show/hide UI elements
- * - Backend RLS is the actual source of truth for security
- * - Used to improve UX by showing login prompts for protected actions
- * 
+ * GuestBlocker — UI-only auth gate. Backend RLS is the real security boundary.
+ *
  * Usage:
- * <GuestBlocker feature="join_match">
- *   <Button onClick={handleJoin}>Gå med</Button>
- * </GuestBlocker>
+ *   <GuestBlocker feature="join_match"><Button>Gå med</Button></GuestBlocker>
+ *   <GuestBlocker showInline feature="create_match" />
  */
-export function GuestBlocker({ 
-  children, 
+export function GuestBlocker({
+  children,
   feature = "protected_action",
   showInline = false,
   onBlock = null,
-  className = ""
+  className = "",
 }) {
-  // Use Supabase auth state
-  const { isGuest: isGuestUser, isLoading } = useSupabaseAuth();
-  const [showLoginModal, setShowLoginModal] = useState(false);
+  const { isGuest, isLoading } = useSupabaseAuth();
+  const [showLogin, setShowLogin] = useState(false);
 
-  const handleProtectedAction = () => {
-    if (onBlock) {
-      onBlock();
-    } else {
-      setShowLoginModal(true);
-    }
+  const handleBlock = () => {
+    triggerHaptic("light");
+    if (onBlock) onBlock();
+    else setShowLogin(true);
   };
 
-  // If loading, render children but disabled
-  if (isLoading) {
-    return children;
-  }
+  if (isLoading) return children;
+  if (!isGuest) return children;
 
-  // If authenticated, render children normally
-  if (!isGuestUser) {
-    return children;
-  }
-
-  // If guest and showInline, show inline prompt
   if (showInline) {
     return (
       <>
-        <div className={`bg-[#121715] border border-[#223029] rounded-xl p-4 ${className}`}>
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-[#F4743B]/20 rounded-xl flex items-center justify-center">
-              <Lock className="w-5 h-5 text-[#F4743B]" />
+        <div
+          className={`rounded-2xl overflow-hidden ${className}`}
+          style={{
+            background: "rgba(18,23,20,0.8)",
+            border: "1px solid rgba(43,168,74,0.2)",
+          }}
+        >
+          {/* Green top bar */}
+          <div className="h-[2px]" style={{ background: "linear-gradient(90deg, #2BA84A, #34C257)" }} />
+          <div className="flex items-center gap-3 p-4">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: "rgba(43,168,74,0.12)", border: "1px solid rgba(43,168,74,0.3)" }}
+            >
+              <Lock className="w-[18px] h-[18px] text-[#2BA84A]" strokeWidth={2.3} />
             </div>
-            <div>
-              <p className="font-medium text-[#F4F7F5] text-sm">Logga in krävs</p>
-              <p className="text-xs text-[#7B8A83]">Du måste vara inloggad för denna funktion</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13.5px] font-bold text-[#F4F7F5] leading-tight">Logga in krävs</p>
+              <p className="text-[12px] text-[#8FA097] mt-0.5">Skapa ett gratis konto för att fortsätta</p>
             </div>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleBlock}
+              className="flex items-center gap-1.5 h-9 px-3.5 rounded-xl font-bold text-[13px] text-white flex-shrink-0"
+              style={{
+                background: "linear-gradient(180deg, #34C257 0%, #2BA84A 55%, #248232 100%)",
+                boxShadow: "0 4px 14px rgba(43,168,74,0.35), inset 0 1px 0 rgba(255,255,255,0.18)",
+              }}
+            >
+              <LogIn className="w-3.5 h-3.5" strokeWidth={2.5} />
+              Logga in
+            </motion.button>
           </div>
-          <Button
-            onClick={handleProtectedAction}
-            className="w-full bg-[#2BA84A] hover:bg-[#248232] text-white h-10 rounded-xl gap-2"
-          >
-            <LogIn className="w-4 h-4" />
-            Logga in
-          </Button>
         </div>
-        <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
+        <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
       </>
     );
   }
 
-  // Default: Clone children and intercept onClick
+  // Default: intercept child onClick
   return (
     <>
-      {React.cloneElement(children, {
-        onClick: (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          handleProtectedAction();
-        }
-      })}
-      <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
+      {children && (
+        <span
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleBlock(); }}
+          className="contents"
+        >
+          {children}
+        </span>
+      )}
+      <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
     </>
   );
 }
 
-/**
- * GuestOverlay - Shows overlay on protected content for guests
- */
-export function GuestOverlay({ 
-  children, 
-  message = "Logga in för att använda denna funktion",
-  className = ""
-}) {
-  const { isGuest: isGuestUser, isLoading } = useSupabaseAuth();
-  const [showLoginModal, setShowLoginModal] = useState(false);
+// ─── GuestOverlay ─────────────────────────────────────────────────────────────
 
-  if (isLoading || !isGuestUser) {
-    return children;
-  }
+export function GuestOverlay({
+  children,
+  message = "Logga in för att använda denna funktion",
+  className = "",
+}) {
+  const { isGuest, isLoading } = useSupabaseAuth();
+  const [showLogin, setShowLogin] = useState(false);
+
+  if (isLoading || !isGuest) return children;
 
   return (
     <div className={`relative ${className}`}>
@@ -110,107 +106,163 @@ export function GuestOverlay({
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="absolute inset-0 bg-[#0F1513]/90 backdrop-blur-sm flex flex-col items-center justify-center rounded-xl z-10"
+        className="absolute inset-0 bg-[#0F1513]/90 backdrop-blur-sm flex flex-col items-center justify-center rounded-xl z-10 p-4"
       >
-        <div className="w-14 h-14 bg-[#F4743B]/20 rounded-2xl flex items-center justify-center mb-4 ring-1 ring-[#F4743B]/30">
-          <Lock className="w-7 h-7 text-[#F4743B]" />
-        </div>
-        <p className="text-[#F4F7F5] font-medium text-center mb-4 px-4">{message}</p>
-        <Button
-          onClick={() => setShowLoginModal(true)}
-          className="bg-[#2BA84A] hover:bg-[#248232] text-white h-10 px-6 rounded-xl gap-2"
+        <div
+          className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+          style={{ background: "rgba(43,168,74,0.12)", border: "1px solid rgba(43,168,74,0.3)" }}
         >
-          <LogIn className="w-4 h-4" />
+          <Lock className="w-6 h-6 text-[#2BA84A]" strokeWidth={2.2} />
+        </div>
+        <p className="text-[#F4F7F5] font-semibold text-[14px] text-center mb-4 leading-snug">{message}</p>
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={() => { triggerHaptic("medium"); setShowLogin(true); }}
+          className="h-11 px-6 rounded-xl font-bold text-[14px] text-white flex items-center gap-2"
+          style={{
+            background: "linear-gradient(180deg, #34C257 0%, #2BA84A 55%, #248232 100%)",
+            boxShadow: "0 4px 16px rgba(43,168,74,0.4)",
+          }}
+        >
+          <LogIn className="w-4 h-4" strokeWidth={2.4} />
           Logga in
-        </Button>
+        </motion.button>
       </motion.div>
-      <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
+      <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
     </div>
   );
 }
 
-/**
- * GuestModal - Modal that appears when guest tries protected action
- */
+// ─── GuestModal ───────────────────────────────────────────────────────────────
+
+const FEATURE_LABELS = {
+  join_match:    "gå med i matcher",
+  create_match:  "skapa matcher",
+  add_friend:    "lägga till vänner",
+  chat:          "chatta med spelare",
+  join_team:     "gå med i lag",
+  create_team:   "skapa lag",
+  join_cup:      "delta i cuper",
+  edit_profile:  "redigera din profil",
+  invite:        "bjuda in andra",
+};
+
 export function GuestModal({ isOpen, onClose, feature = "denna funktion" }) {
-  if (!isOpen) return null;
+  const [showLogin, setShowLogin] = useState(false);
+  const label = FEATURE_LABELS[feature] || feature;
 
-  const featureMessages = {
-    'join_match': 'gå med i matcher',
-    'create_match': 'skapa matcher',
-    'add_friend': 'lägga till vänner',
-    'chat': 'chatta',
-    'join_team': 'gå med i lag',
-    'create_team': 'skapa lag',
-    'join_cup': 'delta i cuper',
-    'edit_profile': 'redigera din profil',
-    'invite': 'bjuda in andra'
-  };
-
-  const message = featureMessages[feature] || feature;
+  if (!isOpen && !showLogin) return null;
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-        onClick={onClose}
-      >
-        <motion.div
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.95, opacity: 0 }}
-          onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-sm bg-[#121715] rounded-2xl border border-[#223029] shadow-2xl overflow-hidden"
-        >
-          <div className="p-6 text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-[#2BA84A]/20 to-[#F4743B]/20 rounded-2xl flex items-center justify-center mx-auto mb-4 ring-1 ring-[#2BA84A]/30">
-              <UserPlus className="w-8 h-8 text-[#2BA84A]" />
-            </div>
-            <h2 className="text-xl font-bold text-[#F4F7F5] mb-2">Skapa ett konto</h2>
-            <p className="text-[#B6C2BC] text-sm mb-6">
-              Du måste vara inloggad för att {message}. Skapa ett gratis konto för att komma igång!
-            </p>
-            <div className="space-y-3">
-              <Button
-                onClick={() => base44.auth.redirectToLogin(window.location.pathname)}
-                className="w-full bg-[#2BA84A] hover:bg-[#248232] text-white h-11 rounded-xl gap-2 font-semibold"
-              >
-                <LogIn className="w-4 h-4" />
-                Logga in / Skapa konto
-              </Button>
-              <Button
-                onClick={onClose}
-                variant="outline"
-                className="w-full h-11 rounded-xl border-[#223029] text-[#B6C2BC] hover:bg-[#18221E]"
-              >
-                Fortsätt som gäst
-              </Button>
-            </div>
-          </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+    <>
+      <AnimatePresence>
+        {isOpen && !showLogin && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[150] flex items-end sm:items-center justify-center sm:p-4"
+            style={{ background: "rgba(0,0,0,0.72)" }}
+            onClick={onClose}
+          >
+            <motion.div
+              initial={{ y: 48, opacity: 0, scale: 0.97 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 48, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full sm:max-w-[400px] overflow-hidden rounded-t-[28px] sm:rounded-[28px]"
+              style={{
+                background: "radial-gradient(150% 100% at 50% -10%, #0E2718 0%, #090F0C 60%, #060C09 100%)",
+                boxShadow: "0 -20px 60px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.07)",
+                paddingBottom: "calc(env(safe-area-inset-bottom) + 8px)",
+              }}
+            >
+              {/* Accent top line */}
+              <div
+                className="h-[3px] w-full"
+                style={{ background: "linear-gradient(90deg, #2BA84A 0%, #34C257 50%, #2BA84A 100%)" }}
+              />
+
+              {/* Drag handle (mobile) */}
+              <div className="flex justify-center pt-3 pb-1 sm:hidden">
+                <div className="w-10 h-1 rounded-full bg-white/20" />
+              </div>
+
+              <div className="px-7 pb-6 pt-4 text-center">
+                {/* Icon */}
+                <motion.div
+                  initial={{ scale: 0.7, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.08, type: "spring", stiffness: 400, damping: 22 }}
+                  className="w-[72px] h-[72px] mx-auto mb-5 rounded-[22px] flex items-center justify-center"
+                  style={{
+                    background: "rgba(43,168,74,0.12)",
+                    border: "1px solid rgba(43,168,74,0.32)",
+                    boxShadow: "0 0 32px rgba(43,168,74,0.18)",
+                  }}
+                >
+                  <UserPlus className="w-8 h-8 text-[#2BA84A]" strokeWidth={2.1} />
+                </motion.div>
+
+                <h2 className="text-[22px] font-black text-[#F4F7F5] leading-tight mb-2 tracking-[-0.02em]">
+                  Logga in för att fortsätta
+                </h2>
+                <p className="text-[14px] text-[#8FA097] leading-relaxed mb-7">
+                  Skapa ett gratis konto för att{" "}
+                  <span className="text-[#C8D8C2] font-semibold">{label}</span> och se allt
+                  AllPlay har att erbjuda.
+                </p>
+
+                <div className="space-y-2.5">
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => { triggerHaptic("medium"); setShowLogin(true); }}
+                    className="w-full h-[52px] rounded-2xl font-black text-[15px] text-white flex items-center justify-center gap-2"
+                    style={{
+                      background: "linear-gradient(180deg, #34C257 0%, #2BA84A 55%, #1E7A36 100%)",
+                      boxShadow: "0 8px 28px rgba(43,168,74,0.45), inset 0 1px 0 rgba(255,255,255,0.22)",
+                    }}
+                  >
+                    <LogIn className="w-4 h-4" strokeWidth={2.5} />
+                    Logga in / Skapa konto
+                  </motion.button>
+
+                  <button
+                    onClick={() => { triggerHaptic("light"); onClose(); }}
+                    className="w-full h-11 rounded-xl text-[#6B7A73] text-[13px] font-semibold hover:text-[#9EAAA4] hover:bg-white/[0.04] transition-colors"
+                  >
+                    Inte nu
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <LoginModal
+        isOpen={showLogin}
+        onClose={() => { setShowLogin(false); onClose(); }}
+        onSuccess={() => { setShowLogin(false); onClose(); }}
+      />
+    </>
   );
 }
 
-/**
- * useGuestBlock - Hook for handling guest-blocked actions
- * Now uses Supabase auth state
- */
+// ─── useGuestBlock hook ───────────────────────────────────────────────────────
+
 export function useGuestBlock() {
-  const { isGuest: isGuestUser, isLoading } = useSupabaseAuth();
-  
+  const { isGuest, isLoading } = useSupabaseAuth();
   const [showModal, setShowModal] = useState(false);
   const [blockedFeature, setBlockedFeature] = useState(null);
   const [pendingCallback, setPendingCallback] = useState(null);
 
   const checkAuth = (feature, callback) => {
-    if (isGuestUser) {
+    if (isGuest) {
       setBlockedFeature(feature);
       setPendingCallback(() => callback);
+      triggerHaptic("light");
       setShowModal(true);
       return false;
     }
@@ -220,29 +272,16 @@ export function useGuestBlock() {
 
   const handleLoginSuccess = () => {
     setShowModal(false);
-    if (pendingCallback) {
-      pendingCallback();
-      setPendingCallback(null);
-    }
+    if (pendingCallback) { pendingCallback(); setPendingCallback(null); }
   };
 
   const GuestBlockModal = () => (
-    <LoginModal 
-      isOpen={showModal} 
-      onClose={() => {
-        setShowModal(false);
-        setPendingCallback(null);
-      }}
+    <LoginModal
+      isOpen={showModal}
+      onClose={() => { setShowModal(false); setPendingCallback(null); }}
       onSuccess={handleLoginSuccess}
     />
   );
 
-  return {
-    isGuest: isGuestUser,
-    isLoading,
-    checkAuth,
-    GuestBlockModal,
-    showModal,
-    setShowModal
-  };
+  return { isGuest, isLoading, checkAuth, GuestBlockModal, showModal, setShowModal };
 }

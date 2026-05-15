@@ -7,8 +7,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
         return true
+    }
+
+    // Prevent the entire WKWebView from being rubber-band dragged on iOS.
+    // Called each time the app becomes active (covers first launch and foreground resume).
+    func applicationDidBecomeActive(_ application: UIApplication) {
+        guard let rootVC = window?.rootViewController as? CAPBridgeViewController else { return }
+        let sv = rootVC.webView?.scrollView
+        sv?.bounces = false
+        sv?.alwaysBounceVertical = false
+        sv?.alwaysBounceHorizontal = false
+        sv?.showsVerticalScrollIndicator = false
+        sv?.showsHorizontalScrollIndicator = false
     }
 
     func applicationWillResignActive(_ application: UIApplication) {

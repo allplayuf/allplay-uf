@@ -9,8 +9,10 @@ import { Switch } from "@/components/ui/switch";
 import {
   ArrowLeft, Trash2, Bell, Shield, EyeOff, Lock, Mail,
   FileText, ShieldCheck, ExternalLink, AlertTriangle,
-  Loader2, ChevronRight, Globe, Megaphone, LogOut
+  Loader2, ChevronRight, Globe, Megaphone, LogOut, PlayCircle
 } from "lucide-react";
+import { ONBOARDING_STORAGE_KEY } from "@/components/ui/onboarding-modal";
+import { triggerHaptic } from "@/components/utils/motionTokens";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { getMyProfile } from "../components/supabase/services/usersService";
@@ -259,6 +261,16 @@ export default function AccountSettingsPage() {
             icon={LogOut}
             iconAccent="#F87171"
           >
+            <ActionRow
+              label="Visa introduktionen igen"
+              icon={PlayCircle}
+              onClick={() => {
+                triggerHaptic('light');
+                localStorage.removeItem(ONBOARDING_STORAGE_KEY);
+                navigate(createPageUrl('Dashboard'));
+              }}
+            />
+            <Divider />
             <button
               onClick={async () => {
                 const ok = await confirm('Logga ut', 'Är du säker på att du vill logga ut?', {

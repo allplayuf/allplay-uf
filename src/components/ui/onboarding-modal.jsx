@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { LoginModal } from '@/components/supabase';
 import { base44 } from '@/api/base44Client';
+import { triggerHaptic } from '@/components/utils/motionTokens';
 
 export const ONBOARDING_STORAGE_KEY = 'allplay_onboarding_completed_v3';
 
@@ -507,6 +508,7 @@ export function OnboardingModal() {
   };
 
   const requestLocation = () => {
+    triggerHaptic('medium');
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         () => setPermissions((p) => ({ ...p, location: true })),
@@ -516,6 +518,7 @@ export function OnboardingModal() {
   };
 
   const requestNotifications = async () => {
+    triggerHaptic('medium');
     if ('Notification' in window) {
       const perm = await Notification.requestPermission();
       if (perm === 'granted') setPermissions((p) => ({ ...p, notifications: true }));
@@ -752,7 +755,7 @@ export function OnboardingModal() {
                           <PermissionCard
                             icon={Navigation}
                             label="Plats"
-                            desc="Hitta matcher och planer nära dig"
+                            desc="AllPlay hittar matcher och planer nära dig"
                             accent="#34C257"
                             granted={permissions.location}
                             onClick={requestLocation}
@@ -760,7 +763,7 @@ export function OnboardingModal() {
                           <PermissionCard
                             icon={Bell}
                             label="Notiser"
-                            desc="Påminnelser om matcher och inbjudningar"
+                            desc="AllPlay skickar påminnelser om matcher och inbjudningar"
                             accent="#FDBA74"
                             granted={permissions.notifications}
                             onClick={requestNotifications}
