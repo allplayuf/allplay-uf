@@ -55,155 +55,155 @@ const SLIDES = [
   },
 ];
 
-// ─── Pitch graphic (Slide 1 hero) ─────────────────────────────────────────────
+// ─── Football SVG ─────────────────────────────────────────────────────────────
 
-const TEAM_A = [
-  { cx: 8,  cy: 50 },
-  { cx: 22, cy: 22 }, { cx: 22, cy: 50 }, { cx: 22, cy: 78 },
-  { cx: 42, cy: 34 }, { cx: 42, cy: 66 },
-];
-const TEAM_B = [
-  { cx: 92, cy: 50 },
-  { cx: 78, cy: 22 }, { cx: 78, cy: 50 }, { cx: 78, cy: 78 },
-  { cx: 58, cy: 34 }, { cx: 58, cy: 66 },
-];
-
-function PitchGraphic({ accent }) {
-  const allPlayers = [
-    ...TEAM_A.map((p) => ({ ...p, team: 'a' })),
-    ...TEAM_B.map((p) => ({ ...p, team: 'b' })),
-  ];
-
+function FootballSVG({ size = 88 }) {
   return (
-    <div className="relative w-full overflow-hidden" style={{ height: '172px' }}>
-      {/* SVG pitch markings */}
-      <svg
-        viewBox="0 0 100 100"
-        preserveAspectRatio="xMidYMid slice"
-        className="absolute inset-0 w-full h-full"
-        style={{ opacity: 0.6 }}
-        aria-hidden
-      >
-        {/* Grass stripes */}
-        {Array.from({ length: 10 }, (_, i) => (
-          <rect
-            key={i} x={i * 10} y={0} width={10} height={100}
-            fill={i % 2 === 0 ? 'rgba(10,28,16,1)' : 'rgba(7,20,11,1)'}
-          />
-        ))}
-        {/* Outer border */}
-        <rect x="2" y="2" width="96" height="96" fill="none"
-          stroke="rgba(255,255,255,0.10)" strokeWidth="0.5" />
-        {/* Halfway line */}
-        <line x1="50" y1="2" x2="50" y2="98"
-          stroke="rgba(255,255,255,0.12)" strokeWidth="0.5" />
-        {/* Center circle */}
-        <circle cx="50" cy="50" r="17"
-          fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="0.5" />
-        {/* Center spot */}
-        <circle cx="50" cy="50" r="1.4" fill="rgba(255,255,255,0.35)" />
-        {/* Penalty boxes */}
-        <rect x="2" y="26" width="14" height="48"
-          fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" />
-        <rect x="84" y="26" width="14" height="48"
-          fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" />
-        {/* Goal areas */}
-        <rect x="2" y="38" width="6" height="24"
-          fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
-        <rect x="92" y="38" width="6" height="24"
-          fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
-      </svg>
+    <svg width={size} height={size} viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="ob-ball-grad" cx="38%" cy="30%" r="55%">
+          <stop offset="0%" stopColor="white" />
+          <stop offset="65%" stopColor="#EBEBEB" />
+          <stop offset="100%" stopColor="#C8C8C8" />
+        </radialGradient>
+        <clipPath id="ob-ball-clip">
+          <circle cx="50" cy="50" r="48" />
+        </clipPath>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill="url(#ob-ball-grad)" />
+      <g clipPath="url(#ob-ball-clip)" fill="#111111">
+        <polygon points="50,4 61,14 57,27 43,27 39,14" />
+        <polygon points="84,25 91,38 84,50 72,47 69,34" />
+        <polygon points="16,25 31,34 28,47 16,50 9,38" />
+        <polygon points="87,63 83,76 71,82 63,72 69,59" />
+        <polygon points="13,63 31,59 37,72 29,82 17,76" />
+        <polygon points="50,96 39,86 43,73 57,73 61,86" />
+      </g>
+      <ellipse cx="38" cy="33" rx="9" ry="7" fill="rgba(255,255,255,0.38)" />
+    </svg>
+  );
+}
 
-      {/* Pulsing accent ring around center */}
+// ─── Animated football hero (replaces pitch dots) ─────────────────────────────
+
+function FootballHero({ accent }) {
+  return (
+    <div className="relative w-full flex flex-col items-center justify-end" style={{ height: 200 }}>
+
+      {/* Stadium glow — breathes */}
       <motion.div
-        animate={{ scale: [1, 1.12, 1], opacity: [0.28, 0.10, 0.28] }}
-        transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute rounded-full border pointer-events-none"
+        animate={{ opacity: [0.5, 0.85, 0.5], scale: [1, 1.06, 1] }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute pointer-events-none"
         style={{
-          left: '50%', top: '50%',
-          width: '34%', aspectRatio: '1',
-          transform: 'translate(-50%, -50%)',
-          borderColor: `${accent}70`,
+          bottom: 40, left: '50%', transform: 'translateX(-50%)',
+          width: 180, height: 160,
+          background: `radial-gradient(ellipse at 50% 80%, ${accent}30 0%, transparent 70%)`,
+          filter: 'blur(12px)',
         }}
         aria-hidden
       />
 
-      {/* Player dots */}
-      {allPlayers.map((p, i) => (
-        <motion.div
-          key={i}
-          animate={{
-            x: [0, (i % 2 === 0 ? 1 : -1) * (1.5 + (i % 3) * 0.8), 0],
-            y: [0, (i % 3 === 0 ? 1 : -1) * 1.2, 0],
-          }}
-          transition={{
-            duration: 2.2 + i * 0.35,
-            repeat: Infinity,
-            ease: 'easeInOut',
-            delay: i * 0.18,
-          }}
-          className="absolute rounded-full border"
-          style={{
-            left: `${p.cx}%`,
-            top:  `${p.cy}%`,
-            width: '10px', height: '10px',
-            transform: 'translate(-50%, -50%)',
-            background: p.team === 'a' ? '#2BA84A' : '#60A5FA',
-            borderColor: p.team === 'a' ? 'rgba(43,168,74,0.6)' : 'rgba(96,165,250,0.6)',
-            boxShadow: p.team === 'a'
-              ? '0 0 5px rgba(43,168,74,0.55)'
-              : '0 0 5px rgba(96,165,250,0.55)',
-          }}
-          aria-hidden
-        />
-      ))}
+      {/* Ball shadow */}
+      <motion.div
+        animate={{ scaleX: [1, 0.58, 1], opacity: [0.38, 0.10, 0.38] }}
+        transition={{ duration: 1.55, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute rounded-full"
+        style={{
+          bottom: 26, left: '50%', transform: 'translateX(-50%)',
+          width: 76, height: 13,
+          background: 'rgba(0,0,0,0.55)',
+          filter: 'blur(7px)',
+        }}
+        aria-hidden
+      />
 
-      {/* Gradient vignette */}
-      <div className="absolute inset-0 pointer-events-none" aria-hidden style={{
-        background: 'radial-gradient(ellipse 80% 60% at 50% 50%, transparent 30%, rgba(7,15,10,0.6) 80%)',
-      }} />
-      <div className="absolute inset-x-0 bottom-0 h-[55%] pointer-events-none" aria-hidden style={{
-        background: 'linear-gradient(to bottom, transparent, rgba(7,15,10,0.85) 70%, rgba(7,15,10,1))',
-      }} />
+      {/* Bouncing ball */}
+      <motion.div
+        animate={{ y: [0, -72, 0] }}
+        transition={{
+          duration: 1.55,
+          repeat: Infinity,
+          ease: [0.33, 1, 0.68, 1],
+        }}
+        style={{ position: 'absolute', bottom: 38, left: '50%', transform: 'translateX(-50%)' }}
+      >
+        {/* Squash/stretch wrapper */}
+        <motion.div
+          animate={{ scaleX: [1, 0.95, 1.14, 1], scaleY: [1, 1.05, 0.87, 1] }}
+          transition={{
+            duration: 1.55,
+            repeat: Infinity,
+            ease: 'linear',
+            times: [0, 0.4, 0.94, 1],
+          }}
+        >
+          {/* Slow rotation */}
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 5, repeat: Infinity, ease: 'linear' }}
+            style={{ filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.5))' }}
+          >
+            <FootballSVG size={88} />
+          </motion.div>
+        </motion.div>
+      </motion.div>
+
+      {/* Ground accent line */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          bottom: 30, left: '15%', right: '15%', height: 1,
+          background: `linear-gradient(90deg, transparent, ${accent}45, transparent)`,
+        }}
+        aria-hidden
+      />
+
+      {/* Fade to background */}
+      <div
+        className="absolute inset-x-0 bottom-0 pointer-events-none"
+        style={{
+          height: 80,
+          background: 'linear-gradient(to bottom, transparent, rgba(6,13,9,1))',
+        }}
+        aria-hidden
+      />
     </div>
   );
 }
 
-// ─── Slide 2 — connected step timeline ───────────────────────────────────────
+// ─── Slide 2 — step timeline ──────────────────────────────────────────────────
 
 function HowItWorksContent({ steps }) {
   return (
     <div className="relative flex flex-col gap-0 mt-2">
-      {/* Vertical connector */}
       <motion.div
         initial={{ scaleY: 0 }}
         animate={{ scaleY: 1 }}
-        transition={{ delay: 0.25, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ delay: 0.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         aria-hidden
         className="absolute left-[23px] pointer-events-none"
         style={{
-          top: '28px', bottom: '28px', width: '1px',
+          top: 28, bottom: 28, width: 1,
           transformOrigin: 'top',
-          background: 'linear-gradient(to bottom, rgba(52,194,87,0.35), rgba(253,186,116,0.35), rgba(253,230,138,0.25))',
+          background: 'linear-gradient(to bottom, rgba(52,194,87,0.4), rgba(253,186,116,0.4), rgba(253,230,138,0.25))',
         }}
       />
-
       {steps.map((step, i) => {
         const Icon = step.icon;
         return (
           <motion.div
             key={i}
-            initial={{ opacity: 0, x: -18 }}
+            initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.15 + i * 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ delay: 0.18 + i * 0.11, duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
             className="relative flex items-start gap-4 pb-5 last:pb-0"
           >
-            {/* Step bubble */}
             <div
               className="w-12 h-12 rounded-2xl flex flex-col items-center justify-center flex-shrink-0 relative z-10 gap-0.5"
               style={{
                 background: `${step.accent}12`,
-                border: `1px solid ${step.accent}35`,
+                border: `1px solid ${step.accent}38`,
               }}
             >
               <span className="text-[9px] font-black tabular-nums leading-none" style={{ color: `${step.accent}90` }}>
@@ -211,8 +211,6 @@ function HowItWorksContent({ steps }) {
               </span>
               <Icon className="w-[15px] h-[15px]" style={{ color: step.accent }} strokeWidth={2.3} />
             </div>
-
-            {/* Copy */}
             <div className="pt-2 min-w-0">
               <h3 className="text-[15px] font-bold text-white/92 leading-tight">{step.label}</h3>
               <p className="text-[12.5px] text-white/48 mt-1 leading-relaxed">{step.desc}</p>
@@ -320,39 +318,67 @@ function AgeInputs({ birthDay, setBirthDay, birthMonth, setBirthMonth, birthYear
 // ─── Slide 4 — permission card ────────────────────────────────────────────────
 
 function PermissionCard({ icon: Icon, label, desc, accent, granted, onClick }) {
+  const [justGranted, setJustGranted] = useState(false);
+  const prevGrantedRef = useRef(granted);
+
+  useEffect(() => {
+    if (granted && !prevGrantedRef.current) {
+      triggerHaptic('success');
+      setJustGranted(true);
+      const t = setTimeout(() => setJustGranted(false), 800);
+      return () => clearTimeout(t);
+    }
+    prevGrantedRef.current = granted;
+  }, [granted]);
+
   return (
     <motion.button
       onClick={onClick}
       whileTap={{ scale: 0.985 }}
-      className="relative w-full overflow-hidden rounded-2xl text-left"
+      className="relative w-full overflow-visible rounded-2xl text-left"
       style={{
-        background: granted ? `${accent}12` : 'rgba(255,255,255,0.04)',
-        border: `1px solid ${granted ? `${accent}45` : 'rgba(255,255,255,0.09)'}`,
+        background: granted ? `${accent}14` : 'rgba(255,255,255,0.04)',
+        border: `1px solid ${granted ? `${accent}50` : 'rgba(255,255,255,0.09)'}`,
         transition: 'background 0.4s ease, border-color 0.4s ease',
       }}
     >
-      {/* Fill sweep on grant */}
+      {/* Color sweep on grant */}
       <AnimatePresence>
         {granted && (
           <motion.div
             initial={{ x: '-100%' }}
             animate={{ x: '0%' }}
-            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute inset-0 pointer-events-none"
-            style={{ background: `linear-gradient(90deg, ${accent}10 0%, ${accent}06 100%)` }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute inset-0 rounded-2xl pointer-events-none overflow-hidden"
+            style={{ background: `linear-gradient(90deg, ${accent}12 0%, ${accent}06 100%)` }}
+            aria-hidden
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Pulse ring — fires once on grant */}
+      <AnimatePresence>
+        {justGranted && (
+          <motion.div
+            key="pulse"
+            initial={{ scale: 0.85, opacity: 0.7 }}
+            animate={{ scale: 1.55, opacity: 0 }}
+            transition={{ duration: 0.65, ease: 'easeOut' }}
+            className="absolute inset-0 rounded-2xl border-2 pointer-events-none"
+            style={{ borderColor: accent }}
             aria-hidden
           />
         )}
       </AnimatePresence>
 
       <div className="relative flex items-center gap-3.5 px-4 py-4">
-        {/* Icon */}
+        {/* Icon container */}
         <div
           className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
           style={{
-            background: granted ? `${accent}20` : `${accent}10`,
-            border: `1px solid ${granted ? `${accent}50` : `${accent}22`}`,
-            transition: 'background 0.3s ease, border-color 0.3s ease',
+            background: granted ? `${accent}22` : `${accent}10`,
+            border: `1px solid ${granted ? `${accent}55` : `${accent}22`}`,
+            transition: 'background 0.35s ease, border-color 0.35s ease',
           }}
         >
           <AnimatePresence mode="wait">
@@ -361,12 +387,12 @@ function PermissionCard({ icon: Icon, label, desc, accent, granted, onClick }) {
                 key="check"
                 initial={{ scale: 0, rotate: -30 }}
                 animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 20 }}
               >
                 <Check className="w-5 h-5" style={{ color: accent }} strokeWidth={2.8} />
               </motion.div>
             ) : (
-              <motion.div key="icon" initial={{ scale: 1 }} exit={{ scale: 0 }}>
+              <motion.div key="icon" initial={{ scale: 1 }} exit={{ scale: 0, transition: { duration: 0.1 } }}>
                 <Icon className="w-5 h-5" style={{ color: accent }} strokeWidth={2.2} />
               </motion.div>
             )}
@@ -379,10 +405,17 @@ function PermissionCard({ icon: Icon, label, desc, accent, granted, onClick }) {
           <p className="text-[12px] text-white/50 mt-0.5 leading-snug">{desc}</p>
         </div>
 
-        {/* Status */}
+        {/* Trailing */}
         <div className="flex-shrink-0">
           {granted ? (
-            <span className="text-[12px] font-bold" style={{ color: accent }}>Tillåtet</span>
+            <motion.span
+              initial={{ opacity: 0, x: 6 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="text-[12px] font-bold"
+              style={{ color: accent }}
+            >
+              Tillåtet
+            </motion.span>
           ) : (
             <ChevronRight className="w-4 h-4 text-white/25" />
           )}
@@ -392,25 +425,74 @@ function PermissionCard({ icon: Icon, label, desc, accent, granted, onClick }) {
   );
 }
 
-// ─── Main modal ───────────────────────────────────────────────────────────────
+// ─── All-granted celebration banner ──────────────────────────────────────────
+
+function AllGrantedBanner() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14, scale: 0.94 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 380, damping: 24, delay: 0.05 }}
+      className="mt-4 py-3.5 px-4 rounded-2xl flex items-center gap-3"
+      style={{
+        background: 'rgba(43,168,74,0.12)',
+        border: '1px solid rgba(43,168,74,0.38)',
+        boxShadow: '0 0 24px rgba(43,168,74,0.12)',
+      }}
+    >
+      <motion.div
+        animate={{ scale: [1, 1.18, 1] }}
+        transition={{ delay: 0.2, duration: 0.5, type: 'spring', stiffness: 400 }}
+        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+        style={{ background: 'rgba(43,168,74,0.2)', border: '1px solid rgba(43,168,74,0.45)' }}
+      >
+        <Check className="w-4 h-4 text-[#34C257]" strokeWidth={3} />
+      </motion.div>
+      <div>
+        <p className="text-[14px] font-black text-[#34C257] leading-tight">Allt klart!</p>
+        <p className="text-[12px] text-white/50 mt-0.5 leading-none">Du är redo att spela</p>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Slide transition variants — depth-based ─────────────────────────────────
 
 const slideVariants = {
-  enter: (d) => ({ x: d > 0 ? 48 : -48, opacity: 0 }),
-  center: { x: 0, opacity: 1 },
-  exit:  (d) => ({ x: d > 0 ? -48 : 48, opacity: 0 }),
+  enter: (d) => ({
+    opacity: 0,
+    scale: 0.93,
+    y: d > 0 ? 22 : -14,
+    filter: 'blur(5px)',
+  }),
+  center: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    filter: 'blur(0px)',
+  },
+  exit: (d) => ({
+    opacity: 0,
+    scale: 0.93,
+    y: d > 0 ? -14 : 22,
+    filter: 'blur(5px)',
+  }),
 };
 
+// ─── Main modal ───────────────────────────────────────────────────────────────
+
 export function OnboardingModal() {
-  const [isOpen, setIsOpen]         = useState(false);
+  const [isOpen, setIsOpen]             = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [direction, setDirection]   = useState(1);
-  const [permissions, setPermissions] = useState({ location: false, notifications: false });
-  const [birthDay,   setBirthDay]   = useState('');
-  const [birthMonth, setBirthMonth] = useState('');
-  const [birthYear,  setBirthYear]  = useState('');
-  const [ageVerified, setAgeVerified] = useState(false);
-  const [ageError, setAgeError]     = useState('');
+  const [direction, setDirection]       = useState(1);
+  const [permissions, setPermissions]   = useState({ location: false, notifications: false });
+  const [birthDay,   setBirthDay]       = useState('');
+  const [birthMonth, setBirthMonth]     = useState('');
+  const [birthYear,  setBirthYear]      = useState('');
+  const [ageVerified, setAgeVerified]   = useState(false);
+  const [ageError, setAgeError]         = useState('');
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginFlash, setLoginFlash]     = useState(false);
   const [isProcessingReferral, setIsProcessingReferral] = useState(false);
 
   useEffect(() => {
@@ -508,7 +590,6 @@ export function OnboardingModal() {
   };
 
   const requestLocation = () => {
-    triggerHaptic('medium');
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         () => setPermissions((p) => ({ ...p, location: true })),
@@ -518,11 +599,20 @@ export function OnboardingModal() {
   };
 
   const requestNotifications = async () => {
-    triggerHaptic('medium');
     if ('Notification' in window) {
       const perm = await Notification.requestPermission();
       if (perm === 'granted') setPermissions((p) => ({ ...p, notifications: true }));
     }
+  };
+
+  const handleLoginCTA = () => {
+    triggerHaptic('medium');
+    setLoginFlash(true);
+    setTimeout(() => {
+      setLoginFlash(false);
+      setIsOpen(false);
+      setShowLoginModal(true);
+    }, 320);
   };
 
   if (!isOpen && !showLoginModal) return null;
@@ -531,6 +621,8 @@ export function OnboardingModal() {
   const isLast = currentSlide === SLIDES.length - 1;
   const accent = slide.accent;
   const showAge = slide.isAgeScreen;
+  const allGranted = permissions.location && permissions.notifications;
+
   const ctaLabel = showAge && (birthDay || birthMonth || birthYear)
     ? 'Verifiera & fortsätt'
     : showAge
@@ -554,38 +646,56 @@ export function OnboardingModal() {
 
             {/* Panel */}
             <motion.div
-              initial={{ y: 32, opacity: 0, scale: 0.98 }}
+              initial={{ y: 40, opacity: 0, scale: 0.97 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ y: 32, opacity: 0, scale: 0.98 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              exit={{ y: 40, opacity: 0, scale: 0.97 }}
+              transition={{ type: 'spring', stiffness: 280, damping: 28 }}
               className="relative z-10 flex flex-col overflow-hidden
                          w-full h-[100dvh]
                          sm:w-[440px] sm:h-auto sm:max-h-[88vh] sm:rounded-[28px] sm:border sm:border-white/[0.07]"
               style={{
-                background: 'radial-gradient(150% 100% at 50% -10%, #0E2718 0%, #090F0C 55%, #060C09 100%)',
-                boxShadow: '0 -32px 80px rgba(0,0,0,0.8), 0 0 0 0.5px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.07)',
+                background: 'radial-gradient(160% 110% at 50% -5%, #0D2416 0%, #07100C 50%, #040A07 100%)',
+                boxShadow: '0 -32px 80px rgba(0,0,0,0.85), 0 0 0 0.5px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.08)',
               }}
             >
-              {/* Ambient glow — slides with accent color */}
+              {/* Login flash burst */}
+              <AnimatePresence>
+                {loginFlash && (
+                  <motion.div
+                    key="flash"
+                    initial={{ opacity: 0, scale: 0.6 }}
+                    animate={{ opacity: [0, 0.22, 0] }}
+                    transition={{ duration: 0.32, ease: 'easeOut' }}
+                    className="absolute inset-0 pointer-events-none z-50"
+                    style={{
+                      background: 'radial-gradient(ellipse at 50% 85%, #34C257 0%, transparent 65%)',
+                      borderRadius: 'inherit',
+                    }}
+                    aria-hidden
+                  />
+                )}
+              </AnimatePresence>
+
+              {/* Ambient glow — moves with accent color */}
               <motion.div
                 key={`orb-${currentSlide}`}
                 initial={{ opacity: 0 }}
-                animate={{ opacity: [0.55, 0.75, 0.55] }}
+                animate={{ opacity: [0.5, 0.78, 0.5] }}
                 transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
                 className="absolute pointer-events-none"
                 style={{
-                  top: '-15%', right: '-20%',
-                  width: '70%', height: '50%',
+                  top: '-18%', right: '-22%',
+                  width: '75%', height: '55%',
                   borderRadius: '50%',
-                  filter: 'blur(80px)',
-                  background: `radial-gradient(circle, ${accent}45 0%, ${accent}10 50%, transparent 70%)`,
+                  filter: 'blur(90px)',
+                  background: `radial-gradient(circle, ${accent}48 0%, ${accent}12 50%, transparent 70%)`,
                 }}
                 aria-hidden
               />
 
-              {/* Noise texture */}
+              {/* Noise */}
               <div
-                className="absolute inset-0 opacity-[0.035] pointer-events-none mix-blend-overlay"
+                className="absolute inset-0 opacity-[0.032] pointer-events-none mix-blend-overlay"
                 style={{
                   backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
                 }}
@@ -595,38 +705,36 @@ export function OnboardingModal() {
               {/* Top hairline */}
               <div
                 className="absolute inset-x-0 top-0 h-px pointer-events-none"
-                style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.18) 50%, transparent)' }}
+                style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2) 50%, transparent)' }}
                 aria-hidden
               />
 
               {/* ── Progress bar ── */}
               <div
-                className="relative z-10 flex-shrink-0 flex items-center justify-between gap-1.5 px-5 sm:px-6"
-                style={{ paddingTop: 'calc(env(safe-area-inset-top) + 14px)', paddingBottom: '12px' }}
+                className="relative z-10 flex-shrink-0 flex items-center gap-2 px-5 sm:px-6"
+                style={{ paddingTop: 'calc(env(safe-area-inset-top) + 16px)', paddingBottom: '14px' }}
               >
-                {/* Segmented track */}
                 <div className="flex-1 flex items-center gap-1.5">
                   {SLIDES.map((_, i) => (
                     <div
                       key={i}
                       className="flex-1 h-[3px] rounded-full overflow-hidden"
-                      style={{ background: 'rgba(255,255,255,0.09)' }}
+                      style={{ background: 'rgba(255,255,255,0.08)' }}
                     >
                       <motion.div
                         initial={false}
                         animate={{ width: i <= currentSlide ? '100%' : '0%' }}
-                        transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+                        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                         className="h-full rounded-full"
-                        style={{ background: i === currentSlide ? accent : `${accent}70` }}
+                        style={{ background: i === currentSlide ? accent : `${accent}65` }}
                       />
                     </div>
                   ))}
                 </div>
-
                 {currentSlide > 0 && (
                   <button
                     onClick={handleComplete}
-                    className="text-[11.5px] font-semibold text-white/45 hover:text-white/80 px-2 py-1 rounded-lg hover:bg-white/[0.06] transition-colors flex-shrink-0 ml-1"
+                    className="text-[11.5px] font-semibold text-white/40 hover:text-white/75 px-2 py-1 rounded-lg hover:bg-white/[0.06] transition-colors flex-shrink-0 ml-1"
                   >
                     Hoppa över
                   </button>
@@ -643,19 +751,19 @@ export function OnboardingModal() {
                     initial="enter"
                     animate="center"
                     exit="exit"
-                    transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                     className="flex flex-col"
                   >
-                    {/* Pitch hero — welcome only */}
-                    {slide.id === 'welcome' && <PitchGraphic accent={accent} />}
+                    {/* Football hero — welcome only */}
+                    {slide.id === 'welcome' && <FootballHero accent={accent} />}
 
                     {/* Text block */}
-                    <div className={`px-5 sm:px-6 ${slide.id === 'welcome' ? 'pt-1' : 'pt-6'}`}>
+                    <div className={`px-5 sm:px-6 ${slide.id === 'welcome' ? 'pt-0' : 'pt-7'}`}>
                       {/* Eyebrow */}
                       <motion.div
-                        initial={{ opacity: 0, y: 8 }}
+                        initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.05, duration: 0.35 }}
+                        transition={{ delay: 0.06, duration: 0.36 }}
                         className="flex items-center gap-2 mb-3"
                       >
                         <div
@@ -663,21 +771,23 @@ export function OnboardingModal() {
                           style={{ background: `${accent}80` }}
                           aria-hidden
                         />
-                        <span className="text-[11px] font-bold tracking-[0.15em] uppercase"
-                          style={{ color: `${accent}CC` }}>
+                        <span
+                          className="text-[11px] font-bold tracking-[0.15em] uppercase"
+                          style={{ color: `${accent}CC` }}
+                        >
                           {slide.eyebrow}
                         </span>
                       </motion.div>
 
-                      {/* Title — word-by-word stagger */}
+                      {/* Title — word stagger */}
                       <div className="mb-2.5 overflow-hidden">
-                        <h2 className="text-[30px] sm:text-[34px] font-black text-white leading-[1.05] tracking-[-0.025em] whitespace-pre-line">
+                        <h2 className="text-[31px] sm:text-[34px] font-black text-white leading-[1.04] tracking-[-0.028em] whitespace-pre-line">
                           {slide.title.split(' ').map((word, wi) => (
                             <motion.span
                               key={wi}
-                              initial={{ opacity: 0, y: 20 }}
+                              initial={{ opacity: 0, y: 22 }}
                               animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: 0.08 + wi * 0.055, duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+                              transition={{ delay: 0.09 + wi * 0.06, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                               className="inline-block"
                               style={{ marginRight: '0.28em' }}
                             >
@@ -691,8 +801,8 @@ export function OnboardingModal() {
                       <motion.p
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ delay: 0.22, duration: 0.4 }}
-                        className="text-[14px] text-white/52 leading-relaxed mb-5"
+                        transition={{ delay: 0.24, duration: 0.4 }}
+                        className="text-[14px] text-white/50 leading-relaxed mb-5"
                       >
                         {slide.subtitle}
                       </motion.p>
@@ -709,9 +819,9 @@ export function OnboardingModal() {
                             return (
                               <motion.div
                                 key={i}
-                                initial={{ opacity: 0, x: -14 }}
+                                initial={{ opacity: 0, x: -16 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.18 + i * 0.08, duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
+                                transition={{ delay: 0.2 + i * 0.09, duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
                                 className="flex items-center gap-3 py-3 px-3.5 rounded-2xl"
                                 style={{
                                   background: 'rgba(255,255,255,0.04)',
@@ -751,24 +861,29 @@ export function OnboardingModal() {
 
                       {/* PERMISSIONS */}
                       {slide.isPermissionScreen && (
-                        <div className="space-y-2.5">
-                          <PermissionCard
-                            icon={Navigation}
-                            label="Plats"
-                            desc="AllPlay hittar matcher och planer nära dig"
-                            accent="#34C257"
-                            granted={permissions.location}
-                            onClick={requestLocation}
-                          />
-                          <PermissionCard
-                            icon={Bell}
-                            label="Notiser"
-                            desc="AllPlay skickar påminnelser om matcher och inbjudningar"
-                            accent="#FDBA74"
-                            granted={permissions.notifications}
-                            onClick={requestNotifications}
-                          />
-                        </div>
+                        <>
+                          <div className="space-y-2.5">
+                            <PermissionCard
+                              icon={Navigation}
+                              label="Plats"
+                              desc="AllPlay hittar matcher och planer nära dig"
+                              accent="#34C257"
+                              granted={permissions.location}
+                              onClick={requestLocation}
+                            />
+                            <PermissionCard
+                              icon={Bell}
+                              label="Notiser"
+                              desc="AllPlay skickar påminnelser om matcher och inbjudningar"
+                              accent="#FDBA74"
+                              granted={permissions.notifications}
+                              onClick={requestNotifications}
+                            />
+                          </div>
+                          <AnimatePresence>
+                            {allGranted && <AllGrantedBanner key="all-granted" />}
+                          </AnimatePresence>
+                        </>
                       )}
 
                     </div>
@@ -779,25 +894,36 @@ export function OnboardingModal() {
               {/* ── Footer CTA ── */}
               <div
                 className="relative z-10 flex-shrink-0 flex flex-col gap-2.5 px-5 sm:px-6 pt-2"
-                style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 18px)' }}
+                style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 20px)' }}
               >
                 {isLast ? (
                   <>
                     <motion.button
                       whileTap={{ scale: 0.97 }}
-                      onClick={() => { setIsOpen(false); setShowLoginModal(true); }}
-                      className="w-full h-[52px] rounded-2xl font-black text-[15px] text-white flex items-center justify-center gap-2"
+                      onClick={handleLoginCTA}
+                      className="relative w-full h-[54px] rounded-2xl font-black text-[15px] text-white flex items-center justify-center gap-2 overflow-hidden"
                       style={{
-                        background: 'linear-gradient(180deg, #34C257 0%, #2BA84A 55%, #1E7A36 100%)',
-                        boxShadow: '0 8px 28px rgba(43,168,74,0.45), inset 0 1px 0 rgba(255,255,255,0.22)',
+                        background: 'linear-gradient(180deg, #3DD668 0%, #2BA84A 50%, #1E7A36 100%)',
+                        boxShadow: '0 8px 30px rgba(43,168,74,0.5), inset 0 1px 0 rgba(255,255,255,0.24)',
                       }}
                     >
+                      {/* Shimmer */}
+                      <motion.div
+                        animate={{ x: ['-120%', '120%'] }}
+                        transition={{ duration: 2.4, repeat: Infinity, ease: 'linear', repeatDelay: 1.5 }}
+                        className="absolute inset-y-0 w-1/3 pointer-events-none"
+                        style={{
+                          background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)',
+                          skewX: '-12deg',
+                        }}
+                        aria-hidden
+                      />
                       <LogIn className="w-4 h-4" strokeWidth={2.5} />
                       Logga in / Skapa konto
                     </motion.button>
                     <button
                       onClick={handleNext}
-                      className="w-full h-11 rounded-xl text-white/52 hover:text-white/80 font-semibold text-[13px] hover:bg-white/[0.04] transition-colors"
+                      className="w-full h-11 rounded-xl text-white/45 hover:text-white/75 font-semibold text-[13px] hover:bg-white/[0.04] transition-colors"
                     >
                       Fortsätt som gäst
                     </button>
@@ -806,10 +932,10 @@ export function OnboardingModal() {
                   <motion.button
                     whileTap={{ scale: 0.97 }}
                     onClick={handleNext}
-                    className="w-full h-[52px] rounded-2xl font-black text-[15px] text-white flex items-center justify-center gap-2"
+                    className="w-full h-[54px] rounded-2xl font-black text-[15px] text-white flex items-center justify-center gap-2"
                     style={{
-                      background: `linear-gradient(180deg, ${accent} 0%, ${accent}E0 55%, ${accent}A0 100%)`,
-                      boxShadow: `0 8px 28px ${accent}50, inset 0 1px 0 rgba(255,255,255,0.22)`,
+                      background: `linear-gradient(180deg, ${accent} 0%, ${accent}E5 55%, ${accent}A8 100%)`,
+                      boxShadow: `0 8px 28px ${accent}55, inset 0 1px 0 rgba(255,255,255,0.22)`,
                     }}
                   >
                     <span>{ctaLabel}</span>
