@@ -45,10 +45,10 @@ function Spinner({ color = 'border-t-white border-white/20' }) {
   );
 }
 
-export default function LoginModal({ isOpen, onClose, onSuccess }) {
+export default function LoginModal({ isOpen, onClose, onSuccess, inline = false, initialMode = 'login' }) {
   const { login, signInWithApple, signInWithGoogle, error, clearError } = useSupabaseAuth();
 
-  const [mode, setMode] = useState('login'); // 'login' | 'register' | 'consent'
+  const [mode, setMode] = useState(initialMode); // 'login' | 'register' | 'consent'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -267,7 +267,7 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
   };
 
   /* ─── Consent screen ─── */
-  if (mode === 'consent' && isOpen) {
+  if (mode === 'consent' && (isOpen || inline)) {
     return (
       <ConsentGate
         isSignup={true}
@@ -279,8 +279,125 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
     );
   }
 
-  /* ─── Main modal ─── */
+  /* ─── Inline form (embedded in onboarding) ─── */
   const hasSocialButtons = showAppleSignIn || showGoogleSignIn;
+
+  if (inline) {
+    return (
+      <div className="space-y-3">
+        <AnimatePresence mode="wait">
+          {successMessage && (
+            <motion.div key="success" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+              className="flex items-start gap-3 p-3.5 bg-[#1A3D25] border border-[#2BA84A]/30 rounded-xl text-[#7DE89A] text-[13px]">
+              <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#2BA84A]" />
+              <span>{successMessage}</span>
+            </motion.div>
+          )}
+          {displayError && !successMessage && (
+            <motion.div key="error" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+              className="flex items-start gap-3 p-3.5 bg-red-950/50 border border-red-500/25 rounded-xl text-red-300 text-[13px]">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-400" />
+              <span>{displayError}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {hasSocialButtons && (
+          <div className={`grid gap-2.5 ${showAppleSignIn && showGoogleSignIn ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            {showAppleSignIn && (
+              <button type="button" onClick={handleAppleSignIn} disabled={anyLoading}
+                className="flex items-center justify-center gap-2 h-12 rounded-xl bg-[#0A0A0A] hover:bg-[#111] text-white font-semibold text-[14px] transition-colors disabled:opacity-40 border border-[#2A2A2A]">
+                {appleLoading ? <Spinner /> : <><AppleLogo className="w-[17px] h-[17px] -mt-px" /><span>Apple</span></>}
+              </button>
+            )}
+            {showGoogleSignIn && (
+              <button type="button" onClick={handleGoogleSignIn} disabled={anyLoading}
+                className="flex items-center justify-center gap-2 h-12 rounded-xl bg-white hover:bg-[#F8F8F8] text-[#1F1F1F] font-semibold text-[14px] transition-colors disabled:opacity-40 border border-[#E0E0E0]">
+                {googleLoading ? <Spinner color="border-t-[#4285F4] border-gray-200" /> : <><GoogleLogo size={17} /><span>Google</span></>}
+              </button>
+            )}
+          </div>
+        )}
+
+        {hasSocialButtons && (
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-[#1A2820]" />
+            <span className="text-[11px] text-[#3D5448] font-medium tracking-wide">eller med e-post</span>
+            <div className="flex-1 h-px bg-[#1A2820]" />
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-2.5">
+          {mode === 'register' && (
+            <div>
+              <Label className="text-[#8A9E92] text-[11px] font-semibold uppercase tracking-wide mb-1.5 block">Namn</Label>
+              <div className="relative">
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#3D5448]" />
+                <Input type="text" placeholder="Ditt namn" value={fullName} onChange={e => setFullName(e.target.value)} autoComplete="name"
+                  className="pl-10 h-11 bg-[#0F1A13] border-[#1A2820] text-[#EEF2EE] placeholder:text-[#3D5448] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/25 rounded-xl text-[14px]" />
+              </div>
+            </div>
+          )}
+          <div>
+            <Label className="text-[#8A9E92] text-[11px] font-semibold uppercase tracking-wide mb-1.5 block">E-post</Label>
+            <div className="relative">
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#3D5448]" />
+              <Input type="email" placeholder="din@email.com" value={email} onChange={e => setEmail(e.target.value)} autoComplete="email"
+                className="pl-10 h-11 bg-[#0F1A13] border-[#1A2820] text-[#EEF2EE] placeholder:text-[#3D5448] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/25 rounded-xl text-[14px]" />
+            </div>
+          </div>
+          <div>
+            <Label className="text-[#8A9E92] text-[11px] font-semibold uppercase tracking-wide mb-1.5 block">Lösenord</Label>
+            <div className="relative">
+              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#3D5448]" />
+              <Input type={showPassword ? 'text' : 'password'} placeholder={mode === 'register' ? 'Minst 6 tecken' : '••••••••'}
+                value={password} onChange={e => setPassword(e.target.value)} autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                className="pl-10 pr-11 h-11 bg-[#0F1A13] border-[#1A2820] text-[#EEF2EE] placeholder:text-[#3D5448] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/25 rounded-xl text-[14px]" />
+              <button type="button" onClick={() => setShowPassword(v => !v)} tabIndex={-1}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#3D5448] hover:text-[#8A9E92] transition-colors">
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+          {mode === 'register' && (
+            <div>
+              <Label className="text-[#8A9E92] text-[11px] font-semibold uppercase tracking-wide mb-1.5 block">Bekräfta lösenord</Label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#3D5448]" />
+                <Input type={showPassword ? 'text' : 'password'} placeholder="Samma lösenord igen"
+                  value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} autoComplete="new-password"
+                  className="pl-10 h-11 bg-[#0F1A13] border-[#1A2820] text-[#EEF2EE] placeholder:text-[#3D5448] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/25 rounded-xl text-[14px]" />
+              </div>
+            </div>
+          )}
+          <div className="pt-1">
+            <Button type="submit" disabled={anyLoading}
+              className="w-full h-12 bg-gradient-to-b from-[#34C257] to-[#27A043] hover:from-[#3DD668] hover:to-[#2EBD50] text-white font-bold rounded-xl transition-all disabled:opacity-40 shadow-[0_4px_20px_rgba(43,168,74,0.30)] text-[15px]">
+              {isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Spinner />{mode === 'login' ? 'Loggar in…' : 'Fortsätter…'}
+                </span>
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  {mode === 'login' ? <><LogIn className="w-4 h-4" /> Logga in</> : <><UserPlus className="w-4 h-4" /> Skapa konto</>}
+                </span>
+              )}
+            </Button>
+          </div>
+        </form>
+
+        <div className="flex items-center justify-center pt-1">
+          <button type="button" onClick={switchMode} className="text-[13px] text-[#5A7A65] hover:text-[#8FB09A] transition-colors">
+            {mode === 'login'
+              ? <>Inget konto? <span className="text-[#2BA84A] font-semibold">Skapa ett gratis</span></>
+              : <>Har du ett konto? <span className="text-[#2BA84A] font-semibold">Logga in</span></>}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  /* ─── Main modal ─── */
 
   return (
     <AnimatePresence>
