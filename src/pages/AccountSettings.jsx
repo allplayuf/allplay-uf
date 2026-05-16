@@ -11,7 +11,7 @@ import {
   FileText, ShieldCheck, ExternalLink, AlertTriangle,
   Loader2, ChevronRight, Globe, Megaphone, LogOut, PlayCircle
 } from "lucide-react";
-import { ONBOARDING_STORAGE_KEY } from "@/components/ui/onboarding-modal";
+import { ONBOARDING_STORAGE_KEY, ONBOARDING_EVENT } from "@/components/ui/onboarding-modal";
 import { triggerHaptic } from "@/components/utils/motionTokens";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
@@ -267,7 +267,7 @@ export default function AccountSettingsPage() {
               onClick={() => {
                 triggerHaptic('light');
                 localStorage.removeItem(ONBOARDING_STORAGE_KEY);
-                navigate(createPageUrl('Dashboard'));
+                window.dispatchEvent(new CustomEvent(ONBOARDING_EVENT));
               }}
             />
             <Divider />
