@@ -13,7 +13,6 @@ import {
   Save,
   User,
   MapPin,
-  Calendar,
   AtSign,
   FileText,
   Sprout,
@@ -37,7 +36,6 @@ const EMPTY_FORM = {
   bio: '',
   skill_level: '',
   city: '',
-  date_of_birth: '',
   avatar_url: '',
 };
 
@@ -122,7 +120,6 @@ export default function EditProfile() {
       bio: src.bio || '',
       skill_level: src.skill_level || '',
       city: src.city || '',
-      date_of_birth: src.date_of_birth || '',
       avatar_url: src.avatar_url || authUser?.avatar_url || '',
     };
     setFormData(data);
@@ -168,7 +165,6 @@ export default function EditProfile() {
     if (formData.bio !== initialData.bio) payload.bio = formData.bio.trim();
     if (formData.skill_level !== initialData.skill_level) payload.skill_level = formData.skill_level || undefined;
     if (formData.city !== initialData.city) payload.city = formData.city.trim() || undefined;
-    if (formData.date_of_birth !== initialData.date_of_birth) payload.date_of_birth = formData.date_of_birth || null;
     if (formData.avatar_url !== initialData.avatar_url) {
       payload.avatar_url = formData.avatar_url || null;
       if (formData.avatar_url) localStorage.setItem('allplay_profile_image', formData.avatar_url);
@@ -418,20 +414,6 @@ export default function EditProfile() {
                 placeholder="T.ex. Stockholm"
                 maxLength={FIELD_LIMITS.city.max}
                 className={inputCls(errors.city)}
-                disabled={isSubmitting}
-              />
-            </IconInput>
-          </Field>
-
-          <Field id="date_of_birth" label="Födelsedatum" hintInline="frivilligt" error={errors.date_of_birth}>
-            <IconInput icon={Calendar} error={errors.date_of_birth}>
-              <Input
-                id="date_of_birth"
-                type="date"
-                value={formData.date_of_birth}
-                onChange={(e) => handleChange('date_of_birth', e.target.value)}
-                max={new Date(new Date().getFullYear() - 5, 11, 31).toISOString().split('T')[0]}
-                className={inputCls(errors.date_of_birth)}
                 disabled={isSubmitting}
               />
             </IconInput>

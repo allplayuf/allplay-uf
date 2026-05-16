@@ -12,9 +12,10 @@ import {
   Search, Filter, Target, Award, CheckCircle 
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
+import { isCupsEnabled } from "@/lib/featureFlags";
 
 const STATUS_CONFIG = {
   upcoming: { 
@@ -45,6 +46,8 @@ const STATUS_CONFIG = {
 };
 
 export default function CupsPage() {
+  if (!isCupsEnabled()) return <Navigate to={createPageUrl("Dashboard")} replace />;
+
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [formatFilter, setFormatFilter] = useState('all');
@@ -301,7 +304,8 @@ export default function CupsPage() {
             transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.3 }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="fixed bottom-20 lg:bottom-8 right-4 lg:right-8 w-14 h-14 lg:w-16 lg:h-16 bg-[#F4743B] hover:bg-[#E5683A] text-white rounded-full shadow-[0_8px_24px_rgba(244,116,59,0.4)] flex items-center justify-center z-40 transition-all"
+            className="fixed lg:bottom-8 right-4 lg:right-8 w-14 h-14 lg:w-16 lg:h-16 bg-[#F4743B] hover:bg-[#E5683A] text-white rounded-full shadow-[0_8px_24px_rgba(244,116,59,0.4)] flex items-center justify-center z-[110] transition-all"
+            style={{ bottom: 'calc(env(safe-area-inset-bottom) + 96px)' }}
           >
             <Plus className="w-6 h-6 lg:w-7 lg:h-7" strokeWidth={2.5} />
           </motion.button>

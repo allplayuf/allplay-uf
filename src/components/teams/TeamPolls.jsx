@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, BarChart, Check, X } from "lucide-react";
 import { TeamPoll } from "@/entities/TeamPoll";
 import { TeamMessage } from "@/entities/TeamMessage";
+import { feedback } from "@/components/ui/feedback-toast";
 
 export default function TeamPolls({ team, currentUser, isMember, isCaptainOrVice }) {
   const [polls, setPolls] = useState([]);
@@ -33,7 +34,7 @@ export default function TeamPolls({ team, currentUser, isMember, isCaptainOrVice
     
     const validOptions = newPoll.options.filter(o => o.trim());
     if (!newPoll.question.trim() || validOptions.length < 2) {
-      alert('Ange en fråga och minst 2 alternativ');
+      feedback.error('Ange en fråga och minst 2 alternativ');
       return;
     }
 
@@ -60,7 +61,7 @@ export default function TeamPolls({ team, currentUser, isMember, isCaptainOrVice
       loadPolls();
     } catch (error) {
       console.error('Error creating poll:', error);
-      alert('Kunde inte skapa omröstning. Försök igen.');
+      feedback.error('Kunde inte skapa omröstning. Försök igen.');
     }
   };
 
@@ -84,7 +85,7 @@ export default function TeamPolls({ team, currentUser, isMember, isCaptainOrVice
       loadPolls();
     } catch (error) {
       console.error('Error voting:', error);
-      alert('Kunde inte registrera röst. Försök igen.');
+      feedback.error('Kunde inte registrera röst. Försök igen.');
     }
   };
 

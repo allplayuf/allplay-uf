@@ -3,7 +3,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { getVenues } from "@/components/supabase/services/venuesService";
 import { callEdgeFunction } from "@/components/supabase/callEdgeFunction";
 import { UploadFile } from "@/components/supabase/integrations";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
+import { isCupsEnabled } from "@/lib/featureFlags";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,8 @@ import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { MobileSelect } from "@/components/ui/mobile-select";
 
 export default function CreateCupPage() {
+  if (!isCupsEnabled()) return <Navigate to={createPageUrl("Dashboard")} replace />;
+
   const navigate = useNavigate();
   const { alert, DialogContainer } = useCustomDialog();
   

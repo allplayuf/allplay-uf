@@ -229,7 +229,10 @@ export default function VenueDetailModal({ venue, matches, onClose, onCreateMatc
               </AnimatePresence>
             </div>
 
-            <div className="sticky bottom-0 p-3 sm:p-4 bg-[#121715]/95 backdrop-blur-xl border-t border-[#223029] flex gap-2">
+            <div
+              className="sticky bottom-0 p-3 sm:p-4 bg-[#121715]/95 backdrop-blur-xl border-t border-[#223029] flex gap-2"
+              style={{ paddingBottom: 'max(0.75rem, calc(0.75rem + env(safe-area-inset-bottom)))' }}
+            >
               <button
                 onClick={() => handleCreate()}
                 className="flex-1 h-12 flex items-center justify-center gap-2 rounded-2xl bg-[#F4743B] text-white font-bold hover:bg-[#E5683A] transition-all active:scale-95 shadow-[0_4px_16px_rgba(244,116,59,0.35)]"

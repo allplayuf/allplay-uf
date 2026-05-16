@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { feedback } from "@/components/ui/feedback-toast";
 
 /**
  * CreateTeamForm v2 — premium creation flow
@@ -54,11 +55,11 @@ export default function CreateTeamForm({ user, onSubmit, onCancel }) {
     const file = e.target.files[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-      alert('Vänligen välj en bild');
+      feedback.error('Vänligen välj en bild');
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      alert('Bilden är för stor. Max 5MB tillåten.');
+      feedback.error('Bilden är för stor. Max 5 MB tillåten.');
       return;
     }
     setIsUploading(true);
@@ -68,7 +69,7 @@ export default function CreateTeamForm({ user, onSubmit, onCancel }) {
       setFormData((p) => ({ ...p, logo_url: previewUrl }));
     } catch (err) {
       console.error('Error uploading logo:', err);
-      window.alert('Kunde inte ladda upp logotyp. Försök igen.');
+      feedback.error('Kunde inte ladda upp logotyp. Försök igen.');
     } finally {
       setIsUploading(false);
     }

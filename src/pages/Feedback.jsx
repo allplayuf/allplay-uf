@@ -237,7 +237,8 @@ export default function FeedbackPage() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={handleCreatePost}
-        className="fixed bottom-20 lg:bottom-8 right-4 lg:right-8 w-14 h-14 lg:w-16 lg:h-16 bg-gradient-to-r from-[#4169E1] to-[#3457D5] hover:from-[#5179F1] hover:to-[#4567E5] text-white rounded-full shadow-[0_8px_24px_rgba(65,105,225,0.4)] flex items-center justify-center z-[60] transition-all"
+        className="fixed lg:bottom-8 right-4 lg:right-8 w-14 h-14 lg:w-16 lg:h-16 bg-gradient-to-r from-[#4169E1] to-[#3457D5] hover:from-[#5179F1] hover:to-[#4567E5] text-white rounded-full shadow-[0_8px_24px_rgba(65,105,225,0.4)] flex items-center justify-center z-[110] transition-all"
+        style={{ bottom: 'calc(env(safe-area-inset-bottom) + 96px)' }}
       >
         <Plus className="w-6 h-6 lg:w-7 lg:h-7" strokeWidth={2.5} />
       </motion.button>

@@ -12,7 +12,7 @@
   "categories": ["sports", "social"],
   "icons": [
     {
-      "src": "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png",
+      "src": "/allplay-logo.png",
       "sizes": "any",
       "type": "image/png",
       "purpose": "any maskable"

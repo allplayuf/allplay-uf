@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { useLocation } from "react-router-dom";
 import { triggerHaptic } from "@/components/utils/motionTokens";
+import { useT } from "@/i18n/LanguageProvider";
 
 /**
  * GlassBottomNav — floating, capsule-shaped bottom tab bar with
@@ -13,6 +14,13 @@ import { triggerHaptic } from "@/components/utils/motionTokens";
  */
 export default function GlassBottomNav({ items = [], onTabClick }) {
   const location = useLocation();
+  const { t } = useT();
+
+  // Hide on sub-pages — only render when we're on one of the root tabs.
+  // This keeps deep flows (MatchDetail, EditProfile, AccountSettings,
+  // Feedback, AboutAllPlay, LegalPolicy, CreateCup, etc.) clutter-free.
+  const isRootPage = items.some((item) => location.pathname === item.url);
+  if (!isRootPage) return null;
 
   return (
     <nav
@@ -89,7 +97,7 @@ export default function GlassBottomNav({ items = [], onTabClick }) {
                       isActive ? "text-[#EAF6EE]" : "text-[#9EAAA4]"
                     }`}
                   >
-                    {item.title}
+                    {item.labelKey ? t(item.labelKey) : item.title}
                   </span>
                 </div>
 

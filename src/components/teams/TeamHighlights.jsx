@@ -8,6 +8,7 @@ import { Plus, Heart, Upload, X, Image as ImageIcon } from "lucide-react";
 import { TeamHighlight } from "@/entities/TeamHighlight";
 import { TeamMessage } from "@/entities/TeamMessage";
 import { User } from "@/entities/User";
+import { feedback } from "@/components/ui/feedback-toast";
 import { UploadFile } from "@/integrations/Core";
 
 export default function TeamHighlights({ team, currentUser, isMember }) {
@@ -46,12 +47,12 @@ export default function TeamHighlights({ team, currentUser, isMember }) {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('Vänligen välj en bildfil');
+      feedback.error('Vänligen välj en bildfil');
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('Bilden är för stor. Max 5MB');
+      feedback.error('Bilden är för stor. Max 5 MB');
       return;
     }
 
@@ -61,7 +62,7 @@ export default function TeamHighlights({ team, currentUser, isMember }) {
       setNewHighlight(prev => ({ ...prev, image_url: file_url }));
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert('Kunde inte ladda upp bild. Försök igen.');
+      feedback.error('Kunde inte ladda upp bild. Försök igen.');
     } finally {
       setIsUploading(false);
     }
@@ -71,7 +72,7 @@ export default function TeamHighlights({ team, currentUser, isMember }) {
     e.preventDefault();
 
     if (!newHighlight.title.trim()) {
-      alert('Ange en rubrik');
+      feedback.error('Ange en rubrik');
       return;
     }
 
@@ -97,7 +98,7 @@ export default function TeamHighlights({ team, currentUser, isMember }) {
       loadHighlights();
     } catch (error) {
       console.error('Error creating highlight:', error);
-      alert('Kunde inte skapa highlight. Försök igen.');
+      feedback.error('Kunde inte skapa highlight. Försök igen.');
     }
   };
 

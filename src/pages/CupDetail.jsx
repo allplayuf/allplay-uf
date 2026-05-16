@@ -12,9 +12,10 @@ import {
   CheckCircle, Clock, ListChecks, Layout, UserPlus, ChevronDown, ChevronUp, X, Crown
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { PageLoadingSkeleton } from "@/components/ui/loading-skeleton";
+import { isCupsEnabled } from "@/lib/featureFlags";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import { CUPS_QUERY_KEY } from "../components/dashboard/CupsWidget";
 import {
@@ -42,6 +43,8 @@ const STATUS_CONFIG = {
 };
 
 export default function CupDetailPage() {
+  if (!isCupsEnabled()) return <Navigate to={createPageUrl("Dashboard")} replace />;
+
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();

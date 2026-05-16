@@ -82,7 +82,7 @@ export default function GlassHeader({ showBack }) {
             ) : (
               <div className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0">
                 <img
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png"
+                  src="/allplay-logo.png"
                   alt="AllPlay"
                   className="w-8 h-8 object-contain"
                   loading="eager"

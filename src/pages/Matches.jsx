@@ -355,7 +355,7 @@ export default function MatchesPage() {
       {/* Create Match Form Modal */}
       <AnimatePresence>
         {showCreateForm && (
-          <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
+          <div className="fixed inset-0 z-[120] flex items-end lg:items-center justify-center">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -369,8 +369,8 @@ export default function MatchesPage() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 40, scale: 0.97 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="relative z-10 bg-[#121715] rounded-t-[20px] lg:rounded-[20px] w-full lg:max-w-2xl border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] 
-              h-[80vh] lg:h-auto lg:max-h-[85vh] mb-16 lg:mb-0 lg:my-8 overflow-hidden flex flex-col"
+              className="relative z-10 bg-[#121715] rounded-t-[20px] lg:rounded-[20px] w-full lg:max-w-2xl border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)]
+              h-[90vh] lg:h-auto lg:max-h-[85vh] lg:my-8 overflow-hidden flex flex-col"
             >
               <CreateMatchForm
                 venues={venues}
@@ -568,7 +568,8 @@ export default function MatchesPage() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => { triggerHaptic('medium'); setShowCreateForm(true); }}
-        className="fixed bottom-20 lg:bottom-8 right-4 lg:right-8 w-14 h-14 lg:w-16 lg:h-16 bg-[#F4743B] hover:bg-[#E5683A] text-white rounded-full shadow-[0_8px_24px_rgba(244,116,59,0.4)] flex items-center justify-center z-40 transition-all"
+        className="fixed lg:bottom-8 right-4 lg:right-8 w-14 h-14 lg:w-16 lg:h-16 bg-[#F4743B] hover:bg-[#E5683A] text-white rounded-full shadow-[0_8px_24px_rgba(244,116,59,0.4)] flex items-center justify-center z-[110] transition-all"
+        style={{ bottom: 'calc(env(safe-area-inset-bottom) + 96px)' }}
       >
         <Plus className="w-6 h-6 lg:w-7 lg:h-7" strokeWidth={2.5} />
       </motion.button>

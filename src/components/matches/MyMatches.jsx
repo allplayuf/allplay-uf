@@ -5,40 +5,25 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Users, Clock, XCircle, ChevronRight, Zap, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { MatchParticipant } from "@/entities/MatchParticipant";
-import { Match } from "@/entities/Match";
+import { leaveMatch } from "@/components/supabase/services/matchesService";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
+import { feedback } from "@/components/ui/feedback-toast";
 
 export default function MyMatches({ matches, venues, user, onRefresh, onDeleteMatch, participants }) {
-  
+
   const handleLeaveMatch = async (matchId) => {
     if (!confirm('Är du säker på att du vill lämna denna match?')) {
       return;
     }
 
     try {
-      const participation = await MatchParticipant.filter({
-        match_id: matchId,
-        user_id: user.id
-      });
-
-      if (participation.length > 0) {
-        await MatchParticipant.delete(participation[0].id);
-        
-        const match = matches.find(m => m.id === matchId);
-        if (match && !match.is_spontaneous) {
-          await Match.update(matchId, {
-            current_players: Math.max(0, (match.current_players || 1) - 1)
-          });
-        }
-        
-        alert('Du har lämnat matchen');
-        onRefresh();
-      }
+      await leaveMatch(matchId);
+      feedback.success('Du har lämnat matchen');
+      onRefresh();
     } catch (error) {
       console.error("Error leaving match:", error);
-      alert('Kunde inte lämna matchen. Försök igen.');
+      feedback.error(error?.message || 'Kunde inte lämna matchen. Försök igen.');
     }
   };
 

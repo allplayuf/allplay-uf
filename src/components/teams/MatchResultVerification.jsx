@@ -8,6 +8,7 @@ import { CheckCircle, XCircle, AlertCircle, Trophy } from "lucide-react";
 import { Match } from "@/entities/Match";
 import { MatchResultVerification as MatchResultVerificationEntity } from "@/entities/MatchResultVerification";
 import { Team } from "@/entities/Team";
+import { feedback } from "@/components/ui/feedback-toast";
 
 /**
  * ELO Calculation System
@@ -81,7 +82,7 @@ export default function MatchResultVerification({ match, currentUser, onVerified
 
   const handleSubmitResult = async () => {
     if (!teamAScore || !teamBScore) {
-      alert('Ange båda lagets resultat');
+      feedback.error('Ange båda lagets resultat');
       return;
     }
 
@@ -106,7 +107,7 @@ export default function MatchResultVerification({ match, currentUser, onVerified
           verification_status: isTeamACaptain ? 'pending_team_b' : 'pending_team_a'
         });
         setVerification(newVerification);
-        alert('Resultat rapporterat! Väntar på motståndare att verifiera.');
+        feedback.success('Resultat rapporterat!', { description: 'Väntar på motståndare att verifiera.' });
       } else {
         // Second report - check if scores match
         const existingReport = isTeamACaptain ? verification.team_b_reported_score : verification.team_a_reported_score;
@@ -168,7 +169,9 @@ export default function MatchResultVerification({ match, currentUser, onVerified
             })
           ]);
 
-          alert(`Match verifierad! ELO-ändringar: ${teamA.name} ${teamAChange > 0 ? '+' : ''}${teamAChange}, ${teamB.name} ${teamBChange > 0 ? '+' : ''}${teamBChange}`);
+          feedback.success('Match verifierad!', {
+            description: `${teamA.name} ${teamAChange > 0 ? '+' : ''}${teamAChange} ELO · ${teamB.name} ${teamBChange > 0 ? '+' : ''}${teamBChange} ELO`,
+          });
           
           if (onVerified) onVerified();
         } else {
@@ -178,14 +181,14 @@ export default function MatchResultVerification({ match, currentUser, onVerified
             team_b_reported_score: isTeamBCaptain ? reportData : verification.team_b_reported_score,
             verification_status: 'disputed'
           });
-          alert('Resultat matchar inte! Kontakta support för att lösa dispyten.');
+          feedback.error('Resultat matchar inte!', { description: 'Kontakta support för att lösa dispyten.' });
         }
       }
       
       loadData();
     } catch (error) {
       console.error("Error submitting result:", error);
-      alert('Kunde inte rapportera resultat. Försök igen.');
+      feedback.error('Kunde inte rapportera resultat. Försök igen.');
     } finally {
       setIsSubmitting(false);
     }

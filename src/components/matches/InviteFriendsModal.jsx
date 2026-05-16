@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { getUsersByIds } from '@/components/supabase/services/usersService';
+import { feedback } from '@/components/ui/feedback-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SKILL_LEVEL_CONFIG = {
@@ -70,7 +71,7 @@ export default function InviteFriendsModal({ match, currentUser, onClose, onInvi
       setFriends(availableFriends);
     } catch (error) {
       console.error('Error loading friends:', error);
-      alert('Kunde inte ladda vänner. Försök igen.');
+      feedback.error('Kunde inte ladda vänner. Försök igen.');
     } finally {
       setIsLoading(false);
     }
@@ -86,7 +87,7 @@ export default function InviteFriendsModal({ match, currentUser, onClose, onInvi
 
   const handleSendInvitations = async () => {
     if (selectedFriends.length === 0) {
-      alert('Välj minst en vän att bjuda in!');
+      feedback.error('Välj minst en vän att bjuda in.');
       return;
     }
 
@@ -104,12 +105,12 @@ export default function InviteFriendsModal({ match, currentUser, onClose, onInvi
 
       await Promise.all(invitationPromises);
 
-      alert(`${selectedFriends.length} inbjudningar skickade!`);
+      feedback.success(`${selectedFriends.length} inbjudningar skickade!`);
       if (onInvitesSent) onInvitesSent();
       onClose();
     } catch (error) {
       console.error('Error sending invitations:', error);
-      alert('Kunde inte skicka inbjudningar. Försök igen.');
+      feedback.error('Kunde inte skicka inbjudningar. Försök igen.');
     } finally {
       setIsSending(false);
     }

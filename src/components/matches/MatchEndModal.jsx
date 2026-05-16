@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { base44 } from "@/api/base44Client";
-import { finishMatch } from "@/components/supabase/services/matchesService";
+import { finishMatch, createMatch } from "@/components/supabase/services/matchesService";
 import { callEdgeFunction } from "@/components/supabase/callEdgeFunction";
 import { triggerHaptic } from "@/components/utils/motionTokens";
+import { feedback } from "@/components/ui/feedback-toast";
 import {
   Trophy,
   Star,
@@ -115,7 +116,7 @@ export default function MatchEndModal({
       setStep(2);
     } catch (error) {
       console.error('Error submitting MVP vote:', error);
-      alert('Kunde inte spara MVP-röst. Försök igen.');
+      feedback.error('Kunde inte spara MVP-röst. Försök igen.');
     } finally {
       setIsSubmitting(false);
     }
@@ -147,7 +148,7 @@ export default function MatchEndModal({
       }
     } catch (error) {
       console.error('Error submitting ratings:', error);
-      alert('Kunde inte spara betyg. Försök igen.');
+      feedback.error('Kunde inte spara betyg. Försök igen.');
     } finally {
       setIsSubmitting(false);
     }
@@ -217,7 +218,7 @@ export default function MatchEndModal({
 
   const handleResultSubmit = async () => {
     if (!match.is_spontaneous && !finalScore.trim()) {
-      alert('Ange matchens resultat!');
+      feedback.error('Ange matchens resultat!');
       return;
     }
 
@@ -229,7 +230,7 @@ export default function MatchEndModal({
       setStep(4);
     } catch (error) {
       console.error('Error submitting result:', error);
-      alert('Kunde inte spara resultat. Försök igen.');
+      feedback.error('Kunde inte spara resultat. Försök igen.');
     } finally {
       setIsSubmitting(false);
     }
@@ -237,41 +238,35 @@ export default function MatchEndModal({
 
   const handlePlayAgain = async () => {
     if (!currentUser?.id) {
-      alert('Kunde inte identifiera användare för att skapa återmatch. Försök igen.');
+      feedback.error('Kunde inte identifiera användare för att skapa återmatch.');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const newMatchData = {
+      const oneWeekFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split('T')[0];
+
+      await createMatch({
         title: `${match.title} (Återmatch)`,
         venue_id: match.venue_id,
-        organizer_id: currentUser.id,
-        date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        date: oneWeekFromNow,
         time: match.time,
         format: match.format,
         max_players: match.max_players,
         is_spontaneous: match.is_spontaneous,
         skill_bracket: match.skill_bracket,
-        duration_minutes: match.duration_minutes,
-        notes: 'Återmatch - samma gäng!'
-      };
+        notes: 'Återmatch — samma gäng!',
+      });
 
-      const newMatch = await base44.entities.Match.create(newMatchData);
-
-      for (const participant of participants) {
-        await base44.entities.MatchParticipant.create({
-          match_id: newMatch.id,
-          user_id: participant.id,
-          status: 'registered'
-        });
-      }
-
-      alert('Återmatch skapad! Alla deltagare har bjudits in.');
+      feedback.success('Återmatch skapad!', {
+        description: 'Hitta den i Matcher och bjud in spelarna.',
+      });
       onClose();
     } catch (error) {
       console.error('Error creating rematch:', error);
-      alert('Kunde inte skapa återmatch. Försök igen.');
+      feedback.error(error?.message || 'Kunde inte skapa återmatch. Försök igen.');
     } finally {
       setIsSubmitting(false);
     }

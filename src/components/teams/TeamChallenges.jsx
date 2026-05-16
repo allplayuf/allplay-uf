@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Shield, Swords, Calendar, Clock, MapPin, Check, X } from "lucide-react";
 import { Team } from "@/entities/Team";
 import { TeamChallenge } from "@/entities/TeamChallenge";
+import { feedback } from "@/components/ui/feedback-toast";
 import { Venue } from "@/entities/Venue";
 import { Match } from "@/entities/Match";
 
@@ -75,7 +76,7 @@ export default function TeamChallenges({ team, currentUser, isCaptainOrVice }) {
     e.preventDefault();
 
     if (!newChallenge.challenged_team_id || !newChallenge.format) {
-      alert('Välj ett lag och format');
+      feedback.error('Välj ett lag och format');
       return;
     }
 
@@ -101,10 +102,10 @@ export default function TeamChallenges({ team, currentUser, isCaptainOrVice }) {
       });
       setShowSendChallengeForm(false);
       loadChallenges();
-      alert('Utmaning skickad!');
+      feedback.success('Utmaning skickad!');
     } catch (error) {
       console.error('Error sending challenge:', error);
-      alert('Kunde inte skicka utmaning. Försök igen.');
+      feedback.error('Kunde inte skicka utmaning. Försök igen.');
     }
   };
 
@@ -137,10 +138,10 @@ export default function TeamChallenges({ team, currentUser, isCaptainOrVice }) {
       });
 
       loadChallenges();
-      alert('Utmaning accepterad! Match skapad.');
+      feedback.success('Utmaning accepterad!', { description: 'Match skapad.' });
     } catch (error) {
       console.error('Error accepting challenge:', error);
-      alert('Kunde inte acceptera utmaning. Försök igen.');
+      feedback.error('Kunde inte acceptera utmaning. Försök igen.');
     }
   };
 

@@ -20,9 +20,10 @@ import { triggerHaptic } from "@/components/utils/motionTokens";
 import ConsentChecker from "@/components/legal/ConsentChecker";
 import { NavigationProvider } from "@/components/navigation/NavigationProvider";
 import EdgeFunctionDebugPanel from "@/components/supabase/EdgeFunctionDebugPanel";
-import PushNotificationInit from "@/components/firebase/PushNotificationInit";
+import PushNotificationInit from "@/components/push/PushNotificationInit";
 import GlassHeader from "@/components/layout/GlassHeader";
 import GlassBottomNav from "@/components/layout/GlassBottomNav";
+import { LanguageProvider, useT } from "@/i18n/LanguageProvider";
 
 // Guest banner wrapper that uses Supabase auth state
 // Must be rendered INSIDE SupabaseAuthProvider (it's in LayoutInner)
@@ -78,33 +79,40 @@ const Community = lazy(() => import("@/pages/Community"));
 const Profile = lazy(() => import("@/pages/Profile"));
 const Admin = lazy(() => import("@/pages/Admin"));
 
+// Navigation items. `title` is the i18n key; the actual visible label is
+// resolved per-render via t() so the language switcher takes effect instantly.
 const navigationItems = [
   {
     title: "Dashboard",
+    labelKey: "nav.dashboard",
     url: createPageUrl("Dashboard"),
     icon: Trophy,
     component: Dashboard,
   },
   {
-    title: "Karta",
+    title: "Map",
+    labelKey: "nav.map",
     url: createPageUrl("Map"),
     icon: MapPin,
     component: Map,
   },
   {
-    title: "Matcher",
+    title: "Matches",
+    labelKey: "nav.matches",
     url: createPageUrl("Matches"),
     icon: Calendar,
     component: Matches,
   },
   {
     title: "Community",
+    labelKey: "nav.community",
     url: createPageUrl("Community"),
     icon: Users,
     component: Community,
   },
   {
-    title: "Profil",
+    title: "Profile",
+    labelKey: "nav.profile",
     url: createPageUrl("Profile"),
     icon: User,
     component: Profile,
@@ -114,6 +122,7 @@ const navigationItems = [
 function LayoutInner({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useT();
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminCheckDone, setAdminCheckDone] = useState(false);
   const mainContentRef = React.useRef(null);
@@ -222,9 +231,9 @@ function LayoutInner({ children }) {
           <div className="p-6 border-b border-[#223029]">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden bg-transparent">
-                <img 
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/31f9a1cc1_LOGGAINGENBAGRUNDOUTLINE.png" 
-                  alt="AllPlay UF Logo" 
+                <img
+                  src="/allplay-logo.png"
+                  alt="AllPlay UF Logo"
                   className="w-full h-full object-contain"
                   loading="eager"
                 />
@@ -257,7 +266,7 @@ function LayoutInner({ children }) {
                     }`}
                   >
                     <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-[#2BA84A]' : 'text-[#9EAAA4]'}`} strokeWidth={2} />
-                    <span className="font-medium text-[14px] leading-[20px]">{item.title}</span>
+                    <span className="font-medium text-[14px] leading-[20px]">{t(item.labelKey)}</span>
                   </button>
                 );
               })}
@@ -266,7 +275,7 @@ function LayoutInner({ children }) {
             {adminCheckDone && isAdmin && (
               <div className="pt-4 space-y-1">
                 <p className="text-[11px] leading-[16px] font-semibold text-[#9EAAA4] uppercase tracking-wider px-3 py-2">
-                  Administration
+                  {t('nav.admin')}
                 </p>
                 <Link
                   to={createPageUrl("Admin")}
@@ -277,7 +286,7 @@ function LayoutInner({ children }) {
                   }`}
                 >
                   <Shield className={`w-5 h-5 flex-shrink-0 ${location.pathname === createPageUrl("Admin") ? 'text-[#F4743B]' : 'text-[#9EAAA4]'}`} strokeWidth={2} />
-                  <span className="font-medium text-[14px] leading-[20px]">Admin</span>
+                  <span className="font-medium text-[14px] leading-[20px]">{t('nav.admin')}</span>
                 </Link>
               </div>
             )}
@@ -295,9 +304,9 @@ function LayoutInner({ children }) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-[#F4F7F5] text-[13px] leading-[18px] truncate">
-                  {supabaseUser?.display_name || supabaseUser?.full_name || 'Inställningar'}
+                  {supabaseUser?.display_name || supabaseUser?.full_name || t('nav.settings')}
                 </p>
-                <p className="text-[11px] leading-[16px] text-[#2BA84A] font-semibold truncate">Inställningar</p>
+                <p className="text-[11px] leading-[16px] text-[#2BA84A] font-semibold truncate">{t('nav.settings')}</p>
               </div>
             </button>
           </div>
@@ -348,10 +357,12 @@ function LayoutInner({ children }) {
 
 export default function Layout({ children, currentPageName }) {
   return (
-    <QueryProvider>
-      <SupabaseAuthProvider>
-        <LayoutInner>{children}</LayoutInner>
-      </SupabaseAuthProvider>
-    </QueryProvider>
+    <LanguageProvider>
+      <QueryProvider>
+        <SupabaseAuthProvider>
+          <LayoutInner>{children}</LayoutInner>
+        </SupabaseAuthProvider>
+      </QueryProvider>
+    </LanguageProvider>
   );
 }

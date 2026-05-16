@@ -8,6 +8,7 @@
 import React, { useState, useRef } from 'react';
 import { Camera, Loader2, X } from 'lucide-react';
 import { UploadFile } from '@/components/supabase/integrations';
+import { feedback } from '@/components/ui/feedback-toast';
 
 export default function AvatarUpload({ currentImageUrl, onUploaded }) {
   const [preview, setPreview] = useState(null);
@@ -23,11 +24,11 @@ export default function AvatarUpload({ currentImageUrl, onUploaded }) {
 
     // Validate
     if (!file.type.startsWith('image/')) {
-      alert('Vänligen välj en bild (JPG, PNG, etc.)');
+      feedback.error('Vänligen välj en bild (JPG, PNG, etc.)');
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      alert('Bilden är för stor. Max 5 MB.');
+      feedback.error('Bilden är för stor. Max 5 MB.');
       return;
     }
 
@@ -48,7 +49,7 @@ export default function AvatarUpload({ currentImageUrl, onUploaded }) {
     } catch (err) {
       console.error('[AvatarUpload] Upload failed:', err);
       setPreview(null);
-      alert('Kunde inte ladda upp bilden. Försök igen.');
+      feedback.error('Kunde inte ladda upp bilden. Försök igen.');
     } finally {
       setIsUploading(false);
     }

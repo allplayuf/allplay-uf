@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import {
-  ArrowLeft, Trash2, Bell, Shield, EyeOff, Lock, Mail,
+  ArrowLeft, Trash2, Bell, Shield, Mail,
   FileText, ShieldCheck, ExternalLink, AlertTriangle,
-  Loader2, ChevronRight, Globe, Megaphone, LogOut, PlayCircle
+  Loader2, ChevronRight, Globe, LogOut, PlayCircle
 } from "lucide-react";
 import { ONBOARDING_STORAGE_KEY, ONBOARDING_EVENT } from "@/components/ui/onboarding-modal";
 import { triggerHaptic } from "@/components/utils/motionTokens";
@@ -17,6 +17,10 @@ import { useCustomDialog } from "../components/ui/custom-dialog";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { getMyProfile } from "../components/supabase/services/usersService";
 import { callEdgeFunction } from "../components/supabase/callEdgeFunction";
+import NotificationToggle from "../components/profile/NotificationToggle";
+import { isPushSupported } from "@/lib/pushNotifications";
+import { useT } from "@/i18n/LanguageProvider";
+import { Languages } from "lucide-react";
 
 /**
  * Account Settings v2 — premium, tighter, football-first.
@@ -31,16 +35,14 @@ export default function AccountSettingsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { confirm, alert, DialogContainer } = useCustomDialog();
+  const { t, lang, setLang } = useT();
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteConfirmEmail, setDeleteConfirmEmail] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const [settings, setSettings] = useState({
-    marketing_opt_in: false,
-    publicProfile: true,
     is_public: true,
-    hide_exact_location: false
   });
 
   const { user: authUser, isAuthenticated, logout } = useSupabaseAuth();
@@ -60,39 +62,17 @@ export default function AccountSettingsPage() {
   useEffect(() => {
     if (user) {
       setSettings({
-        marketing_opt_in: user.marketing_opt_in || false,
-        publicProfile: user.publicProfile !== false,
         is_public: user.is_public !== false,
-        hide_exact_location: user.hide_exact_location || user.is_minor || false
       });
     }
   }, [user]);
 
   const handleSettingChange = async (key, value) => {
-    if (key === 'hide_exact_location' && user?.is_minor && !value) {
-      await alert(
-        'Skydd för minderåriga',
-        'Som minderårig användare kan du inte visa din exakta position för andra användare.',
-        { type: 'info' }
-      );
-      return;
-    }
-
     const prevSettings = { ...settings };
     setSettings(prev => ({ ...prev, [key]: value }));
 
-    const payload = { [key]: value };
-    if (key === 'is_public') {
-      payload.publicProfile = value;
-      setSettings(prev => ({ ...prev, publicProfile: value }));
-    }
-    if (key === 'publicProfile') {
-      payload.is_public = value;
-      setSettings(prev => ({ ...prev, is_public: value }));
-    }
-
     try {
-      await callEdgeFunction('update_profile', payload);
+      await callEdgeFunction('update_profile', { [key]: value });
       queryClient.invalidateQueries({ queryKey: ['supabase-userProfile'] });
     } catch (error) {
       console.error("Error updating setting:", error);
@@ -160,7 +140,7 @@ export default function AccountSettingsPage() {
             </button>
             <div className="flex-1 min-w-0">
               <h1 className="text-[17px] font-black text-[#F4F7F5] leading-tight tracking-[-0.01em]">
-                Inställningar
+                {t('settings.title')}
               </h1>
               <p className="text-[11.5px] text-[#9EAAA4] leading-none mt-0.5 truncate">
                 {user?.email}
@@ -172,62 +152,86 @@ export default function AccountSettingsPage() {
         {/* ── Body ─────────────────────────────── */}
         <div className="p-4 space-y-4">
 
-          {/* ─── Integritet ──────────────── */}
+          {/* ─── Integritet / Privacy ──────────────── */}
           <SettingsCard
-            title="Integritet"
-            desc="Styr vem som ser dig"
+            title={t('settings.privacy.title')}
+            desc={t('settings.privacy.desc')}
             icon={Shield}
             iconAccent="#34C257"
           >
             <ToggleRow
               icon={Globe}
               accent="#86EFAC"
-              label="Offentlig profil"
-              desc="Andra spelare kan se din profil och statistik"
+              label={t('settings.privacy.public_profile')}
+              desc={t('settings.privacy.public_profile_desc')}
               checked={settings.is_public}
               onChange={(c) => handleSettingChange('is_public', c)}
-              warn={!settings.is_public ? 'Namn, bild och statistik döljs för andra' : null}
-            />
-            <Divider />
-            <ToggleRow
-              icon={EyeOff}
-              accent="#FDBA74"
-              label="Dölj exakt position"
-              desc="Visa endast ungefärligt område på kartan"
-              checked={settings.hide_exact_location}
-              onChange={(c) => handleSettingChange('hide_exact_location', c)}
-              disabled={user?.is_minor}
-              badge={user?.is_minor ? { icon: Lock, text: 'Aktivt för din säkerhet', accent: '#F4743B' } : null}
+              warn={!settings.is_public ? t('settings.privacy.public_profile_warn') : null}
             />
           </SettingsCard>
 
-          {/* ─── Kommunikation ─────────────── */}
+          {/* ─── Notiser / Notifications ─────────────── */}
           <SettingsCard
-            title="Kommunikation"
-            desc="E-post och notiser"
+            title={t('settings.notifications.title')}
+            desc={t('settings.notifications.desc')}
             icon={Bell}
             iconAccent="#FDBA74"
           >
-            <ToggleRow
-              icon={Megaphone}
-              accent="#FDE68A"
-              label="Produktnyheter & erbjudanden"
-              desc="Få tips, nyheter och erbjudanden via e-post"
-              checked={settings.marketing_opt_in}
-              onChange={(c) => handleSettingChange('marketing_opt_in', c)}
-            />
-            <div className="mt-3 flex items-start gap-2 p-3 rounded-xl bg-[#0F1513] ring-1 ring-[#1E2724]">
+            {isPushSupported() && (
+              <div className="mb-3">
+                <NotificationToggle />
+              </div>
+            )}
+            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-[#0F1513] ring-1 ring-[#1E2724]">
               <Bell className="w-3.5 h-3.5 text-[#6B7A73] flex-shrink-0 mt-0.5" strokeWidth={2.4} />
-              <p className="text-[11.5px] text-[#7B8A83] leading-relaxed">
-                Servicerelaterade notiser (matchpåminnelser, laghändelser) skickas alltid.
+              <p className="text-[12px] text-[#7B8A83] leading-relaxed">
+                {t('settings.notifications.info')}
               </p>
             </div>
           </SettingsCard>
 
-          {/* ─── Juridiskt ─────────────────── */}
+          {/* ─── Språk / Language ─────────── */}
           <SettingsCard
-            title="Villkor & Integritetspolicy"
-            desc="Våra spelregler"
+            title={t('settings.language.title')}
+            desc={t('settings.language.desc')}
+            icon={Languages}
+            iconAccent="#60A5FA"
+          >
+            <div
+              role="radiogroup"
+              aria-label={t('settings.language.title')}
+              className="grid grid-cols-2 gap-2"
+            >
+              {[
+                { code: 'sv', label: t('settings.language.sv'), flag: '🇸🇪' },
+                { code: 'en', label: t('settings.language.en'), flag: '🇬🇧' },
+              ].map((opt) => {
+                const active = lang === opt.code;
+                return (
+                  <button
+                    key={opt.code}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setLang(opt.code)}
+                    className={`h-12 rounded-xl flex items-center justify-center gap-2 text-[13.5px] font-bold transition-colors ${
+                      active
+                        ? 'bg-[#2BA84A]/16 text-[#EAF6EE] ring-1 ring-[#2BA84A]/40'
+                        : 'bg-[#0F1513] text-[#9EAAA4] ring-1 ring-[#1E2724] hover:bg-[#121715] hover:ring-[#243029]'
+                    }`}
+                  >
+                    <span className="text-[17px] leading-none">{opt.flag}</span>
+                    <span>{opt.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </SettingsCard>
+
+          {/* ─── Juridiskt / Legal ─────────────────── */}
+          <SettingsCard
+            title={t('settings.legal.title')}
+            desc={t('settings.legal.desc')}
             icon={ShieldCheck}
             iconAccent="#C4B5FD"
           >
@@ -235,11 +239,11 @@ export default function AccountSettingsPage() {
               <div className="mb-3 flex items-center gap-2 px-3 py-2 rounded-xl bg-[#2BA84A]/8 ring-1 ring-[#2BA84A]/20">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#34C257] flex-shrink-0" />
                 <p className="text-[12px] text-[#B6C2BC] leading-tight">
-                  <span className="font-bold text-[#86EFAC]">Godkänt:</span>{' '}
+                  <span className="font-bold text-[#86EFAC]">{t('settings.legal.accepted')}</span>{' '}
                   v{user.tos_version_accepted}
                   {user.tos_accepted_at && (
                     <span className="text-[#7B8A83]">
-                      {' '}· {new Date(user.tos_accepted_at).toLocaleDateString('sv-SE')}
+                      {' '}· {new Date(user.tos_accepted_at).toLocaleDateString(lang === 'en' ? 'en-GB' : 'sv-SE')}
                     </span>
                   )}
                 </p>
@@ -247,22 +251,22 @@ export default function AccountSettingsPage() {
             )}
 
             <ActionRow
-              label="Visa fullständiga villkor"
+              label={t('settings.legal.show_full')}
               icon={FileText}
               onClick={() => navigate(createPageUrl("LegalPolicy"))}
               trailingIcon={ExternalLink}
             />
           </SettingsCard>
 
-          {/* ─── Logga ut ──────────────────── */}
+          {/* ─── Konto / Account ──────────────────── */}
           <SettingsCard
-            title="Konto"
-            desc="Session och inloggning"
+            title={t('settings.account.title')}
+            desc={t('settings.account.desc')}
             icon={LogOut}
             iconAccent="#F87171"
           >
             <ActionRow
-              label="Visa introduktionen igen"
+              label={t('settings.account.replay_onboarding')}
               icon={PlayCircle}
               onClick={() => {
                 triggerHaptic('light');
@@ -273,22 +277,24 @@ export default function AccountSettingsPage() {
             <Divider />
             <button
               onClick={async () => {
-                const ok = await confirm('Logga ut', 'Är du säker på att du vill logga ut?', {
-                  type: 'warning', confirmText: 'Logga ut', cancelText: 'Avbryt'
+                const ok = await confirm(t('settings.account.logout_title'), t('settings.account.logout_confirm'), {
+                  type: 'warning',
+                  confirmText: t('settings.account.logout_title'),
+                  cancelText: t('common.cancel'),
                 });
                 if (ok) logout();
               }}
               className="w-full h-12 flex items-center gap-3 px-3.5 rounded-xl bg-[#0F1513] ring-1 ring-[#DC2626]/20 hover:bg-[#DC2626]/8 hover:ring-[#DC2626]/30 text-[#F87171] transition-all text-left"
             >
               <LogOut className="w-4 h-4 flex-shrink-0" strokeWidth={2.3} />
-              <span className="text-[13.5px] font-bold">Logga ut</span>
+              <span className="text-[13.5px] font-bold">{t('settings.account.logout_title')}</span>
             </button>
           </SettingsCard>
 
           {/* ─── Danger zone ───────────────── */}
           <SettingsCard
-            title="Radera konto"
-            desc="Permanent och går inte att ångra"
+            title={t('settings.delete.title')}
+            desc={t('settings.delete.desc')}
             icon={Trash2}
             iconAccent="#F87171"
             destructive
@@ -296,12 +302,12 @@ export default function AccountSettingsPage() {
             <div className="mb-3 flex items-start gap-2.5 p-3 rounded-xl bg-red-500/8 ring-1 ring-red-500/20">
               <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" strokeWidth={2.4} />
               <div className="text-[12px] leading-relaxed">
-                <p className="font-bold text-red-300 mb-1">Detta händer när du raderar:</p>
+                <p className="font-bold text-red-300 mb-1">{t('settings.delete.warning_title')}</p>
                 <ul className="space-y-0.5 text-red-200/80">
-                  <li>• Kontot raderas efter 30 dagars väntetid</li>
-                  <li>• All data raderas förutom anonymiserad matchhistorik</li>
-                  <li>• Du förlorar alla badges, ELO och statistik</li>
-                  <li>• Du tas bort från alla lag</li>
+                  <li>• {t('settings.delete.warning_1')}</li>
+                  <li>• {t('settings.delete.warning_2')}</li>
+                  <li>• {t('settings.delete.warning_3')}</li>
+                  <li>• {t('settings.delete.warning_4')}</li>
                 </ul>
               </div>
             </div>
@@ -317,7 +323,7 @@ export default function AccountSettingsPage() {
                   className="w-full h-11 rounded-xl ring-1 ring-red-500/30 bg-red-500/5 hover:bg-red-500/10 text-red-400 text-[13px] font-bold transition-colors inline-flex items-center justify-center gap-2"
                 >
                   <Trash2 className="w-4 h-4" strokeWidth={2.4} />
-                  Radera mitt konto
+                  {t('settings.delete.trigger')}
                 </motion.button>
               ) : (
                 <motion.div
@@ -329,7 +335,7 @@ export default function AccountSettingsPage() {
                 >
                   <div>
                     <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#9EAAA4] mb-2 block">
-                      Bekräfta med din e-postadress
+                      {t('settings.delete.confirm_email_label')}
                     </label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7B8A83]" />
@@ -351,7 +357,7 @@ export default function AccountSettingsPage() {
                       }}
                       className="flex-1 h-11 rounded-xl bg-[#18221E] hover:bg-[#223029] ring-1 ring-[#243029] text-[#F4F7F5] text-[13px] font-bold transition-colors"
                     >
-                      Avbryt
+                      {t('common.cancel')}
                     </button>
                     <button
                       onClick={handleDeleteAccount}
@@ -359,9 +365,9 @@ export default function AccountSettingsPage() {
                       className="flex-1 h-11 rounded-xl bg-red-500 hover:bg-red-600 text-white text-[13px] font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center gap-2"
                     >
                       {isDeleting ? (
-                        <><Loader2 className="w-4 h-4 animate-spin" /> Raderar…</>
+                        <><Loader2 className="w-4 h-4 animate-spin" /> {t('settings.delete.deleting')}</>
                       ) : (
-                        <>Radera permanent</>
+                        <>{t('settings.delete.confirm_button')}</>
                       )}
                     </button>
                   </div>

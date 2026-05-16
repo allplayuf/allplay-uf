@@ -26,6 +26,7 @@ import {
   Check
 } from "lucide-react";
 import { User } from "@/entities/User";
+import { feedback } from "@/components/ui/feedback-toast";
 
 const PROFILE_SECTIONS = {
   personal: {
@@ -135,7 +136,7 @@ export default function EditProfileModal({ user, onClose, onSave }) {
       onClose();
     } catch (error) {
       console.error("Error saving profile:", error);
-      alert("Kunde inte spara profilen. Försök igen.");
+      feedback.error("Kunde inte spara profilen. Försök igen.");
     } finally {
       setIsSaving(false);
     }

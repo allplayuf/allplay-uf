@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { base44 } from "@/api/base44Client";
+import { feedback } from "@/components/ui/feedback-toast";
 
 const REPORT_CATEGORIES = [
   { value: 'harassment', label: 'Trakasserier', icon: '🚫' },
@@ -57,7 +58,7 @@ export default function ReportModal({
       }
     } catch (error) {
       console.error("Error submitting report:", error);
-      alert('Kunde inte skicka rapport. Försök igen.');
+      feedback.error('Kunde inte skicka rapport. Försök igen.');
     } finally {
       setIsSubmitting(false);
     }

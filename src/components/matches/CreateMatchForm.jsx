@@ -16,9 +16,12 @@ import { useQuery } from '@tanstack/react-query';
 import { listVenueAvailability } from '@/components/supabase/services/venueAvailabilityService';
 import SubPitchPicker from '@/components/venues/SubPitchPicker';
 import { getSubPitches } from '@/components/supabase/services/subPitchesService';
+import { feedback } from '@/components/ui/feedback-toast';
+import { useT } from '@/i18n/LanguageProvider';
 
 export default function CreateMatchForm({ venues, user, onSubmit, onCancel, preselectedVenueId }) {
   const { isGuest } = useSupabaseAuth();
+  const { t } = useT();
   const [formData, setFormData] = useState({
     title: '',
     venue_id: preselectedVenueId || '',
@@ -93,18 +96,18 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
     
     // Check if guest - let backend handle, but show early warning
     if (isGuest) {
-      window.alert("Du måste vara inloggad för att skapa en match!");
+      feedback.error(t('create_match.guest_blocked'));
       return;
     }
 
     if (!formData.title || !formData.venue_id || !formData.date || !formData.time) {
-      window.alert("Fyll i alla obligatoriska fält!");
+      feedback.error(t('create_match.required_fill'));
       return;
     }
 
     // If the chosen venue is a parent with sub-pitches, force user to pick one
     if (hasSubPitches && !isSubSelected) {
-      window.alert("Den här idrottsplatsen har flera planer. Välj en specifik plan.");
+      feedback.error(t('create_match.pick_sub_pitch'));
       return;
     }
 
@@ -112,7 +115,7 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
     const validLevels = ['beginner', 'intermediate', 'advanced', 'pro'];
     if (!formData.is_spontaneous) {
       if (!formData.skill_bracket || !validLevels.includes(formData.skill_bracket)) {
-        window.alert("Välj en giltig matchnivå!");
+        feedback.error(t('create_match.pick_level'));
         return;
       }
     }
@@ -496,21 +499,24 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
       </div>
 
       {/* Footer Actions */}
-      <div className="flex-shrink-0 p-4 lg:p-6 border-t border-[#223029] space-y-3">
+      <div
+        className="flex-shrink-0 p-4 lg:p-6 border-t border-[#223029] space-y-3"
+        style={{ paddingBottom: 'max(1rem, calc(1rem + env(safe-area-inset-bottom)))' }}
+      >
         <div className="flex gap-3">
           <button
             type="button"
             onClick={onCancel}
             className="flex-1 h-12 rounded-[14px] border border-[#223029] text-[#F4F7F5] hover:bg-[#18221E] transition-all font-semibold"
           >
-            Avbryt
+            {t('common.cancel')}
           </button>
           <button
             onClick={handleSubmit}
             disabled={!formData.title || !selectedVenue || !formData.date || !formData.time || (hasSubPitches && !isSubSelected) || isSubmitting}
             className="flex-1 h-12 rounded-[14px] bg-[#2BA84A] text-white hover:bg-[#248232] disabled:bg-[#18221E] disabled:text-[#9EAAA4] disabled:cursor-not-allowed transition-all font-bold"
           >
-            {isSubmitting ? 'Skapar...' : (hasSubPitches && !isSubSelected ? 'Välj plan först' : 'Skapa match')}
+            {isSubmitting ? t('create_match.submitting') : (hasSubPitches && !isSubSelected ? t('create_match.pick_sub_pitch') : t('create_match.submit'))}
           </button>
         </div>
       </div>

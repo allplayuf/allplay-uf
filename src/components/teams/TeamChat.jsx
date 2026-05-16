@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Send, Trophy, Image as ImageIcon, BarChart } from "lucide-react";
 import { TeamMessage } from "@/entities/TeamMessage";
 import { User } from "@/entities/User";
+import { feedback } from "@/components/ui/feedback-toast";
 
 export default function TeamChat({ team, currentUser, isMember }) {
   const [messages, setMessages] = useState([]);
@@ -63,7 +64,7 @@ export default function TeamChat({ team, currentUser, isMember }) {
       loadMessages();
     } catch (error) {
       console.error('Error sending message:', error);
-      alert('Kunde inte skicka meddelande. Försök igen.');
+      feedback.error('Kunde inte skicka meddelande. Försök igen.');
     }
   };
 

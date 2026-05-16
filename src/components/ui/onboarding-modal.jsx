@@ -5,6 +5,7 @@ import LoginModal from '@/components/supabase/LoginModal';
 import { useSupabaseAuth } from '@/components/supabase/AuthProvider';
 import { base44 } from '@/api/base44Client';
 import { triggerHaptic } from '@/components/utils/motionTokens';
+import { useT } from '@/i18n/LanguageProvider';
 
 export const ONBOARDING_STORAGE_KEY = 'allplay_onboarding_completed_v3';
 export const ONBOARDING_EVENT = 'allplay:show-onboarding';
@@ -262,6 +263,7 @@ function GreenButton({ children, onClick, disabled = false, ariaLabel = undefine
 // ─── Slide 1: Hero ────────────────────────────────────────────────────────────
 
 function HeroSlide() {
+  const { t } = useT();
   return (
     <div className="relative flex flex-col flex-1 items-center justify-center px-7 pt-4 pb-6 text-center">
       <LogoMark size={108} delay={0.05} />
@@ -282,7 +284,7 @@ function HeroSlide() {
           className="text-[11px] font-bold tracking-[0.22em] uppercase mt-1.5"
           style={{ color: 'rgba(126,232,154,0.85)' }}
         >
-          Pickup Football · Sverige
+          {t('onboarding.hero.tagline')}
         </p>
       </motion.div>
 
@@ -296,7 +298,7 @@ function HeroSlide() {
           textShadow: '0 4px 28px rgba(0,0,0,0.5)',
         }}
       >
-        Hitta din nästa<br />
+        {t('onboarding.hero.headline_a')}<br />
         <span
           style={{
             background: 'linear-gradient(180deg, #7EE89A 0%, #2EC95E 100%)',
@@ -305,7 +307,7 @@ function HeroSlide() {
             backgroundClip: 'text',
           }}
         >
-          match.
+          {t('onboarding.hero.headline_b')}
         </span>
       </motion.h1>
 
@@ -316,7 +318,7 @@ function HeroSlide() {
         className="text-[15px] leading-relaxed font-medium mt-4"
         style={{ color: 'rgba(235,245,238,0.65)', maxWidth: 320 }}
       >
-        Pickup-fotboll nära dig. Gå med i öppna matcher, möt nya spelare och klättra i ELO.
+        {t('onboarding.hero.sub')}
       </motion.p>
 
       {/* Trust badges */}
@@ -326,7 +328,11 @@ function HeroSlide() {
         transition={{ delay: 0.72, duration: 0.45 }}
         className="flex items-center gap-2 mt-6"
       >
-        {['Gratis', '5⭐ Community', 'Inga formulär'].map((label) => (
+        {[
+          t('onboarding.hero.badge_free'),
+          t('onboarding.hero.badge_community'),
+          t('onboarding.hero.badge_no_forms'),
+        ].map((label) => (
           <span
             key={label}
             className="px-2.5 py-1 rounded-full text-[10.5px] font-bold tracking-wide"
@@ -474,6 +480,7 @@ function MapPreview() {
 }
 
 function MapSlide() {
+  const { t } = useT();
   return (
     <div className="flex flex-col flex-1 px-6 pt-6 pb-6">
       <HeaderBrand delay={0} />
@@ -485,8 +492,8 @@ function MapSlide() {
         className="font-black text-white leading-[1.05] tracking-[-0.03em] mt-6"
         style={{ fontSize: 'clamp(28px, 7.4vw, 36px)' }}
       >
-        Matcher nära dig,<br />
-        <span style={{ color: '#7EE89A' }}>i realtid.</span>
+        {t('onboarding.map.headline_a')}<br />
+        <span style={{ color: '#7EE89A' }}>{t('onboarding.map.headline_b')}</span>
       </motion.h2>
 
       <motion.p
@@ -496,7 +503,7 @@ function MapSlide() {
         className="text-[14px] mt-2 font-medium leading-relaxed"
         style={{ color: 'rgba(235,245,238,0.55)' }}
       >
-        Se öppna pickup-matcher på kartan. Filtrera efter stad, tid och nivå — börja spela ikväll.
+        {t('onboarding.map.sub')}
       </motion.p>
 
       <motion.div
@@ -524,7 +531,7 @@ function MapSlide() {
           <MapPin size={16} style={{ color: '#2EC95E' }} strokeWidth={2.4} />
         </div>
         <p className="text-[13px] font-medium leading-snug" style={{ color: 'rgba(235,245,238,0.65)' }}>
-          <span className="text-white font-bold">100+ planer</span> redan registrerade — i Stockholm, Göteborg, Malmö och fler.
+          {t('onboarding.map.fact')}
         </p>
       </motion.div>
     </div>
@@ -645,6 +652,7 @@ function JoinDemo() {
 }
 
 function JoinSlide() {
+  const { t } = useT();
   return (
     <div className="flex flex-col flex-1 px-6 pt-6 pb-6">
       <HeaderBrand delay={0} />
@@ -656,8 +664,8 @@ function JoinSlide() {
         className="font-black text-white leading-[1.05] tracking-[-0.03em] mt-6"
         style={{ fontSize: 'clamp(28px, 7.4vw, 36px)' }}
       >
-        Gå med på<br />
-        <span style={{ color: '#7EE89A' }}>två sekunder.</span>
+        {t('onboarding.join.headline_a')}<br />
+        <span style={{ color: '#7EE89A' }}>{t('onboarding.join.headline_b')}</span>
       </motion.h2>
 
       <motion.p
@@ -667,7 +675,7 @@ function JoinSlide() {
         className="text-[14px] mt-2 font-medium leading-relaxed"
         style={{ color: 'rgba(235,245,238,0.55)' }}
       >
-        Inga formulär. Inga väntetider. Tryck en gång — du är med, syns i laguppställningen och får all info.
+        {t('onboarding.join.sub')}
       </motion.p>
 
       <motion.div
@@ -682,8 +690,8 @@ function JoinSlide() {
       {/* Two mini-perks */}
       <div className="grid grid-cols-2 gap-2.5 mt-4">
         {[
-          { Icon: Users, title: 'Möt nya', sub: 'Bygg ditt lag' },
-          { Icon: Trophy, title: 'ELO-rating', sub: 'Klättra & spela på din nivå' },
+          { Icon: Users, title: t('onboarding.join.perk_meet_title'), sub: t('onboarding.join.perk_meet_sub') },
+          { Icon: Trophy, title: t('onboarding.join.perk_elo_title'), sub: t('onboarding.join.perk_elo_sub') },
         ].map(({ Icon, title, sub }, i) => (
           <motion.div
             key={title}
@@ -719,6 +727,7 @@ function JoinSlide() {
 // ─── Slide 4: Auth ────────────────────────────────────────────────────────────
 
 function AuthSlide({ isAuthenticated, isAuthLoading, onSuccess, onGuest }) {
+  const { t } = useT();
   if (!isAuthLoading && isAuthenticated) {
     return (
       <div className="flex flex-col items-center justify-center flex-1 px-6 gap-5">
@@ -742,14 +751,14 @@ function AuthSlide({ isAuthenticated, isAuthLoading, onSuccess, onGuest }) {
         </motion.div>
         <div className="text-center">
           <p className="text-[24px] font-black text-white mb-1.5 tracking-[-0.025em]">
-            Du är inloggad!
+            {t('onboarding.success.title')}
           </p>
           <p className="text-[14px]" style={{ color: 'rgba(235,245,238,0.5)' }}>
-            Välkommen till AllPlay.
+            {t('onboarding.success.sub')}
           </p>
         </div>
         <GreenButton onClick={onSuccess}>
-          Kom igång <ChevronRight className="w-4 h-4" strokeWidth={2.8} />
+          {t('onboarding.cta.get_started')} <ChevronRight className="w-4 h-4" strokeWidth={2.8} />
         </GreenButton>
       </div>
     );
@@ -766,7 +775,7 @@ function AuthSlide({ isAuthenticated, isAuthLoading, onSuccess, onGuest }) {
         className="font-black text-white leading-[1.05] tracking-[-0.03em] mt-5"
         style={{ fontSize: 'clamp(26px, 7vw, 32px)' }}
       >
-        Skapa ditt konto.
+        {t('onboarding.auth.headline')}
       </motion.h2>
 
       <motion.p
@@ -776,7 +785,7 @@ function AuthSlide({ isAuthenticated, isAuthLoading, onSuccess, onGuest }) {
         className="text-[13.5px] leading-relaxed mt-1.5 mb-5 font-medium"
         style={{ color: 'rgba(235,245,238,0.45)' }}
       >
-        Gratis. 30 sekunder. Inget kort.
+        {t('onboarding.auth.sub')}
       </motion.p>
 
       <motion.div
@@ -807,7 +816,7 @@ function AuthSlide({ isAuthenticated, isAuthLoading, onSuccess, onGuest }) {
           e.currentTarget.style.color = 'rgba(235,245,238,0.35)';
         }}
       >
-        Fortsätt som gäst
+        {t('onboarding.auth.guest_link')}
       </motion.button>
     </div>
   );
@@ -856,6 +865,7 @@ const slideVariants = {
 
 export function OnboardingModal() {
   const { isAuthenticated, isLoading: isAuthLoading } = useSupabaseAuth();
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   const [slide, setSlide] = useState(0);
   const [dir, setDir] = useState(1);
@@ -972,7 +982,11 @@ export function OnboardingModal() {
 
   // Per-slide CTA label
   const ctaLabel =
-    cur.id === 'hero' ? 'Kom igång' : cur.id === 'map' ? 'Visa mig hur' : 'Skapa konto';
+    cur.id === 'hero'
+      ? t('onboarding.cta.get_started')
+      : cur.id === 'map'
+      ? t('onboarding.cta.show_me')
+      : t('onboarding.cta.create_account');
 
   return (
     <AnimatePresence>
@@ -1050,7 +1064,7 @@ export function OnboardingModal() {
                   e.currentTarget.style.color = 'rgba(235,245,238,0.4)';
                 }}
               >
-                {isLast ? '' : 'Hoppa'}
+                {isLast ? '' : t('common.skip')}
               </button>
             </div>
 
@@ -1114,8 +1128,8 @@ export function OnboardingModal() {
                       e.currentTarget.style.color = 'rgba(235,245,238,0.35)';
                     }}
                   >
-                    Har du redan ett konto?{' '}
-                    <span style={{ color: '#34D464' }}>Logga in</span>
+                    {t('onboarding.login_link_a')}{' '}
+                    <span style={{ color: '#34D464' }}>{t('onboarding.login_link_b')}</span>
                   </button>
                 )}
               </div>

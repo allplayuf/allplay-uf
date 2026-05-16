@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar, MapPin, Users, Trophy, X, Info, Shield, Swords } from "lucide-react";
 import { Venue } from "@/entities/Venue";
 import { Team } from "@/entities/Team";
+import { feedback } from "@/components/ui/feedback-toast";
 
 export default function CreateTeamMatchForm({ currentTeam, onSubmit, onCancel }) {
   const [venues, setVenues] = useState([]);
@@ -55,7 +56,7 @@ export default function CreateTeamMatchForm({ currentTeam, onSubmit, onCancel })
     e.preventDefault();
     
     if (!formData.title || !formData.venue_id || !formData.date || !formData.time || !formData.team_b_id) {
-      alert("Fyll i alla obligatoriska fält!");
+      feedback.error("Fyll i alla obligatoriska fält.");
       return;
     }
 

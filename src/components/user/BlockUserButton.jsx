@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Ban, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
+import { feedback } from "@/components/ui/feedback-toast";
 
 export default function BlockUserButton({ 
   targetUserId, 
@@ -28,7 +29,7 @@ export default function BlockUserButton({
       }
     } catch (error) {
       console.error("Error toggling block:", error);
-      alert('Kunde inte utföra åtgärden. Försök igen.');
+      feedback.error('Kunde inte utföra åtgärden. Försök igen.');
     } finally {
       setLoading(false);
     }
