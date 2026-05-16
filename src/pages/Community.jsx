@@ -24,6 +24,7 @@ import { AuthGateModal } from "../components/ui/auth-gate-modal";
 import { LoginModal } from "../components/supabase";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import CommunityHero from "../components/community/CommunityHero";
+import { useT } from "@/i18n/LanguageProvider";
 import { 
   getMyProfile, getTeams, getMyTeams, createSupabaseTeam,
   getMyFriendships, sendFriendRequest, acceptFriendRequest, declineFriendRequest
@@ -112,6 +113,7 @@ const TAB_COLORS = {
 
 export default function CommunityPage() {
   useSEO({ title: 'Community – Lag och spelare', description: 'Hitta lag, träffa spelare och bygg ditt fotbollsnätverk i Sverige med AllPlay UF.', canonicalPath: '/community' });
+  const { t } = useT();
   const navigate = useNavigate();
   const locationHook = useLocation();
   const urlParams = new URLSearchParams(locationHook.search);
@@ -467,25 +469,25 @@ export default function CommunityPage() {
               }`}
             >
               <Users className={`w-4 h-4 ${activeTab === 'friends' ? TAB_COLORS.friends.icon : ''}`} />
-              <span>Vänner</span>
+              <span>{t('community.tab_friends')}</span>
             </TabsTrigger>
-            <TabsTrigger 
-              value="teams" 
+            <TabsTrigger
+              value="teams"
               className={`gap-1.5 h-12 rounded-2xl transition-all duration-200 font-semibold text-xs sm:text-sm ${
                 activeTab === 'teams' ? TAB_COLORS.teams.active : TAB_COLORS.teams.inactive
               }`}
             >
               <Target className={`w-4 h-4 ${activeTab === 'teams' ? TAB_COLORS.teams.icon : ''}`} />
-              <span>Lag</span>
+              <span>{t('community.tab_teams')}</span>
             </TabsTrigger>
-            <TabsTrigger 
-              value="find" 
+            <TabsTrigger
+              value="find"
               className={`gap-1.5 h-12 rounded-2xl transition-all duration-200 font-semibold text-xs sm:text-sm ${
                 activeTab === 'find' ? TAB_COLORS.find.active : TAB_COLORS.find.inactive
               }`}
             >
               <Search className={`w-4 h-4 ${activeTab === 'find' ? TAB_COLORS.find.icon : ''}`} />
-              <span>Hitta</span>
+              <span>{t('community.tab_find')}</span>
             </TabsTrigger>
             {isCupsEnabled() && (
               <TabsTrigger 

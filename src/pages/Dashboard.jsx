@@ -48,6 +48,7 @@ import { PullToRefresh } from "../components/ui/pull-to-refresh";
 import { AuthGateModal } from "../components/ui/auth-gate-modal";
 import { LoginModal } from "../components/supabase";
 import { haversineDistance } from "../utils/geo";
+import { useT } from "@/i18n/LanguageProvider";
 
 // Query keys
 const QUERY_KEYS = {
@@ -56,6 +57,7 @@ const QUERY_KEYS = {
 
 export default function Dashboard() {
   useSEO({ title: 'Hem', description: 'Se dina kommande matcher, hitta spelare nära dig och boka planer direkt via AllPlay UF.', canonicalPath: '/dashboard' });
+  const { t } = useT();
   const [userLocation, setUserLocation] = useState(null);
   const [showCreateMatchModal, setShowCreateMatchModal] = useState(false);
   const [showAuthGate, setShowAuthGate] = useState(false);
@@ -489,7 +491,7 @@ export default function Dashboard() {
                   <div className="absolute top-4 left-4">
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-md ring-1 ring-white/15 text-[10px] font-extrabold uppercase tracking-[0.14em] text-white/90">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#34C257] animate-pulse" />
-                      Om oss
+                      {t('dashboard.about.badge')}
                     </span>
                   </div>
                 </motion.div>
@@ -498,17 +500,17 @@ export default function Dashboard() {
                 <div className="flex-1 flex flex-col justify-center gap-4 p-5 sm:p-7">
                   <div>
                     <h3 className="text-[22px] sm:text-[24px] font-black text-white tracking-tight mb-2 leading-tight">
-                      Lär känna <span className="text-[#34C257]">AllPlay</span>
+                      {t('dashboard.about.headline_a')} <span className="text-[#34C257]">AllPlay</span>
                     </h3>
                     <p className="text-[14px] sm:text-[15px] text-[#B6C2BC] leading-relaxed">
-                      Vi bygger AllPlay för att göra spontanfotboll enkel, trygg och tillgänglig. Läs om varför appen finns, hur den funkar och vilka som står bakom.
+                      {t('dashboard.about.desc')}
                     </p>
                   </div>
                   <motion.div
                     whileHover={{ x: 4 }}
                     className="inline-flex items-center gap-2 text-[#34C257] font-bold text-[14px] self-start"
                   >
-                    <span>Läs vår story</span>
+                    <span>{t('dashboard.about.cta')}</span>
                     <ChevronRight className="w-4 h-4" strokeWidth={2.6} />
                   </motion.div>
                 </div>

@@ -36,6 +36,7 @@ import {
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { haversineDistance } from "../utils/geo";
 import feedback from "../components/ui/feedback-toast";
+import { useT } from "@/i18n/LanguageProvider";
 
 // Query keys
 const QUERY_KEYS = {
@@ -80,7 +81,8 @@ export default function MatchesPage() {
   const { confirm, alert, DialogContainer } = useCustomDialog();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  
+  const { t } = useT();
+
   // Use Supabase auth as source of truth
   const { user: authUser, isGuest, isAuthenticated } = useSupabaseAuth();
 
@@ -241,20 +243,20 @@ export default function MatchesPage() {
 
       setShowCreateForm(false);
       setPreselectedVenueId(null);
-      
+
       queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myParticipantMatchIds });
-      
+
       // Navigate to newly created match if we got an ID back
       if (result?.match_id) {
         navigate(`${createPageUrl("MatchDetail")}?id=${result.match_id}`);
       }
-      
+
     } catch (error) {
       console.error("Error creating match:", error);
       await alert(
-        'Kunde inte skapa match',
-        error.message || 'Det gick inte att skapa matchen. Försök igen om en stund.',
+        t('matches.create_error_title'),
+        error.message || t('matches.create_error_desc'),
         { type: 'alert' }
       );
     }
@@ -267,11 +269,11 @@ export default function MatchesPage() {
       // Let backend handle all validation (auth, duplicates, capacity, skill level)
       await joinMatchMutation.mutateAsync({ matchId });
 
-      feedback.success('Du är med! ⚽', { description: `Anmäld till "${match?.title || 'matchen'}"` });
+      feedback.success(t('matches.join_success'), { description: t('matches.join_success_desc', { title: match?.title || '' }) });
 
     } catch (error) {
       console.error("Error joining match:", error);
-      feedback.error(error.message || 'Det gick inte att gå med i matchen. Försök igen.');
+      feedback.error(error.message || t('matches.join_error'));
     }
   };
 
@@ -287,19 +289,18 @@ export default function MatchesPage() {
   const handleDeleteMatch = async (matchId) => {
     const match = allMatches.find(m => m.id === matchId);
     const shouldDelete = await confirm(
-      'Radera match',
-      `Är du säker på att du vill ta bort "${match?.title}"? Alla deltagare kommer att meddelas.`,
+      t('matches.delete_confirm_title'),
+      t('matches.delete_confirm_desc', { title: match?.title || '' }),
       {
         type: 'warning',
-        confirmText: 'Ja, radera',
-        cancelText: 'Avbryt'
+        confirmText: t('matches.delete_confirm_btn'),
+        cancelText: t('common.cancel')
       }
     );
 
     if (!shouldDelete) return;
 
     try {
-      // Use deleteMatch service method
       await deleteMatch(matchId);
 
       queryClient.invalidateQueries({ queryKey: ['matches-infinite'] });
@@ -307,31 +308,31 @@ export default function MatchesPage() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.completedMatches });
 
       await alert(
-        'Match raderad',
-        'Matchen har tagits bort',
+        t('matches.delete_success_title'),
+        t('matches.delete_success_desc'),
         { type: 'success' }
       );
     } catch (error) {
       console.error("Error deleting match:", error);
-      const msg = error.status === 403 
-        ? 'Endast arrangören kan radera matchen.' 
-        : error.status === 401 
-          ? 'Du måste vara inloggad.' 
-          : (error.message || 'Det gick inte att radera matchen. Försök igen.');
-      await alert('Kunde inte ta bort matchen', msg, { type: 'alert' });
+      const msg = error.status === 403
+        ? t('matches.delete_error_organizer')
+        : error.status === 401
+          ? t('matches.delete_error_auth')
+          : (error.message || t('common.error'));
+      await alert(t('matches.delete_error_title'), msg, { type: 'alert' });
     }
   };
 
   const sortByLabels = {
-    all: 'Alla matcher',
-    my_level: 'Min nivå',
-    today: 'Idag'
+    all: t('matches.filter_all'),
+    my_level: t('matches.filter_my_level'),
+    today: t('common.today')
   };
 
   const matchSortLabels = {
-    nearest: 'Närmast',
-    earliest: 'Tidigast',
-    fullest: 'Mest fyllda'
+    nearest: t('matches.sort_nearest'),
+    earliest: t('matches.sort_earliest'),
+    fullest: t('matches.sort_fullest')
   };
 
   // Only gate on venues (layout-critical). Matches stream in via infinite scroll.
@@ -402,9 +403,9 @@ export default function MatchesPage() {
               className="relative grid grid-cols-3 gap-0.5 p-1 bg-[#0F1513] border border-[#243029] rounded-2xl shadow-[inset_0_1px_2px_rgba(0,0,0,0.45)]"
             >
               {[
-                { id: 'browse', label: 'Hitta', count: allMatches.length, accent: '#34C257' },
-                { id: 'my-matches', label: 'Anmälda', count: myMatches.length, accent: '#FDBA74' },
-                { id: 'completed', label: 'Spelade', count: null, accent: '#C4B5FD' },
+                { id: 'browse', label: t('matches.tab_browse'), count: allMatches.length, accent: '#34C257' },
+                { id: 'my-matches', label: t('matches.tab_mine'), count: myMatches.length, accent: '#FDBA74' },
+                { id: 'completed', label: t('matches.tab_played'), count: null, accent: '#C4B5FD' },
               ].map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
@@ -455,31 +456,31 @@ export default function MatchesPage() {
                   activeCount={(sortBy !== 'all' ? 1 : 0) + (matchSort !== 'nearest' ? 1 : 0)}
                 >
                   <div className="flex flex-col sm:flex-row gap-3">
-                    <FilterField label="Filter">
+                    <FilterField label={t('common.filter')}>
                       <MobileSelect
                         value={sortBy}
                         onValueChange={setSortBy}
-                        placeholder="Filter"
-                        label="Filtrera matcher"
+                        placeholder={t('common.filter')}
+                        label={t('common.filter')}
                         className="w-full bg-[#141917] border border-[#243029] text-[#F5F8F6] rounded-xl h-11 px-3 flex items-center"
                         options={[
-                          { value: 'all', label: 'Alla matcher' },
-                          { value: 'my_level', label: 'Min nivå' },
-                          { value: 'today', label: 'Idag' }
+                          { value: 'all', label: t('matches.filter_all') },
+                          { value: 'my_level', label: t('matches.filter_my_level') },
+                          { value: 'today', label: t('common.today') }
                         ]}
                       />
                     </FilterField>
-                    <FilterField label="Sortera">
+                    <FilterField label={t('common.sort')}>
                       <MobileSelect
                         value={matchSort}
                         onValueChange={setMatchSort}
-                        placeholder="Sortera"
-                        label="Sortera matcher"
+                        placeholder={t('common.sort')}
+                        label={t('common.sort')}
                         className="w-full bg-[#141917] border border-[#243029] text-[#F5F8F6] rounded-xl h-11 px-3 flex items-center"
                         options={[
-                          { value: 'nearest', label: 'Närmast' },
-                          { value: 'earliest', label: 'Tidigast' },
-                          { value: 'fullest', label: 'Mest fyllda' }
+                          { value: 'nearest', label: t('matches.sort_nearest') },
+                          { value: 'earliest', label: t('matches.sort_earliest') },
+                          { value: 'fullest', label: t('matches.sort_fullest') }
                         ]}
                       />
                     </FilterField>

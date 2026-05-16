@@ -41,6 +41,7 @@ import BlockUserButton from "../components/user/BlockUserButton";
 import { PullToRefresh } from "../components/ui/pull-to-refresh";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import feedback from "../components/ui/feedback-toast";
+import { useT } from "@/i18n/LanguageProvider";
 import { LoginModal } from "../components/supabase";
 import { LogIn } from "lucide-react";
 import {
@@ -61,11 +62,17 @@ const SettingsSheet = lazy(() => import("../components/profile/SettingsSheet"));
 const OtherProfileView = lazy(() => import("../components/profile/OtherProfileView"));
 import ProfileHero from "../components/profile/ProfileHero";
 
-const SKILL_LEVEL_CONFIG = {
-  beginner: { label: 'Nybörjare', icon: Target, color: 'from-[#10B981] to-[#059669]', textColor: 'text-[#A7F3D0]' },
-  intermediate: { label: 'Medel', icon: TrendingUp, color: 'from-[#14B8A6] to-[#0D9488]', textColor: 'text-[#99F6E4]' },
-  advanced: { label: 'Avancerad', icon: Shield, color: 'from-[#8B5CF6] to-[#7C3AED]', textColor: 'text-[#DDD6FE]' },
-  elite: { label: 'Elit', icon: Crown, color: 'from-[#F59E0B] to-[#D97706]', textColor: 'text-[#FDE68A]' }
+const SKILL_LEVEL_ICONS = {
+  beginner: Target,
+  intermediate: TrendingUp,
+  advanced: Shield,
+  elite: Crown,
+};
+const SKILL_LEVEL_COLORS = {
+  beginner: { color: 'from-[#10B981] to-[#059669]', textColor: 'text-[#A7F3D0]' },
+  intermediate: { color: 'from-[#14B8A6] to-[#0D9488]', textColor: 'text-[#99F6E4]' },
+  advanced: { color: 'from-[#8B5CF6] to-[#7C3AED]', textColor: 'text-[#DDD6FE]' },
+  elite: { color: 'from-[#F59E0B] to-[#D97706]', textColor: 'text-[#FDE68A]' },
 };
 
 // Query keys
@@ -82,6 +89,7 @@ const QUERY_KEYS = {
 
 export default function ProfilePage() {
   useSEO({ title: 'Profil', description: 'Hantera din profil, statistik och inställningar på AllPlay UF.' });
+  const { t } = useT();
   const [showQRModal, setShowQRModal] = useState(false);
   const [activeTab, setActiveTab] = useState('inbox');
   const [showSettingsSheet, setShowSettingsSheet] = useState(false);
@@ -505,8 +513,9 @@ export default function ProfilePage() {
     return null;
   }
 
-  const skillLevel = SKILL_LEVEL_CONFIG[displayUser?.skill_level || 'intermediate'];
-  const SkillIcon = skillLevel.icon;
+  const skillLevelKey = displayUser?.skill_level || 'intermediate';
+  const SkillIcon = SKILL_LEVEL_ICONS[skillLevelKey] || Target;
+  const skillLevel = SKILL_LEVEL_COLORS[skillLevelKey] || SKILL_LEVEL_COLORS.intermediate;
   const memberSince = displayUser?.created_date ? new Date(displayUser.created_date).getFullYear() : new Date().getFullYear();
 
   const getFriendshipStatus = () => {
@@ -566,10 +575,10 @@ export default function ProfilePage() {
               <div className="max-w-7xl mx-auto">
                 <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide">
                   {[
-                    { id: 'inbox', label: 'Inbox', icon: Users, badge: friendRequests.length + teamInvites.length + teamJoinRequests.length },
-                    { id: 'stats', label: 'Statistik', icon: TrendingUp },
-                    { id: 'badges', label: 'Badges', icon: Award },
-                    { id: 'history', label: 'Historik', icon: Calendar }
+                    { id: 'inbox', label: t('profile.tab_inbox'), icon: Users, badge: friendRequests.length + teamInvites.length + teamJoinRequests.length },
+                    { id: 'stats', label: t('profile.tab_stats'), icon: TrendingUp },
+                    { id: 'badges', label: t('profile.tab_badges'), icon: Award },
+                    { id: 'history', label: t('profile.tab_history'), icon: Calendar }
                   ].map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
@@ -641,8 +650,9 @@ export default function ProfilePage() {
                         </div>
                         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                           {friends.map((friend, index) => {
-                            const friendSkill = SKILL_LEVEL_CONFIG[friend.skill_level || 'intermediate'];
-                            const FriendSkillIcon = friendSkill.icon;
+                            const friendSkillKey = friend.skill_level || 'intermediate';
+                            const FriendSkillIcon = SKILL_LEVEL_ICONS[friendSkillKey] || Target;
+                            const friendSkill = SKILL_LEVEL_COLORS[friendSkillKey] || SKILL_LEVEL_COLORS.intermediate;
                             const friendAvatar = friend.avatar_url;
 
                             return (
@@ -674,7 +684,7 @@ export default function ProfilePage() {
                                           </div>
                                           <Badge className={`bg-gradient-to-r ${friendSkill.color} ${friendSkill.textColor} text-[10px] font-bold border-0 px-2 h-6`}>
                                             <FriendSkillIcon className="w-3 h-3 mr-1" />
-                                            {friendSkill.label}
+                                            {t(`profile.skill.${friendSkillKey}`)}
                                           </Badge>
                                         </div>
                                         <div className="flex gap-2">

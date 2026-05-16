@@ -6,6 +6,7 @@ import { createPageUrl } from "@/utils";
 import MatchCard from "../matches/MatchCard";
 import PremiumEmptyState from "../ui/premium-empty-state";
 import { triggerHaptic } from "../utils/motionTokens";
+import { useT } from "@/i18n/LanguageProvider";
 
 export default function MatchesCarousel({
   nearbyMatches = [],
@@ -17,6 +18,7 @@ export default function MatchesCarousel({
   onJoin,
   onCreateMatch,
 }) {
+  const { t } = useT();
   const [activeTab, setActiveTab] = useState(
     !isGuest && myMatches.length > 0 ? "mine" : "nearby"
   );
@@ -119,8 +121,8 @@ export default function MatchesCarousel({
   }, [matches.length, isPaused, tabFading, activeTab, getCardStep]);
 
   const tabs = [
-    { id: "nearby", label: "I närheten", icon: Radar, count: nearbyMatches.length },
-    { id: "mine", label: isGuest ? "Kommande" : "Anmäld", icon: UserCheck, count: myMatches.length },
+    { id: "nearby", label: t('carousel.tab_nearby'), icon: Radar, count: nearbyMatches.length },
+    { id: "mine", label: isGuest ? t('carousel.tab_upcoming') : t('carousel.tab_joined'), icon: UserCheck, count: myMatches.length },
   ];
 
   const SegmentedControl = () => (
@@ -179,7 +181,7 @@ export default function MatchesCarousel({
           <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-[#2BA84A]/20 to-[#2BA84A]/10 rounded-xl flex items-center justify-center">
             <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-[#2BA84A]" strokeWidth={2.5} />
           </div>
-          <h2 className="hidden sm:block text-xl font-bold text-[#F4F7F5]">Matcher</h2>
+          <h2 className="hidden sm:block text-xl font-bold text-[#F4F7F5]">{t('carousel.header')}</h2>
         </div>
 
         <div className="flex-1 flex justify-center min-w-0">
@@ -217,8 +219,7 @@ export default function MatchesCarousel({
           to={createPageUrl("Matches")}
           className="text-[12px] sm:text-sm font-semibold text-[#2BA84A] hover:text-[#CFE8D6] flex items-center gap-0.5 sm:gap-1 transition-colors flex-shrink-0"
         >
-          <span className="hidden xs:inline sm:inline">Visa alla</span>
-          <span className="xs:hidden sm:hidden">Alla</span>
+          <span>{t('common.view_all')}</span>
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
@@ -229,24 +230,24 @@ export default function MatchesCarousel({
           icon={<Calendar className="w-9 h-9" strokeWidth={2} />}
           title={
             activeTab === "nearby"
-              ? "Inga matcher nära dig just nu"
+              ? t('carousel.empty.nearby_title')
               : isGuest
-              ? "Inga matcher just nu"
-              : "Du har inga kommande matcher"
+              ? t('carousel.empty.none_title')
+              : t('carousel.empty.mine_title')
           }
           description={
             activeTab === "nearby"
-              ? "Inga öppna matcher just nu. Skapa din egen eller kolla in alla matcher."
+              ? t('carousel.empty.nearby_desc')
               : isGuest
-              ? "Logga in för att hitta och gå med i matcher nära dig."
-              : "Hitta en match att gå med i eller skapa en egen på 10 sekunder!"
+              ? t('carousel.empty.guest_desc')
+              : t('carousel.empty.mine_desc')
           }
-          actionLabel="Se alla matcher"
+          actionLabel={t('carousel.empty.action')}
           onAction={() => {
             triggerHaptic("light");
             window.location.href = createPageUrl("Matches");
           }}
-          secondaryLabel={!isGuest && onCreateMatch ? "Skapa match" : null}
+          secondaryLabel={!isGuest && onCreateMatch ? t('matches.fab_create') : null}
           onSecondary={
             !isGuest && onCreateMatch
               ? () => {

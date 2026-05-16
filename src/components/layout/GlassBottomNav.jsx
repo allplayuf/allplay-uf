@@ -16,11 +16,10 @@ export default function GlassBottomNav({ items = [], onTabClick }) {
   const location = useLocation();
   const { t } = useT();
 
-  // Hide on sub-pages — only render when we're on one of the root tabs.
-  // This keeps deep flows (MatchDetail, EditProfile, AccountSettings,
-  // Feedback, AboutAllPlay, LegalPolicy, CreateCup, etc.) clutter-free.
-  const isRootPage = items.some((item) => location.pathname === item.url);
-  if (!isRootPage) return null;
+  // Hide only on full-screen flows where the nav would be intrusive
+  // (OAuth redirect and consent/terms gate). Show on all other pages.
+  const HIDE_PATHS = ['/auth-callback', '/terms-of-service'];
+  if (HIDE_PATHS.some((p) => location.pathname.startsWith(p))) return null;
 
   return (
     <nav

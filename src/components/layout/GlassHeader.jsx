@@ -7,6 +7,7 @@ import { triggerHaptic } from "@/components/utils/motionTokens";
 import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
 import QRModal from "@/components/profile/QRModal";
 import { LoginModal } from "@/components/supabase";
+import { useT } from "@/i18n/LanguageProvider";
 
 /**
  * GlassHeader — thin, floating glass panel for mobile.
@@ -19,6 +20,7 @@ export default function GlassHeader({ showBack }) {
   const { isAuthenticated, user } = useSupabaseAuth();
   const [showQR, setShowQR] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  const { t } = useT();
 
   const handleBack = () => {
     triggerHaptic("light");
@@ -116,10 +118,10 @@ export default function GlassHeader({ showBack }) {
                   boxShadow:
                     "0 4px 14px rgba(43,168,74,0.38), inset 0 1px 0 rgba(255,255,255,0.18)",
                 }}
-                aria-label="Logga in"
+                aria-label={t('common.login')}
               >
                 <LogIn className="w-[14px] h-[14px]" strokeWidth={2.4} />
-                <span>Logga in</span>
+                <span>{t('common.login')}</span>
               </motion.button>
             )}
           </div>

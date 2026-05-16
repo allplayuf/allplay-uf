@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { createPageUrl } from "@/utils";
 import { MapPin, Plus, Users, ArrowRight, PlayCircle } from "lucide-react";
 import { triggerHaptic } from "../utils/motionTokens";
+import { useT } from "@/i18n/LanguageProvider";
 
 /**
  * AllPlay Signature Hero
@@ -29,8 +30,9 @@ export default function DashboardHero({
   myMatchesCount = 0,
   onCreateMatch,
 }) {
-  const firstName = getFirstName(user);
-  const greeting = getGreeting();
+  const { t } = useT();
+  const firstName = getFirstName(user, t);
+  const greeting = getGreeting(t);
   const hasOpenMatches = nearbyCount > 0;
 
   return (
@@ -126,7 +128,7 @@ export default function DashboardHero({
           transition={{ delay: 0.12, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           className="text-[30px] sm:text-[38px] lg:text-[48px] leading-[1.02] font-black text-white tracking-[-0.03em] drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]"
         >
-          Dags att spela,
+          {t('dashboard.hero.headline')}
           <br />
           <span
             className="bg-clip-text text-transparent"
@@ -181,10 +183,10 @@ export default function DashboardHero({
 
                 <div className="flex-1 min-w-0 text-left">
                   <div className="text-[15px] sm:text-[16.5px] font-black text-white leading-tight tracking-[-0.01em]">
-                    Hitta en match nu
+                    {t('dashboard.hero.cta_find')}
                   </div>
                   <div className="text-[11px] sm:text-[12px] text-white/85 font-medium leading-tight mt-0.5">
-                    {hasOpenMatches ? `${nearbyCount} öppna matcher väntar` : "Utforska alla öppna matcher"}
+                    {hasOpenMatches ? t('dashboard.hero.open_count', { n: nearbyCount }) : t('dashboard.hero.explore')}
                   </div>
                 </div>
 
@@ -211,7 +213,7 @@ export default function DashboardHero({
           <QuickTile
             to={createPageUrl("Map")}
             icon={MapPin}
-            label="Planer"
+            label={t('dashboard.hero.quick_pitches')}
             accent="#86EFAC"
           />
           <QuickTile
@@ -220,13 +222,13 @@ export default function DashboardHero({
               onCreateMatch?.();
             }}
             icon={Plus}
-            label="Skapa"
+            label={t('dashboard.hero.quick_create')}
             accent="#FDBA74"
           />
           <QuickTile
             to={createPageUrl("Community")}
             icon={Users}
-            label="Vänner"
+            label={t('dashboard.hero.quick_friends')}
             accent="#C4B5FD"
           />
         </motion.nav>
@@ -383,17 +385,17 @@ function QuickTile({ to, onClick, icon: Icon, label, accent }) {
 // ═══════════════════════════════════════════════════════════
 // Helpers
 // ═══════════════════════════════════════════════════════════
-function getFirstName(user) {
+function getFirstName(user, t) {
   const name = user?.display_name || user?.full_name || "";
-  return name.split(" ")[0] || "Spelare";
+  return name.split(" ")[0] || t('common.player');
 }
 
-function getGreeting() {
+function getGreeting(t) {
   const h = new Date().getHours();
-  if (h < 6) return "Sent på natten";
-  if (h < 10) return "God morgon";
-  if (h < 13) return "Förmiddag";
-  if (h < 17) return "Eftermiddag";
-  if (h < 22) return "Kväll";
-  return "God natt";
+  if (h < 6) return t('dashboard.hero.greeting_late');
+  if (h < 10) return t('dashboard.hero.greeting_morning');
+  if (h < 13) return t('dashboard.hero.greeting_forenoon');
+  if (h < 17) return t('dashboard.hero.greeting_afternoon');
+  if (h < 22) return t('dashboard.hero.greeting_evening');
+  return t('dashboard.hero.greeting_night');
 }

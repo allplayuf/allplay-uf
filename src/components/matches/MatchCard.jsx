@@ -12,6 +12,7 @@ import { getCachedUser } from "@/components/supabase/services/userCache";
 import AvatarImage from "@/components/ui/avatar-image";
 import { AuthGateModal } from '@/components/ui/auth-gate-modal';
 import { LoginModal } from '@/components/supabase';
+import { useT } from '@/i18n/LanguageProvider';
 
 const SKILL_LEVEL_CONFIG = {
   beginner: { label: 'Nybörjare', icon: Target },
@@ -57,6 +58,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const { isGuest } = useSupabaseAuth();
+  const { t } = useT();
 
   // Read participant users SYNCHRONOUSLY from the shared cache — no extra network call.
   // `getParticipantsForMatches` (upstream) already primed the cache in the same query.
@@ -72,8 +74,8 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
         // Fallback — participant row may already carry user fields from backend join
         return {
           id: p.user_id,
-          full_name: p.full_name || p.display_name || 'Spelare',
-          display_name: p.display_name || p.full_name || 'Spelare',
+          full_name: p.full_name || p.display_name || t('common.player'),
+          display_name: p.display_name || p.full_name || t('common.player'),
           avatar_url: p.avatar_url || null,
         };
       })
@@ -89,7 +91,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
   const venueFromList = venues?.find(v => v?.id === match.venue_id || v?.id === match.venue_external_id);
   const venue = venueFromList || {
     // Use inline venue data from public_matches view if available
-    name: match._venue_name || match.venue_name || 'Okänd plan',
+    name: match._venue_name || match.venue_name || t('match.unknown_venue'),
     city: match._venue_city || match.venue_city,
     address: match._venue_address || match.venue_address,
     latitude: match._venue_lat || match.venue_lat,
@@ -180,12 +182,12 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
                     aria-hidden
                   />
                   <h3 className="text-[15px] font-bold text-white truncate tracking-tight">
-                    {match.title || 'Namnlös match'}
+                    {match.title || t('match.unnamed')}
                   </h3>
                 </div>
                 {isOrganizer && match.status === 'upcoming' && (
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#FDE3D2] bg-[#F4743B]/15 ring-1 ring-[#F4743B]/30 h-5 px-2 rounded-md flex items-center flex-shrink-0">
-                    Din
+                    {t('match.your_badge')}
                   </span>
                 )}
               </div>
@@ -193,7 +195,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
               <div className="flex items-center gap-3 text-[#B6C2BC] text-[12px] sm:text-[13px]">
                  <span className="flex items-center gap-1.5 min-w-0 flex-1">
                     <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-[#34C257]" />
-                    <span className="truncate">{venue?.name || 'Okänd'}</span>
+                    <span className="truncate">{venue?.name || t('common.unknown')}</span>
                  </span>
                  <span className="flex items-center gap-1.5 flex-shrink-0 tabular-nums">
                     <Clock className="w-3.5 h-3.5 flex-shrink-0 text-[#F4743B]" />
@@ -210,11 +212,11 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
 
                 {match.is_team_match ? (
                   <span className="inline-flex h-6 items-center rounded-md px-2 text-[11px] font-semibold bg-[#9B59B6]/18 text-[#DDA5E8] ring-1 ring-[#9B59B6]/30">
-                    Lag
+                    {t('match.team_badge')}
                   </span>
                 ) : (match.skill_bracket && SkillIcon && (
                   <span className={`inline-flex h-6 items-center rounded-md px-2 text-[11px] font-semibold ${getSkillBracketColor(match.skill_bracket)}`}>
-                    {getSkillBracketLabel(match.skill_bracket)}
+                    {t(`match.skill.${match.skill_bracket}`) || getSkillBracketLabel(match.skill_bracket)}
                   </span>
                 ))}
             </div>
@@ -226,14 +228,14 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
                 {match.is_spontaneous ? (
                   <span className="inline-flex items-center gap-1.5 text-[#FDE3D2]">
                     <Zap className="w-3.5 h-3.5 text-[#F4743B]" />
-                    <span className="font-semibold">Spontan • Obegränsat</span>
+                    <span className="font-semibold">{t('match.spontaneous')}</span>
                   </span>
                 ) : (
-                  <span className="text-[#B6C2BC]">Spelare</span>
+                  <span className="text-[#B6C2BC]">{t('match.players_label')}</span>
                 )}
                 {/* Hide exact count for guests — shows "app feels empty" otherwise */}
                 {isGuest ? (
-                  <span className="text-[#8FA097] text-[11px] font-medium">Logga in</span>
+                  <span className="text-[#8FA097] text-[11px] font-medium">{t('common.login')}</span>
                 ) : (
                   <span className="text-white font-medium tabular-nums">
                     {match.is_spontaneous
@@ -276,7 +278,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
                   className="flex items-center gap-2 pt-1 text-[11px] text-[#34C257] hover:text-[#86EFAC] transition-colors font-semibold"
                 >
                   <Users className="w-3.5 h-3.5" />
-                  <span>Logga in för att se spelare</span>
+                  <span>{t('match.login_see_players')}</span>
                 </button>
               ) : participantUsers.length > 0 ? (
                 <div className="flex items-center gap-2 pt-1">
@@ -303,7 +305,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
               ) : (
                 <div className="flex items-center gap-2 pt-1 text-[11px] text-[#8FA097]">
                   <Users className="w-3.5 h-3.5" />
-                  <span>Var först att gå med!</span>
+                  <span>{t('match.be_first')}</span>
                 </div>
               )}
             </div>
@@ -343,7 +345,7 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
                       filter: 'blur(6px)',
                     }}
                   />
-                  <span className="relative z-10">Gå med</span>
+                  <span className="relative z-10">{t('matches.join')}</span>
                   <motion.span
                     className="relative z-10 inline-flex"
                     animate={{ x: [0, 3, 0] }}
@@ -357,13 +359,13 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
               {/* Status badges for non-joinable states */}
               {match.status === 'completed' && (
                 <div className="flex-1 h-10 flex items-center justify-center border border-[#243029] rounded-[12px] bg-[#18221E]">
-                  <span className="text-[13px] font-bold text-[#9EAAA4]">Avslutad</span>
+                  <span className="text-[13px] font-bold text-[#9EAAA4]">{t('match.finished_badge')}</span>
                 </div>
               )}
 
               {hasJoined && match.status !== 'completed' && (
                 <div className="flex-1 h-10 flex items-center justify-center border border-[#2BA84A]/30 rounded-[12px] bg-[#2BA84A]/10">
-                  <span className="text-[13px] font-bold text-[#34C257]">Anmäld ✓</span>
+                  <span className="text-[13px] font-bold text-[#34C257]">{t('match.registered_badge')}</span>
                 </div>
               )}
 
@@ -373,13 +375,13 @@ export default React.memo(function MatchCard({ match, venues = [], user, partici
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowAuthGate(true); }}
                   className={`h-10 border border-[#243029] hover:bg-[#18221E] hover:border-[#2BA84A]/40 text-[#F5F8F6] text-[13px] font-bold rounded-[12px] transition-colors flex items-center justify-center gap-1 ${canJoin ? 'flex-shrink-0 px-3.5' : 'flex-1 w-full'}`}
                 >
-                  Info
+                  {t('common.info')}
                   <ChevronRight className="w-4 h-4" />
                 </button>
               ) : (
                 <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`} className={canJoin ? "flex-shrink-0" : "flex-1"}>
                   <button className={`h-10 border border-[#243029] hover:bg-[#18221E] hover:border-[#2BA84A]/40 text-[#F5F8F6] text-[13px] font-bold rounded-[12px] transition-colors flex items-center justify-center gap-1 ${canJoin ? 'px-3.5' : 'w-full'}`}>
-                    Info
+                    {t('common.info')}
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </Link>

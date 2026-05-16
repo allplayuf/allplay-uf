@@ -141,6 +141,111 @@ export const sv = {
 
   // Notifications (foreground toast labels)
   'push.open': 'Öppna',
+
+  // Common additions
+  'common.player': 'Spelare',
+  'common.unknown': 'Okänd',
+  'common.view_all': 'Visa alla',
+  'common.filter': 'Filter',
+  'common.sort': 'Sortera',
+  'common.yes_delete': 'Ja, radera',
+  'common.info': 'Info',
+
+  // Dashboard hero
+  'dashboard.hero.headline': 'Dags att spela,',
+  'dashboard.hero.cta_find': 'Hitta en match nu',
+  'dashboard.hero.open_count': ({ n }) => `${n} öppna matcher väntar`,
+  'dashboard.hero.explore': 'Utforska alla öppna matcher',
+  'dashboard.hero.quick_pitches': 'Planer',
+  'dashboard.hero.quick_create': 'Skapa',
+  'dashboard.hero.quick_friends': 'Vänner',
+  'dashboard.hero.greeting_late': 'Sent på natten',
+  'dashboard.hero.greeting_morning': 'God morgon',
+  'dashboard.hero.greeting_forenoon': 'Förmiddag',
+  'dashboard.hero.greeting_afternoon': 'Eftermiddag',
+  'dashboard.hero.greeting_evening': 'Kväll',
+  'dashboard.hero.greeting_night': 'God natt',
+
+  // Dashboard about card
+  'dashboard.about.badge': 'Om oss',
+  'dashboard.about.headline_a': 'Lär känna',
+  'dashboard.about.desc': 'Vi bygger AllPlay för att göra spontanfotboll enkel, trygg och tillgänglig. Läs om varför appen finns, hur den funkar och vilka som står bakom.',
+  'dashboard.about.cta': 'Läs vår story',
+
+  // Matches carousel
+  'carousel.tab_nearby': 'I närheten',
+  'carousel.tab_upcoming': 'Kommande',
+  'carousel.tab_joined': 'Anmäld',
+  'carousel.header': 'Matcher',
+  'carousel.empty.nearby_title': 'Inga matcher nära dig just nu',
+  'carousel.empty.nearby_desc': 'Inga öppna matcher just nu. Skapa din egen eller kolla in alla matcher.',
+  'carousel.empty.guest_desc': 'Logga in för att hitta och gå med i matcher nära dig.',
+  'carousel.empty.mine_title': 'Du har inga kommande matcher',
+  'carousel.empty.mine_desc': 'Hitta en match att gå med i eller skapa en egen på 10 sekunder!',
+  'carousel.empty.none_title': 'Inga matcher just nu',
+  'carousel.empty.action': 'Se alla matcher',
+
+  // Match card
+  'match.skill.beginner': 'Nybörjare',
+  'match.skill.intermediate': 'Medel',
+  'match.skill.advanced': 'Avancerad',
+  'match.skill.pro': 'Proffs',
+  'match.skill.elite': 'Elite',
+  'match.skill.mixed': 'Blandad nivå',
+  'match.status.upcoming': 'Kommande',
+  'match.status.ongoing': 'Pågår nu',
+  'match.status.completed': 'Avslutad',
+  'match.status.cancelled': 'Inställd',
+  'match.your_badge': 'Din',
+  'match.unknown_venue': 'Okänd plan',
+  'match.unnamed': 'Namnlös match',
+  'match.spontaneous': 'Spontan • Obegränsat',
+  'match.players_label': 'Spelare',
+  'match.team_badge': 'Lag',
+  'match.login_see_players': 'Logga in för att se spelare',
+  'match.be_first': 'Var först att gå med!',
+  'match.finished_badge': 'Avslutad',
+  'match.registered_badge': 'Anmäld ✓',
+
+  // Matches page
+  'matches.tab_browse': 'Hitta',
+  'matches.tab_mine': 'Anmälda',
+  'matches.tab_played': 'Spelade',
+  'matches.filter_all': 'Alla matcher',
+  'matches.filter_my_level': 'Min nivå',
+  'matches.sort_nearest': 'Närmast',
+  'matches.sort_earliest': 'Tidigast',
+  'matches.sort_fullest': 'Mest fyllda',
+  'matches.delete_confirm_title': 'Radera match',
+  'matches.delete_confirm_btn': 'Ja, radera',
+  'matches.delete_confirm_desc': ({ title }) => `Är du säker på att du vill ta bort "${title}"? Alla deltagare kommer att meddelas.`,
+  'matches.delete_success_title': 'Match raderad',
+  'matches.delete_success_desc': 'Matchen har tagits bort',
+  'matches.delete_error_title': 'Kunde inte ta bort matchen',
+  'matches.delete_error_organizer': 'Endast arrangören kan radera matchen.',
+  'matches.delete_error_auth': 'Du måste vara inloggad.',
+  'matches.create_error_title': 'Kunde inte skapa match',
+  'matches.create_error_desc': 'Det gick inte att skapa matchen. Försök igen om en stund.',
+  'matches.join_success': 'Du är med! ⚽',
+  'matches.join_success_desc': ({ title }) => `Anmäld till "${title}"`,
+  'matches.join_error': 'Det gick inte att gå med i matchen. Försök igen.',
+
+  // Profile skill levels
+  'profile.skill.beginner': 'Nybörjare',
+  'profile.skill.intermediate': 'Medel',
+  'profile.skill.advanced': 'Avancerad',
+  'profile.skill.elite': 'Elit',
+
+  // Profile tabs
+  'profile.tab_inbox': 'Inkorg',
+  'profile.tab_stats': 'Stats',
+  'profile.tab_badges': 'Badges',
+  'profile.tab_history': 'Historik',
+
+  // Community tabs
+  'community.tab_friends': 'Vänner',
+  'community.tab_teams': 'Lag',
+  'community.tab_find': 'Hitta',
 };
 
 export const en = {
@@ -273,4 +378,109 @@ export const en = {
 
   // Notifications (foreground toast labels)
   'push.open': 'Open',
+
+  // Common additions
+  'common.player': 'Player',
+  'common.unknown': 'Unknown',
+  'common.view_all': 'View all',
+  'common.filter': 'Filter',
+  'common.sort': 'Sort',
+  'common.yes_delete': 'Yes, delete',
+  'common.info': 'Info',
+
+  // Dashboard hero
+  'dashboard.hero.headline': 'Time to play,',
+  'dashboard.hero.cta_find': 'Find a match now',
+  'dashboard.hero.open_count': ({ n }) => `${n} open matches waiting`,
+  'dashboard.hero.explore': 'Explore all open matches',
+  'dashboard.hero.quick_pitches': 'Pitches',
+  'dashboard.hero.quick_create': 'Create',
+  'dashboard.hero.quick_friends': 'Friends',
+  'dashboard.hero.greeting_late': 'Late night',
+  'dashboard.hero.greeting_morning': 'Good morning',
+  'dashboard.hero.greeting_forenoon': 'Midmorning',
+  'dashboard.hero.greeting_afternoon': 'Afternoon',
+  'dashboard.hero.greeting_evening': 'Evening',
+  'dashboard.hero.greeting_night': 'Good night',
+
+  // Dashboard about card
+  'dashboard.about.badge': 'About us',
+  'dashboard.about.headline_a': 'Get to know',
+  'dashboard.about.desc': 'We build AllPlay to make casual football simple, safe and accessible. Read about why the app exists, how it works and who is behind it.',
+  'dashboard.about.cta': 'Read our story',
+
+  // Matches carousel
+  'carousel.tab_nearby': 'Nearby',
+  'carousel.tab_upcoming': 'Upcoming',
+  'carousel.tab_joined': 'Joined',
+  'carousel.header': 'Matches',
+  'carousel.empty.nearby_title': 'No matches near you right now',
+  'carousel.empty.nearby_desc': 'No open matches right now. Create your own or check out all matches.',
+  'carousel.empty.guest_desc': 'Log in to find and join matches near you.',
+  'carousel.empty.mine_title': 'You have no upcoming matches',
+  'carousel.empty.mine_desc': 'Find a match to join or create your own in 10 seconds!',
+  'carousel.empty.none_title': 'No matches right now',
+  'carousel.empty.action': 'View all matches',
+
+  // Match card
+  'match.skill.beginner': 'Beginner',
+  'match.skill.intermediate': 'Intermediate',
+  'match.skill.advanced': 'Advanced',
+  'match.skill.pro': 'Pro',
+  'match.skill.elite': 'Elite',
+  'match.skill.mixed': 'Mixed level',
+  'match.status.upcoming': 'Upcoming',
+  'match.status.ongoing': 'Ongoing',
+  'match.status.completed': 'Finished',
+  'match.status.cancelled': 'Cancelled',
+  'match.your_badge': 'Yours',
+  'match.unknown_venue': 'Unknown venue',
+  'match.unnamed': 'Unnamed match',
+  'match.spontaneous': 'Spontaneous · Unlimited',
+  'match.players_label': 'Players',
+  'match.team_badge': 'Team',
+  'match.login_see_players': 'Log in to see players',
+  'match.be_first': 'Be the first to join!',
+  'match.finished_badge': 'Finished',
+  'match.registered_badge': 'Joined ✓',
+
+  // Matches page
+  'matches.tab_browse': 'Find',
+  'matches.tab_mine': 'Joined',
+  'matches.tab_played': 'Played',
+  'matches.filter_all': 'All matches',
+  'matches.filter_my_level': 'My level',
+  'matches.sort_nearest': 'Nearest',
+  'matches.sort_earliest': 'Earliest',
+  'matches.sort_fullest': 'Fullest',
+  'matches.delete_confirm_title': 'Delete match',
+  'matches.delete_confirm_btn': 'Yes, delete',
+  'matches.delete_confirm_desc': ({ title }) => `Are you sure you want to remove "${title}"? All participants will be notified.`,
+  'matches.delete_success_title': 'Match deleted',
+  'matches.delete_success_desc': 'The match has been removed',
+  'matches.delete_error_title': 'Could not delete match',
+  'matches.delete_error_organizer': 'Only the organizer can delete the match.',
+  'matches.delete_error_auth': 'You must be logged in.',
+  'matches.create_error_title': 'Could not create match',
+  'matches.create_error_desc': 'Could not create the match. Please try again shortly.',
+  'matches.join_success': "You're in! ⚽",
+  'matches.join_success_desc': ({ title }) => `Joined "${title}"`,
+  'matches.join_error': 'Could not join the match. Please try again.',
+
+  // Profile skill levels
+  'profile.skill.beginner': 'Beginner',
+  'profile.skill.intermediate': 'Intermediate',
+  'profile.skill.advanced': 'Advanced',
+  'profile.skill.elite': 'Elite',
+
+  // Profile tabs
+  'profile.tab_inbox': 'Inbox',
+  'profile.tab_stats': 'Stats',
+  'profile.tab_badges': 'Badges',
+  'profile.tab_history': 'History',
+
+  // Community tabs
+  'community.tab_friends': 'Friends',
+  'community.tab_teams': 'Teams',
+  'community.tab_find': 'Find',
 };

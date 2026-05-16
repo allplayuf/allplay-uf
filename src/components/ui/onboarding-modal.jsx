@@ -871,6 +871,9 @@ export function OnboardingModal() {
   const [dir, setDir] = useState(1);
   const [ref_] = useState(() => new URLSearchParams(window.location.search).get('ref'));
   const containerRef = useRef(null);
+  // Tracks whether the modal was opened via the "replay" button in Settings,
+  // so the OAuth auto-complete guard doesn't immediately dismiss it.
+  const isReplayRef = useRef(false);
 
   // Initial show — needs_location is legacy; auto-complete it silently
   useEffect(() => {
@@ -887,6 +890,7 @@ export function OnboardingModal() {
   // Replay from Settings
   useEffect(() => {
     const handler = () => {
+      isReplayRef.current = true;
       setSlide(0);
       setDir(1);
       setOpen(true);
@@ -918,6 +922,7 @@ export function OnboardingModal() {
   }, [ref_]);
 
   const complete = useCallback(async () => {
+    isReplayRef.current = false;
     localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
     try {
       const isAuth = await base44.auth.isAuthenticated();
@@ -938,9 +943,9 @@ export function OnboardingModal() {
     setOpen(false);
   }, []);
 
-  // Auto-complete on OAuth return
+  // Auto-complete on OAuth return — skip when replaying from Settings
   useEffect(() => {
-    if (!open || isAuthLoading) return;
+    if (!open || isAuthLoading || isReplayRef.current) return;
     const stored = localStorage.getItem(ONBOARDING_STORAGE_KEY);
     if (!stored && isAuthenticated && slide < SLIDES.length - 1) complete();
   }, [open, isAuthenticated, isAuthLoading, slide, complete]);
