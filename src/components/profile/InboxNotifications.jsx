@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { useT } from "@/i18n/LanguageProvider";
 import { 
   Users, 
   UserPlus, 
@@ -116,17 +117,18 @@ function NotificationCard({
   );
 }
 
-export default function InboxNotifications({ 
-  friendRequests = [], 
+export default function InboxNotifications({
+  friendRequests = [],
   teamInvites = [],
   teamJoinRequests = [],
-  onAcceptFriend, 
+  onAcceptFriend,
   onDeclineFriend,
   onAcceptTeam,
   onDeclineTeam,
   onAcceptJoinRequest,
   onDeclineJoinRequest
 }) {
+  const { t } = useT();
   const [processingIds, setProcessingIds] = useState(new Set());
 
   // Collect all user IDs we need
@@ -209,10 +211,10 @@ export default function InboxNotifications({
             <Inbox className="w-7 h-7 text-[#2BA84A]" />
           </div>
           <h3 className="text-base font-bold text-[#F4F7F5] mb-1">
-            Allt ikapp!
+            {t('inbox.all_clear_title')}
           </h3>
           <p className="text-sm text-[#9EAAA4]">
-            Du har inga väntande förfrågningar just nu
+            {t('inbox.all_clear_desc')}
           </p>
         </CardContent>
       </Card>
@@ -227,7 +229,7 @@ export default function InboxNotifications({
           <Inbox className="w-4 h-4 text-[#F4743B]" />
         </div>
         <h3 className="text-base font-bold text-[#F4F7F5]">
-          Förfrågningar
+          {t('inbox.requests_header')}
         </h3>
         <Badge className="bg-[#F4743B]/15 text-[#F4743B] border-0 text-xs font-bold ml-auto">
           {totalNotifications}
@@ -238,7 +240,7 @@ export default function InboxNotifications({
       {friendRequests.length > 0 && (
         <div className="space-y-2">
           <p className="text-[11px] font-semibold text-[#9EAAA4] uppercase tracking-wider px-1">
-            Vänförfrågningar
+            {t('inbox.friend_requests')}
           </p>
           <AnimatePresence mode="popLayout">
             {friendRequests.map((request, index) => {
@@ -265,11 +267,12 @@ export default function InboxNotifications({
                   iconColor="text-white"
                   borderHover="hover:border-[#2BA84A]/30"
                   title={requester.display_name || requester.full_name}
-                  subtitle="Vill bli din vän"
+                  subtitle={t('inbox.wants_friend')}
                   timestamp={timeAgo(request.created_date)}
                   profileUrl={`${createPageUrl("Profile")}?userId=${requester.id}`}
                   onAccept={() => wrapAction(request.id, onAcceptFriend)}
                   onDecline={() => wrapAction(request.id, onDeclineFriend)}
+                  acceptLabel={t('inbox.accept')}
                   acceptBg="bg-[#2BA84A] hover:bg-[#248232]"
                   isProcessing={processingIds.has(request.id)}
                   index={index}
@@ -284,7 +287,7 @@ export default function InboxNotifications({
       {teamJoinRequests.length > 0 && (
         <div className="space-y-2">
           <p className="text-[11px] font-semibold text-[#9EAAA4] uppercase tracking-wider px-1">
-            Ansökningar till dina lag
+            {t('inbox.team_requests')}
           </p>
           <AnimatePresence mode="popLayout">
             {teamJoinRequests.map((request, index) => {
@@ -312,12 +315,12 @@ export default function InboxNotifications({
                   iconColor="text-white"
                   borderHover="hover:border-[#9370DB]/30"
                   title={applicant.display_name || applicant.full_name}
-                  subtitle={`Vill gå med i ${team.name}`}
+                  subtitle={t('inbox.wants_join', { name: team.name })}
                   timestamp={timeAgo(request.created_date)}
                   profileUrl={`${createPageUrl("Profile")}?userId=${applicant.id}`}
                   onAccept={() => wrapAction(request.id, onAcceptJoinRequest)}
                   onDecline={() => wrapAction(request.id, onDeclineJoinRequest)}
-                  acceptLabel="Godkänn"
+                  acceptLabel={t('inbox.accept_join')}
                   acceptBg="bg-[#9370DB] hover:bg-[#7C3AED]"
                   isProcessing={processingIds.has(request.id)}
                   index={index}
@@ -332,7 +335,7 @@ export default function InboxNotifications({
       {teamInvites.length > 0 && (
         <div className="space-y-2">
           <p className="text-[11px] font-semibold text-[#9EAAA4] uppercase tracking-wider px-1">
-            Laginbjudningar
+            {t('inbox.team_invites')}
           </p>
           <AnimatePresence mode="popLayout">
             {teamInvites.map((invite, index) => {
@@ -357,12 +360,12 @@ export default function InboxNotifications({
                   iconColor="text-white"
                   borderHover="hover:border-[#F4743B]/30"
                   title={team.name}
-                  subtitle="Du har blivit inbjuden till laget"
+                  subtitle={t('inbox.invited_to_team')}
                   timestamp={timeAgo(invite.created_date)}
                   profileUrl={`${createPageUrl("TeamOverview")}?id=${team.id}`}
                   onAccept={() => wrapAction(invite.id, onAcceptTeam)}
                   onDecline={() => wrapAction(invite.id, onDeclineTeam)}
-                  acceptLabel="Gå med"
+                  acceptLabel={t('inbox.join_team')}
                   acceptBg="bg-[#F4743B] hover:bg-[#E5683A]"
                   isProcessing={processingIds.has(invite.id)}
                   index={index}

@@ -11,8 +11,10 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useCustomDialog } from "../ui/custom-dialog";
+import { useT } from "@/i18n/LanguageProvider";
 
 export default function TeamDiscovery({ teams = [], myTeams = [], user }) {
+  const { t } = useT();
   const [searchQuery, setSearchQuery] = useState('');
   const [cityFilter, setCityFilter] = useState('all');
   const { alert, confirm, DialogContainer } = useCustomDialog();
@@ -54,26 +56,25 @@ export default function TeamDiscovery({ teams = [], myTeams = [], user }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['publicTeams'] });
       queryClient.invalidateQueries({ queryKey: ['teamMembers', user.id] });
-      alert('Ansökan skickad! 🎯', 'Din ansökan har skickats till lagkaptenen!', { type: 'success' });
+      alert(t('team_disc.apply_sent_title'), t('team_disc.apply_sent_desc'), { type: 'success' });
     },
-    onError: (error) => {
-      alert('Ett fel uppstod', 'Kunde inte skicka ansökan.', { type: 'alert' });
+    onError: () => {
+      alert(t('common.error'), t('team_disc.apply_error'), { type: 'alert' });
     }
   });
 
   const handleJoinTeam = async (team) => {
     if (!user) return;
 
-    // Check if team is full
     if (team.max_members && team.current_members >= team.max_members) {
-      alert('Laget är fullt', 'Detta lag har nått max antal medlemmar.', { type: 'info' });
+      alert(t('team_disc.full_title'), t('team_disc.full_desc'), { type: 'info' });
       return;
     }
 
     const shouldJoin = await confirm(
-      'Gå med i lag',
-      `Vill du ansöka om att gå med i ${team.name}? Lagkaptenen kommer att granska din ansökan.`,
-      { type: 'confirm', confirmText: 'Skicka ansökan', cancelText: 'Avbryt' }
+      t('team_disc.join_title'),
+      t('team_disc.join_desc', { name: team.name }),
+      { type: 'confirm', confirmText: t('team_disc.join_confirm'), cancelText: t('common.cancel') }
     );
 
     if (!shouldJoin) return;
@@ -91,7 +92,7 @@ export default function TeamDiscovery({ teams = [], myTeams = [], user }) {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#7B8A83]" />
             <Input
-              placeholder="Sök efter lag..."
+              placeholder={t('team_disc.search_placeholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 bg-[#18221E] border border-[#223029] text-[#F4F7F5] focus:border-[#2BA84A] focus:ring-1 focus:ring-[#2BA84A]/30 placeholder:text-[#7B8A83] rounded-[14px] h-12"
@@ -103,7 +104,7 @@ export default function TeamDiscovery({ teams = [], myTeams = [], user }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Alla städer</SelectItem>
+              <SelectItem value="all">{t('team_disc.all_cities')}</SelectItem>
               {cities.filter(c => c !== 'all').map(city => (
                 <SelectItem key={city} value={city}>{city}</SelectItem>
               ))}
@@ -113,7 +114,7 @@ export default function TeamDiscovery({ teams = [], myTeams = [], user }) {
 
         {/* Results count */}
         <p className="text-sm text-[#B6C2BC]">
-          {filteredTeams.length} lag hittade
+          {t('team_disc.results_count', { n: filteredTeams.length })}
         </p>
 
         {/* Teams Grid */}
@@ -179,12 +180,12 @@ export default function TeamDiscovery({ teams = [], myTeams = [], user }) {
 
                       <div className="flex items-center gap-2 text-sm text-[#B6C2BC]">
                         <Users className="w-4 h-4 text-[#9FC9AC]" />
-                        {team.current_members}/{team.max_members} medlemmar
+                        {t('team_disc.members', { n: team.current_members, max: team.max_members })}
                       </div>
 
                       <div className="flex items-center gap-2 text-sm text-[#B6C2BC]">
                         <Trophy className="w-4 h-4 text-[#9FC9AC]" />
-                        {team.matches_played || 0} matcher • {team.wins || 0} vinster
+                        {t('team_disc.stats', { matches: team.matches_played || 0, wins: team.wins || 0 })}
                       </div>
                     </div>
 
@@ -208,7 +209,7 @@ export default function TeamDiscovery({ teams = [], myTeams = [], user }) {
                         disabled
                         className="w-full bg-[#18221E] text-[#7B8A83] cursor-not-allowed"
                       >
-                        Fullt
+                        {t('team_disc.full')}
                       </Button>
                     ) : (
                       <Button
@@ -217,7 +218,7 @@ export default function TeamDiscovery({ teams = [], myTeams = [], user }) {
                         className="w-full bg-[#2BA84A] hover:bg-[#248232] text-white font-semibold gap-2"
                       >
                         <UserPlus className="w-4 h-4" />
-                        Ansök
+                        {t('team_disc.apply')}
                       </Button>
                     )}
                   </CardContent>
@@ -235,10 +236,10 @@ export default function TeamDiscovery({ teams = [], myTeams = [], user }) {
                 <Search className="w-8 h-8 text-[#9FC9AC]" />
               </div>
               <h3 className="text-xl font-semibold text-[#F4F7F5] mb-2">
-                Inga lag hittades
+                {t('teams.empty_all_title')}
               </h3>
               <p className="text-sm text-[#B6C2BC]">
-                Prova att ändra dina sökkriterier.
+                {t('team_disc.empty_desc')}
               </p>
             </CardContent>
           </Card>

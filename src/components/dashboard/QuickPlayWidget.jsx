@@ -5,23 +5,26 @@ import { Badge } from "@/components/ui/badge";
 import { PlayCircle, MapPin, Users, Clock, ChevronRight, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { useT } from "@/i18n/LanguageProvider";
 
 export default function QuickPlayWidget({ matches, user, venues }) {
+  const { t } = useT();
+
   if (!matches || matches.length === 0) {
     return (
       <Card className="bg-[#2D3A3A] border-2 border-[#248232] shadow-xl">
         <CardHeader className="border-b border-[#248232]/50 bg-[#248232]/10 p-4">
           <CardTitle className="flex items-center gap-2 text-base sm:text-lg text-[#FFFFFF]">
             <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#F4743B]" />
-            Snabbspel
+            {t('quickplay.title')}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6 text-center">
           <PlayCircle className="w-12 h-12 text-[#248232] mx-auto mb-3 opacity-50" />
-          <p className="text-sm text-[#FFFFFF]/60 mb-4">Inga lediga matcher just nu</p>
+          <p className="text-sm text-[#FFFFFF]/60 mb-4">{t('quickplay.empty')}</p>
           <Link to={createPageUrl("Matches")}>
             <Button size="sm" className="bg-[#F4743B] hover:bg-[#E5683A] text-[#FFFFFF] font-bold">
-              Skapa match
+              {t('quickplay.create')}
             </Button>
           </Link>
         </CardContent>
@@ -35,11 +38,11 @@ export default function QuickPlayWidget({ matches, user, venues }) {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base sm:text-lg text-[#FFFFFF]">
             <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#F4743B]" />
-            Snabbspel ({matches.length})
+            {t('quickplay.title_count', { n: matches.length })}
           </CardTitle>
           <Link to={createPageUrl("Matches")}>
             <Button variant="ghost" size="sm" className="text-[#2BA84A] hover:text-[#FFFFFF] hover:bg-[#2BA84A]">
-              Se alla
+              {t('common.see_all')}
               <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           </Link>
@@ -50,7 +53,7 @@ export default function QuickPlayWidget({ matches, user, venues }) {
           {matches.slice(0, 3).map((match) => {
             const venue = venues?.find(v => v.id === match.venue_id);
             return (
-              <Link 
+              <Link
                 key={match.id}
                 to={`${createPageUrl("MatchDetail")}?id=${match.id}`}
                 className="block"
@@ -72,7 +75,7 @@ export default function QuickPlayWidget({ matches, user, venues }) {
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 text-[10px] sm:text-xs text-[#FFFFFF]/70">
                       <MapPin className="w-3 h-3 text-[#2BA84A] flex-shrink-0" />
-                      <span className="truncate">{venue?.name || 'Okänd'}</span>
+                      <span className="truncate">{venue?.name || t('common.unknown')}</span>
                     </div>
                     <div className="flex items-center justify-between text-[10px] sm:text-xs text-[#FFFFFF]/70">
                       <div className="flex items-center gap-2">
@@ -81,7 +84,7 @@ export default function QuickPlayWidget({ matches, user, venues }) {
                       </div>
                       <div className="flex items-center gap-1">
                         <Users className="w-3 h-3 text-[#2BA84A]" />
-                        {match.is_spontaneous 
+                        {match.is_spontaneous
                           ? `${match.current_players || 0}`
                           : `${match.current_players || 0}/${match.max_players}`
                         }

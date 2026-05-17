@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import RankBadge from "../teams/RankBadge";
+import { useT } from "@/i18n/LanguageProvider";
 
 const getTeamColorStyle = (color) => {
   const colorMap = {
@@ -23,6 +24,7 @@ const getTeamColorStyle = (color) => {
 };
 
 function TeamCard({ team, index }) {
+  const { t } = useT();
   const teamStyle = getTeamColorStyle(team.teamColor || team.team_color);
   
   return (
@@ -45,10 +47,10 @@ function TeamCard({ team, index }) {
                   )}
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-bold text-[18px] leading-[24px] text-[#F4F7F5] mb-0.5 truncate">{team.name || 'Namnlöst lag'}</h3>
+                  <h3 className="font-bold text-[18px] leading-[24px] text-[#F4F7F5] mb-0.5 truncate">{team.name || t('teams.unnamed')}</h3>
                   <div className="flex items-center gap-1.5 text-[13px] text-[#B6C2BC]">
                     <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span className="truncate">{team.city || 'Okänd stad'}</span>
+                    <span className="truncate">{team.city || t('common.unknown')}</span>
                   </div>
                 </div>
               </div>
@@ -68,11 +70,11 @@ function TeamCard({ team, index }) {
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div className="text-center p-3 bg-[#18221E] rounded-xl border border-[#223029]">
                 <div className={`text-xl font-bold ${teamStyle.text}`}>{team.current_members || 1}</div>
-                <div className="text-[12px] uppercase tracking-wider font-medium text-[#7B8A83]">Medlemmar</div>
+                <div className="text-[12px] uppercase tracking-wider font-medium text-[#7B8A83]">{t('teams.members')}</div>
               </div>
               <div className="text-center p-3 bg-[#18221E] rounded-xl border border-[#223029]">
                 <div className={`text-xl font-bold ${teamStyle.text}`}>{team.matches_played || 0}</div>
-                <div className="text-[12px] uppercase tracking-wider font-medium text-[#7B8A83]">Matcher</div>
+                <div className="text-[12px] uppercase tracking-wider font-medium text-[#7B8A83]">{t('profile.hero.matches_label')}</div>
               </div>
             </div>
 
@@ -82,7 +84,7 @@ function TeamCard({ team, index }) {
 
             <div className="w-full inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#FFFFFF]/5 px-6 text-[#F4F7F5] ring-1 ring-[#FFFFFF]/10 transition-all group-hover:bg-[#FFFFFF]/10 group-hover:ring-[#FFFFFF]/20 font-semibold">
               <Shield className={`w-5 h-5 ${teamStyle.text}`} />
-              Visa lag
+              {t('teams.view')}
               <ChevronRight className="w-5 h-5 ml-auto opacity-50 group-hover:opacity-100 transition-opacity" />
             </div>
           </CardContent>
@@ -93,6 +95,7 @@ function TeamCard({ team, index }) {
 }
 
 export default function TeamsList({ teams = [], myTeams = [], teamInvites = [], user, onCreateTeam, onAcceptInvite }) {
+  const { t } = useT();
   const [view, setView] = useState('mine'); // 'mine' | 'all'
 
   const displayTeams = view === 'mine' ? myTeams : teams;
@@ -109,7 +112,7 @@ export default function TeamsList({ teams = [], myTeams = [], teamInvites = [], 
               : 'bg-[#18221E] text-[#9EAAA4] hover:bg-[#223029]'
           }`}
         >
-          Mina lag ({myTeams.length})
+          {t('teams.my_teams')} ({myTeams.length})
         </button>
         <button
           onClick={() => setView('all')}
@@ -119,7 +122,7 @@ export default function TeamsList({ teams = [], myTeams = [], teamInvites = [], 
               : 'bg-[#18221E] text-[#9EAAA4] hover:bg-[#223029]'
           }`}
         >
-          Alla lag ({teams.length})
+          {t('teams.all_teams')} ({teams.length})
         </button>
       </div>
 
@@ -154,12 +157,10 @@ export default function TeamsList({ teams = [], myTeams = [], teamInvites = [], 
             </div>
 
             <h3 className="text-[20px] leading-[26px] font-black text-white tracking-tight mb-2">
-              {view === 'mine' ? 'Starta ditt eget lag' : 'Inga lag hittades'}
+              {view === 'mine' ? t('teams.empty_mine_title') : t('teams.empty_all_title')}
             </h3>
             <p className="text-[13px] leading-[19px] text-[#B6C2BC] mb-6">
-              {view === 'mine'
-                ? 'Skapa ett lag, bjud in vänner och tävla tillsammans mot andra lag.'
-                : 'Det finns inga lag att visa just nu. Kom tillbaka senare!'}
+              {view === 'mine' ? t('teams.empty_mine_desc') : t('teams.empty_all_desc')}
             </p>
 
             {view === 'mine' && (
@@ -173,7 +174,7 @@ export default function TeamsList({ teams = [], myTeams = [], teamInvites = [], 
                 }}
               >
                 <Plus className="w-4 h-4" strokeWidth={2.4} />
-                Skapa ditt första lag
+                {t('teams.create_first')}
               </motion.button>
             )}
           </div>

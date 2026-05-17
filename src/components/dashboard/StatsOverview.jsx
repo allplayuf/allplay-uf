@@ -1,17 +1,19 @@
 import React from 'react';
 import { Trophy, Target, Star, TrendingUp, Award } from "lucide-react";
+import { useT } from "@/i18n/LanguageProvider";
 
 export default function StatsOverview({ user, recentMatches = [] }) {
+  const { t } = useT();
   const winRate = user?.matches_played > 0
     ? Math.round((recentMatches.filter(m => m?.status === 'completed').length / user.matches_played) * 100)
     : 0;
 
   const getSkillLevelText = (elo) => {
-    if (elo < 1000) return "Nybörjare";
-    if (elo < 1200) return "Fortsättare";
-    if (elo < 1400) return "Erfaren";
-    if (elo < 1600) return "Avancerad";
-    return "Expert";
+    if (elo < 1000) return t('stats.skill.novice');
+    if (elo < 1200) return t('stats.skill.beginner');
+    if (elo < 1400) return t('stats.skill.experienced');
+    if (elo < 1600) return t('stats.skill.advanced');
+    return t('stats.skill.expert');
   };
 
   const getSkillProgress = (elo) => {
@@ -28,7 +30,7 @@ export default function StatsOverview({ user, recentMatches = [] }) {
 
   const stats = [
     {
-      label: "Din ranking",
+      label: t('stats.your_ranking'),
       value: elo,
       sub: getSkillLevelText(elo),
       icon: Trophy,
@@ -40,25 +42,25 @@ export default function StatsOverview({ user, recentMatches = [] }) {
       ),
     },
     {
-      label: "Spelade matcher",
+      label: t('stats.matches_played'),
       value: user?.matches_played || 0,
-      sub: `${winRate}% framgångsrate`,
+      sub: t('stats.success_rate', { pct: winRate }),
       icon: Target,
       accent: "#86EFAC",
     },
     {
-      label: "MVP-utmärkelser",
+      label: t('stats.mvp_awards'),
       value: user?.mvp_count || 0,
       sub: user?.matches_played > 0
-        ? `${Math.round((user?.mvp_count || 0) / user.matches_played * 100)}% av matcher`
-        : "Inga matcher än",
+        ? t('stats.pct_of_matches', { pct: Math.round((user?.mvp_count || 0) / user.matches_played * 100) })
+        : t('stats.no_matches'),
       icon: Star,
       accent: "#C4B5FD",
     },
     {
-      label: "Nuvarande streak",
+      label: t('stats.current_streak'),
       value: user?.current_streak || 0,
-      sub: `Längsta: ${user?.longest_streak || 0} dagar`,
+      sub: t('stats.longest_days', { n: user?.longest_streak || 0 }),
       icon: Award,
       accent: "#FDBA74",
     },

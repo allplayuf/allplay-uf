@@ -79,7 +79,7 @@ export default function Dashboard() {
   // authUser already has enriched metadata from AuthProvider
   const user = React.useMemo(() => {
     if (isGuest) {
-      return { is_guest: true, display_name: 'Gäst', full_name: 'Gäst' };
+      return { is_guest: true, display_name: t('common.guest'), full_name: t('common.guest') };
     }
     if (!authUser) return null;
     
@@ -158,20 +158,10 @@ export default function Dashboard() {
 
   const getTimeAgo = (date) => {
     const seconds = Math.floor((new Date() - date) / 1000);
-
-    if (seconds < 60) {
-      return `${seconds} ${seconds === 1 ? 'sekund' : 'sekunder'} sedan`;
-    }
-    if (seconds < 3600) {
-      const minutes = Math.floor(seconds / 60);
-      return `${minutes} ${minutes === 1 ? 'minut' : 'minuter'} sedan`;
-    }
-    if (seconds < 86400) {
-      const hours = Math.floor(seconds / 3600);
-      return `${hours} ${hours === 1 ? 'timme' : 'timmar'} sedan`;
-    }
-    const days = Math.floor(seconds / 86400);
-    return `${days} ${days === 1 ? 'dag' : 'dagar'} sedan`;
+    if (seconds < 60) return t('time_ago.seconds', { n: seconds });
+    if (seconds < 3600) return t('time_ago.minutes', { n: Math.floor(seconds / 60) });
+    if (seconds < 86400) return t('time_ago.hours', { n: Math.floor(seconds / 3600) });
+    return t('time_ago.days', { n: Math.floor(seconds / 86400) });
   };
 
   const handleJoinMatch = async (matchId) => {
@@ -185,7 +175,7 @@ export default function Dashboard() {
       queryClient.invalidateQueries({ queryKey: ['dashboard-feed'] });
     } catch (error) {
       console.error("Error joining match:", error);
-      feedback.error(error.message || 'Kunde inte gå med i matchen.');
+      feedback.error(error.message || t('matches.join_error'));
     }
   };
 
@@ -193,7 +183,7 @@ export default function Dashboard() {
     try {
       // Check if guest
       if (isGuest) {
-        displayError('Du måste vara inloggad för att skapa en match.');
+        feedback.error(t('create_match.guest_blocked'));
         return;
       }
 
@@ -212,7 +202,7 @@ export default function Dashboard() {
       
     } catch (error) {
       console.error("Error creating match:", error);
-      feedback.error(error.message || 'Kunde inte skapa match. Försök igen.');
+      feedback.error(error.message || t('matches.create_error_desc'));
     }
   };
 
@@ -274,7 +264,7 @@ export default function Dashboard() {
           ...match,
           distance,
           venue: {
-            name: match._venue_name || match.venue_name || 'Okänd plan',
+            name: match._venue_name || match.venue_name || t('match.unknown_venue'),
             city: match._venue_city || match.venue_city,
             address: match._venue_address || match.venue_address,
             latitude: venueLat,
@@ -286,7 +276,7 @@ export default function Dashboard() {
         new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime()
       )
       .slice(0, 12),
-    [upcomingMatches, userLocation]
+    [upcomingMatches, userLocation, t]
   );
 
   // Calculate weekly stats

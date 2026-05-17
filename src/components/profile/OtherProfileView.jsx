@@ -15,6 +15,7 @@ import AvatarImage from "@/components/ui/avatar-image";
 import { CACHE_STRATEGIES } from "@/components/providers/QueryProvider";
 import { base44 } from "@/api/base44Client";
 import { getUsersByIds } from "@/components/supabase/services";
+import { useT } from "@/i18n/LanguageProvider";
 
 /**
  * Rich profile view for viewing OTHER players.
@@ -33,6 +34,8 @@ export default function OtherProfileView({
   onRemoveFriend,
   matchHistory = [],
 }) {
+  const { t } = useT();
+
   // ── Fetch current user's matches to compute shared ones ──
   const { data: myMatchIds = [] } = useQuery({
     queryKey: ['myMatchIds', currentUser?.id],
@@ -103,7 +106,7 @@ export default function OtherProfileView({
       return (
         <div className="flex items-center gap-2 bg-[#2BA84A]/14 border border-[#2BA84A]/30 rounded-xl px-4 py-2.5">
           <UserCheck className="w-4 h-4 text-[#2BA84A]" />
-          <span className="text-sm font-semibold text-[#86EFAC]">Vänner</span>
+          <span className="text-sm font-semibold text-[#86EFAC]">{t('other_profile.friends_chip')}</span>
         </div>
       );
     }
@@ -111,7 +114,7 @@ export default function OtherProfileView({
       return (
         <div className="flex items-center gap-2 bg-[#18221E] border border-[#223029] rounded-xl px-4 py-2.5">
           <Clock className="w-4 h-4 text-[#B6C2BC]" />
-          <span className="text-sm font-semibold text-[#B6C2BC]">Förfrågan skickad</span>
+          <span className="text-sm font-semibold text-[#B6C2BC]">{t('other_profile.request_sent')}</span>
         </div>
       );
     }
@@ -122,7 +125,7 @@ export default function OtherProfileView({
           className="bg-[#F4743B] hover:bg-[#E5683A] text-white h-10 px-5 rounded-xl font-bold shadow-[0_4px_12px_rgba(244,116,59,0.35)]"
         >
           <UserCheck className="w-4 h-4 mr-2" />
-          Acceptera förfrågan
+          {t('other_profile.accept')}
         </Button>
       );
     }
@@ -133,7 +136,7 @@ export default function OtherProfileView({
         className="bg-[#2BA84A] hover:bg-[#248232] text-white h-10 px-5 rounded-xl font-bold shadow-[0_4px_12px_rgba(43,168,74,0.35)]"
       >
         <UserPlus className="w-4 h-4 mr-2" />
-        Lägg till vän
+        {t('other_profile.add_friend')}
       </Button>
     );
   };
@@ -154,15 +157,15 @@ export default function OtherProfileView({
             </div>
             <div>
               <div className="text-sm font-bold text-white">
-                {friendshipStatus === 'accepted' ? 'Ni är vänner' :
-                 friendshipStatus === 'pending_outgoing' ? 'Väntar svar' :
-                 friendshipStatus === 'pending_incoming' ? 'Har skickat förfrågan till dig' :
-                 'Inte vänner än'}
+                {friendshipStatus === 'accepted' ? t('other_profile.are_friends') :
+                 friendshipStatus === 'pending_outgoing' ? t('other_profile.waiting') :
+                 friendshipStatus === 'pending_incoming' ? t('other_profile.request_received') :
+                 t('other_profile.not_friends')}
               </div>
               <div className="text-xs text-[#9EAAA4]">
                 {sharedMatches.length > 0
-                  ? `${sharedMatches.length} match${sharedMatches.length === 1 ? '' : 'er'} tillsammans`
-                  : 'Inga gemensamma matcher än'}
+                  ? t('other_profile.shared_matches', { n: sharedMatches.length })
+                  : t('other_profile.no_shared')}
               </div>
             </div>
           </div>
@@ -178,7 +181,7 @@ export default function OtherProfileView({
               <div className="w-7 h-7 rounded-lg bg-[#F4743B]/15 flex items-center justify-center">
                 <Zap className="w-3.5 h-3.5 text-[#F4743B]" />
               </div>
-              Matcher ni spelat ihop
+              {t('other_profile.played_together')}
               <span className="ml-auto text-[#9EAAA4] font-normal text-xs">{sharedMatches.length}</span>
             </CardTitle>
           </CardHeader>
@@ -221,7 +224,7 @@ export default function OtherProfileView({
               <div className="w-7 h-7 rounded-lg bg-[#2BA84A]/15 flex items-center justify-center">
                 <Users className="w-3.5 h-3.5 text-[#2BA84A]" />
               </div>
-              Gemensamma vänner
+              {t('other_profile.mutual_friends')}
               <span className="ml-auto text-[#9EAAA4] font-normal text-xs">{mutualFriends.length}</span>
             </CardTitle>
           </CardHeader>
@@ -261,10 +264,10 @@ export default function OtherProfileView({
             <Trophy className="w-7 h-7 text-[#2BA84A]" />
           </div>
           <h3 className="text-base font-bold text-white mb-1.5">
-            Inga matcher spelade
+            {t('other_profile.no_history_title')}
           </h3>
           <p className="text-sm text-[#9EAAA4]">
-            Denna spelare har inte spelat några matcher än.
+            {t('other_profile.no_history_desc')}
           </p>
         </Card>
       )}

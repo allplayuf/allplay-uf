@@ -7,6 +7,7 @@ import {
 import { createPageUrl } from "@/utils";
 import { getAvatarUrl } from "@/components/utils/privacyMask";
 import RankBadge from "@/components/rank/RankBadge";
+import { useT } from "@/i18n/LanguageProvider";
 
 /**
  * PlayerCard v2 — premium card for the Community "Hitta spelare" grid.
@@ -19,13 +20,14 @@ import RankBadge from "@/components/rank/RankBadge";
  */
 
 const SKILL_CONFIG = {
-  beginner:     { label: 'Nybörjare',   icon: Target,     accent: '#6EE7B7' },
-  intermediate: { label: 'Medel',       icon: TrendingUp, accent: '#5EEAD4' },
-  advanced:     { label: 'Avancerad',   icon: Shield,     accent: '#C4B5FD' },
-  elite:        { label: 'Elit',        icon: Crown,      accent: '#FDE68A' }
+  beginner:     { nameKey: 'profile.skill.beginner',     icon: Target,     accent: '#6EE7B7' },
+  intermediate: { nameKey: 'profile.skill.intermediate', icon: TrendingUp, accent: '#5EEAD4' },
+  advanced:     { nameKey: 'profile.skill.advanced',     icon: Shield,     accent: '#C4B5FD' },
+  elite:        { nameKey: 'profile.skill.elite',        icon: Crown,      accent: '#FDE68A' }
 };
 
 export default function PlayerCard({ player, friendshipStatus = 'none', onAddFriend, index = 0 }) {
+  const { t } = useT();
   const [imgError, setImgError] = useState(false);
   const isPrivate = player._isPrivate;
   const avatarUrl = getAvatarUrl(player);
@@ -33,7 +35,7 @@ export default function PlayerCard({ player, friendshipStatus = 'none', onAddFri
   const skillCfg = hasSkill ? SKILL_CONFIG[player.skill_level] : SKILL_CONFIG.intermediate;
   const SkillIcon = skillCfg.icon;
 
-  const displayName = player.display_name || player.full_name || 'Ny spelare';
+  const displayName = player.display_name || player.full_name || t('common.new_player');
   const initials = displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
   const profileHref = isPrivate ? '#' : `${createPageUrl('Profile')}?userId=${player.id}`;
@@ -118,7 +120,7 @@ export default function PlayerCard({ player, friendshipStatus = 'none', onAddFri
                   }}
                 >
                   <SkillIcon className="w-2.5 h-2.5" strokeWidth={2.8} />
-                  {skillCfg.label}
+                  {t(skillCfg.nameKey)}
                 </span>
               )}
             </div>
@@ -128,11 +130,11 @@ export default function PlayerCard({ player, friendshipStatus = 'none', onAddFri
         {/* Stats strip */}
         {!isPrivate && (
           <div className="mt-3 grid grid-cols-3 gap-1.5">
-            <Stat icon={Trophy} value={player.matches_played || 0} label="Matcher" accent="#86EFAC" />
+            <Stat icon={Trophy} value={player.matches_played || 0} label={t('profile.hero.matches_label')} accent="#86EFAC" />
             <div className="relative rounded-lg bg-[#0F1513] ring-1 ring-[#1E2724] overflow-hidden flex items-center justify-center py-2">
               <RankBadge matchesPlayed={player.matches_played || 0} currentStreak={player.current_streak || 0} size="sm" showLabel={false} />
             </div>
-            <Stat icon={Flame} value={player.mvp_count || 0} label="MVPs" accent="#FDBA74" />
+            <Stat icon={Flame} value={player.mvp_count || 0} label={t('profile.hero.mvps_label')} accent="#FDBA74" />
           </div>
         )}
 
@@ -142,7 +144,7 @@ export default function PlayerCard({ player, friendshipStatus = 'none', onAddFri
             <div className="h-10 rounded-xl bg-[#0F1513] ring-1 ring-[#1E2724] flex items-center justify-center">
               <span className="text-[12px] font-semibold text-[#6B7A73] inline-flex items-center gap-1.5">
                 <EyeOff className="w-3.5 h-3.5" />
-                Privat profil
+                {t('player_card.private')}
               </span>
             </div>
           ) : friendshipStatus === 'none' ? (
@@ -157,21 +159,21 @@ export default function PlayerCard({ player, friendshipStatus = 'none', onAddFri
             >
               <span className="inline-flex items-center gap-1.5">
                 <UserPlus className="w-4 h-4" strokeWidth={2.6} />
-                Lägg till vän
+                {t('player_card.add_friend')}
               </span>
             </motion.button>
           ) : friendshipStatus === 'accepted' ? (
             <div className="h-10 rounded-xl bg-[#2BA84A]/10 ring-1 ring-[#2BA84A]/30 flex items-center justify-center">
               <span className="text-[13px] font-bold text-[#86EFAC] inline-flex items-center gap-1.5">
                 <Check className="w-4 h-4" strokeWidth={2.8} />
-                Vänner
+                {t('player_card.friends')}
               </span>
             </div>
           ) : friendshipStatus === 'pending_outgoing' ? (
             <div className="h-10 rounded-xl bg-[#18221E] ring-1 ring-[#223029] flex items-center justify-center">
               <span className="text-[13px] font-semibold text-[#9EAAA4] inline-flex items-center gap-1.5">
                 <Clock className="w-4 h-4" strokeWidth={2.5} />
-                Förfrågan skickad
+                {t('player_card.request_sent')}
               </span>
             </div>
           ) : friendshipStatus === 'pending_incoming' ? (
@@ -186,7 +188,7 @@ export default function PlayerCard({ player, friendshipStatus = 'none', onAddFri
             >
               <span className="inline-flex items-center gap-1.5">
                 <Check className="w-4 h-4" strokeWidth={2.8} />
-                Acceptera
+                {t('player_card.accept')}
                 <ArrowRight className="w-3.5 h-3.5 opacity-80" />
               </span>
             </motion.button>

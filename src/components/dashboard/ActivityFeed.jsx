@@ -1,21 +1,23 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bell } from "lucide-react";
+import { useT } from "@/i18n/LanguageProvider";
 
 export default function ActivityFeed({ activities }) {
+  const { t } = useT();
   return (
     <Card className="bg-[#2D3A3A] border-2 border-[#248232] shadow-xl">
       <CardHeader className="border-b border-[#248232]/50 bg-[#248232]/10">
         <CardTitle className="flex items-center gap-2 text-lg text-[#FFFFFF]">
           <Bell className="w-5 h-5 text-[#2BA84A]" />
-          Aktivitet
+          {t('activity.title')}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4">
         {activities.length === 0 ? (
           <div className="text-center py-8">
             <Bell className="w-12 h-12 text-[#248232] mx-auto mb-3 opacity-50" />
-            <p className="text-sm text-[#FFFFFF]/60">Ingen aktivitet än</p>
+            <p className="text-sm text-[#FFFFFF]/60">{t('activity.empty')}</p>
           </div>
         ) : (
           <div className="space-y-3">

@@ -6,8 +6,10 @@ import { Trophy, MapPin, Calendar, Users, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
+import { useT } from "@/i18n/LanguageProvider";
 
 export default function CompletedMatches({ matches, venues, user }) {
+  const { t } = useT();
   if (matches.length === 0) {
     return (
       <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[16px] lg:rounded-[20px]">
@@ -15,13 +17,13 @@ export default function CompletedMatches({ matches, venues, user }) {
           <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 ring-1 ring-[#2BA84A]/30">
             <Trophy className="w-6 h-6 sm:w-8 sm:h-8 text-[#9FC9AC]" />
           </div>
-          <h3 className="text-[18px] sm:text-[20px] leading-[24px] sm:leading-[28px] font-semibold text-[#F4F7F5] mb-2">Inga spelade matcher</h3>
+          <h3 className="text-[18px] sm:text-[20px] leading-[24px] sm:leading-[28px] font-semibold text-[#F4F7F5] mb-2">{t('completed.empty_title')}</h3>
           <p className="text-[13px] sm:text-[14px] leading-[18px] sm:leading-[20px] text-[#B6C2BC] mb-4 sm:mb-6">
-            Du har inte spelat några matcher ännu. Dags att sätta igång!
+            {t('completed.empty_desc')}
           </p>
           <Link to={createPageUrl("Matches")}>
             <button className="inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border border-[#2BA84A]/35 px-5 text-[#CFE8D6] transition-all hover:bg-[#2BA84A]/10 active:bg-[#2BA84A]/16 font-semibold text-sm sm:text-base">
-              Hitta matcher
+              {t('completed.find')}
             </button>
           </Link>
         </CardContent>
@@ -58,7 +60,7 @@ export default function CompletedMatches({ matches, venues, user }) {
                           </Badge>
                           <Badge className="h-6 px-2.5 bg-[#18221E] text-[#7B8A83] text-xs flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3" />
-                            Spelade
+                            {t('completed.played_badge')}
                           </Badge>
                         </div>
                       </div>
@@ -75,7 +77,7 @@ export default function CompletedMatches({ matches, venues, user }) {
                     <div className="space-y-2 text-sm text-[#B6C2BC]">
                       <div className="flex items-center gap-2">
                         <MapPin className="w-4 h-4 text-[#9FC9AC] flex-shrink-0" />
-                        <span className="truncate">{venue?.name || 'Okänd plats'}</span>
+                        <span className="truncate">{venue?.name || t('completed.unknown_venue')}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-[#9FC9AC] flex-shrink-0" />
@@ -87,7 +89,7 @@ export default function CompletedMatches({ matches, venues, user }) {
                     {match.final_score && (
                       <div className="pt-3 border-t border-[#223029]">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-[#B6C2BC] font-medium">Resultat</span>
+                          <span className="text-xs text-[#B6C2BC] font-medium">{t('completed.result')}</span>
                           <span className="text-lg font-bold text-[#F4F7F5]">{match.final_score}</span>
                         </div>
                       </div>
@@ -97,7 +99,7 @@ export default function CompletedMatches({ matches, venues, user }) {
                       <div className="pt-2">
                         <Badge className="w-full justify-center py-2 bg-gradient-to-r from-[#F4743B] to-[#E5683A] text-white text-xs font-semibold">
                           <Trophy className="w-3 h-3 mr-1" />
-                          Du blev MVP!
+                          {t('completed.mvp')}
                         </Badge>
                       </div>
                     )}

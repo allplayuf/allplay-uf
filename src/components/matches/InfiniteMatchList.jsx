@@ -3,11 +3,12 @@ import { Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MatchCard from './MatchCard';
 import { MatchCardSkeleton } from '../ui/loading-skeleton';
+import { useT } from "@/i18n/LanguageProvider";
 
-export default function InfiniteMatchList({ 
-  data, 
-  fetchNextPage, 
-  hasNextPage, 
+export default function InfiniteMatchList({
+  data,
+  fetchNextPage,
+  hasNextPage,
   isFetchingNextPage,
   isLoading,
   venues,
@@ -16,6 +17,7 @@ export default function InfiniteMatchList({
   onJoin,
   onRefresh
 }) {
+  const { t } = useT();
   const loadMoreRef = useRef(null);
 
   useEffect(() => {
@@ -50,7 +52,7 @@ export default function InfiniteMatchList({
   if (allMatches.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-[#B6C2BC] text-lg">Inga matcher hittades</p>
+        <p className="text-[#B6C2BC] text-lg">{t('match_list.no_results')}</p>
       </div>
     );
   }
@@ -89,7 +91,7 @@ export default function InfiniteMatchList({
         
         {hasNextPage && !isFetchingNextPage && (
           <div className="flex justify-center">
-            <div className="text-sm text-[#7B8A83]">Scrolla för att ladda fler matcher...</div>
+            <div className="text-sm text-[#7B8A83]">{t('match_list.scroll_more')}</div>
           </div>
         )}
       </div>

@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { useT } from "@/i18n/LanguageProvider";
 
 const FORMAT_ACCENT = {
   '5v5':   { color: "#86EFAC", bg: "rgba(43,168,74,0.18)",   border: "rgba(43,168,74,0.35)" },
@@ -12,6 +13,8 @@ const FORMAT_ACCENT = {
 };
 
 export default function UpcomingMatches({ matches = [] }) {
+  const { t } = useT();
+
   const fmt = (date, time) => {
     try {
       return format(new Date(`${date}T${time}`), 'EEE d MMM, HH:mm', { locale: sv });
@@ -36,7 +39,7 @@ export default function UpcomingMatches({ matches = [] }) {
           <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-[#2BA84A]/15 ring-1 ring-[#2BA84A]/25">
             <Calendar className="w-4 h-4 text-[#2BA84A]" strokeWidth={2.2} />
           </div>
-          <h3 className="font-bold text-[15px] text-[#F4F7F5] tracking-tight">Kommande matcher</h3>
+          <h3 className="font-bold text-[15px] text-[#F4F7F5] tracking-tight">{t('upcoming.title')}</h3>
         </div>
         <span
           className="text-[10px] font-extrabold uppercase tracking-[0.08em] px-2.5 py-1 rounded-full"
@@ -52,8 +55,8 @@ export default function UpcomingMatches({ matches = [] }) {
           <div className="w-14 h-14 bg-[#18221E] rounded-2xl flex items-center justify-center mx-auto mb-3 ring-1 ring-[#223029]">
             <Calendar className="w-7 h-7 text-[#4a5550]" strokeWidth={1.8} />
           </div>
-          <p className="text-[14px] font-semibold text-[#9EAAA4] mb-1">Inga kommande matcher</p>
-          <p className="text-[12px] text-[#6B7A73] mb-4">Hitta eller skapa din nästa match!</p>
+          <p className="text-[14px] font-semibold text-[#9EAAA4] mb-1">{t('upcoming.empty_title')}</p>
+          <p className="text-[12px] text-[#6B7A73] mb-4">{t('upcoming.empty_desc')}</p>
           <Link to={createPageUrl("Matches")}>
             <button
               className="h-10 px-5 rounded-xl text-white text-[13px] font-bold flex items-center gap-2 mx-auto"
@@ -63,7 +66,7 @@ export default function UpcomingMatches({ matches = [] }) {
               }}
             >
               <MapPin className="w-4 h-4" strokeWidth={2.4} />
-              Hitta matcher
+              {t('upcoming.find')}
             </button>
           </Link>
         </div>
@@ -97,7 +100,7 @@ export default function UpcomingMatches({ matches = [] }) {
                       </span>
                       {match.is_ranked && (
                         <span className="text-[10px] font-extrabold uppercase tracking-[0.06em] px-2 py-0.5 rounded-full bg-[#FCD34D]/15 text-[#FCD34D] border border-[#FCD34D]/30">
-                          Rankad
+                          {t('upcoming.ranked')}
                         </span>
                       )}
                     </div>

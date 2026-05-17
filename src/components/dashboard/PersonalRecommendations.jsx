@@ -4,8 +4,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Users, UserPlus, Trophy, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { useT } from "@/i18n/LanguageProvider";
 
 export default function PersonalRecommendations({ players = [], teams = [], matches = [] }) {
+  const { t } = useT();
   const hasRecommendations = players.length > 0 || teams.length > 0 || matches.length > 0;
 
   if (!hasRecommendations) return null;
@@ -19,7 +21,7 @@ export default function PersonalRecommendations({ players = [], teams = [], matc
             <div className="w-10 h-10 bg-[#9370DB]/20 rounded-xl flex items-center justify-center ring-2 ring-[#9370DB]/30">
               <Sparkles className="w-5 h-5 text-[#9370DB]" strokeWidth={2.5} />
             </div>
-            <h3 className="text-lg font-bold text-[#F4F7F5]">Rekommenderat för dig</h3>
+            <h3 className="text-lg font-bold text-[#F4F7F5]">{t('recs.title')}</h3>
           </div>
         </div>
 
@@ -31,10 +33,10 @@ export default function PersonalRecommendations({ players = [], teams = [], matc
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-sm font-semibold text-[#F4F7F5] flex items-center gap-2">
                   <UserPlus className="w-4 h-4 text-[#9370DB]" />
-                  Spelare att följa
+                  {t('recs.players')}
                 </h4>
                 <Link to={createPageUrl("Community")} className="text-xs font-semibold text-[#9370DB] hover:text-[#DDD6FE]">
-                  Se alla
+                  {t('common.see_all')}
                 </Link>
               </div>
               <div className="space-y-2">
@@ -56,7 +58,7 @@ export default function PersonalRecommendations({ players = [], teams = [], matc
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-[#F4F7F5] truncate">{player.display_name || player.full_name}</p>
-                          <p className="text-xs text-[#B6C2BC]">{player.matches_played || 0} matcher</p>
+                          <p className="text-xs text-[#B6C2BC]">{t('match_history.count', { n: player.matches_played || 0 })}</p>
                         </div>
                       </div>
                     </Link>
@@ -72,10 +74,10 @@ export default function PersonalRecommendations({ players = [], teams = [], matc
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-sm font-semibold text-[#F4F7F5] flex items-center gap-2">
                   <Users className="w-4 h-4 text-[#9370DB]" />
-                  Lag att gå med i
+                  {t('recs.teams')}
                 </h4>
                 <Link to={createPageUrl("Community")} className="text-xs font-semibold text-[#9370DB] hover:text-[#DDD6FE]">
-                  Se alla
+                  {t('common.see_all')}
                 </Link>
               </div>
               <div className="space-y-2">
@@ -97,7 +99,7 @@ export default function PersonalRecommendations({ players = [], teams = [], matc
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-[#F4F7F5] truncate">{team.name}</p>
-                          <p className="text-xs text-[#B6C2BC]">{team.current_members || 0} medlemmar</p>
+                          <p className="text-xs text-[#B6C2BC]">{t('recs.members', { n: team.current_members || 0 })}</p>
                         </div>
                       </div>
                     </Link>
@@ -113,10 +115,10 @@ export default function PersonalRecommendations({ players = [], teams = [], matc
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-sm font-semibold text-[#F4F7F5] flex items-center gap-2">
                   <Trophy className="w-4 h-4 text-[#9370DB]" />
-                  Matcher för dig
+                  {t('recs.matches')}
                 </h4>
                 <Link to={createPageUrl("Matches")} className="text-xs font-semibold text-[#9370DB] hover:text-[#DDD6FE]">
-                  Se alla
+                  {t('common.see_all')}
                 </Link>
               </div>
               <div className="space-y-2">

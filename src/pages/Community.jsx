@@ -155,7 +155,7 @@ export default function CommunityPage() {
   // Merge auth user with Supabase profile (consistent with Dashboard and Profile)
   const user = React.useMemo(() => {
     if (isGuestUser) {
-      return { is_guest: true, display_name: 'Gäst', full_name: 'Gäst' };
+      return { is_guest: true, display_name: t('common.guest'), full_name: t('common.guest') };
     }
     if (!authUser) return null;
     return {
@@ -175,7 +175,7 @@ export default function CommunityPage() {
   // Handle rate limit errors
   useEffect(() => {
     if (userError?.message?.includes('rate limit') || userError?.message?.includes('Rate limit')) {
-      alert('För många förfrågningar', 'Vänta en stund och försök igen.', { type: 'alert' });
+      alert(t('community.rate_limit_title'), t('community.rate_limit_desc'), { type: 'alert' });
     }
   }, [userError, alert]);
 
@@ -265,17 +265,17 @@ export default function CommunityPage() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
 
       if (result.action === 'created') {
-        await alert('Vänförfrågan skickad! 🤝', 'Din förfrågan har skickats!', { type: 'success' });
+        await alert(t('community.friend_sent_title'), t('community.friend_sent_desc'), { type: 'success' });
       } else if (result.action === 'accepted') {
-        await alert('Nya vänner! 🎉', 'Ni är nu vänner!', { type: 'success' });
+        await alert(t('community.friends_now_title'), t('community.friends_now_desc'), { type: 'success' });
       } else if (result.action === 'already_friends') {
-        await alert('Redan vänner', 'Ni är redan vänner!', { type: 'info' });
+        await alert(t('community.already_friends_title'), t('community.already_friends_desc'), { type: 'info' });
       } else if (result.action === 'already_sent') {
-        await alert('Förfrågan skickad', 'Du har redan skickat en vänförfrågan!', { type: 'info' });
+        await alert(t('community.request_sent_title'), t('community.request_sent_desc'), { type: 'info' });
       }
     } catch (error) {
       console.error("Error adding friend:", error);
-      await alert('Kunde inte skicka förfrågan', error.message || 'Försök igen.', { type: 'alert' });
+      await alert(t('community.friend_error_title'), error.message || t('community.friend_error_desc'), { type: 'alert' });
     } finally {
       setIsSubmitting(false);
     }
@@ -285,18 +285,18 @@ export default function CommunityPage() {
     try {
       await acceptFriendRequest(requestId);
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
-      await alert('Nya vänner! 🎉', 'Ni är nu vänner!', { type: 'success' });
+      await alert(t('community.friends_now_title'), t('community.friends_now_desc'), { type: 'success' });
     } catch (error) {
       console.error("Error accepting friend:", error);
-      await alert('Kunde inte acceptera', error.message || 'Försök igen.', { type: 'alert' });
+      await alert(t('community.accept_error_title'), error.message || t('community.accept_error_desc'), { type: 'alert' });
     }
   };
 
   const handleDeclineFriend = async (requestId) => {
     const shouldDecline = await confirm(
-      'Neka vänförfrågan',
-      'Är du säker på att du vill neka denna vänförfrågan?',
-      { type: 'warning', confirmText: 'Neka', cancelText: 'Avbryt' }
+      t('community.decline_title'),
+      t('community.decline_desc'),
+      { type: 'warning', confirmText: t('community.decline_confirm'), cancelText: t('common.cancel') }
     );
     if (!shouldDecline) return;
 
@@ -305,7 +305,7 @@ export default function CommunityPage() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.friendships });
     } catch (error) {
       console.error("Error declining friend:", error);
-      await alert('Kunde inte neka', error.message || 'Försök igen.', { type: 'alert' });
+      await alert(t('community.decline_error_title'), error.message || t('community.decline_error_desc'), { type: 'alert' });
     }
   };
 
@@ -321,7 +321,7 @@ export default function CommunityPage() {
         queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamMembers(user?.id) }),
       ]);
       
-      await alert('Lag skapat! ⚽', `${teamData.name} har skapats!`, { type: 'success' });
+      await alert(t('community.team_created_title'), t('community.team_created_desc', { name: teamData.name }), { type: 'success' });
 
       // Navigate to team detail if we got an ID back
       const teamId = result?.team?.id || result?.team_id || result?.id;
@@ -331,11 +331,11 @@ export default function CommunityPage() {
     } catch (error) {
       console.error("[Community] Error creating team:", error);
       const msg = error.status === 401
-        ? 'Du måste vara inloggad.'
+        ? t('community.team_auth_error')
         : error.status === 409
-          ? 'Ett lag med det namnet finns redan.'
-          : (error.message || 'Kunde inte skapa laget. Försök igen.');
-      await alert('Kunde inte skapa lag', msg, { type: 'alert' });
+          ? t('community.team_duplicate_error')
+          : (error.message || t('community.team_generic_error'));
+      await alert(t('community.team_error_title'), msg, { type: 'alert' });
     }
   };
 
@@ -344,10 +344,10 @@ export default function CommunityPage() {
       await restPatch(`team_members?id=eq.${inviteId}`, { status: 'active' });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.teamInvites(user.id) });
       
-      await alert('Välkommen till laget! 🎉', 'Du är nu medlem i laget!', { type: 'success' });
+      await alert(t('community.team_joined_title'), t('community.team_joined_desc'), { type: 'success' });
     } catch (error) {
       console.error("Error accepting team invite:", error);
-      await alert('Ett fel uppstod', 'Kunde inte acceptera inbjudan.', { type: 'alert' });
+      await alert(t('community.invite_error_title'), t('community.invite_error_desc'), { type: 'alert' });
     }
   };
 
@@ -393,14 +393,14 @@ export default function CommunityPage() {
           <div className="w-20 h-20 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-[#2BA84A]/20">
             <Users className="w-10 h-10 text-[#2BA84A]" />
           </div>
-          <h2 className="text-2xl font-bold text-[#F4F7F5] mb-3">Logga in för att se Community</h2>
-          <p className="text-[#B6C2BC] mb-6">Skapa ett konto eller logga in för att hitta vänner, gå med i lag och delta i cuper.</p>
-          <Button 
+          <h2 className="text-2xl font-bold text-[#F4F7F5] mb-3">{t('community.login_title')}</h2>
+          <p className="text-[#B6C2BC] mb-6">{t('community.login_desc')}</p>
+          <Button
             onClick={() => setShowAuthGate(true)}
             className="w-full bg-[#2BA84A] hover:bg-[#248232] text-white h-12 rounded-xl font-semibold"
           >
             <UserPlus className="w-5 h-5 mr-2" />
-            Logga in / Skapa konto
+            {t('profile.login_btn')}
           </Button>
         </Card>
       </div>

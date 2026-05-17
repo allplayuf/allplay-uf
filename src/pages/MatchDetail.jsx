@@ -29,6 +29,7 @@ import {
 import { getVenues, getUsersByIds, getMyProfile } from "../components/supabase/services";
 import { sendFriendRequest, getMyFriendships } from "../components/supabase/services/friendshipsService";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
+import { useT } from "../i18n/LanguageProvider";
 
 export default function MatchDetailPage() {
   const location = useLocation();
@@ -44,6 +45,7 @@ export default function MatchDetailPage() {
 
   const { confirm, alert, DialogContainer } = useCustomDialog();
   const { isGuest, isAuthenticated, user: authUser } = useSupabaseAuth();
+  const { t } = useT();
 
   const { data: userProfile } = useQuery({
     queryKey: ["supabase-userProfile", authUser?.id],
@@ -100,14 +102,14 @@ export default function MatchDetailPage() {
     if (!match) return null;
     if (match._venue_name || match.venue_name || match.pitch_name) {
       return {
-        name: match._venue_name || match.venue_name || match.pitch_name || "Okänd plan",
+        name: match._venue_name || match.venue_name || match.pitch_name || t('match.unknown_venue'),
         city: match._venue_city || match.venue_city || match.pitch_city,
         address: match._venue_address || match.venue_address || match.pitch_address,
         latitude: match._venue_lat || match.venue_lat || match.pitch_lat,
         longitude: match._venue_lng || match.venue_lng || match.pitch_lng,
       };
     }
-    return venues.find(v => v.id === match.venue_id || v.id === match.pitch_id) || { name: "Okänd plan" };
+    return venues.find(v => v.id === match.venue_id || v.id === match.pitch_id) || { name: t('match.unknown_venue') };
   }, [match, venues]);
 
   const { data: participantsRaw = [], isLoading: participantsLoading } = useQuery({
@@ -152,8 +154,8 @@ export default function MatchDetailPage() {
     }
     return rawArray.map(p => ({
       id: p.user_id,
-      full_name: p.full_name || p.display_name || p.username || "Spelare",
-      display_name: p.display_name || p.full_name || p.username || "Spelare",
+      full_name: p.full_name || p.display_name || p.username || t('common.player'),
+      display_name: p.display_name || p.full_name || p.username || t('common.player'),
       avatar_url: p.avatar_url,
       city: p.city,
       participantInfo: p,
@@ -184,10 +186,10 @@ export default function MatchDetailPage() {
     },
     onError: (err, _vars, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(["supabase-matchParticipants", matchId], ctx.prev);
-      feedback.error("Kunde inte anmäla dig", { description: err.message || "Försök igen." });
+      feedback.error(t('match_detail.join_error'), { description: err.message || t('common.retry') });
     },
     onSuccess: () => {
-      feedback.success("Du är med! ⚽", { description: `Anmäld till "${match?.title || "matchen"}"` });
+      feedback.success(t('match_detail.join_success'), { description: t('match_detail.join_success_desc', { title: match?.title || '' }) });
     },
     onSettled: () => {
       setIsActionLoading(false);
@@ -200,8 +202,8 @@ export default function MatchDetailPage() {
 
   const handleLeave = async () => {
     if (isActionLoading) return;
-    const ok = await confirm("Lämna match", "Är du säker på att du vill lämna denna match?", {
-      type: "warning", confirmText: "Ja, lämna", cancelText: "Avbryt"
+    const ok = await confirm(t('match_detail.leave_title'), t('match_detail.leave_confirm'), {
+      type: "warning", confirmText: t('match_detail.leave_yes'), cancelText: t('common.cancel')
     });
     if (!ok) return;
     setIsActionLoading(true);
@@ -217,10 +219,10 @@ export default function MatchDetailPage() {
       queryClient.invalidateQueries({ queryKey: ["supabase-match", matchId] });
       queryClient.invalidateQueries({ queryKey: ["matches-infinite"] });
       queryClient.invalidateQueries({ queryKey: ["supabase-myParticipantMatchIds"] });
-      feedback.info("Du har lämnat matchen");
+      feedback.info(t('match_detail.left_match'));
     } catch (error) {
       if (prev) queryClient.setQueryData(["supabase-matchParticipants", matchId], prev);
-      feedback.error("Kunde inte lämna", { description: error.message || "Försök igen." });
+      feedback.error(t('match_detail.leave_error'), { description: error.message || t('common.retry') });
     } finally {
       setIsActionLoading(false);
     }
@@ -237,30 +239,30 @@ export default function MatchDetailPage() {
       queryClient.invalidateQueries({ queryKey: ["supabase-match", matchId] });
       queryClient.invalidateQueries({ queryKey: ["supabase-matchParticipants", matchId] });
       queryClient.invalidateQueries({ queryKey: ["matches-infinite"] });
-      feedback.success("Match avslutad!", { description: "Resultaten har sparats." });
+      feedback.success(t('match_detail.end_success'), { description: t('match_detail.end_success_desc') });
     } catch (error) {
-      feedback.error("Kunde inte avsluta", { description: error.message || "Försök igen." });
+      feedback.error(t('match_detail.end_error'), { description: error.message || t('common.retry') });
     }
   };
 
   const handleAddFriend = async (participantId) => {
-    const loadingId = feedback.loading("Skickar förfrågan...");
+    const loadingId = feedback.loading(t('match_detail.friend_loading'));
     try {
       const result = await sendFriendRequest(participantId);
       feedback.dismiss(loadingId);
       queryClient.invalidateQueries({ queryKey: ["friendships", user?.id] });
       if (result.action === "created") {
-        feedback.success("Vänförfrågan skickad 🤝");
+        feedback.success(t('match_detail.friend_sent'));
       } else if (result.action === "accepted") {
-        feedback.success("Ni är nu vänner! 🎉");
+        feedback.success(t('match_detail.friend_now'));
       } else if (result.action === "already_sent") {
-        feedback.info("Vänförfrågan redan skickad");
+        feedback.info(t('match_detail.friend_already_sent'));
       } else if (result.action === "already_friends") {
-        feedback.info("Ni är redan vänner");
+        feedback.info(t('match_detail.friend_already'));
       }
     } catch (error) {
       feedback.dismiss(loadingId);
-      feedback.error("Kunde inte skicka", { description: error.message || "Försök igen." });
+      feedback.error(t('match_detail.friend_error'), { description: error.message || t('common.retry') });
     }
   };
 
@@ -284,18 +286,18 @@ export default function MatchDetailPage() {
 
   const handleDelete = async () => {
     if (isActionLoading) return;
-    const ok = await confirm("Ta bort match", "Detta kan inte ångras.", {
-      type: "warning", confirmText: "Ja, ta bort", cancelText: "Avbryt"
+    const ok = await confirm(t('match_detail.delete_title'), t('match_detail.delete_confirm'), {
+      type: "warning", confirmText: t('match_detail.delete_yes'), cancelText: t('common.cancel')
     });
     if (!ok) return;
     setIsActionLoading(true);
     try {
       await deleteMatch(matchId);
       queryClient.invalidateQueries({ queryKey: ["matches-infinite"] });
-      feedback.success("Match borttagen");
+      feedback.success(t('match_detail.deleted'));
       navigate(createPageUrl("Matches"));
     } catch (error) {
-      feedback.error("Kunde inte ta bort", { description: error.message || "Försök igen." });
+      feedback.error(t('match_detail.delete_error'), { description: error.message || t('common.retry') });
     } finally {
       setIsActionLoading(false);
     }
@@ -309,9 +311,9 @@ export default function MatchDetailPage() {
       const start = new Date(y, mo - 1, d, h, mi);
       const end = new Date(start.getTime() + (match.duration_minutes || 90) * 60000);
       const fmt = (date) => date.toISOString().replace(/-|:|\.\d+/g, "");
-      const venueName = venue?.name || "Okänd plats";
+      const venueName = venue?.name || t('common.unknown');
       const venueAddress = venue ? `${venue.address || ""}, ${venue.city || ""}` : "";
-      const details = `Spela fotboll med AllPlay!\nMatch: ${match.title}\nFormat: ${match.format}\nPlats: ${venueName}\nLänk: ${window.location.href}`;
+      const details = t('match_detail.cal_details', { title: match.title, format: match.format, venueName, link: window.location.href });
       const loc = venueAddress || venueName;
       return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(match.title)}&dates=${fmt(start)}/${fmt(end)}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(loc)}`;
     } catch {
@@ -343,13 +345,13 @@ export default function MatchDetailPage() {
       <div className="min-h-screen bg-[#0F1513] p-4 lg:p-8">
         <DialogContainer />
         <Card className="max-w-2xl mx-auto p-12 text-center bg-[#121715] ring-1 ring-[#223029] rounded-3xl">
-          <h2 className="text-xl font-bold text-[#F4F7F5] mb-2">Match hittades inte</h2>
-          <p className="text-sm text-[#B6C2BC] mb-6">Matchen du söker existerar inte eller har tagits bort.</p>
+          <h2 className="text-xl font-bold text-[#F4F7F5] mb-2">{t('match_detail.not_found_title')}</h2>
+          <p className="text-sm text-[#B6C2BC] mb-6">{t('match_detail.not_found_desc')}</p>
           <button
             onClick={() => navigate(createPageUrl("Matches"))}
             className="h-12 px-6 rounded-xl bg-[#2BA84A] hover:bg-[#34C257] text-white font-bold"
           >
-            Tillbaka till matcher
+            {t('match_detail.back')}
           </button>
         </Card>
       </div>
@@ -404,7 +406,7 @@ export default function MatchDetailPage() {
           <div className="rounded-2xl bg-[#121715] ring-1 ring-[#223029] overflow-hidden">
             <div className="flex items-center gap-2 px-5 py-4 border-b border-[#223029]">
               <Trophy className="w-4 h-4 text-[#FBBF24]" />
-              <h2 className="text-sm font-bold text-[#F4F7F5] uppercase tracking-wider">Målöversikt</h2>
+              <h2 className="text-sm font-bold text-[#F4F7F5] uppercase tracking-wider">{t('match_detail.goals_title')}</h2>
             </div>
             <div className="p-5">
               <CupMatchGoals matchId={matchId} cupMatch={cupMatch} isAdmin={isAdmin} />
@@ -418,7 +420,7 @@ export default function MatchDetailPage() {
             <div className="flex items-center gap-2">
               <UsersIcon className="w-4 h-4 text-[#86EFAC]" />
               <h2 className="text-sm font-bold text-[#F4F7F5] uppercase tracking-wider">
-                Deltagare
+                {t('match_detail.participants_label')}
               </h2>
               <span className="text-xs font-bold text-[#9EAAA4] tabular-nums">
                 {participantCount}{!match.is_spontaneous && match.max_players ? `/${match.max_players}` : ""}
@@ -442,7 +444,7 @@ export default function MatchDetailPage() {
         <section>
           <div className="flex items-center gap-2 mb-3 px-1">
             <Info className="w-4 h-4 text-[#86EFAC]" />
-            <h2 className="text-sm font-bold text-[#F4F7F5] uppercase tracking-wider">Matchinfo</h2>
+            <h2 className="text-sm font-bold text-[#F4F7F5] uppercase tracking-wider">{t('match_detail.matchinfo_label')}</h2>
           </div>
           <MatchDetailsCard match={match} venue={venue} />
         </section>
@@ -455,7 +457,7 @@ export default function MatchDetailPage() {
               className="inline-flex items-center gap-1.5 text-xs text-[#9EAAA4] hover:text-[#F87171] transition-colors"
             >
               <Flag className="w-3 h-3" />
-              Rapportera problem med matchen
+              {t('match_detail.report_btn')}
             </button>
           </div>
         )}
@@ -477,7 +479,7 @@ export default function MatchDetailPage() {
         onClose={() => setShowInviteModal(false)}
         onInvitesSent={() => {
           setShowInviteModal(false);
-          feedback.success("Inbjudningar skickade!", { description: "Dina vänner har blivit inbjudna." });
+          feedback.success(t('match_detail.invites_sent'), { description: t('match_detail.invites_sent_desc') });
         }}
       />
       <LazyMatchReportModal

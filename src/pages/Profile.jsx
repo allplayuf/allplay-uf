@@ -494,14 +494,14 @@ export default function ProfilePage() {
           <div className="w-20 h-20 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 ring-1 ring-[#2BA84A]/20">
             <Users className="w-10 h-10 text-[#2BA84A]" />
           </div>
-          <h2 className="text-2xl font-bold text-[#F4F7F5] mb-3">Logga in för att se din profil</h2>
-          <p className="text-[#B6C2BC] mb-6">Skapa ett konto eller logga in för att se din profil, hantera vänner och mycket mer.</p>
+          <h2 className="text-2xl font-bold text-[#F4F7F5] mb-3">{t('profile.login_title')}</h2>
+          <p className="text-[#B6C2BC] mb-6">{t('profile.login_desc')}</p>
           <Button
             onClick={() => setShowLoginModal(true)}
             className="w-full bg-[#2BA84A] hover:bg-[#248232] text-white h-12 rounded-xl font-semibold"
           >
             <LogIn className="w-5 h-5 mr-2" />
-            Logga in / Skapa konto
+            {t('profile.login_btn')}
           </Button>
         </Card>
       </div>
@@ -638,14 +638,14 @@ export default function ProfilePage() {
                       <div>
                         <div className="flex items-center justify-between mb-4 mt-6">
                           <h3 className="text-lg font-bold text-[#F4F7F5]">
-                            Dina vänner ({friends.length})
+                            {t('profile.hero.your_friends')} ({friends.length})
                           </h3>
                           <button
                             onClick={() => setShowQRModal(true)}
                             className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-[#2BA84A]/10 px-4 text-xs font-semibold text-[#2BA84A] ring-1 ring-[#2BA84A]/30 hover:bg-[#2BA84A]/20 transition-all duration-150"
                           >
                             <QrCode className="w-3.5 h-3.5" />
-                            Bjud in
+                            {t('profile.hero.invite')}
                           </button>
                         </div>
                         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -679,7 +679,7 @@ export default function ProfilePage() {
                                             <h4 className="font-bold text-[#F4F7F5] text-sm truncate">{friend.display_name || friend.full_name}</h4>
                                             <div className="flex items-center gap-1.5 text-xs text-[#9EAAA4]">
                                               <MapPin className="w-3 h-3" />
-                                              {friend.city || 'Okänd stad'}
+                                              {friend.city || t('common.unknown')}
                                             </div>
                                           </div>
                                           <Badge className={`bg-gradient-to-r ${friendSkill.color} ${friendSkill.textColor} text-[10px] font-bold border-0 px-2 h-6`}>

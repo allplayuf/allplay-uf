@@ -1,11 +1,7 @@
 import React from "react";
 import { UserPlus, Share2, LogOut, Trophy, Calendar, Crown, Users, Loader2, Trash2 } from "lucide-react";
+import { useT } from "@/i18n/LanguageProvider";
 
-/**
- * Sticky action bar below the hero.
- * Primary action is always on the left and highly visible.
- * Secondary actions are icon buttons.
- */
 export default function MatchActionBar({
   match,
   isParticipant,
@@ -26,38 +22,40 @@ export default function MatchActionBar({
   onShowPlayers,
   checkInButton,
 }) {
+  const { t } = useT();
+
   return (
     <div className="relative z-10 -mx-4 sm:mx-0">
       <div className="bg-[#121715] ring-1 ring-[#223029] sm:rounded-2xl shadow-[0_12px_32px_rgba(0,0,0,0.4)] p-3 sm:p-4">
         <div className="flex items-center gap-2">
-          {/* Primary action — largest, most prominent */}
+          {/* Primary action */}
           <div className="flex-1 min-w-0">
             {isCupMatch && !isCompleted ? (
               <div className="h-12 flex items-center justify-center gap-2 rounded-xl bg-[#F59E0B]/12 ring-1 ring-[#F59E0B]/30 text-[#FCD34D] font-bold text-sm">
                 <Crown className="w-4 h-4" />
-                Cupmatch — admin-styrd
+                {t('match_action.cup_match')}
               </div>
             ) : canJoin ? (
               <PrimaryButton onClick={onJoin} disabled={isActionLoading} loading={isActionLoading} icon={UserPlus}>
-                Anmäl dig
+                {t('match_action.join')}
               </PrimaryButton>
             ) : isCompleted && isParticipant ? (
               <PrimaryButton onClick={onMvpVote} icon={Crown} variant="accent">
-                Rösta på MVP
+                {t('match_action.vote_mvp')}
               </PrimaryButton>
             ) : isCompleted ? (
               <PrimaryButton onClick={onShowPlayers} icon={Users} variant="ghost">
-                Se spelare
+                {t('match_action.see_players')}
               </PrimaryButton>
             ) : isOrganizer && match.status === "upcoming" ? (
               <PrimaryButton onClick={onEnd} icon={Trophy} variant="accent">
-                Avsluta match
+                {t('match_action.end_match')}
               </PrimaryButton>
             ) : isParticipant && checkInButton ? (
               <div className="w-full">{checkInButton}</div>
             ) : (
               <div className="h-12 flex items-center justify-center text-[#9EAAA4] font-medium text-sm">
-                {match.status === "cancelled" ? "Matchen är inställd" : "Matchen är full"}
+                {match.status === "cancelled" ? t('match_action.cancelled') : t('match_action.full')}
               </div>
             )}
           </div>
@@ -66,16 +64,16 @@ export default function MatchActionBar({
           <div className="flex items-center gap-1.5 flex-shrink-0">
             {isParticipant && match.status === "upcoming" && (
               <>
-                <IconButton onClick={onInvite} icon={Share2} label="Bjud in vänner" />
-                <IconButton onClick={onCalendar} icon={Calendar} label="Lägg till i kalender" />
-                <IconButton onClick={onLeave} icon={LogOut} label="Lämna match" variant="danger" disabled={isActionLoading} />
+                <IconButton onClick={onInvite} icon={Share2} label={t('match_action.invite_friends')} />
+                <IconButton onClick={onCalendar} icon={Calendar} label={t('match_action.add_calendar')} />
+                <IconButton onClick={onLeave} icon={LogOut} label={t('match_action.leave')} variant="danger" disabled={isActionLoading} />
               </>
             )}
             {!isParticipant && match.status === "upcoming" && !isCupMatch && (
-              <IconButton onClick={onShare || onInvite} icon={Share2} label="Dela match" />
+              <IconButton onClick={onShare || onInvite} icon={Share2} label={t('match_action.share')} />
             )}
             {(isOrganizer || isAdmin) && !isCompleted && (
-              <IconButton onClick={onDelete} icon={Trash2} label="Ta bort match" variant="danger" disabled={isActionLoading} />
+              <IconButton onClick={onDelete} icon={Trash2} label={t('match_action.delete')} variant="danger" disabled={isActionLoading} />
             )}
           </div>
         </div>

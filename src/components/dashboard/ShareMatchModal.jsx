@@ -7,6 +7,7 @@ import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
 import { base44 } from "@/api/base44Client";
 import AvatarImage from "@/components/ui/avatar-image";
 import { getUsersByIds } from "@/components/supabase/services";
+import { useT } from "@/i18n/LanguageProvider";
 
 /**
  * Premium share modal.
@@ -16,6 +17,7 @@ import { getUsersByIds } from "@/components/supabase/services";
  *  - Graceful empty/loading states
  */
 export default function ShareMatchModal({ match, onClose }) {
+  const { t } = useT();
   const [searchQuery, setSearchQuery] = useState("");
   const [copied, setCopied] = useState(false);
   const [sentTo, setSentTo] = useState(new Set());
@@ -24,7 +26,7 @@ export default function ShareMatchModal({ match, onClose }) {
   const queryClient = useQueryClient();
 
   const matchUrl = `${window.location.origin}/MatchDetail?id=${match?.id}`;
-  const shareText = `Vill du spela ${match?.title || 'fotboll'} med mig? ⚽`;
+  const shareText = t('share.match_text', { title: match?.title || 'football' });
 
   // Load friendships & friend user records
   const { data: friendships = [] } = useQuery({
@@ -77,10 +79,10 @@ export default function ShareMatchModal({ match, onClose }) {
     try {
       await navigator.clipboard.writeText(matchUrl);
       setCopied(true);
-      feedback.success('Länk kopierad!');
+      feedback.success(t('share.link_copied_toast'));
       setTimeout(() => setCopied(false), 2500);
     } catch {
-      feedback.error('Kunde inte kopiera länken');
+      feedback.error(t('share.copy_error'));
     }
   };
 
@@ -95,9 +97,9 @@ export default function ShareMatchModal({ match, onClose }) {
     },
     onSuccess: (_, friendId) => {
       setSentTo(prev => new Set([...prev, friendId]));
-      feedback.success('Inbjudan skickad');
+      feedback.success(t('share.invite_sent'));
     },
-    onError: () => feedback.error('Kunde inte skicka inbjudan'),
+    onError: () => feedback.error(t('share.invite_error')),
   });
 
   return (
@@ -126,14 +128,14 @@ export default function ShareMatchModal({ match, onClose }) {
               <Share2 className="w-4 h-4 text-[#34C257]" strokeWidth={2.4} />
             </div>
             <div>
-              <h3 className="text-[15px] font-bold text-[#F4F7F5] leading-tight">Dela match</h3>
+              <h3 className="text-[15px] font-bold text-[#F4F7F5] leading-tight">{t('share.title')}</h3>
               <p className="text-[11px] text-[#8FA097] truncate max-w-[200px]">{match?.title}</p>
             </div>
           </div>
           <button
             onClick={onClose}
             className="w-9 h-9 rounded-xl bg-[#18221E] hover:bg-[#223029] flex items-center justify-center transition-colors"
-            aria-label="Stäng"
+            aria-label={t('common.close')}
           >
             <X className="w-4 h-4 text-[#B6C2BC]" />
           </button>
@@ -151,7 +153,7 @@ export default function ShareMatchModal({ match, onClose }) {
             }}
           >
             <Share2 className="w-4 h-4" strokeWidth={2.5} />
-            Dela via…
+            {t('share.via')}
           </motion.button>
           <motion.button
             whileTap={{ scale: 0.98 }}
@@ -163,20 +165,20 @@ export default function ShareMatchModal({ match, onClose }) {
             }`}
           >
             {copied ? <Check className="w-4 h-4" strokeWidth={2.6} /> : <Link2 className="w-4 h-4" strokeWidth={2.4} />}
-            {copied ? 'Länk kopierad' : 'Kopiera länk'}
+            {copied ? t('share.link_copied') : t('share.copy_link')}
           </motion.button>
         </div>
 
         {/* Friends list */}
         <div className="flex-1 overflow-y-auto p-5">
-          <h4 className="text-[11px] font-bold text-[#8FA097] uppercase tracking-wider mb-3">Bjud in vänner</h4>
+          <h4 className="text-[11px] font-bold text-[#8FA097] uppercase tracking-wider mb-3">{t('share.invite_friends')}</h4>
 
           {friendIds.length > 0 && (
             <div className="relative mb-3">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7B8A83]" />
               <input
                 type="text"
-                placeholder="Sök vänner…"
+                placeholder={t('share.search_friends')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full h-11 pl-10 pr-4 bg-[#18221E] border border-[#223029] rounded-xl text-[13px] text-[#F4F7F5] placeholder:text-[#7B8A83] focus:outline-none focus:ring-2 focus:ring-[#2BA84A]/40 focus:border-[#2BA84A]/40"
@@ -223,9 +225,9 @@ export default function ShareMatchModal({ match, onClose }) {
                       }`}
                     >
                       {isSent ? (
-                        <span className="flex items-center gap-1"><Check className="w-3.5 h-3.5" />Skickad</span>
+                        <span className="flex items-center gap-1"><Check className="w-3.5 h-3.5" />{t('share.sent')}</span>
                       ) : (
-                        'Bjud in'
+                        t('share.invite')
                       )}
                     </button>
                   </div>
@@ -238,10 +240,10 @@ export default function ShareMatchModal({ match, onClose }) {
                 <UserPlus className="w-6 h-6 text-[#7B8A83]" />
               </div>
               <p className="text-[13px] font-semibold text-[#B6C2BC] mb-1">
-                {searchQuery ? 'Inga träffar' : 'Inga vänner än'}
+                {searchQuery ? t('share.no_results') : t('share.no_friends')}
               </p>
               <p className="text-[11px] text-[#8FA097]">
-                {searchQuery ? 'Prova ett annat namn' : 'Kopiera länken istället och dela direkt'}
+                {searchQuery ? t('share.try_name') : t('share.copy_instead')}
               </p>
             </div>
           )}

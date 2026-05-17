@@ -23,6 +23,7 @@ import BlockUserButton from "../user/BlockUserButton";
 import RankBadge from "@/components/rank/RankBadge";
 import RankProgressBar from "@/components/rank/RankProgressBar";
 import { getRankFromMatches } from "@/lib/rankEngine";
+import { useT } from "@/i18n/LanguageProvider";
 
 /**
  * ProfileHero — mirrors the DashboardHero design language.
@@ -35,11 +36,11 @@ import { getRankFromMatches } from "@/lib/rankEngine";
  *   Background: pitch lines + ambient orb (same signature as Dashboard)
  */
 
-const SKILL_CONFIG = {
-  beginner: { label: "Nybörjare", icon: Target, accent: "#6EE7B7" },
-  intermediate: { label: "Medel", icon: TrendingUp, accent: "#5EEAD4" },
-  advanced: { label: "Avancerad", icon: Shield, accent: "#C4B5FD" },
-  elite: { label: "Elit", icon: Crown, accent: "#FDE68A" },
+const SKILL_ICONS = {
+  beginner: Target, intermediate: TrendingUp, advanced: Shield, elite: Crown,
+};
+const SKILL_ACCENTS = {
+  beginner: "#6EE7B7", intermediate: "#5EEAD4", advanced: "#C4B5FD", elite: "#FDE68A",
 };
 
 export default function ProfileHero({
@@ -53,9 +54,15 @@ export default function ProfileHero({
   setShowMoreMenu,
   targetUserId,
 }) {
-  const skill = SKILL_CONFIG[user?.skill_level] || SKILL_CONFIG.intermediate;
+  const { t } = useT();
+  const skillKey = user?.skill_level || 'intermediate';
+  const skill = {
+    label: t(`profile.skill.${skillKey}`),
+    icon: SKILL_ICONS[skillKey] || TrendingUp,
+    accent: SKILL_ACCENTS[skillKey] || SKILL_ACCENTS.intermediate,
+  };
   const SkillIcon = skill.icon;
-  const displayName = user?.display_name || user?.full_name || "Spelare";
+  const displayName = user?.display_name || user?.full_name || t('profile.hero.default_name');
   const city = user?.city || "Stockholm";
   const matchesPlayed = user?.matches_played || 0;
   const currentStreak = user?.current_streak || 0;
@@ -168,7 +175,7 @@ export default function ProfileHero({
                     className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#F4F7F5] hover:bg-[#18221E] transition-colors"
                   >
                     <Flag className="w-4 h-4 text-red-400" />
-                    Rapportera
+                    {t('profile.hero.report')}
                   </button>
                   <div className="px-4 py-2">
                     <BlockUserButton
@@ -188,7 +195,7 @@ export default function ProfileHero({
       <div className="relative z-10 px-5 pt-6 pb-5 sm:px-8 sm:pt-8 sm:pb-7 lg:px-11 lg:pt-10 lg:pb-9">
         {/* Eyebrow — small & restrained */}
         <div className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.14em] text-white/50 mb-4 sm:mb-5">
-          {isViewingOtherProfile ? "Spelarprofil" : "Min profil"}
+          {isViewingOtherProfile ? t('profile.hero.viewing') : t('profile.hero.mine')}
         </div>
 
         {/* Identity row — avatar + name + meta */}
@@ -290,7 +297,7 @@ export default function ProfileHero({
           <StatCell
             icon={Trophy}
             value={user?.matches_played || 0}
-            label="Matcher"
+            label={t('profile.hero.matches_label')}
             accent="#86EFAC"
           />
           {/* Rank — center cell, badge + name */}
@@ -315,7 +322,7 @@ export default function ProfileHero({
           <StatCell
             icon={Award}
             value={user?.mvp_count || 0}
-            label="MVPs"
+            label={t('profile.hero.mvps_label')}
             accent="#FDE3D2"
           />
         </div>
@@ -326,7 +333,7 @@ export default function ProfileHero({
           style={{ background: `${rank.accent}0D`, border: `1px solid ${rank.accent}1A` }}
         >
           {rank.streakBonus && (
-            <p className="text-[11px] text-amber-400 font-semibold mb-2 text-center">🔥 Streakbonus aktiv</p>
+            <p className="text-[11px] text-amber-400 font-semibold mb-2 text-center">{t('profile.hero.streak_bonus')}</p>
           )}
           <RankProgressBar matchesPlayed={matchesPlayed} currentStreak={currentStreak} />
         </div>
@@ -347,7 +354,7 @@ export default function ProfileHero({
                 }}
               >
                 <Edit className="w-4 h-4" strokeWidth={2.5} />
-                Redigera
+                {t('profile.hero.edit')}
               </motion.button>
             </Link>
             <motion.button
@@ -360,7 +367,7 @@ export default function ProfileHero({
               className="w-full h-11 sm:h-12 rounded-xl flex items-center justify-center gap-2 text-white font-bold text-[13px] sm:text-[14px] bg-white/[0.06] hover:bg-white/[0.12] ring-1 ring-white/15 hover:ring-white/25 backdrop-blur-sm transition-colors"
             >
               <QrCode className="w-4 h-4" strokeWidth={2.5} />
-              Bjud in
+              {t('profile.hero.invite')}
             </motion.button>
           </div>
         )}

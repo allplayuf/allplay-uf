@@ -4,12 +4,14 @@ import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { getUsersByIds } from "@/components/supabase/services";
 import AvatarImage from "@/components/ui/avatar-image";
+import { useT } from "@/i18n/LanguageProvider";
 
 /**
  * Premium venue card with rich match preview.
  * Uses pre-loaded `allParticipants` for accurate player counts (no per-card fetching).
  */
 export default function VenueCard({ venue, matches = [], isSelected, onClick, onMatchClick, userMatchIds = [], allParticipants = [] }) {
+  const { t } = useT();
   const hasUserMatch = matches.some(m => userMatchIds.includes(m.id));
   const hasMatches = matches.length > 0;
   const topMatch = matches[0];
@@ -29,24 +31,23 @@ export default function VenueCard({ venue, matches = [], isSelected, onClick, on
     staleTime: 60_000,
   });
 
-  // Status config
   const status = useMemo(() => {
     if (hasUserMatch) return {
-      label: 'Du spelar här',
+      label: t('venue_card.playing_here'),
       icon: CheckCircle2,
       bg: 'bg-[#4169E1]/14', ring: 'ring-[#4169E1]/30', text: 'text-[#B0C4DE]',
     };
     if (hasMatches) return {
-      label: `${matches.length} aktiv${matches.length === 1 ? '' : 'a'}`,
+      label: t('venue_card.active', { n: matches.length }),
       icon: Flame,
       bg: 'bg-[#F4743B]/14', ring: 'ring-[#F4743B]/30', text: 'text-[#FDE3D2]',
     };
     return {
-      label: 'Tillgänglig',
+      label: t('venue_card.available'),
       icon: null,
       bg: 'bg-[#2BA84A]/12', ring: 'ring-[#2BA84A]/25', text: 'text-[#CFE8D6]',
     };
-  }, [hasMatches, hasUserMatch, matches.length]);
+  }, [hasMatches, hasUserMatch, matches.length, t]);
 
   const StatusIcon = status.icon;
 
@@ -173,12 +174,12 @@ export default function VenueCard({ venue, matches = [], isSelected, onClick, on
                   )}
                 </div>
               ) : (
-                <span className="text-[10px] text-[#8FA097] font-medium">Var först att anmäla dig</span>
+                <span className="text-[10px] text-[#8FA097] font-medium">{t('venue_card.be_first')}</span>
               )}
 
               {matches.length > 1 && (
                 <span className="text-[10px] font-bold text-[#F4743B] bg-[#F4743B]/10 ring-1 ring-[#F4743B]/25 rounded-md px-1.5 h-[18px] inline-flex items-center">
-                  +{matches.length - 1} till
+                  {t('venue_card.more', { n: matches.length - 1 })}
                 </span>
               )}
             </div>
@@ -187,7 +188,7 @@ export default function VenueCard({ venue, matches = [], isSelected, onClick, on
           <div className="flex items-center justify-between rounded-[14px] bg-[#18221E]/50 border border-[#223029]/60 px-3 py-2.5">
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-[#2BA84A] animate-pulse" />
-              <span className="text-[12px] text-[#B6C2BC] font-medium">Inga matcher · Skapa en</span>
+              <span className="text-[12px] text-[#B6C2BC] font-medium">{t('venue_card.no_matches')}</span>
             </div>
             <ArrowRight className="w-3.5 h-3.5 text-[#7B8A83] group-hover:text-[#2BA84A] group-hover:translate-x-0.5 transition-all" />
           </div>

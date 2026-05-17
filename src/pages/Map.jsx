@@ -22,9 +22,11 @@ import VenueCard from "../components/map/VenueCard";
 import VenueDetailModal from "../components/map/VenueDetailModal";
 import FilterSheet from "../components/map/FilterSheet";
 import AllPlayToggle from "../components/map/AllPlayToggle";
+import { useT } from "../i18n/LanguageProvider";
 
 export default function MapPage() {
   useSEO({ title: 'Karta – Fotbollsplaner nära dig', description: 'Hitta fotbollsplaner och aktiva matcher på kartan. Se var folk spelar och hoppa in direkt med AllPlay UF.', canonicalPath: '/map' });
+  const { t } = useT();
   const navigate = useNavigate();
   const [venues, setVenues] = useState([]);
   const [matches, setMatches] = useState([]);
@@ -47,15 +49,15 @@ export default function MapPage() {
   const { user: authUser, isAuthenticated } = useSupabaseAuth();
 
   const formatLabels = {
-    all: 'ALLA FORMAT',
+    all: t('map.format_all'),
     '5v5': '5V5',
     '7v7': '7V7',
     '11v11': '11V11'
   };
 
   const sortByLabels = {
-    distance: 'AVSTÅND',
-    matches: 'MEST BOKADE'
+    distance: t('map.sort_distance'),
+    matches: t('map.sort_most_booked')
   };
 
   const calculateDistance = useCallback((lat1, lon1, lat2, lon2) => {
@@ -326,7 +328,7 @@ export default function MapPage() {
             <div className="flex-1 relative min-w-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#86A096] w-4 h-4 pointer-events-none" />
               <input
-                placeholder="Sök planer..."
+                placeholder={t('map.search_placeholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full h-10 pl-9 pr-3 bg-[#18221E] border border-[#223029] text-[#F4F7F5] placeholder:text-[#86A096] focus:border-[#2BA84A]/60 focus:ring-2 focus:ring-[#2BA84A]/20 rounded-xl text-sm outline-none transition-all"
@@ -337,7 +339,7 @@ export default function MapPage() {
             <div className="flex bg-[#18221E] rounded-xl p-0.5 ring-1 ring-[#223029] flex-shrink-0">
               <button
                 onClick={() => setViewMode("map")}
-                aria-label="Kartvy"
+                aria-label={t('map.view_map')}
                 className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
                   viewMode === "map"
                     ? 'bg-[#2BA84A] text-white shadow-[0_2px_8px_rgba(43,168,74,0.3)]'
@@ -348,7 +350,7 @@ export default function MapPage() {
               </button>
               <button
                 onClick={() => setViewMode("list")}
-                aria-label="Listvy"
+                aria-label={t('map.view_list')}
                 className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
                   viewMode === "list"
                     ? 'bg-[#2BA84A] text-white shadow-[0_2px_8px_rgba(43,168,74,0.3)]'
@@ -361,7 +363,7 @@ export default function MapPage() {
 
             <button
               onClick={() => getUserLocation(true)}
-              aria-label="Centrera på min plats"
+              aria-label={t('map.center_location')}
               className="h-10 w-10 flex-shrink-0 flex items-center justify-center bg-[#2BA84A]/12 hover:bg-[#2BA84A]/20 text-[#86EFAC] rounded-xl ring-1 ring-[#2BA84A]/25 transition-all"
             >
               <Navigation className="w-4 h-4" />
@@ -417,13 +419,13 @@ export default function MapPage() {
               {filteredVenues.length === 0 && (
                 <div className="text-center py-12">
                   <MapPin className="w-16 h-16 text-[#248232] mx-auto mb-4 opacity-50" />
-                  <h3 className="text-lg font-semibold text-[#F4F7F5] mb-2">Inga planer hittade</h3>
-                  <p className="text-sm text-[#B6C2BC] mb-6">Prova att öka avståndet</p>
+                  <h3 className="text-lg font-semibold text-[#F4F7F5] mb-2">{t('map.no_venues_title')}</h3>
+                  <p className="text-sm text-[#B6C2BC] mb-6">{t('map.no_venues_desc')}</p>
                   <button
                     onClick={() => setFilters(prev => ({ ...prev, distance: 50 }))}
                     className="inline-flex h-11 items-center justify-center gap-2 rounded-[14px] bg-[#2BA84A]/16 px-5 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30 transition-all hover:bg-[#2BA84A]/24 font-semibold"
                   >
-                    Öka till 50km
+                    {t('map.increase_to_50km')}
                   </button>
                 </div>
               )}
@@ -455,7 +457,7 @@ export default function MapPage() {
                 <div className="w-8 h-8 rounded-xl bg-[#2BA84A]/15 flex items-center justify-center ring-1 ring-[#2BA84A]/25">
                   <MapPin className="w-4 h-4 text-[#2BA84A]" />
                 </div>
-                Hitta planer
+                {t('map.title')}
               </h1>
               <button 
                 onClick={() => getUserLocation(true)}
@@ -468,7 +470,7 @@ export default function MapPage() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#9EAAA4] w-4 h-4" />
               <Input
-                placeholder="Sök planer eller områden..."
+                placeholder={t('map.search_placeholder_desktop')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 h-11 bg-[#18221E]/80 border border-[#223029]/60 text-[#F4F7F5] placeholder:text-[#9EAAA4] focus:border-[#2BA84A]/50 rounded-full text-sm"
@@ -486,7 +488,7 @@ export default function MapPage() {
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="bg-[#121715] border border-[#223029] rounded-xl">
-                  <SelectItem value="all">ALLA FORMAT</SelectItem>
+                  <SelectItem value="all">{t('map.format_all')}</SelectItem>
                   <SelectItem value="5v5">5V5</SelectItem>
                   <SelectItem value="7v7">7V7</SelectItem>
                   <SelectItem value="11v11">11V11</SelectItem>
@@ -501,18 +503,18 @@ export default function MapPage() {
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="bg-[#121715] border border-[#223029] rounded-xl">
-                  <SelectItem value="distance">AVSTÅND</SelectItem>
-                  <SelectItem value="matches">MEST BOKADE</SelectItem>
+                  <SelectItem value="distance">{t('map.sort_distance')}</SelectItem>
+                  <SelectItem value="matches">{t('map.sort_most_booked')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="flex items-center justify-between text-xs">
               <span className="font-semibold text-[#F4F7F5]">
-                {filteredVenues.length} planer
+                {t('map.venues_count', { n: filteredVenues.length })}
               </span>
               <span className="inline-flex h-6 items-center rounded-full bg-[#18221E] px-2.5 font-medium text-[#9EAAA4] ring-1 ring-[#223029]/60 text-[11px]">
-                {filteredVenues.length} planer · {filters.distance}km
+                {t('map.venues_count', { n: filteredVenues.length })} · {filters.distance}km
               </span>
             </div>
           </div>
@@ -534,13 +536,13 @@ export default function MapPage() {
             {filteredVenues.length === 0 && (
               <div className="text-center py-12">
                 <MapPin className="w-16 h-16 text-[#248232] mx-auto mb-4 opacity-50" />
-                <h3 className="text-[20px] leading-[28px] font-semibold text-[#F4F7F5] mb-2">Inga planer hittade</h3>
-                <p className="text-[14px] leading-[20px] text-[#B6C2BC] mb-6">Prova att öka avståndet eller justera dina filter</p>
+                <h3 className="text-[20px] leading-[28px] font-semibold text-[#F4F7F5] mb-2">{t('map.no_venues_title')}</h3>
+                <p className="text-[14px] leading-[20px] text-[#B6C2BC] mb-6">{t('map.no_venues_desc_filter')}</p>
                 <button
                   onClick={() => setFilters(prev => ({ ...prev, distance: 50 }))}
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#2BA84A]/16 px-6 text-[#EAF6EE] ring-1 ring-[#2BA84A]/30 transition-all hover:bg-[#2BA84A]/24 hover:ring-[#2BA84A]/45 hover:scale-[1.02] font-semibold"
                 >
-                  Öka till 50km
+                  {t('map.increase_to_50km')}
                 </button>
               </div>
             )}

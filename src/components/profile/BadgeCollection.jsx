@@ -41,84 +41,21 @@ import {
   ChevronDown
 } from "lucide-react";
 import { CACHE_STRATEGIES } from "../providers/QueryProvider";
+import { useT } from "@/i18n/LanguageProvider";
 
 const TIER_CONFIG = {
-  bronze: { 
-    color: "#CD7F32", 
-    name: "Brons",
-    gradient: "from-[#CD7F32] to-[#8B5A2B]",
-    glow: "shadow-[0_0_20px_rgba(205,127,50,0.4)]",
-    ring: "ring-[#CD7F32]/30"
-  },
-  silver: { 
-    color: "#C0C0C0", 
-    name: "Silver",
-    gradient: "from-[#C0C0C0] to-[#808080]",
-    glow: "shadow-[0_0_20px_rgba(192,192,192,0.4)]",
-    ring: "ring-[#C0C0C0]/30"
-  },
-  gold: { 
-    color: "#FFD700", 
-    name: "Guld",
-    gradient: "from-[#FFD700] to-[#FFA500]",
-    glow: "shadow-[0_0_20px_rgba(255,215,0,0.5)]",
-    ring: "ring-[#FFD700]/30"
-  },
-  diamond: { 
-    color: "#7A4DE8", 
-    name: "Diamant",
-    gradient: "from-[#7A4DE8] to-[#4B0082]",
-    glow: "shadow-[0_0_20px_rgba(122,77,232,0.5)]",
-    ring: "ring-[#7A4DE8]/30"
-  }
+  bronze:  { color: "#CD7F32", nameKey: 'badge.tier.bronze',   gradient: "from-[#CD7F32] to-[#8B5A2B]", glow: "shadow-[0_0_20px_rgba(205,127,50,0.4)]",   ring: "ring-[#CD7F32]/30" },
+  silver:  { color: "#C0C0C0", nameKey: 'badge.tier.silver',   gradient: "from-[#C0C0C0] to-[#808080]", glow: "shadow-[0_0_20px_rgba(192,192,192,0.4)]", ring: "ring-[#C0C0C0]/30" },
+  gold:    { color: "#FFD700", nameKey: 'badge.tier.gold',     gradient: "from-[#FFD700] to-[#FFA500]", glow: "shadow-[0_0_20px_rgba(255,215,0,0.5)]",   ring: "ring-[#FFD700]/30" },
+  diamond: { color: "#7A4DE8", nameKey: 'badge.tier.diamond',  gradient: "from-[#7A4DE8] to-[#4B0082]", glow: "shadow-[0_0_20px_rgba(122,77,232,0.5)]",  ring: "ring-[#7A4DE8]/30" },
 };
 
 const CATEGORY_CONFIG = {
-  matches: { 
-    name: 'Matcher', 
-    icon: Trophy, 
-    color: '#2BA84A',
-    bgColor: 'bg-[#2BA84A]/16',
-    borderColor: 'border-[#2BA84A]/30',
-    textColor: 'text-[#2BA84A]',
-    hoverBg: 'hover:bg-[#2BA84A]/24'
-  },
-  social: { 
-    name: 'Socialt', 
-    icon: Users, 
-    color: '#4169E1',
-    bgColor: 'bg-[#4169E1]/16',
-    borderColor: 'border-[#4169E1]/30',
-    textColor: 'text-[#B0C4DE]',
-    hoverBg: 'hover:bg-[#4169E1]/24'
-  },
-  skill: { 
-    name: 'Skicklighet', 
-    icon: Target, 
-    color: '#F4743B',
-    bgColor: 'bg-[#F4743B]/16',
-    borderColor: 'border-[#F4743B]/30',
-    textColor: 'text-[#FDE3D2]',
-    hoverBg: 'hover:bg-[#F4743B]/24'
-  },
-  dedication: { 
-    name: 'Dedikation', 
-    icon: Flame, 
-    color: '#DC2626',
-    bgColor: 'bg-[#DC2626]/16',
-    borderColor: 'border-[#DC2626]/30',
-    textColor: 'text-[#FCA5A5]',
-    hoverBg: 'hover:bg-[#DC2626]/24'
-  },
-  special: { 
-    name: 'Speciellt', 
-    icon: Sparkles, 
-    color: '#9370DB',
-    bgColor: 'bg-[#9370DB]/16',
-    borderColor: 'border-[#9370DB]/30',
-    textColor: 'text-[#DDD6FE]',
-    hoverBg: 'hover:bg-[#9370DB]/24'
-  }
+  matches:    { nameKey: 'badge.cat.matches',    icon: Trophy,    color: '#2BA84A', bgColor: 'bg-[#2BA84A]/16', borderColor: 'border-[#2BA84A]/30', textColor: 'text-[#2BA84A]',  hoverBg: 'hover:bg-[#2BA84A]/24' },
+  social:     { nameKey: 'badge.cat.social',     icon: Users,     color: '#4169E1', bgColor: 'bg-[#4169E1]/16', borderColor: 'border-[#4169E1]/30', textColor: 'text-[#B0C4DE]',  hoverBg: 'hover:bg-[#4169E1]/24' },
+  skill:      { nameKey: 'badge.cat.skill',      icon: Target,    color: '#F4743B', bgColor: 'bg-[#F4743B]/16', borderColor: 'border-[#F4743B]/30', textColor: 'text-[#FDE3D2]',  hoverBg: 'hover:bg-[#F4743B]/24' },
+  dedication: { nameKey: 'badge.cat.dedication', icon: Flame,     color: '#DC2626', bgColor: 'bg-[#DC2626]/16', borderColor: 'border-[#DC2626]/30', textColor: 'text-[#FCA5A5]',  hoverBg: 'hover:bg-[#DC2626]/24' },
+  special:    { nameKey: 'badge.cat.special',    icon: Sparkles,  color: '#9370DB', bgColor: 'bg-[#9370DB]/16', borderColor: 'border-[#9370DB]/30', textColor: 'text-[#DDD6FE]',  hoverBg: 'hover:bg-[#9370DB]/24' },
 };
 
 const ICON_MAP = {
@@ -162,6 +99,7 @@ const ALL_BADGES = [
 ];
 
 const BadgeDetailModal = ({ badge, userValue, earnedTier, onClose }) => {
+  const { t } = useT();
   const Icon = ICON_MAP[badge.id] || Award;
   const categoryConfig = CATEGORY_CONFIG[badge.category];
   const tierConfig = earnedTier ? TIER_CONFIG[earnedTier] : null;
@@ -216,19 +154,19 @@ const BadgeDetailModal = ({ badge, userValue, earnedTier, onClose }) => {
               <h3 className="text-xl font-bold text-[#F4F7F5] mb-1">{badge.name}</h3>
               <p className="text-sm text-[#B6C2BC] mb-2">{badge.description}</p>
               <Badge className={`${categoryConfig.bgColor} ${categoryConfig.textColor} border-0`}>
-                {categoryConfig.name}
+                {t(categoryConfig.nameKey)}
               </Badge>
             </div>
           </div>
 
           {earnedTier && (
             <div className="flex items-center gap-2 py-2 px-4 rounded-xl bg-[#18221E] border border-[#223029]">
-              <div 
+              <div
                 className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: tierConfig.color }}
               />
               <span className="text-sm font-bold" style={{ color: tierConfig.color }}>
-                {tierConfig.name.toUpperCase()} UPPLÅST
+                {t(tierConfig.nameKey).toUpperCase()} {t('badge.unlocked_label')}
               </span>
             </div>
           )}
@@ -240,7 +178,7 @@ const BadgeDetailModal = ({ badge, userValue, earnedTier, onClose }) => {
           <div>
             <h4 className="text-sm font-bold text-[#F4F7F5] mb-3 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-[#2BA84A]" />
-              Ditt framsteg
+              {t('badge.your_progress')}
             </h4>
             <div className="bg-[#18221E] rounded-xl p-4 border border-[#223029]">
               <div className="text-center mb-3">
@@ -260,7 +198,7 @@ const BadgeDetailModal = ({ badge, userValue, earnedTier, onClose }) => {
           <div>
             <h4 className="text-sm font-bold text-[#F4F7F5] mb-3 flex items-center gap-2">
               <Star className="w-4 h-4 text-[#FFD700]" />
-              Alla nivåer
+              {t('badge.all_levels')}
             </h4>
             <div className="space-y-2">
               {allTierRequirements.map((req) => {
@@ -281,9 +219,9 @@ const BadgeDetailModal = ({ badge, userValue, earnedTier, onClose }) => {
                       <span className="text-2xl">{req.emoji}</span>
                       <div>
                         <p className={`text-sm font-bold ${isUnlocked ? '' : 'text-[#7B8A83]'}`} style={isUnlocked ? { color: config.color } : {}}>
-                          {config.name}
+                          {t(config.nameKey)}
                         </p>
-                        <p className="text-xs text-[#B6C2BC]">{req.value} krävs</p>
+                        <p className="text-xs text-[#B6C2BC]">{t('badge.required', { n: req.value })}</p>
                       </div>
                     </div>
                     {isUnlocked && (
@@ -303,9 +241,9 @@ const BadgeDetailModal = ({ badge, userValue, earnedTier, onClose }) => {
                   <Star className="w-4 h-4 text-[#FFD700]" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-[#FFD700] mb-1">Exklusiv Badge</p>
+                  <p className="text-xs font-bold text-[#FFD700] mb-1">{t('badge.exclusive_label')}</p>
                   <p className="text-xs text-[#F4F7F5] leading-relaxed">
-                    Denna badge kan endast erhållas genom att bjuda in vänner till AllPlay. Dela din referral-länk eller QR-kod!
+                    {t('badge.exclusive_desc')}
                   </p>
                 </div>
               </div>
@@ -319,14 +257,14 @@ const BadgeDetailModal = ({ badge, userValue, earnedTier, onClose }) => {
                 <Info className="w-4 h-4 text-[#4169E1]" />
               </div>
               <div>
-                <p className="text-xs font-bold text-[#F4F7F5] mb-1">Tips</p>
+                <p className="text-xs font-bold text-[#F4F7F5] mb-1">{t('badge.tip_label')}</p>
                 <p className="text-xs text-[#B6C2BC] leading-relaxed">
-                  {badge.isExclusive && 'Dela din referral-länk eller QR-kod från din profil för att bjuda in vänner!'}
-                  {!badge.isExclusive && badge.category === 'matches' && 'Fortsätt spela matcher för att låsa upp fler nivåer!'}
-                  {!badge.isExclusive && badge.category === 'social' && 'Bjud in fler vänner och bygg ditt nätverk!'}
-                  {!badge.isExclusive && badge.category === 'skill' && 'Ge ditt bästa i varje match för att bli MVP!'}
-                  {!badge.isExclusive && badge.category === 'dedication' && 'Håll streaken vid liv genom att spela regelbundet!'}
-                  {!badge.isExclusive && badge.category === 'special' && 'Denna badge är något extra speciellt - fortsätt utforska!'}
+                  {badge.isExclusive && t('badge.tip_exclusive')}
+                  {!badge.isExclusive && badge.category === 'matches' && t('badge.tip_matches')}
+                  {!badge.isExclusive && badge.category === 'social' && t('badge.tip_social')}
+                  {!badge.isExclusive && badge.category === 'skill' && t('badge.tip_skill')}
+                  {!badge.isExclusive && badge.category === 'dedication' && t('badge.tip_dedication')}
+                  {!badge.isExclusive && badge.category === 'special' && t('badge.tip_special')}
                 </p>
               </div>
             </div>
@@ -338,6 +276,7 @@ const BadgeDetailModal = ({ badge, userValue, earnedTier, onClose }) => {
 };
 
 const BadgeComponent = ({ badge, userValue, earnedTier, onClick }) => {
+  const { t } = useT();
   const Icon = ICON_MAP[badge.id] || Award;
   const categoryConfig = CATEGORY_CONFIG[badge.category];
   
@@ -386,7 +325,7 @@ const BadgeComponent = ({ badge, userValue, earnedTier, onClick }) => {
         <Badge 
           className={`text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 ${categoryConfig.bgColor} ${categoryConfig.textColor} border-0 font-medium`}
         >
-          <span className="hidden sm:inline">{categoryConfig.name}</span>
+          <span className="hidden sm:inline">{t(categoryConfig.nameKey)}</span>
           <categoryConfig.icon className="w-3 h-3 sm:hidden" />
         </Badge>
       </div>
@@ -395,7 +334,7 @@ const BadgeComponent = ({ badge, userValue, earnedTier, onClick }) => {
       {badge.isExclusive && (
         <div className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2">
           <Badge className="text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-[#000000] border-0 font-bold shadow-[0_0_12px_rgba(255,215,0,0.6)]">
-            Exklusiv
+            {t('badge.exclusive_chip')}
           </Badge>
         </div>
       )}
@@ -464,11 +403,11 @@ const BadgeComponent = ({ badge, userValue, earnedTier, onClick }) => {
               style={{ backgroundColor: tierConfig.color }}
             />
             <p className="text-[9px] sm:text-xs font-bold tracking-wide" style={{ color: tierConfig.color }}>
-              {tierConfig.name.toUpperCase()}
+              {t(tierConfig.nameKey).toUpperCase()}
             </p>
           </div>
           <div className="w-full bg-[#0F1513] rounded-full h-1.5 sm:h-2.5 overflow-hidden border border-[#223029] shadow-inner">
-            <motion.div 
+            <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${Math.min(progress, 100)}%` }}
               transition={{ duration: 0.8, ease: "easeOut" }}
@@ -483,17 +422,17 @@ const BadgeComponent = ({ badge, userValue, earnedTier, onClick }) => {
       ) : (
         <div className="w-full">
           <div className="flex items-center justify-center gap-1 sm:gap-1.5 mb-1.5 sm:mb-2">
-            <div 
+            <div
               className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full"
               style={{ backgroundColor: tierConfig.color }}
             />
             <p className="text-[9px] sm:text-xs font-bold tracking-wide" style={{ color: tierConfig.color }}>
-              {tierConfig.name.toUpperCase()}
+              {t(tierConfig.nameKey).toUpperCase()}
             </p>
           </div>
           <div className={`flex items-center justify-center gap-1.5 sm:gap-2 py-1.5 sm:py-2 px-2 sm:px-3 rounded-lg bg-gradient-to-r ${tierConfig.gradient} bg-opacity-20`}>
             <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-[#2BA84A]" strokeWidth={2.5} />
-            <p className="text-[10px] sm:text-xs font-bold text-[#2BA84A]">MAXAD!</p>
+            <p className="text-[10px] sm:text-xs font-bold text-[#2BA84A]">{t('badge.maxed')}</p>
           </div>
         </div>
       )}
@@ -502,6 +441,7 @@ const BadgeComponent = ({ badge, userValue, earnedTier, onClick }) => {
 };
 
 export default function BadgeCollection({ user }) {
+  const { t } = useT();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('progress');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -617,7 +557,7 @@ export default function BadgeCollection({ user }) {
                 </div>
                 <div className="min-w-0">
                   <div className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.14em] text-white/55 leading-none">
-                    Badge-samling
+                    {t('badge.collection_label')}
                   </div>
                   <div className="mt-1.5 text-[18px] sm:text-[22px] font-black text-white leading-none tracking-[-0.02em]">
                     <span className="tabular-nums">{unlockedCount}</span>
@@ -632,14 +572,14 @@ export default function BadgeCollection({ user }) {
                 aria-label="Uppdatera"
               >
                 <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} strokeWidth={2.4} />
-                <span className="hidden sm:inline">Uppdatera</span>
+                <span className="hidden sm:inline">{t('badge.update')}</span>
               </button>
             </div>
 
             {/* Progress bar */}
             <div className="space-y-2 mb-5">
               <div className="flex justify-between items-baseline text-[12px] text-white/65">
-                <span className="font-medium">Totalt framsteg</span>
+                <span className="font-medium">{t('badge.total_progress')}</span>
                 <span className="font-black text-[#86EFAC] tabular-nums">{completionPercentage}%</span>
               </div>
               <div className="w-full bg-black/45 rounded-full h-2 overflow-hidden ring-1 ring-white/5">
@@ -677,7 +617,7 @@ export default function BadgeCollection({ user }) {
                       {count}
                     </div>
                     <div className="mt-1 text-[9px] sm:text-[10px] font-semibold text-white/55 uppercase tracking-wider leading-none">
-                      {config.name}
+                      {t(config.nameKey)}
                     </div>
                   </motion.div>
                 );
@@ -695,7 +635,7 @@ export default function BadgeCollection({ user }) {
         >
           <span className="flex items-center gap-2">
             <Filter className="w-4 h-4" />
-            Filter & Sortering
+            {t('badge.filter_toggle')}
           </span>
           <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
         </button>
@@ -723,7 +663,7 @@ export default function BadgeCollection({ user }) {
                   }`}
                 >
                   <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  Alla
+                  {t('badge.filter_all')}
                 </button>
                 {Object.entries(CATEGORY_CONFIG).map(([key, config]) => {
                   const CategoryIcon = config.icon;
@@ -739,7 +679,7 @@ export default function BadgeCollection({ user }) {
                       }`}
                     >
                       <CategoryIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline">{config.name}</span>
+                      <span className="hidden sm:inline">{t(config.nameKey)}</span>
                     </button>
                   );
                 })}
@@ -758,7 +698,7 @@ export default function BadgeCollection({ user }) {
                   }`}
                 >
                   <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1.5 sm:mr-2" />
-                  Framsteg
+                  {t('badge.sort_progress')}
                 </button>
                 <button
                   onClick={() => setSortBy('rarity')}
@@ -769,7 +709,7 @@ export default function BadgeCollection({ user }) {
                   }`}
                 >
                   <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1.5 sm:mr-2" />
-                  Sällsynthet
+                  {t('badge.sort_rarity')}
                 </button>
               </div>
               <button
@@ -781,7 +721,7 @@ export default function BadgeCollection({ user }) {
                 }`}
               >
                 {showLockedBadges ? <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1.5 sm:mr-2" /> : <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1.5 sm:mr-2" />}
-                {showLockedBadges ? 'Dölj låsta' : 'Visa låsta'}
+                {showLockedBadges ? t('badge.show_locked') : t('badge.hide_locked')}
               </button>
             </div>
           </motion.div>
@@ -830,8 +770,8 @@ export default function BadgeCollection({ user }) {
           <div className="w-16 h-16 rounded-full bg-[#18221E] flex items-center justify-center mx-auto mb-4">
             <Award className="w-8 h-8 text-[#7B8A83]" />
           </div>
-          <p className="text-sm text-[#B6C2BC]">Inga badges hittades</p>
-          <p className="text-xs text-[#7B8A83] mt-1">Prova att ändra dina filter</p>
+          <p className="text-sm text-[#B6C2BC]">{t('badge.empty_title')}</p>
+          <p className="text-xs text-[#7B8A83] mt-1">{t('badge.empty_desc')}</p>
         </motion.div>
       )}
     </div>

@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { UserPlus, Target, Users, ArrowRight } from "lucide-react";
+import { useT } from "@/i18n/LanguageProvider";
 
 /**
  * CommunityHero — same signature language as DashboardHero / ProfileHero.
@@ -13,7 +14,8 @@ export default function CommunityHero({
   onFindPlayers,
   onViewTeams,
 }) {
-  const firstName = getFirstName(user);
+  const { t } = useT();
+  const firstName = getFirstName(user, t);
 
   return (
     <motion.section
@@ -117,7 +119,7 @@ export default function CommunityHero({
           transition={{ delay: 0.12, duration: 0.45 }}
           className="text-[26px] sm:text-[34px] lg:text-[42px] leading-[1.03] font-black text-white tracking-[-0.03em] drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]"
         >
-          Hitta din{" "}
+          {t('community.hero.headline_a')}{" "}
           <span
             className="bg-clip-text text-transparent"
             style={{
@@ -125,15 +127,15 @@ export default function CommunityHero({
                 "linear-gradient(95deg, #86EFAC 0%, #34C257 45%, #22C55E 100%)",
             }}
           >
-            lagkamrat
+            {t('community.hero.headline_b')}
           </span>
           .
         </motion.h1>
 
         {/* Stats row — compact chips */}
         <div className="flex flex-wrap items-center gap-1.5 mt-3 sm:mt-4">
-          <StatChip label="Vänner" value={friendsCount} accent="#86EFAC" />
-          <StatChip label={teamsCount === 1 ? "lag" : "lag"} value={teamsCount} accent="#C4B5FD" />
+          <StatChip label={t('community.hero.friends_label')} value={friendsCount} accent="#86EFAC" />
+          <StatChip label={t('community.hero.teams_label')} value={teamsCount} accent="#C4B5FD" />
         </div>
 
         {/* CTAs — stacked on tiny, 2-col from xs up */}
@@ -154,7 +156,7 @@ export default function CommunityHero({
             }}
           >
             <UserPlus className="w-4 h-4 sm:w-[18px] sm:h-[18px]" strokeWidth={2.5} />
-            <span>Hitta spelare</span>
+            <span>{t('community.hero.find_players')}</span>
             <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 opacity-80" strokeWidth={2.6} />
           </motion.button>
 
@@ -165,7 +167,7 @@ export default function CommunityHero({
             className="h-12 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 text-white font-bold text-[13px] sm:text-[14px] bg-white/[0.06] hover:bg-white/[0.12] ring-1 ring-white/15 hover:ring-white/25 backdrop-blur-sm transition-colors"
           >
             <Target className="w-4 h-4 sm:w-[18px] sm:h-[18px] text-[#C4B5FD]" strokeWidth={2.5} />
-            <span>Mina lag</span>
+            <span>{t('community.hero.my_teams')}</span>
           </motion.button>
         </motion.div>
       </div>
@@ -189,7 +191,7 @@ function StatChip({ label, value, accent }) {
   );
 }
 
-function getFirstName(user) {
+function getFirstName(user, t) {
   const name = user?.display_name || user?.full_name || "";
-  return name.split(" ")[0] || "Spelare";
+  return name.split(" ")[0] || t('profile.hero.default_name');
 }

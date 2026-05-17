@@ -9,32 +9,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
 import { updateProfile } from "@/components/supabase/services";
 import { motion } from "framer-motion";
+import { useT } from "@/i18n/LanguageProvider";
 
-const skillLevelConfig = {
-  beginner: {
-    label: 'Nybörjare', icon: Target,
-    color: 'from-[#10B981] to-[#059669]',
-    textColor: 'text-[#A7F3D0]',
-    ringColor: 'ring-[#10B981]/30',
-  },
-  intermediate: {
-    label: 'Medel', icon: TrendingUp,
-    color: 'from-[#14B8A6] to-[#0D9488]',
-    textColor: 'text-[#99F6E4]',
-    ringColor: 'ring-[#14B8A6]/30',
-  },
-  advanced: {
-    label: 'Avancerad', icon: Shield,
-    color: 'from-[#8B5CF6] to-[#7C3AED]',
-    textColor: 'text-[#DDD6FE]',
-    ringColor: 'ring-[#8B5CF6]/30',
-  },
-  elite: {
-    label: 'Elite', icon: Crown,
-    color: 'from-[#F59E0B] to-[#D97706]',
-    textColor: 'text-[#FDE68A]',
-    ringColor: 'ring-[#F59E0B]/30',
-  }
+const SKILL_LEVEL_STYLE = {
+  beginner:     { icon: Target,     color: 'from-[#10B981] to-[#059669]', textColor: 'text-[#A7F3D0]', ringColor: 'ring-[#10B981]/30' },
+  intermediate: { icon: TrendingUp, color: 'from-[#14B8A6] to-[#0D9488]', textColor: 'text-[#99F6E4]', ringColor: 'ring-[#14B8A6]/30' },
+  advanced:     { icon: Shield,     color: 'from-[#8B5CF6] to-[#7C3AED]', textColor: 'text-[#DDD6FE]', ringColor: 'ring-[#8B5CF6]/30' },
+  elite:        { icon: Crown,      color: 'from-[#F59E0B] to-[#D97706]', textColor: 'text-[#FDE68A]', ringColor: 'ring-[#F59E0B]/30' },
 };
 
 /**
@@ -110,6 +91,7 @@ function StatTile({ icon: Icon, label, value, sub, accent = '#2BA84A', delay = 0
 }
 
 export default function ProfileStats({ user, matchHistory = [], isOwnProfile = true }) {
+  const { t } = useT();
   const [isEditingSkill, setIsEditingSkill] = React.useState(false);
   const [isSavingSkill, setIsSavingSkill] = React.useState(false);
   const [selectedSkill, setSelectedSkill] = React.useState(user?.skill_level || 'intermediate');
@@ -117,6 +99,10 @@ export default function ProfileStats({ user, matchHistory = [], isOwnProfile = t
   const { user: authUser } = useSupabaseAuth();
 
   const stats = useMemo(() => computeStats(user, matchHistory), [user, matchHistory]);
+
+  const skillLevelConfig = Object.fromEntries(
+    Object.entries(SKILL_LEVEL_STYLE).map(([key, val]) => [key, { ...val, label: t(`profile.skill.${key}`) }])
+  );
 
   const handleSkillUpdate = async () => {
     setIsSavingSkill(true);
@@ -144,33 +130,33 @@ export default function ProfileStats({ user, matchHistory = [], isOwnProfile = t
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatTile
           icon={Calendar}
-          label="Matcher"
+          label={t('profile.stats.tile_matches')}
           value={stats.totalPlayed}
-          sub={stats.upcomingCount > 0 ? `${stats.upcomingCount} kommande` : null}
+          sub={stats.upcomingCount > 0 ? t('profile.stats.upcoming', { n: stats.upcomingCount }) : null}
           accent="#2BA84A"
           delay={0}
         />
         <StatTile
           icon={Crown}
-          label="MVP"
+          label={t('profile.stats.tile_mvp')}
           value={stats.mvpCount}
-          sub={stats.mvpCount > 0 ? 'Röstad som bäst' : 'Ingen än'}
+          sub={stats.mvpCount > 0 ? t('profile.stats.voted_best') : t('profile.stats.none_yet')}
           accent="#F4743B"
           delay={0.05}
         />
         <StatTile
           icon={Flame}
-          label="Streak"
+          label={t('profile.stats.tile_streak')}
           value={stats.currentStreak}
-          sub={stats.longestStreak > stats.currentStreak ? `Längsta: ${stats.longestStreak}` : null}
+          sub={stats.longestStreak > stats.currentStreak ? `${t('profile.stats.long_streak')}: ${stats.longestStreak}` : null}
           accent="#F59E0B"
           delay={0.1}
         />
         <StatTile
           icon={Activity}
-          label="Aktivitet"
+          label={t('profile.stats.tile_activity')}
           value={`${stats.completionRate}%`}
-          sub={`${stats.completedCount} avslutade`}
+          sub={t('profile.stats.completed_count', { n: stats.completedCount })}
           accent="#4169E1"
           delay={0.15}
         />
@@ -185,14 +171,14 @@ export default function ProfileStats({ user, matchHistory = [], isOwnProfile = t
               <div className="w-7 h-7 rounded-lg bg-[#2BA84A]/12 flex items-center justify-center">
                 <Target className="w-3.5 h-3.5 text-[#2BA84A]" />
               </div>
-              {isOwnProfile ? 'Min spelarnivå' : 'Spelarnivå'}
+              {isOwnProfile ? t('profile.stats.my_level') : t('profile.stats.player_level')}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-5">
             {isEditingSkill && isOwnProfile ? (
               <div className="space-y-4">
                 <Label className="text-[#B6C2BC] text-[13px] font-medium">
-                  Välj din nivå – påverkar vilka matcher du ser
+                  {t('profile.stats.choose_level')}
                 </Label>
                 <div className="grid grid-cols-2 gap-3">
                   {Object.entries(skillLevelConfig).map(([value, config]) => {
@@ -219,13 +205,13 @@ export default function ProfileStats({ user, matchHistory = [], isOwnProfile = t
                     disabled={isSavingSkill}
                     className="flex-1 inline-flex h-11 items-center justify-center gap-2 rounded-[14px] bg-[#2BA84A] px-5 text-white transition-all hover:bg-[#248232] font-semibold disabled:opacity-50"
                   >
-                    {isSavingSkill ? 'Sparar...' : 'Spara'}
+                    {isSavingSkill ? t('profile.stats.saving') : t('common.save')}
                   </button>
                   <button
                     onClick={() => setIsEditingSkill(false)}
                     className="flex-1 inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border border-[#223029] px-5 text-[#B6C2BC] transition-all hover:bg-[#18221E] font-semibold"
                   >
-                    Avbryt
+                    {t('common.cancel')}
                   </button>
                 </div>
               </div>
@@ -241,7 +227,7 @@ export default function ProfileStats({ user, matchHistory = [], isOwnProfile = t
                     {currentSkill.label}
                   </div>
                   <p className="text-xs text-[#B6C2BC] mt-0.5">
-                    {isOwnProfile ? 'Din nuvarande nivå' : 'Spelarens nivå'}
+                    {isOwnProfile ? t('profile.stats.your_level') : t('profile.stats.their_level')}
                   </p>
                 </div>
                 {isOwnProfile && (
@@ -249,7 +235,7 @@ export default function ProfileStats({ user, matchHistory = [], isOwnProfile = t
                     onClick={() => setIsEditingSkill(true)}
                     className="w-full inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border border-[#2BA84A]/35 px-5 text-[#CFE8D6] transition-all hover:bg-[#2BA84A]/10 font-semibold"
                   >
-                    Ändra nivå
+                    {t('profile.stats.change_level')}
                   </button>
                 )}
               </>
@@ -264,17 +250,17 @@ export default function ProfileStats({ user, matchHistory = [], isOwnProfile = t
               <div className="w-7 h-7 rounded-lg bg-[#F4743B]/12 flex items-center justify-center">
                 <Trophy className="w-3.5 h-3.5 text-[#F4743B]" />
               </div>
-              Prestation
+              {t('profile.stats.performance')}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-3 space-y-1.5">
             {[
-              { icon: CheckCircle2, label: 'Avslutade matcher', value: stats.completedCount, iconColor: 'text-[#2BA84A]' },
-              { icon: Star, label: 'MVP-röster', value: stats.mvpCount, iconColor: 'text-[#F4743B]', valueColor: 'text-[#F4743B]' },
-              { icon: Flame, label: 'Nuvarande streak', value: stats.currentStreak, iconColor: 'text-[#F59E0B]', valueColor: 'text-[#FCD34D]' },
-              { icon: Award, label: 'Längsta streak', value: stats.longestStreak, iconColor: 'text-[#2BA84A]' },
-              ...(stats.eloRating ? [{ icon: TrendingUp, label: 'Elo-rating', value: stats.eloRating, iconColor: 'text-[#4169E1]', valueColor: 'text-[#93B4F5]' }] : []),
-              ...(stats.topVenue ? [{ icon: MapPin, label: 'Favoritplan', value: `${stats.topVenue.count}x`, sub: stats.topVenue.name, iconColor: 'text-[#9370DB]' }] : []),
+              { icon: CheckCircle2, label: t('profile.stats.completed_matches'), value: stats.completedCount, iconColor: 'text-[#2BA84A]' },
+              { icon: Star, label: t('profile.stats.mvp_votes'), value: stats.mvpCount, iconColor: 'text-[#F4743B]', valueColor: 'text-[#F4743B]' },
+              { icon: Flame, label: t('profile.stats.cur_streak'), value: stats.currentStreak, iconColor: 'text-[#F59E0B]', valueColor: 'text-[#FCD34D]' },
+              { icon: Award, label: t('profile.stats.long_streak'), value: stats.longestStreak, iconColor: 'text-[#2BA84A]' },
+              ...(stats.eloRating ? [{ icon: TrendingUp, label: t('profile.stats.elo'), value: stats.eloRating, iconColor: 'text-[#4169E1]', valueColor: 'text-[#93B4F5]' }] : []),
+              ...(stats.topVenue ? [{ icon: MapPin, label: t('profile.stats.fav_venue'), value: `${stats.topVenue.count}x`, sub: stats.topVenue.name, iconColor: 'text-[#9370DB]' }] : []),
             ].map((stat, idx) => {
               const StatIcon = stat.icon;
               return (

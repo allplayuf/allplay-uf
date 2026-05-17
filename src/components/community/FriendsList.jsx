@@ -7,18 +7,25 @@ import {
   Target, TrendingUp, Shield, Crown
 } from "lucide-react";
 import RankBadge from "@/components/rank/RankBadge";
+import { useT } from "@/i18n/LanguageProvider";
 
-const SKILL_CONFIG = {
-  beginner:     { label: 'Nybörjare',  icon: Target,     accent: '#6EE7B7' },
-  intermediate: { label: 'Medel',      icon: TrendingUp, accent: '#5EEAD4' },
-  advanced:     { label: 'Avancerad',  icon: Shield,     accent: '#C4B5FD' },
-  elite:        { label: 'Elit',       icon: Crown,      accent: '#FDE68A' },
+const SKILL_ICONS_MAP = {
+  beginner: Target, intermediate: TrendingUp, advanced: Shield, elite: Crown,
+};
+const SKILL_ACCENTS_MAP = {
+  beginner: '#6EE7B7', intermediate: '#5EEAD4', advanced: '#C4B5FD', elite: '#FDE68A',
 };
 
 function FriendCard({ friend, index }) {
-  const skill = SKILL_CONFIG[friend.skill_level] || SKILL_CONFIG.intermediate;
+  const { t } = useT();
+  const skillKey = friend.skill_level || 'intermediate';
+  const skill = {
+    label: t(`profile.skill.${skillKey}`),
+    icon: SKILL_ICONS_MAP[skillKey] || TrendingUp,
+    accent: SKILL_ACCENTS_MAP[skillKey] || SKILL_ACCENTS_MAP.intermediate,
+  };
   const SkillIcon = skill.icon;
-  const name = friend.display_name || friend.full_name || 'Spelare';
+  const name = friend.display_name || friend.full_name || t('common.player');
   const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
   return (
@@ -82,7 +89,7 @@ function FriendCard({ friend, index }) {
 
         {/* Stats */}
         <div className="mt-3 grid grid-cols-3 gap-1.5">
-          <StatPill icon={Trophy} value={friend.matches_played || 0} label="Matcher" accent="#86EFAC" />
+          <StatPill icon={Trophy} value={friend.matches_played || 0} label={t('profile.hero.matches_label')} accent="#86EFAC" />
           <div className="relative rounded-lg bg-[#0F1513] ring-1 ring-[#1E2724] overflow-hidden flex items-center justify-center py-2">
             <RankBadge matchesPlayed={friend.matches_played || 0} currentStreak={friend.current_streak || 0} size="sm" showLabel={false} />
           </div>
@@ -93,7 +100,7 @@ function FriendCard({ friend, index }) {
         <div className="mt-auto pt-3">
           <Link to={`${createPageUrl('Profile')}?userId=${friend.id}`}>
             <div className="h-10 rounded-xl bg-[#2BA84A]/10 ring-1 ring-[#2BA84A]/30 flex items-center justify-center gap-1.5 hover:bg-[#2BA84A]/18 transition-colors">
-              <span className="text-[13px] font-bold text-[#86EFAC]">Visa profil</span>
+              <span className="text-[13px] font-bold text-[#86EFAC]">{t('friends.view')}</span>
               <ArrowRight className="w-3.5 h-3.5 text-[#86EFAC] opacity-80" strokeWidth={2.5} />
             </div>
           </Link>
@@ -119,7 +126,8 @@ function StatPill({ icon: Icon, value, label, accent }) {
 }
 
 export default function FriendsList({ friends }) {
-  const uniqueFriends = friends.filter((f, i, arr) => i === arr.findIndex(t => t.id === f.id));
+  const { t } = useT();
+  const uniqueFriends = friends.filter((f, i, arr) => i === arr.findIndex(u => u.id === f.id));
 
   if (uniqueFriends.length === 0) {
     return (
@@ -143,13 +151,13 @@ export default function FriendsList({ friends }) {
               <UserPlus className="w-7 h-7 text-[#86EFAC]" strokeWidth={2.2} />
             </div>
           </div>
-          <h3 className="text-[20px] leading-[26px] font-black text-white tracking-tight mb-2">Bygg ditt nätverk</h3>
-          <p className="text-[13px] leading-[19px] text-[#B6C2BC] mb-6">Spela matcher för att möta nya spelare och bygga din vänlista.</p>
+          <h3 className="text-[20px] leading-[26px] font-black text-white tracking-tight mb-2">{t('friends.empty_title')}</h3>
+          <p className="text-[13px] leading-[19px] text-[#B6C2BC] mb-6">{t('friends.empty_desc')}</p>
           <div className="flex flex-col gap-2 text-left">
             {[
-              { num: '1', text: 'Gå med i en match nära dig' },
-              { num: '2', text: 'Lägg till spelare som vänner' },
-              { num: '3', text: 'Bjud in dem till nästa spel' },
+              { num: '1', text: t('friends.step1') },
+              { num: '2', text: t('friends.step2') },
+              { num: '3', text: t('friends.step3') },
             ].map((step, i) => (
               <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] ring-1 ring-white/5">
                 <div className="w-6 h-6 rounded-full bg-[#2BA84A]/20 ring-1 ring-[#2BA84A]/30 flex items-center justify-center flex-shrink-0">

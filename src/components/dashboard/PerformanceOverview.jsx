@@ -2,19 +2,20 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Star, Flame, Clock, Award, Target } from "lucide-react";
+import { useT } from "@/i18n/LanguageProvider";
 
 export default function PerformanceOverview({ weeklyStats, recentActivity, user }) {
+  const { t } = useT();
   const { matchesPlayed, mvps, goal } = weeklyStats;
 
-  // Simple week data for sparkline
   const weekData = [
-    { day: 'Mån', matches: Math.floor(Math.random() * 3) },
-    { day: 'Tis', matches: Math.floor(Math.random() * 3) },
-    { day: 'Ons', matches: Math.floor(Math.random() * 3) },
-    { day: 'Tor', matches: Math.floor(Math.random() * 3) },
-    { day: 'Fre', matches: Math.floor(Math.random() * 3) },
-    { day: 'Lör', matches: matchesPlayed > 0 ? 1 : 0 },
-    { day: 'Sön', matches: 0 }
+    { day: t('days.mon'), matches: Math.floor(Math.random() * 3) },
+    { day: t('days.tue'), matches: Math.floor(Math.random() * 3) },
+    { day: t('days.wed'), matches: Math.floor(Math.random() * 3) },
+    { day: t('days.thu'), matches: Math.floor(Math.random() * 3) },
+    { day: t('days.fri'), matches: Math.floor(Math.random() * 3) },
+    { day: t('days.sat'), matches: matchesPlayed > 0 ? 1 : 0 },
+    { day: t('days.sun'), matches: 0 }
   ];
 
   const maxMatches = Math.max(...weekData.map(d => d.matches), 1);
@@ -28,7 +29,7 @@ export default function PerformanceOverview({ weeklyStats, recentActivity, user 
             <div className="w-10 h-10 bg-[#2BA84A]/20 rounded-xl flex items-center justify-center ring-2 ring-[#2BA84A]/30">
               <Target className="w-5 h-5 text-[#2BA84A]" strokeWidth={2.5} />
             </div>
-            <h3 className="text-lg font-bold text-[#F4F7F5]">Din Prestanda</h3>
+            <h3 className="text-lg font-bold text-[#F4F7F5]">{t('perf.title')}</h3>
           </div>
         </div>
 
@@ -44,7 +45,7 @@ export default function PerformanceOverview({ weeklyStats, recentActivity, user 
                 </div>
               </div>
               <div className="text-2xl font-black text-[#2BA84A] mb-1">{matchesPlayed}</div>
-              <div className="text-[10px] text-[#B6C2BC] font-medium">Matcher</div>
+              <div className="text-[10px] text-[#B6C2BC] font-medium">{t('profile.hero.matches_label')}</div>
             </div>
 
             {/* MVPs */}
@@ -55,7 +56,7 @@ export default function PerformanceOverview({ weeklyStats, recentActivity, user 
                 </div>
               </div>
               <div className="text-2xl font-black text-[#F4743B] mb-1">{mvps}</div>
-              <div className="text-[10px] text-[#B6C2BC] font-medium">MVPs</div>
+              <div className="text-[10px] text-[#B6C2BC] font-medium">{t('profile.hero.mvps_label')}</div>
             </div>
 
             {/* Streak */}
@@ -70,14 +71,14 @@ export default function PerformanceOverview({ weeklyStats, recentActivity, user 
                 </motion.div>
               </div>
               <div className="text-2xl font-black text-[#F59E0B] mb-1">{user?.current_streak || 0}</div>
-              <div className="text-[10px] text-[#B6C2BC] font-medium">Streak</div>
+              <div className="text-[10px] text-[#B6C2BC] font-medium">{t('profile.stats.tile_streak')}</div>
             </div>
           </div>
 
           {/* Week Progress */}
           <div className="bg-[#18221E] rounded-xl p-4 border border-[#223029]">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-semibold text-[#F4F7F5]">Veckomål</span>
+              <span className="text-sm font-semibold text-[#F4F7F5]">{t('perf.weekly_goal')}</span>
               <span className="text-sm font-black text-[#2BA84A]">{matchesPlayed}/{goal}</span>
             </div>
             <div className="relative h-2 bg-[#0F1513] rounded-full overflow-hidden mb-4">
@@ -109,7 +110,7 @@ export default function PerformanceOverview({ weeklyStats, recentActivity, user 
           {/* Recent Activity */}
           {recentActivity.length > 0 && (
             <div>
-              <h4 className="text-sm font-semibold text-[#F4F7F5] mb-3">Senaste</h4>
+              <h4 className="text-sm font-semibold text-[#F4F7F5] mb-3">{t('achievements.recent')}</h4>
               <div className="space-y-2">
                 {recentActivity.slice(0, 3).map((activity, index) => {
                   const Icon = activity.icon;

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSupabaseAuth } from '@/components/supabase';
 import { getMyProfile, updateProfile } from '@/components/supabase/services';
+import { useT } from '@/i18n/LanguageProvider';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -39,51 +40,11 @@ const EMPTY_FORM = {
   avatar_url: '',
 };
 
-const SKILL_CARDS = [
-  {
-    value: 'beginner',
-    label: 'Nybörjare',
-    desc: 'Lär sig grunderna',
-    Icon: Sprout,
-    color: '#4ADE80',
-    glow: 'rgba(74,222,128,0.3)',
-    ring: 'rgba(74,222,128,0.5)',
-    bg: 'rgba(74,222,128,0.08)',
-    activeBg: 'rgba(74,222,128,0.14)',
-  },
-  {
-    value: 'intermediate',
-    label: 'Medel',
-    desc: 'Bekväm med spelet',
-    Icon: Flame,
-    color: '#60A5FA',
-    glow: 'rgba(96,165,250,0.3)',
-    ring: 'rgba(96,165,250,0.5)',
-    bg: 'rgba(96,165,250,0.08)',
-    activeBg: 'rgba(96,165,250,0.14)',
-  },
-  {
-    value: 'advanced',
-    label: 'Avancerad',
-    desc: 'Starka färdigheter',
-    Icon: Zap,
-    color: '#FBBF24',
-    glow: 'rgba(251,191,36,0.3)',
-    ring: 'rgba(251,191,36,0.5)',
-    bg: 'rgba(251,191,36,0.08)',
-    activeBg: 'rgba(251,191,36,0.14)',
-  },
-  {
-    value: 'elite',
-    label: 'Elit',
-    desc: 'Toppnivå',
-    Icon: Crown,
-    color: '#C084FC',
-    glow: 'rgba(192,132,252,0.3)',
-    ring: 'rgba(192,132,252,0.5)',
-    bg: 'rgba(192,132,252,0.08)',
-    activeBg: 'rgba(192,132,252,0.14)',
-  },
+const SKILL_CARD_STYLES = [
+  { value: 'beginner',    Icon: Sprout, color: '#4ADE80', glow: 'rgba(74,222,128,0.3)',   ring: 'rgba(74,222,128,0.5)',   bg: 'rgba(74,222,128,0.08)',   activeBg: 'rgba(74,222,128,0.14)'   },
+  { value: 'intermediate',Icon: Flame,  color: '#60A5FA', glow: 'rgba(96,165,250,0.3)',   ring: 'rgba(96,165,250,0.5)',   bg: 'rgba(96,165,250,0.08)',   activeBg: 'rgba(96,165,250,0.14)'   },
+  { value: 'advanced',    Icon: Zap,    color: '#FBBF24', glow: 'rgba(251,191,36,0.3)',   ring: 'rgba(251,191,36,0.5)',   bg: 'rgba(251,191,36,0.08)',   activeBg: 'rgba(251,191,36,0.14)'   },
+  { value: 'elite',       Icon: Crown,  color: '#C084FC', glow: 'rgba(192,132,252,0.3)',  ring: 'rgba(192,132,252,0.5)',  bg: 'rgba(192,132,252,0.08)',  activeBg: 'rgba(192,132,252,0.14)'  },
 ];
 
 const GLASS = {
@@ -97,6 +58,13 @@ export default function EditProfile() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user: authUser, isAuthenticated } = useSupabaseAuth();
+  const { t } = useT();
+
+  const SKILL_CARDS = SKILL_CARD_STYLES.map((s) => ({
+    ...s,
+    label: t(`profile.skill.${s.value}`),
+    desc: t(`profile.skill.${s.value}_desc`),
+  }));
 
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [initialData, setInitialData] = useState(EMPTY_FORM);
@@ -183,18 +151,18 @@ export default function EditProfile() {
       if (result?.ok !== false) {
         setSaved(true);
         setInitialData({ ...formData });
-        toast.success('Profil uppdaterad!');
+        toast.success(t('edit_profile.success'));
         queryClient.invalidateQueries({ queryKey: ['supabase-userProfile'] });
         setTimeout(() => navigate(-1), 650);
       } else {
         queryClient.setQueryData(['supabase-userProfile', authUser?.id], prevProfile);
         const msg = result?.error?.message || '';
-        if (msg.includes('username')) setErrors({ username: 'Användarnamnet är redan taget' });
-        else toast.error(msg || 'Kunde inte uppdatera profil');
+        if (msg.includes('username')) setErrors({ username: t('edit_profile.error_username') });
+        else toast.error(msg || t('edit_profile.error_update'));
       }
     } catch {
       queryClient.setQueryData(['supabase-userProfile', authUser?.id], prevProfile);
-      toast.error('Ett fel uppstod. Försök igen.');
+      toast.error(t('common.error'));
     } finally {
       setIsSubmitting(false);
     }
@@ -236,18 +204,18 @@ export default function EditProfile() {
 
             <div className="text-center">
               <p className="text-[18px] font-bold text-[#F4F7F5] leading-tight">
-                {formData.display_name || <span className="text-white/30">Ditt namn</span>}
+                {formData.display_name || <span className="text-white/30">{t('edit_profile.placeholder_name')}</span>}
               </p>
               {formData.username
                 ? <p className="mt-0.5 text-[13px] text-[#86EFAC]/70 font-medium">@{formData.username}</p>
-                : <p className="mt-0.5 text-[12px] text-white/20">@användarnamn</p>
+                : <p className="mt-0.5 text-[12px] text-white/20">{t('edit_profile.placeholder_username')}</p>
               }
             </div>
 
             {/* Progress */}
             <div className="w-full max-w-[240px]">
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">Profil</span>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">{t('edit_profile.profile_label')}</span>
                 <span className="text-[11px] font-black tabular-nums" style={{ color: completeness === 100 ? '#4ADE80' : '#9CA3AF' }}>
                   {completeness}%
                 </span>
@@ -271,9 +239,9 @@ export default function EditProfile() {
         </motion.div>
 
         {/* ── Identitet ───────────────────────────────── */}
-        <Section icon={User} title="Identitet" subtitle="Hur du syns för andra" delay={0.06}>
+        <Section icon={User} title={t('edit_profile.section_identity')} subtitle={t('edit_profile.section_identity_sub')} delay={0.06}>
 
-          <Field id="display_name" label="Visningsnamn" required error={errors.display_name}
+          <Field id="display_name" label={t('edit_profile.field_display_name')} required error={errors.display_name}
             counter={`${formData.display_name.length}/${FIELD_LIMITS.display_name.max}`}>
             <IconInput icon={User} error={errors.display_name}>
               <Input
@@ -281,7 +249,7 @@ export default function EditProfile() {
                 value={formData.display_name}
                 onChange={(e) => handleChange('display_name', e.target.value)}
                 onBlur={() => handleBlur('display_name')}
-                placeholder="Ditt namn"
+                placeholder={t('edit_profile.placeholder_name')}
                 maxLength={FIELD_LIMITS.display_name.max}
                 className={inputCls(errors.display_name)}
                 disabled={isSubmitting}
@@ -289,8 +257,8 @@ export default function EditProfile() {
             </IconInput>
           </Field>
 
-          <Field id="username" label="Användarnamn" error={errors.username}
-            hint="3–30 tecken · små bokstäver, siffror, punkt, understreck">
+          <Field id="username" label={t('edit_profile.field_username')} error={errors.username}
+            hint={t('edit_profile.field_username_hint')}>
             <IconInput icon={AtSign} prefix="@" error={errors.username}>
               <Input
                 id="username"
@@ -305,7 +273,7 @@ export default function EditProfile() {
             </IconInput>
           </Field>
 
-          <Field id="bio" label="Bio" error={errors.bio}
+          <Field id="bio" label={t('edit_profile.field_bio')} error={errors.bio}
             counter={`${formData.bio.length}/${FIELD_LIMITS.bio.max}`}>
             <div className="relative">
               <FileText className="absolute left-3.5 top-3 w-[15px] h-[15px] text-[#3A5042] pointer-events-none" strokeWidth={2} />
@@ -314,7 +282,7 @@ export default function EditProfile() {
                 value={formData.bio}
                 onChange={(e) => handleChange('bio', e.target.value)}
                 onBlur={() => handleBlur('bio')}
-                placeholder="Berätta lite om dig själv..."
+                placeholder={t('edit_profile.placeholder_bio')}
                 maxLength={FIELD_LIMITS.bio.max}
                 rows={3}
                 className={inputCls(errors.bio) + ' resize-none h-auto pl-10 pt-2.5'}
@@ -326,12 +294,12 @@ export default function EditProfile() {
         </Section>
 
         {/* ── Spelarinformation ───────────────────────── */}
-        <Section icon={Zap} title="Spelarinformation" subtitle="Hjälper oss matcha dig rätt" delay={0.10}>
+        <Section icon={Zap} title={t('edit_profile.section_player')} subtitle={t('edit_profile.section_player_sub')} delay={0.10}>
 
           {/* Skill level card picker */}
           <div>
             <label className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#6A8A72] mb-2.5 block">
-              Nivå
+              {t('edit_profile.field_level')}
             </label>
             <div className="grid grid-cols-2 gap-2">
               {SKILL_CARDS.map((card) => {
@@ -404,14 +372,14 @@ export default function EditProfile() {
             )}
           </div>
 
-          <Field id="city" label="Stad / Område" error={errors.city}>
+          <Field id="city" label={t('edit_profile.field_city')} error={errors.city}>
             <IconInput icon={MapPin} error={errors.city}>
               <Input
                 id="city"
                 value={formData.city}
                 onChange={(e) => handleChange('city', e.target.value)}
                 onBlur={() => handleBlur('city')}
-                placeholder="T.ex. Stockholm"
+                placeholder={t('edit_profile.placeholder_city')}
                 maxLength={FIELD_LIMITS.city.max}
                 className={inputCls(errors.city)}
                 disabled={isSubmitting}
@@ -429,7 +397,7 @@ export default function EditProfile() {
             disabled={isSubmitting}
             className="flex-1 h-11 rounded-xl border border-[#1E2D24] bg-[#111916] text-[#8FA897] hover:bg-[#18221E] hover:text-[#F4F7F5] font-semibold text-[14px] transition-all disabled:opacity-40"
           >
-            Avbryt
+            {t('common.cancel')}
           </button>
           <button
             type="submit"
@@ -440,9 +408,9 @@ export default function EditProfile() {
               boxShadow: hasChanges && !saved ? '0 6px 20px rgba(43,168,74,0.35)' : undefined,
             }}
           >
-            {isSubmitting ? <span className="flex items-center justify-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />Sparar...</span>
-              : saved ? <span className="flex items-center justify-center gap-2"><CheckCircle2 className="w-4 h-4" />Sparat!</span>
-              : <span className="flex items-center justify-center gap-2"><Save className="w-4 h-4" />Spara ändringar</span>}
+            {isSubmitting ? <span className="flex items-center justify-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />{t('edit_profile.saving')}</span>
+              : saved ? <span className="flex items-center justify-center gap-2"><CheckCircle2 className="w-4 h-4" />{t('edit_profile.saved')}</span>
+              : <span className="flex items-center justify-center gap-2"><Save className="w-4 h-4" />{t('edit_profile.save_changes')}</span>}
           </button>
         </div>
 
@@ -471,7 +439,7 @@ export default function EditProfile() {
               disabled={isSubmitting}
               className="flex items-center justify-center h-11 px-5 rounded-[16px] bg-white/[0.05] text-[#8FA897] text-[14px] font-semibold ring-1 ring-white/[0.07] hover:bg-white/[0.09] transition-colors flex-shrink-0 disabled:opacity-40"
             >
-              Avbryt
+              {t('common.cancel')}
             </button>
 
             <button
@@ -486,9 +454,9 @@ export default function EditProfile() {
                   : undefined,
               }}
             >
-              {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" />Sparar...</>
-                : saved ? <><CheckCircle2 className="w-4 h-4" />Sparat!</>
-                : <><Save className="w-4 h-4" />Spara ändringar</>}
+              {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" />{t('edit_profile.saving')}</>
+                : saved ? <><CheckCircle2 className="w-4 h-4" />{t('edit_profile.saved')}</>
+                : <><Save className="w-4 h-4" />{t('edit_profile.save_changes')}</>}
             </button>
 
             {hasChanges && !saved && !isSubmitting && (

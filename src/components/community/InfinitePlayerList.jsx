@@ -5,17 +5,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { UserPlus, UserCheck, UserX, Clock } from "lucide-react";
+import { useT } from "@/i18n/LanguageProvider";
 
-export default function InfinitePlayerList({ 
-  data, 
-  fetchNextPage, 
-  hasNextPage, 
+export default function InfinitePlayerList({
+  data,
+  fetchNextPage,
+  hasNextPage,
   isFetchingNextPage,
   isLoading,
   currentUser,
   friendships,
   onAddFriend
 }) {
+  const { t } = useT();
   const loadMoreRef = useRef(null);
 
   useEffect(() => {
@@ -124,7 +126,7 @@ export default function InfinitePlayerList({
                     {player.matches_played > 0 && (
                       <Badge className="bg-[#F4743B]/20 text-[#FDE3D2] text-[11px] leading-[16px]">
                         <Trophy className="w-3 h-3 mr-1" />
-                        {player.matches_played} matcher
+                        {t('match_history.count', { n: player.matches_played })}
                       </Badge>
                     )}
                   </div>
@@ -132,28 +134,28 @@ export default function InfinitePlayerList({
                   {friendshipStatus === 'accepted' ? (
                     <Button disabled className="w-full h-10 bg-[#2BA84A]/20 text-[#CFE8D6] rounded-[12px] text-[13px] font-semibold">
                       <UserCheck className="w-4 h-4 mr-2" />
-                      Vänner
+                      {t('player_card.friends')}
                     </Button>
                   ) : friendshipStatus === 'pending_outgoing' ? (
                     <Button disabled className="w-full h-10 bg-[#F59E0B]/20 text-[#FDE68A] rounded-[12px] text-[13px] font-semibold">
                       <Clock className="w-4 h-4 mr-2" />
-                      Inväntar svar
+                      {t('player_list.awaiting')}
                     </Button>
                   ) : friendshipStatus === 'pending_incoming' ? (
-                    <Button 
+                    <Button
                       onClick={() => onAddFriend(player.id)}
                       className="w-full h-10 bg-gradient-to-r from-[#2BA84A] to-[#248232] hover:from-[#3BC95E] hover:to-[#2BA84A] text-white rounded-[12px] text-[13px] font-semibold transition-all"
                     >
                       <UserCheck className="w-4 h-4 mr-2" />
-                      Acceptera förfrågan
+                      {t('other_profile.accept')}
                     </Button>
                   ) : (
-                    <Button 
+                    <Button
                       onClick={() => onAddFriend(player.id)}
                       className="w-full h-10 bg-gradient-to-r from-[#2BA84A] to-[#248232] hover:from-[#3BC95E] hover:to-[#2BA84A] text-white rounded-[12px] text-[13px] font-semibold transition-all"
                     >
                       <UserPlus className="w-4 h-4 mr-2" />
-                      Lägg till vän
+                      {t('player_card.add_friend')}
                     </Button>
                   )}
                 </CardContent>
@@ -172,7 +174,7 @@ export default function InfinitePlayerList({
             className="flex items-center gap-2 text-[#2BA84A]"
           >
             <Loader2 className="w-5 h-5 animate-spin" />
-            <span className="text-sm font-medium">Laddar fler spelare...</span>
+            <span className="text-sm font-medium">{t('player_list.loading_more')}</span>
           </motion.div>
         )}
       </div>

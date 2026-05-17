@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import ReportModal from "../report/ReportModal";
+import { useT } from "@/i18n/LanguageProvider";
 
 export default function MatchPlayersModal({ isOpen, onClose, participants = [], matchId, matchTitle }) {
+  const { t } = useT();
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
 
@@ -42,7 +44,7 @@ export default function MatchPlayersModal({ isOpen, onClose, participants = [], 
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-[#223029] flex-shrink-0">
               <div>
-                <h2 className="font-semibold text-[#F4F7F5] text-lg">Matchens spelare</h2>
+                <h2 className="font-semibold text-[#F4F7F5] text-lg">{t('players_modal.title')}</h2>
                 <p className="text-xs text-[#7B8A83]">{matchTitle}</p>
               </div>
               <button
@@ -57,9 +59,9 @@ export default function MatchPlayersModal({ isOpen, onClose, participants = [], 
             <div className="px-4 py-3 bg-[#2BA84A]/10 border-b border-[#2BA84A]/20 flex-shrink-0">
               <p className="text-xs text-[#2BA84A] flex items-center gap-2">
                 <CheckCircle className="w-4 h-4" />
-                {checkedInPlayers.length > 0 
-                  ? `${checkedInPlayers.length} spelare checkade in på plats`
-                  : 'Endast anmälda spelare visas (ingen check-in data)'}
+                {checkedInPlayers.length > 0
+                  ? t('players_modal.checked_in', { n: checkedInPlayers.length })
+                  : t('players_modal.no_checkin')}
               </p>
             </div>
 
@@ -103,7 +105,7 @@ export default function MatchPlayersModal({ isOpen, onClose, participants = [], 
                             {isCheckedIn && (
                               <div className="flex items-center gap-1 mt-1">
                                 <CheckCircle className="w-3 h-3 text-[#2BA84A]" />
-                                <span className="text-xs text-[#2BA84A] font-medium">Närvarande</span>
+                                <span className="text-xs text-[#2BA84A] font-medium">{t('players_modal.present')}</span>
                               </div>
                             )}
                           </div>
@@ -114,17 +116,17 @@ export default function MatchPlayersModal({ isOpen, onClose, participants = [], 
                           className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-all text-xs font-medium"
                         >
                           <Flag className="w-3 h-3" />
-                          Rapportera
+                          {t('players_modal.report')}
                         </button>
                       </div>
 
                       <div className="grid grid-cols-2 gap-2 mt-3">
                         <div className="bg-[#0F1513] rounded-lg p-2 text-center">
-                          <div className="text-xs text-[#B6C2BC] mb-1">Matcher</div>
+                          <div className="text-xs text-[#B6C2BC] mb-1">{t('players_modal.matches')}</div>
                           <div className="text-sm font-semibold text-[#F4F7F5]">{player.matches_played || 0}</div>
                         </div>
                         <div className="bg-[#0F1513] rounded-lg p-2 text-center">
-                          <div className="text-xs text-[#B6C2BC] mb-1">MVPs</div>
+                          <div className="text-xs text-[#B6C2BC] mb-1">{t('players_modal.mvps')}</div>
                           <div className="text-sm font-semibold text-[#F4743B]">{player.mvp_count || 0}</div>
                         </div>
                       </div>
@@ -140,7 +142,7 @@ export default function MatchPlayersModal({ isOpen, onClose, participants = [], 
                 onClick={onClose}
                 className="w-full bg-[#2BA84A] hover:bg-[#248232] text-white rounded-xl h-11"
               >
-                Stäng
+                {t('common.close')}
               </Button>
             </div>
           </motion.div>

@@ -9,21 +9,23 @@ import { leaveMatch } from "@/components/supabase/services/matchesService";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { feedback } from "@/components/ui/feedback-toast";
+import { useT } from "@/i18n/LanguageProvider";
 
 export default function MyMatches({ matches, venues, user, onRefresh, onDeleteMatch, participants }) {
+  const { t } = useT();
 
   const handleLeaveMatch = async (matchId) => {
-    if (!confirm('Är du säker på att du vill lämna denna match?')) {
+    if (!confirm(t('matches.leave_confirm'))) {
       return;
     }
 
     try {
       await leaveMatch(matchId);
-      feedback.success('Du har lämnat matchen');
+      feedback.success(t('matches.left_match'));
       onRefresh();
     } catch (error) {
       console.error("Error leaving match:", error);
-      feedback.error(error?.message || 'Kunde inte lämna matchen. Försök igen.');
+      feedback.error(error?.message || t('my_matches.leave_error'));
     }
   };
 
@@ -48,10 +50,10 @@ export default function MyMatches({ matches, venues, user, onRefresh, onDeleteMa
 
   const getStatusText = (status) => {
     switch (status) {
-      case 'upcoming': return 'Kommande';
-      case 'ongoing': return 'Pågår nu';
-      case 'completed': return 'Avslutad';
-      case 'cancelled': return 'Avbruten';
+      case 'upcoming': return t('match.status.upcoming');
+      case 'ongoing': return t('match.status.ongoing');
+      case 'completed': return t('match.status.completed');
+      case 'cancelled': return t('match.status.cancelled');
       default: return status;
     }
   };
@@ -63,11 +65,11 @@ export default function MyMatches({ matches, venues, user, onRefresh, onDeleteMa
           <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 ring-1 ring-[#2BA84A]/30">
             <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-[#9FC9AC]" />
           </div>
-          <h3 className="text-[18px] sm:text-[20px] leading-[24px] sm:leading-[28px] font-semibold text-[#F4F7F5] mb-2">Inga anmälda matcher</h3>
-          <p className="text-[13px] sm:text-[14px] leading-[18px] sm:leading-[20px] text-[#B6C2BC] mb-4 sm:mb-6">Du har inte anmält dig till några matcher ännu.</p>
+          <h3 className="text-[18px] sm:text-[20px] leading-[24px] sm:leading-[28px] font-semibold text-[#F4F7F5] mb-2">{t('my_matches.empty_title')}</h3>
+          <p className="text-[13px] sm:text-[14px] leading-[18px] sm:leading-[20px] text-[#B6C2BC] mb-4 sm:mb-6">{t('my_matches.empty_desc')}</p>
           <Link to={createPageUrl("Matches")}>
             <button className="inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border border-[#2BA84A]/35 px-5 text-[#CFE8D6] transition-all hover:bg-[#2BA84A]/10 active:bg-[#2BA84A]/16 font-semibold text-sm sm:text-base">
-              Hitta matcher
+              {t('my_matches.find')}
             </button>
           </Link>
         </CardContent>
@@ -78,7 +80,7 @@ export default function MyMatches({ matches, venues, user, onRefresh, onDeleteMa
   return (
     <div className="space-y-4 sm:space-y-6">
       <h2 className="text-[18px] sm:text-[20px] leading-[24px] sm:leading-[28px] font-semibold text-[#F4F7F5]">
-        Anmälda matcher ({matches.length})
+        {t('my_matches.header')} ({matches.length})
       </h2>
 
       <div className="grid grid-cols-1 gap-3 sm:gap-4">
@@ -96,7 +98,7 @@ export default function MyMatches({ matches, venues, user, onRefresh, onDeleteMa
                       <h3 className="text-[15px] sm:text-[16px] leading-[20px] sm:leading-[24px] font-semibold text-[#F4F7F5] group-hover:text-[#9FC9AC] transition-colors">{match.title}</h3>
                       {isOrganizer && (
                         <span className="inline-flex h-6 sm:h-7 items-center rounded-full bg-[#F4743B]/18 px-2 sm:px-3 text-[11px] sm:text-[13px] font-medium text-[#FDE3D2] ring-1 ring-[#F4743B]/25">
-                          Organisatör
+                          {t('my_matches.organizer')}
                         </span>
                       )}
                       <span className={`inline-flex h-6 sm:h-7 items-center rounded-full px-2 sm:px-3 text-[11px] sm:text-[13px] font-medium ring-1 ring-[#223029] ${getStatusColor(match.status)}`}>
@@ -105,7 +107,7 @@ export default function MyMatches({ matches, venues, user, onRefresh, onDeleteMa
                       {match.is_spontaneous && (
                         <span className="inline-flex h-6 sm:h-7 items-center rounded-full bg-[#F4743B]/18 px-2 sm:px-3 text-[11px] sm:text-[13px] font-medium text-[#FDE3D2] ring-1 ring-[#F4743B]/25">
                           <Zap className="w-3 h-3 mr-1" />
-                          Spontan
+                          {t('my_matches.spontaneous')}
                         </span>
                       )}
                     </div>
@@ -113,7 +115,7 @@ export default function MyMatches({ matches, venues, user, onRefresh, onDeleteMa
                     <div className="space-y-2 text-[13px] sm:text-[14px] leading-[18px] sm:leading-[20px] text-[#B6C2BC]">
                       <div className="flex items-center gap-2">
                         <MapPin className="w-4 h-4 text-[#9FC9AC] flex-shrink-0" />
-                        <span className="truncate">{venue?.name || 'Okänd plan'}</span>
+                        <span className="truncate">{venue?.name || t('match.unknown_venue')}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4 text-[#9FC9AC] flex-shrink-0" />
@@ -123,8 +125,8 @@ export default function MyMatches({ matches, venues, user, onRefresh, onDeleteMa
                         <Users className="w-4 h-4 text-[#9FC9AC] flex-shrink-0" />
                         <span>
                           {match.is_spontaneous
-                            ? `${matchParticipants.length} anmälda spelare`
-                            : `${matchParticipants.length}/${match.max_players} spelare`
+                            ? t('my_matches.registered_players', { n: matchParticipants.length })
+                            : `${matchParticipants.length}/${match.max_players} ${t('common.player')}`
                           }
                         </span>
                       </div>
@@ -134,7 +136,7 @@ export default function MyMatches({ matches, venues, user, onRefresh, onDeleteMa
                   <div className="flex flex-row sm:flex-col gap-2 w-full sm:w-auto flex-shrink-0">
                     <Link to={`${createPageUrl("MatchDetail")}?id=${match.id}`} className="flex-1 sm:flex-initial">
                       <button className="w-full inline-flex h-10 sm:h-11 items-center justify-center gap-2 rounded-[14px] border border-[#2BA84A]/35 px-4 sm:px-5 text-[13px] sm:text-[14px] text-[#CFE8D6] transition-all hover:bg-[#2BA84A]/10 active:bg-[#2BA84A]/16 font-semibold whitespace-nowrap">
-                        Detaljer
+                        {t('my_matches.details')}
                         <ChevronRight className="w-4 h-4" />
                       </button>
                     </Link>
@@ -147,7 +149,7 @@ export default function MyMatches({ matches, venues, user, onRefresh, onDeleteMa
                             className="flex-1 sm:flex-initial inline-flex h-10 sm:h-11 items-center justify-center gap-2 rounded-[14px] border border-[#F4743B]/35 px-4 sm:px-5 text-[13px] sm:text-[14px] text-[#FDE3D2] transition-all hover:bg-[#F4743B]/10 active:bg-[#F4743B]/16 font-semibold whitespace-nowrap"
                           >
                             <Trash2 className="w-4 h-4" />
-                            <span className="hidden sm:inline">Ta bort</span>
+                            <span className="hidden sm:inline">{t('my_matches.delete')}</span>
                           </button>
                         ) : (
                           <button
@@ -155,7 +157,7 @@ export default function MyMatches({ matches, venues, user, onRefresh, onDeleteMa
                             className="flex-1 sm:flex-initial inline-flex h-10 sm:h-11 items-center justify-center gap-2 rounded-[14px] border border-[#223029] px-4 sm:px-5 text-[13px] sm:text-[14px] text-[#B6C2BC] transition-all hover:bg-[#18221E] active:bg-[#121715] font-semibold whitespace-nowrap"
                           >
                             <XCircle className="w-4 h-4" />
-                            <span className="hidden sm:inline">Lämna</span>
+                            <span className="hidden sm:inline">{t('my_matches.leave')}</span>
                           </button>
                         )}
                       </>

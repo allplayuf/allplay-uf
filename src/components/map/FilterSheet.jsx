@@ -3,6 +3,7 @@ import { Drawer, DrawerContent, DrawerTrigger, DrawerHeader, DrawerTitle, Drawer
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { SlidersHorizontal, Check, X } from "lucide-react";
+import { useT } from "@/i18n/LanguageProvider";
 
 /**
  * Premium filter drawer.
@@ -10,30 +11,30 @@ import { SlidersHorizontal, Check, X } from "lucide-react";
  * and respects safe-area insets. Chip-based filters for speed + clarity.
  */
 const FORMAT_OPTIONS = [
-  { value: 'all', label: 'Alla' },
+  { value: 'all', labelKey: 'filter.all' },
   { value: '5v5', label: '5v5' },
   { value: '7v7', label: '7v7' },
   { value: '11v11', label: '11v11' },
 ];
 
 const DATE_OPTIONS = [
-  { value: 'all', label: 'När som helst' },
-  { value: 'today', label: 'Idag' },
-  { value: 'tomorrow', label: 'Imorgon' },
-  { value: 'week', label: 'Denna vecka' },
+  { value: 'all', labelKey: 'filter.date_all' },
+  { value: 'today', labelKey: 'common.today' },
+  { value: 'tomorrow', labelKey: 'common.tomorrow' },
+  { value: 'week', labelKey: 'filter.date_week' },
 ];
 
 const LEVEL_OPTIONS = [
-  { value: 'all', label: 'Alla' },
-  { value: 'beginner', label: 'Nybörjare' },
-  { value: 'intermediate', label: 'Medel' },
-  { value: 'advanced', label: 'Avancerad' },
-  { value: 'elite', label: 'Elit' },
+  { value: 'all', labelKey: 'filter.all' },
+  { value: 'beginner', labelKey: 'profile.skill.beginner' },
+  { value: 'intermediate', labelKey: 'profile.skill.intermediate' },
+  { value: 'advanced', labelKey: 'profile.skill.advanced' },
+  { value: 'elite', labelKey: 'profile.skill.elite' },
 ];
 
 const SORT_OPTIONS = [
-  { value: 'distance', label: 'Närmast' },
-  { value: 'matches', label: 'Mest bokade' },
+  { value: 'distance', labelKey: 'filter.sort_nearest' },
+  { value: 'matches', labelKey: 'filter.sort_bookings' },
 ];
 
 function Chip({ active, onClick, children }) {
@@ -65,6 +66,7 @@ function Section({ label, children }) {
 }
 
 export default function FilterSheet({ filters, onFilterChange }) {
+  const { t } = useT();
   const [open, setOpen] = useState(false);
 
   const activeCount = useMemo(() => {
@@ -103,24 +105,24 @@ export default function FilterSheet({ filters, onFilterChange }) {
 
       <DrawerContent className="bg-[#121715] border-t border-[#223029] rounded-t-[24px] max-h-[88vh] focus:outline-none">
         <DrawerHeader className="sr-only">
-          <DrawerTitle>Filtrera planer</DrawerTitle>
-          <DrawerDescription>Välj format, avstånd, datum, nivå och sortering</DrawerDescription>
+          <DrawerTitle>{t('filter.title')}</DrawerTitle>
+          <DrawerDescription>{t('filter.drawer_desc')}</DrawerDescription>
         </DrawerHeader>
 
         {/* Custom header with close */}
         <div className="flex items-center justify-between px-5 pt-2 pb-4 border-b border-[#223029]/60">
           <div>
-            <h2 className="text-[17px] font-black text-white tracking-tight">Filtrera planer</h2>
+            <h2 className="text-[17px] font-black text-white tracking-tight">{t('filter.title')}</h2>
             {activeCount > 0 && (
               <p className="text-[11px] text-[#8FA097] mt-0.5">
-                {activeCount} {activeCount === 1 ? 'aktivt filter' : 'aktiva filter'}
+                {t('filter.active_count', { n: activeCount })}
               </p>
             )}
           </div>
           <button
             onClick={() => setOpen(false)}
             className="w-9 h-9 rounded-xl bg-[#18221E] hover:bg-[#223029] flex items-center justify-center transition-colors"
-            aria-label="Stäng"
+            aria-label={t('common.close')}
           >
             <X className="w-4 h-4 text-[#B6C2BC]" />
           </button>
@@ -131,7 +133,7 @@ export default function FilterSheet({ filters, onFilterChange }) {
           className="overflow-y-auto px-5 py-5 space-y-5"
           style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}
         >
-          <Section label="Matchformat">
+          <Section label={t('filter.section_format')}>
             <div className="flex flex-wrap gap-2">
               {FORMAT_OPTIONS.map(opt => (
                 <Chip
@@ -139,13 +141,13 @@ export default function FilterSheet({ filters, onFilterChange }) {
                   active={filters.format === opt.value}
                   onClick={() => onFilterChange({ ...filters, format: opt.value })}
                 >
-                  {opt.label}
+                  {opt.labelKey ? t(opt.labelKey) : opt.label}
                 </Chip>
               ))}
             </div>
           </Section>
 
-          <Section label={`Avstånd · ${filters.distance}km`}>
+          <Section label={t('filter.section_distance', { n: filters.distance })}>
             <div className="px-1 pt-1">
               <Slider
                 value={[filters.distance]}
@@ -163,7 +165,7 @@ export default function FilterSheet({ filters, onFilterChange }) {
             </div>
           </Section>
 
-          <Section label="Datum">
+          <Section label={t('filter.section_date')}>
             <div className="flex flex-wrap gap-2">
               {DATE_OPTIONS.map(opt => (
                 <Chip
@@ -171,13 +173,13 @@ export default function FilterSheet({ filters, onFilterChange }) {
                   active={filters.date === opt.value}
                   onClick={() => onFilterChange({ ...filters, date: opt.value })}
                 >
-                  {opt.label}
+                  {opt.labelKey ? t(opt.labelKey) : opt.label}
                 </Chip>
               ))}
             </div>
           </Section>
 
-          <Section label="Spelarnivå">
+          <Section label={t('filter.section_level')}>
             <div className="flex flex-wrap gap-2">
               {LEVEL_OPTIONS.map(opt => (
                 <Chip
@@ -185,13 +187,13 @@ export default function FilterSheet({ filters, onFilterChange }) {
                   active={filters.skillLevel === opt.value}
                   onClick={() => onFilterChange({ ...filters, skillLevel: opt.value })}
                 >
-                  {opt.label}
+                  {opt.labelKey ? t(opt.labelKey) : opt.label}
                 </Chip>
               ))}
             </div>
           </Section>
 
-          <Section label="Sortera">
+          <Section label={t('filter.section_sort')}>
             <div className="flex flex-wrap gap-2">
               {SORT_OPTIONS.map(opt => (
                 <Chip
@@ -199,7 +201,7 @@ export default function FilterSheet({ filters, onFilterChange }) {
                   active={filters.sortBy === opt.value}
                   onClick={() => onFilterChange({ ...filters, sortBy: opt.value })}
                 >
-                  {opt.label}
+                  {opt.labelKey ? t(opt.labelKey) : opt.label}
                 </Chip>
               ))}
             </div>
@@ -216,7 +218,7 @@ export default function FilterSheet({ filters, onFilterChange }) {
             variant="outline"
             className="flex-1 h-11 border-[#223029] text-[#B6C2BC] hover:bg-[#18221E] hover:text-[#F4F7F5] rounded-xl font-semibold text-[13px]"
           >
-            Återställ
+            {t('filter.reset')}
           </Button>
           <Button
             onClick={() => setOpen(false)}
@@ -226,7 +228,7 @@ export default function FilterSheet({ filters, onFilterChange }) {
               boxShadow: '0 6px 18px rgba(43,168,74,0.32)',
             }}
           >
-            Visa resultat
+            {t('filter.show_results')}
           </Button>
         </div>
       </DrawerContent>

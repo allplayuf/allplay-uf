@@ -2,22 +2,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { MessageCircle, Send, Clock, User } from "lucide-react";
 import { ChatMessage } from "@/entities/ChatMessage";
+import { useT } from "@/i18n/LanguageProvider";
 
 export default function MatchChat({ matchId, currentUser, onClose }) {
+  const { t } = useT();
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const standardPhrases = [
-    "Jag är på väg!",
-    "Kommer lite sent, startar utan mig",
-    "Är framme om 10 min",
-    "Måste tyvärr hoppa av",
-    "Bra match alla!",
-    "Tack för matchen!",
-    "Vi ses nästa gång"
+    t('chat.phrase_1'),
+    t('chat.phrase_2'),
+    t('chat.phrase_3'),
+    t('chat.phrase_4'),
+    t('chat.phrase_5'),
+    t('chat.phrase_6'),
+    t('chat.phrase_7'),
   ];
 
   const loadMessages = useCallback(async () => {
@@ -61,7 +62,7 @@ export default function MatchChat({ matchId, currentUser, onClose }) {
       <Card className="shadow-allplay border-0 bg-white/90 backdrop-blur-sm">
         <CardContent className="p-6 text-center">
           <div className="w-8 h-8 border-4 border-primary-green border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Laddar chatt...</p>
+          <p className="text-gray-600">{t('chat.loading')}</p>
         </CardContent>
       </Card>
     );
@@ -73,22 +74,22 @@ export default function MatchChat({ matchId, currentUser, onClose }) {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <MessageCircle className="w-5 h-5 text-primary-green" />
-            Match chatt
+            {t('chat.title')}
           </CardTitle>
           <Button variant="ghost" size="sm" onClick={onClose}>
             ×
           </Button>
         </div>
       </CardHeader>
-      
+
       <CardContent className="p-0">
         {/* Messages Area */}
         <div className="h-64 overflow-y-auto p-4 space-y-3">
           {messages.length === 0 ? (
             <div className="text-center text-gray-500 py-8">
               <MessageCircle className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-              <p>Inga meddelanden än</p>
-              <p className="text-sm">Säg hej till andra spelare!</p>
+              <p>{t('chat.empty')}</p>
+              <p className="text-sm">{t('chat.empty_sub')}</p>
             </div>
           ) : (
             messages.map((message) => (
@@ -126,7 +127,7 @@ export default function MatchChat({ matchId, currentUser, onClose }) {
         {/* Standard Phrases */}
         <div className="border-t border-gray-200 p-4">
           <div className="mb-3">
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Snabbmeddelanden:</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-2">{t('chat.quick_label')}</h4>
             <div className="grid grid-cols-1 gap-2">
               {standardPhrases.map((phrase) => (
                 <Button
@@ -146,7 +147,7 @@ export default function MatchChat({ matchId, currentUser, onClose }) {
           {/* Info */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <p className="text-xs text-blue-800">
-              <strong>Säkerhetsinfo:</strong> Använd endast förvalda meddelanden för att hålla kommunikationen trygg och respektfull.
+              <strong>{t('chat.safety_label')}</strong> {t('chat.safety_text')}
             </p>
           </div>
         </div>

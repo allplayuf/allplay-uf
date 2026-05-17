@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { checkInMatch } from "@/components/supabase/services/matchesService";
 import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
 import { triggerHaptic } from "@/components/utils/motionTokens";
+import { useT } from "@/i18n/LanguageProvider";
 
 /**
  * Smart check-in button.
@@ -14,6 +15,7 @@ import { triggerHaptic } from "@/components/utils/motionTokens";
  * - Haptic feedback on state transitions.
  */
 export default function CheckInButton({ match, isParticipant, onCheckInSuccess }) {
+  const { t } = useT();
   const { isGuest } = useSupabaseAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckedIn, setIsCheckedIn] = useState(false);
@@ -34,7 +36,7 @@ export default function CheckInButton({ match, isParticipant, onCheckInSuccess }
   }, [match?.my_participation?.checked_in, match?.is_checked_in]);
 
   const timing = useMemo(() => {
-    if (!match?.date || !match?.time) return { canCheckIn: false, label: 'Laddar...' };
+    if (!match?.date || !match?.time) return { canCheckIn: false, label: t('common.loading') };
     try {
       const [y, m, d] = match.date.split('-').map(Number);
       const [hh, mm] = match.time.split(':').map(Number);
@@ -50,35 +52,35 @@ export default function CheckInButton({ match, isParticipant, onCheckInSuccess }
         // Before window
         if (diffMin > 60 * 24) {
           const days = Math.floor(diffMin / (60 * 24));
-          return { canCheckIn: false, label: `Check-in öppnar om ${days} dag${days === 1 ? '' : 'ar'}` };
+          return { canCheckIn: false, label: t('checkin.opens_days', { n: days }) };
         }
         if (diffMin > 60) {
           const hrs = Math.floor((diffMin - 60) / 60);
           const mins = (diffMin - 60) % 60;
-          return { canCheckIn: false, label: `Check-in öppnar om ${hrs}h ${mins}m` };
+          return { canCheckIn: false, label: t('checkin.opens_hours', { h: hrs, m: mins }) };
         }
-        return { canCheckIn: false, label: `Check-in öppnar snart` };
+        return { canCheckIn: false, label: t('checkin.opens_soon') };
       }
       if (now > close) {
-        return { canCheckIn: false, label: 'Check-in stängd' };
+        return { canCheckIn: false, label: t('checkin.closed') };
       }
       // Inside window
       if (diffMin > 0) {
-        return { canCheckIn: true, label: `Matchen börjar om ${diffMin} min` };
+        return { canCheckIn: true, label: t('checkin.starts_in', { n: diffMin }) };
       }
       if (diffMin > -10) {
-        return { canCheckIn: true, label: 'Matchen har börjat' };
+        return { canCheckIn: true, label: t('checkin.started') };
       }
-      return { canCheckIn: true, label: `Pågår (${Math.abs(diffMin)} min)` };
+      return { canCheckIn: true, label: t('checkin.in_progress', { n: Math.abs(diffMin) }) };
     } catch {
-      return { canCheckIn: false, label: 'Ogiltigt datum' };
+      return { canCheckIn: false, label: t('checkin.invalid_date') };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [match?.date, match?.time, tick]);
+  }, [match?.date, match?.time, tick, t]);
 
   const handleCheckIn = async () => {
     if (isGuest) {
-      setError('Du måste vara inloggad för att checka in.');
+      setError(t('checkin.error_login'));
       return;
     }
     triggerHaptic('light');
@@ -108,15 +110,15 @@ export default function CheckInButton({ match, isParticipant, onCheckInSuccess }
       console.error('Check-in error:', err);
 
       if (err.code === 1) {
-        setError('Du måste tillåta platsåtkomst. Öppna inställningar och aktivera plats för appen.');
+        setError(t('checkin.error_permission'));
       } else if (err.code === 2) {
-        setError('Kunde inte hitta din position. Gå ut eller byt plats och försök igen.');
+        setError(t('checkin.error_position'));
       } else if (err.code === 3) {
-        setError('Timeout – försök igen.');
+        setError(t('checkin.error_timeout'));
       } else if (err.status === 403 || /not.*within|500m|för långt|utanför/i.test(err.message || '')) {
-        setError('Du måste vara inom 500m från planen för att checka in.');
+        setError(t('checkin.error_distance'));
       } else {
-        setError(err.message || 'Kunde inte checka in. Försök igen.');
+        setError(err.message || t('checkin.error_generic'));
       }
     } finally {
       setIsLoading(false);
@@ -147,8 +149,8 @@ export default function CheckInButton({ match, isParticipant, onCheckInSuccess }
           <Check className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={3} />
         </motion.div>
         <div className="flex-1 min-w-0">
-          <div className="text-[13px] sm:text-sm font-bold text-[#86EFAC] truncate">Du är på plats!</div>
-          <div className="text-[11px] sm:text-xs text-[#B6C2BC] truncate">Incheckad – redo att spela</div>
+          <div className="text-[13px] sm:text-sm font-bold text-[#86EFAC] truncate">{t('checkin.checked_in_title')}</div>
+          <div className="text-[11px] sm:text-xs text-[#B6C2BC] truncate">{t('checkin.checked_in_sub')}</div>
         </div>
       </motion.div>
     );
@@ -163,7 +165,7 @@ export default function CheckInButton({ match, isParticipant, onCheckInSuccess }
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-[13px] sm:text-sm font-semibold text-[#B6C2BC] truncate">{timing.label}</div>
-          <div className="text-[11px] sm:text-xs text-[#7B8A83] truncate">Check-in öppnar 1h innan match</div>
+          <div className="text-[11px] sm:text-xs text-[#7B8A83] truncate">{t('checkin.hint')}</div>
         </div>
       </div>
     );
@@ -186,12 +188,12 @@ export default function CheckInButton({ match, isParticipant, onCheckInSuccess }
         {isLoading ? (
           <>
             <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-            <span className="truncate">Verifierar position...</span>
+            <span className="truncate">{t('checkin.verifying')}</span>
           </>
         ) : (
           <>
             <Navigation className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="truncate">Jag är på plats</span>
+            <span className="truncate">{t('checkin.btn_label')}</span>
           </>
         )}
       </Button>
@@ -212,7 +214,7 @@ export default function CheckInButton({ match, isParticipant, onCheckInSuccess }
 
       <div className="flex items-center justify-center gap-1.5 text-[10px] sm:text-[11px] text-[#7B8A83] text-center px-2">
         <MapPin className="w-3 h-3 flex-shrink-0" />
-        <span className="truncate">Max 500m · {timing.label}</span>
+        <span className="truncate">{t('checkin.distance_hint', { label: timing.label })}</span>
       </div>
     </div>
   );

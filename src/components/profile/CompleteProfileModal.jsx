@@ -13,11 +13,13 @@ import { Label } from '@/components/ui/label';
 import { updateProfile } from '@/components/supabase/services';
 import { useSupabaseAuth } from '@/components/supabase';
 import { AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
+import { useT } from '@/i18n/LanguageProvider';
 
 // Username validation regex: 3-30 chars, lowercase, only [a-z0-9._]
 const USERNAME_REGEX = /^[a-z0-9._]{3,30}$/;
 
 export function CompleteProfileModal({ isOpen, onComplete }) {
+  const { t } = useT();
   const { user } = useSupabaseAuth();
   const [formData, setFormData] = useState({
     full_name: '',
@@ -43,18 +45,18 @@ export function CompleteProfileModal({ isOpen, onComplete }) {
 
     // Full name validation
     if (!formData.full_name || formData.full_name.trim().length < 2) {
-      newErrors.full_name = 'Namn måste vara minst 2 tecken';
+      newErrors.full_name = t('complete_profile.error_name_min');
     } else if (formData.full_name.length > 80) {
-      newErrors.full_name = 'Namn får vara max 80 tecken';
+      newErrors.full_name = t('complete_profile.error_name_max');
     }
 
     // Username validation
     if (!formData.username || formData.username.length < 3) {
-      newErrors.username = 'Användarnamn måste vara minst 3 tecken';
+      newErrors.username = t('complete_profile.error_username_min');
     } else if (formData.username.length > 30) {
-      newErrors.username = 'Användarnamn får vara max 30 tecken';
+      newErrors.username = t('complete_profile.error_username_max');
     } else if (!USERNAME_REGEX.test(formData.username)) {
-      newErrors.username = 'Endast små bokstäver, siffror, punkt och understreck';
+      newErrors.username = t('complete_profile.error_username_chars');
     }
 
     setErrors(newErrors);
@@ -98,16 +100,16 @@ export function CompleteProfileModal({ isOpen, onComplete }) {
       } else {
         // Handle specific errors from backend
         if (result.error?.code === 'USERNAME_TAKEN' || result.error?.message?.includes('username')) {
-          setErrors({ username: 'Användarnamnet är redan taget' });
+          setErrors({ username: t('complete_profile.error_username_taken') });
         } else if (result.error?.code === 'USERNAME_INVALID') {
-          setErrors({ username: 'Ogiltigt användarnamn. Endast små bokstäver, siffror, punkt och understreck' });
+          setErrors({ username: t('complete_profile.error_username_invalid') });
         } else {
-          setServerError(result.error?.message || 'Kunde inte uppdatera profil. Försök igen.');
+          setServerError(result.error?.message || t('complete_profile.error_update'));
         }
       }
     } catch (error) {
       console.error('[CompleteProfileModal] Submit error:', error);
-      setServerError('Ett fel uppstod. Försök igen.');
+      setServerError(t('complete_profile.error_generic'));
     } finally {
       setIsSubmitting(false);
     }
@@ -121,9 +123,9 @@ export function CompleteProfileModal({ isOpen, onComplete }) {
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle className="text-[#F4F7F5] text-xl">Slutför din profil</DialogTitle>
+          <DialogTitle className="text-[#F4F7F5] text-xl">{t('complete_profile.title')}</DialogTitle>
           <DialogDescription className="text-[#B6C2BC]">
-            Lägg till ditt namn och välj ett användarnamn för att komma igång
+            {t('complete_profile.desc')}
           </DialogDescription>
         </DialogHeader>
 
@@ -131,13 +133,13 @@ export function CompleteProfileModal({ isOpen, onComplete }) {
           {/* Full Name */}
           <div className="space-y-2">
             <Label htmlFor="full_name" className="text-[#F4F7F5]">
-              Namn <span className="text-[#F4743B]">*</span>
+              {t('complete_profile.label_name')} <span className="text-[#F4743B]">*</span>
             </Label>
             <Input
               id="full_name"
               value={formData.full_name}
               onChange={(e) => handleChange('full_name', e.target.value)}
-              placeholder="Ditt fullständiga namn"
+              placeholder={t('complete_profile.placeholder_name')}
               className="bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#7B8A83]"
               disabled={isSubmitting}
               autoComplete="name"
@@ -153,13 +155,13 @@ export function CompleteProfileModal({ isOpen, onComplete }) {
           {/* Username */}
           <div className="space-y-2">
             <Label htmlFor="username" className="text-[#F4F7F5]">
-              Användarnamn <span className="text-[#F4743B]">*</span>
+              {t('complete_profile.label_username')} <span className="text-[#F4743B]">*</span>
             </Label>
             <Input
               id="username"
               value={formData.username}
               onChange={(e) => handleChange('username', e.target.value.toLowerCase())}
-              placeholder="dittanvandarnamn"
+              placeholder={t('complete_profile.placeholder_username')}
               className="bg-[#18221E] border-[#223029] text-[#F4F7F5] placeholder:text-[#7B8A83]"
               disabled={isSubmitting}
               autoComplete="username"
@@ -172,7 +174,7 @@ export function CompleteProfileModal({ isOpen, onComplete }) {
             )}
             {!errors.username && (
               <p className="text-[#7B8A83] text-xs">
-                3-30 tecken: små bokstäver, siffror, punkt och understreck
+                {t('complete_profile.hint_username')}
               </p>
             )}
           </div>
@@ -196,19 +198,19 @@ export function CompleteProfileModal({ isOpen, onComplete }) {
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Sparar...
+                {t('complete_profile.saving')}
               </>
             ) : (
               <>
                 <CheckCircle2 className="w-4 h-4 mr-2" />
-                Slutför profil
+                {t('complete_profile.submit')}
               </>
             )}
           </Button>
         </form>
 
         <p className="text-[#7B8A83] text-xs text-center mt-4">
-          Genom att slutföra din profil godkänner du våra användarvillkor
+          {t('complete_profile.terms')}
         </p>
       </DialogContent>
     </Dialog>

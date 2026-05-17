@@ -5,13 +5,15 @@ import { supabaseClient } from "@/components/supabase/client";
 import { clearAdminCache } from "@/components/supabase/services/adminService";
 import { Edit, QrCode, X, Settings, LogOut, ChevronRight, FileText } from "lucide-react";
 import { useCustomDialog } from "@/components/ui/custom-dialog";
+import { useT } from "@/i18n/LanguageProvider";
 
 export default function SettingsSheet({ onClose, onShowQR }) {
   const { confirm, DialogContainer } = useCustomDialog();
+  const { t } = useT();
 
   const handleLogout = async () => {
-    const ok = await confirm('Logga ut', 'Är du säker på att du vill logga ut?', {
-      type: 'warning', confirmText: 'Logga ut', cancelText: 'Avbryt'
+    const ok = await confirm(t('settings.account.logout_title'), t('settings.account.logout_confirm'), {
+      type: 'warning', confirmText: t('settings.account.logout_title'), cancelText: t('common.cancel')
     });
     if (!ok) return;
     clearAdminCache();
@@ -37,7 +39,7 @@ export default function SettingsSheet({ onClose, onShowQR }) {
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-[#1E2724]">
-          <h2 className="text-[16px] font-black text-[#F4F7F5] tracking-[-0.01em]">Inställningar</h2>
+          <h2 className="text-[16px] font-black text-[#F4F7F5] tracking-[-0.01em]">{t('settings.title')}</h2>
           <button
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-xl bg-[#18221E] text-[#B6C2BC] hover:bg-[#223029] hover:text-white transition-colors"
@@ -49,7 +51,7 @@ export default function SettingsSheet({ onClose, onShowQR }) {
         <div className="p-3 space-y-1.5">
           <SheetRow
             icon={Edit}
-            label="Redigera profil"
+            label={t('settings.sheet.edit_profile')}
             accent="#34C257"
             asLink
             to={createPageUrl("EditProfile")}
@@ -57,13 +59,13 @@ export default function SettingsSheet({ onClose, onShowQR }) {
           />
           <SheetRow
             icon={QrCode}
-            label="Min QR-kod"
+            label={t('settings.sheet.my_qr')}
             accent="#34C257"
             onClick={onShowQR}
           />
           <SheetRow
             icon={Settings}
-            label="Kontoinställningar"
+            label={t('settings.sheet.account_settings')}
             accent="#C4B5FD"
             asLink
             to={createPageUrl("AccountSettings")}
@@ -71,7 +73,7 @@ export default function SettingsSheet({ onClose, onShowQR }) {
           />
           <SheetRow
             icon={FileText}
-            label="Användarpolicy"
+            label={t('settings.sheet.user_policy')}
             accent="#94A3B8"
             href="https://allplayuf.se/aboutallplay/anvandarpolicy"
           />
@@ -88,7 +90,7 @@ export default function SettingsSheet({ onClose, onShowQR }) {
             >
               <LogOut className="w-4 h-4 text-[#F87171]" strokeWidth={2.3} />
             </div>
-            <span className="flex-1 text-[13.5px] font-bold text-[#F87171] text-left">Logga ut</span>
+            <span className="flex-1 text-[13.5px] font-bold text-[#F87171] text-left">{t('common.logout')}</span>
           </button>
         </div>
 

@@ -2,29 +2,22 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Calendar, Clock, Users, ArrowLeft, Share2, Flag, Trophy, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useT } from "@/i18n/LanguageProvider";
 
-/**
- * Premium cinematic match header.
- * - Gradient pitch background
- * - Countdown to kickoff
- * - Status pill + skill pill
- * - Sticky on desktop, collapsing on mobile scroll
- */
-
-const LEVEL_LABELS = {
-  beginner: { label: "Nybörjare", dot: "#86EFAC" },
-  intermediate: { label: "Medel", dot: "#34C257" },
-  advanced: { label: "Avancerad", dot: "#A78BFA" },
-  elite: { label: "Elit", dot: "#FBBF24" },
-  pro: { label: "Elit", dot: "#FBBF24" },
-  mixed: { label: "Mixad", dot: "#C2CEC8" },
+const LEVEL_DOT = {
+  beginner: "#86EFAC",
+  intermediate: "#34C257",
+  advanced: "#A78BFA",
+  elite: "#FBBF24",
+  pro: "#FBBF24",
+  mixed: "#C2CEC8",
 };
 
-const STATUS_CONFIG = {
-  upcoming: { label: "Kommande", color: "#4169E1", glow: "rgba(65,105,225,0.4)" },
-  ongoing: { label: "Pågår nu", color: "#F59E0B", glow: "rgba(245,158,11,0.45)", pulse: true },
-  completed: { label: "Avslutad", color: "#6B7280", glow: "rgba(107,114,128,0.3)" },
-  cancelled: { label: "Inställd", color: "#DC2626", glow: "rgba(220,38,38,0.4)" },
+const STATUS_STYLE = {
+  upcoming:  { color: "#4169E1", glow: "rgba(65,105,225,0.4)" },
+  ongoing:   { color: "#F59E0B", glow: "rgba(245,158,11,0.45)", pulse: true },
+  completed: { color: "#6B7280", glow: "rgba(107,114,128,0.3)" },
+  cancelled: { color: "#DC2626", glow: "rgba(220,38,38,0.4)" },
 };
 
 function useCountdown(targetIso) {
@@ -39,14 +32,13 @@ function useCountdown(targetIso) {
   const target = new Date(targetIso).getTime();
   if (isNaN(target)) return null;
   const diff = target - now;
-  if (diff <= 0) return { text: "Startar nu", urgent: true };
+  if (diff <= 0) return { type: "now", urgent: true };
 
   const mins = Math.floor(diff / 60_000);
-  if (mins < 60) return { text: `om ${mins} min`, urgent: mins <= 30 };
+  if (mins < 60) return { type: "mins", n: mins, urgent: mins <= 30 };
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return { text: `om ${hours}h ${mins % 60}m`, urgent: false };
-  const days = Math.floor(hours / 24);
-  return { text: `om ${days}d`, urgent: false };
+  if (hours < 24) return { type: "hours", h: hours, m: mins % 60, urgent: false };
+  return { type: "days", n: Math.floor(hours / 24), urgent: false };
 }
 
 function formatDateNice(date) {
@@ -61,11 +53,26 @@ function formatDateNice(date) {
 
 export default function MatchHeroBanner({ match, venue, participantCount, isOrganizer }) {
   const navigate = useNavigate();
-  const status = STATUS_CONFIG[match.status] || STATUS_CONFIG.upcoming;
-  const level = LEVEL_LABELS[match.skill_bracket];
+  const { t } = useT();
+
+  const statusStyle = STATUS_STYLE[match.status] || STATUS_STYLE.upcoming;
+  const statusLabel = t(`match.status.${match.status}`) || t('match.status.upcoming');
+  const levelDot = LEVEL_DOT[match.skill_bracket];
+  const levelLabel = match.skill_bracket === 'mixed'
+    ? t('match_hero.level_mixed')
+    : match.skill_bracket
+      ? t(`profile.skill.${match.skill_bracket}`)
+      : null;
 
   const startsAt = match.starts_at || (match.date && match.time ? `${match.date}T${match.time}:00` : null);
   const countdown = useCountdown(startsAt);
+
+  const countdownText = countdown
+    ? countdown.type === "now"   ? t('match_hero.starts_now')
+    : countdown.type === "mins"  ? t('match_hero.in_mins', { n: countdown.n })
+    : countdown.type === "hours" ? t('match_hero.in_hours', { h: countdown.h, m: countdown.m })
+    : t('match_hero.in_days', { n: countdown.n })
+    : null;
 
   const fillPct = match.is_spontaneous
     ? 100
@@ -78,7 +85,7 @@ export default function MatchHeroBanner({ match, venue, participantCount, isOrga
         boxShadow: "0 30px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.1)",
       }}
     >
-      {/* Pitch lines pattern — proportional, clipped (no stretching) */}
+      {/* Pitch lines pattern */}
       <svg
         className="absolute inset-0 w-full h-full opacity-[0.08] pointer-events-none"
         viewBox="0 0 400 300"
@@ -114,24 +121,24 @@ export default function MatchHeroBanner({ match, venue, participantCount, isOrga
           <div className="flex items-center gap-2">
             {/* Status pill */}
             <motion.div
-              animate={status.pulse ? { scale: [1, 1.05, 1] } : {}}
-              transition={status.pulse ? { duration: 1.8, repeat: Infinity } : {}}
+              animate={statusStyle.pulse ? { scale: [1, 1.05, 1] } : {}}
+              transition={statusStyle.pulse ? { duration: 1.8, repeat: Infinity } : {}}
               className="inline-flex h-8 items-center gap-1.5 px-3 rounded-full backdrop-blur-sm"
               style={{
-                background: `${status.color}30`,
-                boxShadow: `0 0 0 1px ${status.color}60, 0 8px 24px ${status.glow}`,
+                background: `${statusStyle.color}30`,
+                boxShadow: `0 0 0 1px ${statusStyle.color}60, 0 8px 24px ${statusStyle.glow}`,
               }}
             >
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: status.color }} />
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: statusStyle.color }} />
               <span className="text-[11px] font-bold text-white uppercase tracking-wider">
-                {status.label}
+                {statusLabel}
               </span>
             </motion.div>
 
             {isOrganizer && (
               <div className="inline-flex h-8 items-center gap-1 px-3 rounded-full bg-[#F4743B]/25 ring-1 ring-[#F4743B]/50 backdrop-blur-sm">
                 <Flag className="w-3 h-3 text-[#FED7AA]" />
-                <span className="text-[11px] font-bold text-[#FED7AA] uppercase">Arrangör</span>
+                <span className="text-[11px] font-bold text-[#FED7AA] uppercase">{t('match_hero.organizer')}</span>
               </div>
             )}
           </div>
@@ -140,10 +147,10 @@ export default function MatchHeroBanner({ match, venue, participantCount, isOrga
         {/* Title + countdown */}
         <div className="mb-6">
           <div className="flex flex-wrap items-center gap-2 mb-3">
-            {level && (
+            {levelDot && levelLabel && (
               <span className="inline-flex h-6 items-center gap-1.5 px-2.5 rounded-full bg-white/12 ring-1 ring-white/20 backdrop-blur-sm">
-                <span className="w-1.5 h-1.5 rounded-full" style={{ background: level.dot }} />
-                <span className="text-[10px] font-bold text-white uppercase tracking-wider">{level.label}</span>
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: levelDot }} />
+                <span className="text-[10px] font-bold text-white uppercase tracking-wider">{levelLabel}</span>
               </span>
             )}
             <span className="inline-flex h-6 items-center px-2.5 rounded-full bg-white/12 ring-1 ring-white/20 backdrop-blur-sm">
@@ -151,7 +158,7 @@ export default function MatchHeroBanner({ match, venue, participantCount, isOrga
             </span>
             {match.is_spontaneous && (
               <span className="inline-flex h-6 items-center px-2.5 rounded-full bg-[#F4743B]/30 ring-1 ring-[#F4743B]/50 backdrop-blur-sm">
-                <span className="text-[10px] font-bold text-[#FED7AA] uppercase tracking-wider">Spontan</span>
+                <span className="text-[10px] font-bold text-[#FED7AA] uppercase tracking-wider">{t('match_hero.spontaneous')}</span>
               </span>
             )}
           </div>
@@ -172,7 +179,7 @@ export default function MatchHeroBanner({ match, venue, participantCount, isOrga
             >
               <Clock className={`w-3.5 h-3.5 ${countdown.urgent ? "text-[#FED7AA]" : "text-white"}`} />
               <span className={`text-[12px] font-bold ${countdown.urgent ? "text-[#FED7AA]" : "text-white"}`}>
-                {countdown.text}
+                {countdownText}
               </span>
             </motion.div>
           )}
@@ -185,7 +192,7 @@ export default function MatchHeroBanner({ match, venue, participantCount, isOrga
             >
               <Trophy className="w-5 h-5 text-[#FBBF24]" />
               <div>
-                <div className="text-[10px] font-bold text-white/70 uppercase tracking-widest">Slutresultat</div>
+                <div className="text-[10px] font-bold text-white/70 uppercase tracking-widest">{t('match_hero.final_score')}</div>
                 <div className="text-2xl font-black text-white tabular-nums">{match.final_score}</div>
               </div>
             </motion.div>
@@ -196,24 +203,24 @@ export default function MatchHeroBanner({ match, venue, participantCount, isOrga
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           <InfoChip
             icon={MapPin}
-            label="Plats"
-            value={venue?.name || "Okänd"}
+            label={t('match_hero.location')}
+            value={venue?.name || t('common.unknown')}
             sub={venue?.city}
           />
           <InfoChip
             icon={Calendar}
-            label="Datum"
+            label={t('match_hero.date')}
             value={formatDateNice(match.date)}
           />
           <InfoChip
             icon={Clock}
-            label="Tid"
+            label={t('match_hero.time')}
             value={match.time || "—"}
             sub={`${match.duration_minutes || 90} min`}
           />
           <InfoChip
             icon={Users}
-            label={match.is_spontaneous ? "Anmälda" : "Spelare"}
+            label={match.is_spontaneous ? t('match_hero.registered') : t('match_hero.players')}
             value={match.is_spontaneous ? `${participantCount}` : `${participantCount}/${match.max_players}`}
             progress={match.is_spontaneous ? null : fillPct}
           />
@@ -232,7 +239,6 @@ function InfoChip({ icon: Icon, label, value, sub, progress }) {
       </div>
       <div className="text-[14px] sm:text-[15px] font-bold text-white leading-tight truncate">{value}</div>
       {sub && <div className="text-[11px] text-white/60 truncate mt-0.5">{sub}</div>}
-      {/* Progress track — full-width base + filled portion (no layout shift) */}
       {progress != null && (
         <>
           <div className="absolute inset-x-0 bottom-0 h-1 bg-white/10 pointer-events-none" />

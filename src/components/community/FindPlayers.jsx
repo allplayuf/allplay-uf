@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { searchPlayers } from "@/components/supabase/services/playersService";
 import { applyPrivacy } from "@/components/utils/privacyMask";
 import PlayerCard from "./PlayerCard";
+import { useT } from "@/i18n/LanguageProvider";
 
 /**
  * FindPlayers v3
@@ -19,6 +20,7 @@ import PlayerCard from "./PlayerCard";
  */
 
 export default function FindPlayers({ friendships = [], currentUser, onAddFriend }) {
+  const { t } = useT();
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [displayLimit, setDisplayLimit] = useState(12);
@@ -78,10 +80,10 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
   };
 
   if (error?.status === 401) {
-    return <ErrorState title="Du måste vara inloggad" desc="Logga in för att söka efter spelare." />;
+    return <ErrorState title={t('find.must_login')} desc={t('find.login_to_search')} />;
   }
   if (error && error.status !== 401) {
-    return <ErrorState title="Något gick fel" desc={error.message || 'Kunde inte hämta spelare. Försök igen.'} />;
+    return <ErrorState title={t('find.error_title')} desc={error.message || t('common.error')} />;
   }
 
   return (
@@ -93,7 +95,7 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
           strokeWidth={2.4}
         />
         <Input
-          placeholder="Sök på namn eller @användarnamn"
+          placeholder={t('find.search_placeholder')}
           value={searchQuery}
           onChange={handleSearchChange}
           className="pl-11 pr-20 bg-[#121715] border border-[#243029] text-[#F4F7F5] focus:border-[#2BA84A]/45 focus:ring-2 focus:ring-[#2BA84A]/20 placeholder:text-[#6B7A73] rounded-[14px] h-12 text-[14px]"
@@ -145,7 +147,7 @@ export default function FindPlayers({ friendships = [], currentUser, onAddFriend
                 onClick={() => setDisplayLimit((p) => p + 12)}
                 className="h-11 px-6 bg-[#121715] hover:bg-[#18221E] text-[#F4F7F5] font-bold text-[13px] rounded-xl border border-[#243029] transition-colors"
               >
-                Visa fler
+                {t('find.show_more')}
               </button>
             </div>
           )}

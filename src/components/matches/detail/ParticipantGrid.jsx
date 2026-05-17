@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { CheckCircle2, UserPlus, Users as UsersIcon, Clock, Crown } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import RankBadge from "@/components/rank/RankBadge";
+import { useT } from "@/i18n/LanguageProvider";
 
 const SKILL_DOTS = {
   beginner: "#86EFAC",
@@ -24,6 +25,7 @@ export default function ParticipantGrid({
   mvpUserId,
   isCompleted,
 }) {
+  const { t } = useT();
   const safeParticipants = Array.isArray(participants) ? participants : [];
   const checkedInCount = safeParticipants.filter(p => p.participantInfo?.checked_in).length;
   const emptySlots = !isSpontaneous && maxPlayers ? Math.max(0, maxPlayers - safeParticipants.length) : 0;
@@ -34,8 +36,8 @@ export default function ParticipantGrid({
         <div className="w-16 h-16 rounded-2xl bg-[#2BA84A]/12 ring-1 ring-[#2BA84A]/25 flex items-center justify-center mx-auto mb-4">
           <UsersIcon className="w-7 h-7 text-[#86EFAC]" />
         </div>
-        <h3 className="text-[17px] font-bold text-[#F4F7F5] mb-1">Inga deltagare än</h3>
-        <p className="text-sm text-[#9EAAA4]">Bli den första att anmäla dig!</p>
+        <h3 className="text-[17px] font-bold text-[#F4F7F5] mb-1">{t('participants.empty_title')}</h3>
+        <p className="text-sm text-[#9EAAA4]">{t('participants.be_first')}</p>
       </div>
     );
   }
@@ -51,9 +53,9 @@ export default function ParticipantGrid({
             </div>
             <div>
               <div className="text-sm font-bold text-[#F4F7F5]">
-                {checkedInCount} av {safeParticipants.length} incheckade
+                {t('participants.checked_in', { n: checkedInCount, total: safeParticipants.length })}
               </div>
-              <div className="text-[11px] text-[#9EAAA4]">Check-in öppnar 30 min före start</div>
+              <div className="text-[11px] text-[#9EAAA4]">{t('participants.checkin_opens')}</div>
             </div>
           </div>
           <div className="text-xs font-bold text-[#86EFAC] tabular-nums">
@@ -74,6 +76,7 @@ export default function ParticipantGrid({
             onMvpVote={isCompleted ? () => onMvpVote?.(p.id) : null}
             isMvp={mvpUserId === p.id}
             index={idx}
+            t={t}
           />
         ))}
 
@@ -84,7 +87,7 @@ export default function ParticipantGrid({
             className="h-[172px] rounded-2xl border-2 border-dashed border-[#223029] flex flex-col items-center justify-center text-[#5A6660]"
           >
             <UserPlus className="w-5 h-5 mb-1 opacity-50" />
-            <span className="text-[11px] font-medium">Ledig plats</span>
+            <span className="text-[11px] font-medium">{t('participants.empty_slot')}</span>
           </div>
         ))}
       </div>
@@ -92,8 +95,8 @@ export default function ParticipantGrid({
   );
 }
 
-function ParticipantCard({ participant, isCurrentUser, friendStatus, onAddFriend, onMvpVote, isMvp, index }) {
-  const name = participant.display_name || participant.full_name || "Spelare";
+function ParticipantCard({ participant, isCurrentUser, friendStatus, onAddFriend, onMvpVote, isMvp, index, t }) {
+  const name = participant.display_name || participant.full_name || t('common.player');
   const initial = (name[0] || "?").toUpperCase();
   const dot = SKILL_DOTS[participant.skill_level];
   const checkedIn = participant.participantInfo?.checked_in;
@@ -143,7 +146,7 @@ function ParticipantCard({ participant, isCurrentUser, friendStatus, onAddFriend
         </div>
 
         <div className="grid grid-cols-2 gap-1.5">
-          <StatPill label="Matcher" value={participant.matches_played || 0} />
+          <StatPill label={t('profile.hero.matches_label')} value={participant.matches_played || 0} />
           <StatPill label="MVP" value={participant.mvp_count || 0} accent />
         </div>
         <div className="mt-2 flex justify-center">
@@ -160,7 +163,7 @@ function ParticipantCard({ participant, isCurrentUser, friendStatus, onAddFriend
               className="w-full h-8 rounded-lg bg-[#F4743B]/12 ring-1 ring-[#F4743B]/30 text-[#FED7AA] text-[11px] font-bold hover:bg-[#F4743B]/20 transition-all flex items-center justify-center gap-1"
             >
               <Crown className="w-3 h-3" />
-              Rösta MVP
+              {t('participants.vote_mvp')}
             </button>
           ) : friendStatus === "none" ? (
             <button
@@ -168,17 +171,17 @@ function ParticipantCard({ participant, isCurrentUser, friendStatus, onAddFriend
               className="w-full h-8 rounded-lg bg-[#2BA84A]/12 ring-1 ring-[#2BA84A]/30 text-[#CFE8D6] text-[11px] font-bold hover:bg-[#2BA84A]/20 transition-all flex items-center justify-center gap-1"
             >
               <UserPlus className="w-3 h-3" />
-              Lägg till vän
+              {t('participants.add_friend')}
             </button>
           ) : friendStatus === "friends" ? (
             <div className="w-full h-8 rounded-lg bg-[#2BA84A]/8 text-[#86EFAC] text-[11px] font-bold flex items-center justify-center gap-1">
               <CheckCircle2 className="w-3 h-3" />
-              Vän
+              {t('participants.friend')}
             </div>
           ) : friendStatus === "pending_sent" ? (
             <div className="w-full h-8 rounded-lg bg-[#18221E] text-[#9EAAA4] text-[11px] font-medium flex items-center justify-center gap-1">
               <Clock className="w-3 h-3" />
-              Skickad
+              {t('participants.sent')}
             </div>
           ) : null}
         </div>

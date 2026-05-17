@@ -1,17 +1,19 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Trophy, Users, Clock, ChevronRight } from "lucide-react";
+import { Calendar, Trophy, Users, Clock } from "lucide-react";
 import { format } from "date-fns";
-import { sv } from "date-fns/locale";
+import { sv as svLocale } from "date-fns/locale";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { useT } from "@/i18n/LanguageProvider";
 
 export default function MatchHistory({ matches }) {
+  const { t } = useT();
+
   const formatMatchDate = (match) => {
     try {
       const matchDate = new Date(`${match.date}T${match.time}`);
-      return format(matchDate, "d MMM yyyy, HH:mm", { locale: sv });
+      return format(matchDate, "d MMM yyyy, HH:mm", { locale: svLocale });
     } catch {
       return `${match.date} ${match.time}`;
     }
@@ -27,16 +29,6 @@ export default function MatchHistory({ matches }) {
     }
   };
 
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'completed': return 'Avslutad';
-      case 'ongoing': return 'Pågår';
-      case 'upcoming': return 'Kommande';
-      case 'cancelled': return 'Inställd';
-      default: return status;
-    }
-  };
-
   if (matches.length === 0) {
     return (
       <Card className="bg-[#121715] border border-[#223029] rounded-2xl">
@@ -44,8 +36,8 @@ export default function MatchHistory({ matches }) {
           <div className="w-14 h-14 bg-[#2BA84A]/10 rounded-2xl flex items-center justify-center mx-auto mb-4 ring-1 ring-[#2BA84A]/20">
             <Calendar className="w-7 h-7 text-[#2BA84A]" />
           </div>
-          <h3 className="text-lg font-bold text-[#F4F7F5] mb-1.5">Ingen matchhistorik</h3>
-          <p className="text-sm text-[#9EAAA4]">Spela dina första matcher för att se historik här!</p>
+          <h3 className="text-lg font-bold text-[#F4F7F5] mb-1.5">{t('match_history.empty_title')}</h3>
+          <p className="text-sm text-[#9EAAA4]">{t('match_history.empty_desc')}</p>
         </CardContent>
       </Card>
     );
@@ -58,15 +50,15 @@ export default function MatchHistory({ matches }) {
           <div className="w-7 h-7 rounded-lg bg-[#2BA84A]/12 flex items-center justify-center">
             <Calendar className="w-3.5 h-3.5 text-[#2BA84A]" />
           </div>
-          Matchhistorik
-          <span className="text-[#9EAAA4] font-normal ml-auto text-xs">{matches.length} matcher</span>
+          {t('match_history.title')}
+          <span className="text-[#9EAAA4] font-normal ml-auto text-xs">{t('match_history.count', { n: matches.length })}</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-3">
         <div className="space-y-1.5">
           {matches.map((match) => (
-            <Link 
-              key={match.id} 
+            <Link
+              key={match.id}
               to={`${createPageUrl("MatchDetail")}?id=${match.id}`}
               className="block"
             >
@@ -74,7 +66,7 @@ export default function MatchHistory({ matches }) {
                 <div className="flex items-center justify-between gap-3 mb-2.5">
                   <h4 className="font-bold text-[#F4F7F5] text-sm truncate group-hover:text-[#2BA84A] transition-colors">{match.title}</h4>
                   <span className={`inline-flex h-6 items-center rounded-lg px-2.5 text-[11px] font-bold flex-shrink-0 ${getStatusColor(match.status)}`}>
-                    {getStatusText(match.status)}
+                    {t(`match.status.${match.status}`) || match.status}
                   </span>
                 </div>
 
@@ -90,7 +82,7 @@ export default function MatchHistory({ matches }) {
                   {match.is_ranked && (
                     <span className="inline-flex h-6 items-center rounded-lg bg-[#F4743B]/12 px-2.5 text-[11px] font-bold text-[#FDE3D2]">
                       <Trophy className="w-3 h-3 mr-1" />
-                      Rankad
+                      {t('match_history.ranked')}
                     </span>
                   )}
                   {match.final_score && (
