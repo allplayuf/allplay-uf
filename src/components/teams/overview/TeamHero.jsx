@@ -167,7 +167,7 @@ export default function TeamHero({
                   className="h-10 flex-1 sm:flex-none bg-white/16 hover:bg-white/24 text-white rounded-xl font-semibold ring-1 ring-white/30 text-sm"
                 >
                   <Swords className="w-4 h-4 mr-1.5" />
-                  Lagmatch
+                  Öppen match
                 </Button>
               )}
             </>

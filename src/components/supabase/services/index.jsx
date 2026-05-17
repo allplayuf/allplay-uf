@@ -81,6 +81,7 @@ export {
 export {
   getTeams,
   getTeamById,
+  getTeamsByIds,
   getTeamMembers,
   getTeamMembersWithProfiles,
   getMyTeams,
@@ -89,7 +90,17 @@ export {
   deleteTeamRest,
   updateTeam,
   inviteToTeam,
-  requestJoinTeam
+  requestJoinTeam,
+  getTeamChallenges,
+  sendTeamChallenge,
+  acceptTeamChallenge,
+  declineTeamChallenge,
+  cancelTeamChallenge,
+  createTeamMatch,
+  getTeamMatches,
+  joinTeamMatchAsTeamB,
+  acceptTeamMember,
+  removeTeamMember,
 } from './teamsService';
 
 // Reports

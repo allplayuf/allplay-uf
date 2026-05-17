@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, Users as UsersIcon, Flag, Info } from "lucide-react";
+import { Trophy, Users as UsersIcon, Flag, Info, Shield, Swords, ChevronDown } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { useCustomDialog } from "../components/ui/custom-dialog";
 import feedback from "../components/ui/feedback-toast";
@@ -26,7 +26,7 @@ import {
   getMatchDetails,
   getMatchParticipants
 } from "../components/supabase/services/matchesService";
-import { getVenues, getUsersByIds, getMyProfile } from "../components/supabase/services";
+import { getVenues, getUsersByIds, getMyProfile, getMyTeams, joinTeamMatchAsTeamB, getTeamsByIds } from "../components/supabase/services";
 import { sendFriendRequest, getMyFriendships } from "../components/supabase/services/friendshipsService";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { useT } from "../i18n/LanguageProvider";
@@ -42,6 +42,8 @@ export default function MatchDetailPage() {
   const [showReportModal, setShowReportModal] = useState(false);
   const [showPlayersModal, setShowPlayersModal] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
+  const [teamJoinId, setTeamJoinId] = useState(null);
+  const [isJoiningAsTeam, setIsJoiningAsTeam] = useState(false);
 
   const { confirm, alert, DialogContainer } = useCustomDialog();
   const { isGuest, isAuthenticated, user: authUser } = useSupabaseAuth();
@@ -168,6 +170,28 @@ export default function MatchDetailPage() {
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
     enabled: !!user?.id
   });
+
+  const { data: myTeams = [] } = useQuery({
+    queryKey: ["my-teams", user?.id],
+    queryFn: () => getMyTeams(),
+    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
+    enabled: !!user?.id && !isGuest,
+  });
+
+  const teamIdsForMatch = React.useMemo(
+    () => [match?.team_a_id, match?.team_b_id].filter(Boolean),
+    [match?.team_a_id, match?.team_b_id]
+  );
+
+  const { data: matchTeams = [] } = useQuery({
+    queryKey: ["teams-for-match", ...teamIdsForMatch],
+    queryFn: () => getTeamsByIds(teamIdsForMatch),
+    enabled: teamIdsForMatch.length > 0,
+    staleTime: 60_000,
+  });
+
+  const teamAName = matchTeams.find(t => t.id === match?.team_a_id)?.name || null;
+  const teamBName = matchTeams.find(t => t.id === match?.team_b_id)?.name || null;
 
   // ── Mutations ──────────────────────────────────────────
   const joinMatchMutation = useMutation({
@@ -336,7 +360,36 @@ export default function MatchDetailPage() {
     participants.some(p => p.id === user.id)
   );
   const isCompleted = match?.status === "completed";
-  const canJoin = !isCupMatch && !isParticipant && match?.status === "upcoming" && !isGuest && !isOrganizer;
+
+  // Team match derived state
+  const isTeamMatch = match?.is_team_match === true;
+  const isOpenTeamMatch = isTeamMatch && !match?.team_b_id && match?.status === "upcoming";
+  // Teams where user is captain or vice-captain, and isn't already team_a
+  const captainTeams = myTeams.filter(t =>
+    t.id !== match?.team_a_id &&
+    (t.captain_id === user?.id || (t.vice_captain_ids || []).includes(user?.id))
+  );
+  const alreadyJoinedAsTeamB = isTeamMatch && match?.team_b_id && myTeams.some(t => t.id === match.team_b_id);
+
+  // Individual join is disabled for team matches
+  const canJoin = !isCupMatch && !isTeamMatch && !isParticipant && match?.status === "upcoming" && !isGuest && !isOrganizer;
+
+  const handleJoinAsTeam = async (tid) => {
+    const resolvedId = tid || teamJoinId;
+    if (!resolvedId || isJoiningAsTeam) return;
+    setIsJoiningAsTeam(true);
+    try {
+      await joinTeamMatchAsTeamB(matchId, resolvedId);
+      queryClient.invalidateQueries({ queryKey: ["supabase-match", matchId] });
+      queryClient.invalidateQueries({ queryKey: ["team-matches"] });
+      queryClient.invalidateQueries({ queryKey: ["matches-infinite"] });
+      feedback.success("Ditt lag har anslutit till matchen!");
+    } catch (err) {
+      feedback.error(err.message || "Kunde inte ansluta laget");
+    } finally {
+      setIsJoiningAsTeam(false);
+    }
+  };
 
   if (matchLoading || participantsLoading) return <PageLoadingSkeleton />;
 
@@ -400,6 +453,77 @@ export default function MatchDetailPage() {
             ) : null
           }
         />
+
+        {/* TEAM MATCH BANNER */}
+        {isTeamMatch && (
+          <div className="bg-[#121715] ring-1 ring-[#223029] rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Swords className="w-4 h-4 text-[#F4743B]" />
+              <h2 className="text-sm font-bold text-[#F4F7F5] uppercase tracking-wider">Lagmatch</h2>
+              {isOpenTeamMatch && (
+                <span className="ml-auto text-[11px] bg-[#F4743B]/16 text-[#FDE3D2] border border-[#F4743B]/30 px-2 py-0.5 rounded-full font-semibold">
+                  Söker motståndare
+                </span>
+              )}
+              {alreadyJoinedAsTeamB && (
+                <span className="ml-auto text-[11px] bg-[#2BA84A]/16 text-[#CFE8D6] border border-[#2BA84A]/30 px-2 py-0.5 rounded-full font-semibold">
+                  Ditt lag har anslutit
+                </span>
+              )}
+            </div>
+
+            {/* Teams display */}
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex-1 bg-[#0F1513] rounded-xl p-2.5 text-center border border-[#223029]">
+                <div className="text-[10px] text-[#7B8A83] font-bold uppercase mb-1">Lag A</div>
+                <div className="text-[13px] font-bold text-[#F4F7F5]">{teamAName || 'Hemmalag'}</div>
+              </div>
+              <span className="text-[#7B8A83] font-black text-sm">VS</span>
+              <div className={`flex-1 rounded-xl p-2.5 text-center border ${match.team_b_id ? 'bg-[#0F1513] border-[#223029]' : 'bg-[#18221E]/50 border-[#223029]/50'}`}>
+                <div className="text-[10px] text-[#7B8A83] font-bold uppercase mb-1">Lag B</div>
+                <div className={`text-[13px] font-bold ${match.team_b_id ? 'text-[#F4F7F5]' : 'text-[#7B8A83] italic'}`}>
+                  {teamBName || (match.team_b_id ? 'Bortalag' : 'Ledig plats')}
+                </div>
+              </div>
+            </div>
+
+            {/* Join as team (captain/vice-captain only) */}
+            {isOpenTeamMatch && captainTeams.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-[12px] text-[#9EAAA4]">Välj ditt lag och anslut som motståndare:</p>
+                {captainTeams.length > 1 && (
+                  <div className="relative">
+                    <select
+                      value={teamJoinId || ''}
+                      onChange={e => setTeamJoinId(e.target.value)}
+                      className="w-full h-10 bg-[#0F1513] border border-[#223029] rounded-xl text-[#F4F7F5] text-[13px] px-3 pr-8 appearance-none focus:outline-none focus:border-[#2BA84A]/50"
+                    >
+                      <option value="">Välj lag...</option>
+                      {captainTeams.map(t => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9EAAA4] pointer-events-none" />
+                  </div>
+                )}
+                <button
+                  onClick={() => handleJoinAsTeam(captainTeams.length === 1 ? captainTeams[0].id : teamJoinId)}
+                  disabled={isJoiningAsTeam || (captainTeams.length > 1 && !teamJoinId)}
+                  className="w-full h-11 bg-[#2BA84A] hover:bg-[#34C257] text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Shield className="w-4 h-4" />
+                  {isJoiningAsTeam ? 'Ansluter...' : `Anslut${captainTeams.length === 1 ? ` ${captainTeams[0].name}` : ' ditt lag'}`}
+                </button>
+              </div>
+            )}
+
+            {isOpenTeamMatch && captainTeams.length === 0 && !alreadyJoinedAsTeamB && (
+              <p className="text-[12px] text-[#7B8A83] text-center py-1">
+                Du måste vara kapten eller vice-kapten i ett lag för att ansluta.
+              </p>
+            )}
+          </div>
+        )}
 
         {/* CUP GOALS */}
         {isCupMatch && (
