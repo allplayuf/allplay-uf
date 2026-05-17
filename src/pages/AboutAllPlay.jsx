@@ -183,16 +183,6 @@ export default function AboutAllPlay() {
             <p className="text-base text-[#B6C2BC] leading-relaxed">
               AllPlay är en digital plattform som kopplar ihop spelare, planer och stadsdelar genom GPS, nivåmatchning och social interaktion. Appen gör det möjligt att spela fotboll när som helst, var som helst, utan medlemskap eller krångliga anmälningar.
             </p>
-            <div className="flex flex-wrap gap-2 mt-5">
-              {['GPS-baserat', 'Gratis', 'Ingen anmälan', 'Alla nivåer', 'Hela Sverige'].map((tag) => (
-                <span
-                  key={tag}
-                  className="px-3 py-1 rounded-full text-xs font-semibold bg-[#2BA84A]/12 text-[#2BA84A] ring-1 ring-[#2BA84A]/25"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
           </div>
         </FadeIn>
 
