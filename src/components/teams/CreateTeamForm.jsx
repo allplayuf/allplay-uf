@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, X, Upload, Image as ImageIcon, Check, Loader2, MapPin, Lock, Globe, Hash, Info
 } from "lucide-react";
@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { feedback } from "@/components/ui/feedback-toast";
+import ImageCropPicker from "@/components/ui/ImageCropPicker";
+import { UploadFile } from "@/components/supabase/integrations";
 
 /**
  * CreateTeamForm v2 — premium creation flow
@@ -50,8 +52,9 @@ export default function CreateTeamForm({ user, onSubmit, onCancel }) {
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [logoPreview, setLogoPreview] = useState('');
+  const [cropLogoFile, setCropLogoFile] = useState(null);
 
-  const handleLogoUpload = async (e) => {
+  const handleLogoUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
@@ -62,14 +65,22 @@ export default function CreateTeamForm({ user, onSubmit, onCancel }) {
       feedback.error('Bilden är för stor. Max 5 MB tillåten.');
       return;
     }
+    setCropLogoFile(file);
+    e.target.value = '';
+  };
+
+  const handleLogoCropConfirm = async (blob) => {
+    setCropLogoFile(null);
+    const previewUrl = URL.createObjectURL(blob);
+    setLogoPreview(previewUrl);
     setIsUploading(true);
     try {
-      const previewUrl = URL.createObjectURL(file);
-      setLogoPreview(previewUrl);
-      setFormData((p) => ({ ...p, logo_url: previewUrl }));
+      const croppedFile = new File([blob], 'team-logo.jpg', { type: 'image/jpeg' });
+      const { file_url } = await UploadFile({ file: croppedFile });
+      setFormData((p) => ({ ...p, logo_url: file_url || previewUrl }));
     } catch (err) {
       console.error('Error uploading logo:', err);
-      feedback.error('Kunde inte ladda upp logotyp. Försök igen.');
+      setFormData((p) => ({ ...p, logo_url: previewUrl }));
     } finally {
       setIsUploading(false);
     }
@@ -95,6 +106,17 @@ export default function CreateTeamForm({ user, onSubmit, onCancel }) {
   const accent = formData.teamColor;
 
   return (
+    <>
+    <AnimatePresence>
+      {cropLogoFile && (
+        <ImageCropPicker
+          file={cropLogoFile}
+          shape="square"
+          onCrop={handleLogoCropConfirm}
+          onCancel={() => setCropLogoFile(null)}
+        />
+      )}
+    </AnimatePresence>
     <div className="flex flex-col h-full max-h-[85vh] bg-[#0F1513] rounded-t-[20px] lg:rounded-[22px] overflow-hidden">
       {/* ── Live preview header ─────────────────── */}
       <div
@@ -419,6 +441,7 @@ export default function CreateTeamForm({ user, onSubmit, onCancel }) {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
