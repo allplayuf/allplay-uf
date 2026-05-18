@@ -42,9 +42,9 @@ export default function AvatarUpload({ currentImageUrl, onUploaded }) {
     try {
       const croppedFile = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
       const { file_url } = await UploadFile({ file: croppedFile });
-      if (file_url) {
-        localStorage.setItem('allplay_profile_image', file_url);
-      }
+      // UploadFile always returns a value: storage URL if edge fn is deployed,
+      // otherwise a compressed data URL. Both are persistent.
+      if (file_url) localStorage.setItem('allplay_profile_image', file_url);
       onUploaded(file_url);
     } catch (err) {
       console.error('[AvatarUpload] Upload failed:', err);
