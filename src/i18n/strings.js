@@ -107,7 +107,7 @@ export const sv = {
   'onboarding.map.headline_b': 'i realtid.',
   'onboarding.map.sub':
     'Se öppna pickup-matcher på kartan. Filtrera efter stad, tid och nivå — börja spela ikväll.',
-  'onboarding.map.fact': '100+ planer redan registrerade — i Stockholm, Göteborg, Malmö och fler.',
+  'onboarding.map.fact': '100+ planer redan registrerade — i Stockholm.',
   'onboarding.join.headline_a': 'Gå med på',
   'onboarding.join.headline_b': 'två sekunder.',
   'onboarding.join.sub':

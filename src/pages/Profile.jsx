@@ -571,36 +571,51 @@ export default function ProfilePage() {
         ) : (
           <>
             {/* Sticky Tab Bar */}
-            <div className="sticky top-0 z-30 bg-[#0F1513]/95 backdrop-blur-md -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 py-2">
+            <div className="sticky top-0 z-30 bg-[#0F1513]/95 backdrop-blur-md -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 pt-3 pb-2">
               <div className="max-w-7xl mx-auto">
-                <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide">
+                <div
+                  role="tablist"
+                  className="relative grid grid-cols-4 gap-0.5 p-1 bg-[#0F1513] border border-[#243029] rounded-2xl shadow-[inset_0_1px_2px_rgba(0,0,0,0.45)]"
+                >
                   {[
-                    { id: 'inbox', label: t('profile.tab_inbox'), icon: Users, badge: friendRequests.length + teamInvites.length + teamJoinRequests.length },
-                    { id: 'stats', label: t('profile.tab_stats'), icon: TrendingUp },
-                    { id: 'badges', label: t('profile.tab_badges'), icon: Award },
-                    { id: 'history', label: t('profile.tab_history'), icon: Calendar }
+                    { id: 'inbox', label: t('profile.tab_inbox'), icon: Users, badge: friendRequests.length + teamInvites.length + teamJoinRequests.length, accent: '#34C257' },
+                    { id: 'stats', label: t('profile.tab_stats'), icon: TrendingUp, accent: '#34C257' },
+                    { id: 'badges', label: t('profile.tab_badges'), icon: Award, accent: '#FDBA74' },
+                    { id: 'history', label: t('profile.tab_history'), icon: Calendar, accent: '#C4B5FD' }
                   ].map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
+                    const badgeCount = tab.badge || 0;
                     return (
                       <button
                         key={tab.id}
+                        role="tab"
+                        aria-selected={isActive}
                         onClick={() => { triggerHaptic('light'); setActiveTab(tab.id); }}
-                        className={`relative flex items-center justify-center gap-1.5 h-10 px-3.5 sm:px-4 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-150 flex-shrink-0 ${
-                          isActive
-                            ? 'bg-[#2BA84A]/16 text-[#F4F7F5] ring-1 ring-[#2BA84A]/30'
-                            : 'text-[#9EAAA4] hover:text-[#F4F7F5] hover:bg-[#18221E]'
-                        }`}
+                        className="relative h-11 rounded-xl flex items-center justify-center gap-1.5 text-[12px] sm:text-[13px] font-bold transition-colors z-10"
+                        style={{ color: isActive ? '#FFFFFF' : '#9EAAA4' }}
                       >
-                        <div className="relative">
-                          <Icon className={`w-4 h-4 ${isActive ? 'text-[#2BA84A]' : ''}`} />
-                          {tab.badge > 0 && (
-                            <div className="absolute -top-1.5 -right-2 min-w-[14px] h-[14px] bg-[#F4743B] rounded-full flex items-center justify-center">
-                              <span className="text-[8px] font-black text-white px-0.5">{tab.badge}</span>
+                        {isActive && (
+                          <motion.span
+                            layoutId="profile-tab-pill"
+                            transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                            className="absolute inset-0 rounded-xl -z-10"
+                            style={{
+                              background: `linear-gradient(180deg, ${tab.accent}38 0%, ${tab.accent}14 100%)`,
+                              boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px ${tab.accent}55`,
+                            }}
+                            aria-hidden
+                          />
+                        )}
+                        <div className="relative flex-shrink-0">
+                          <Icon className="w-3.5 h-3.5" />
+                          {badgeCount > 0 && (
+                            <div className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] bg-[#F4743B] rounded-full flex items-center justify-center">
+                              <span className="text-[8px] font-black text-white px-0.5">{badgeCount}</span>
                             </div>
                           )}
                         </div>
-                        <span>{tab.label}</span>
+                        <span className="hidden sm:inline">{tab.label}</span>
                       </button>
                     );
                   })}

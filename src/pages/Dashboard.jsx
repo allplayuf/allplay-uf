@@ -444,14 +444,17 @@ export default function Dashboard() {
               whileHover={{ y: -3 }}
               whileTap={{ scale: 0.995 }}
               transition={{ type: "spring", stiffness: 300, damping: 24 }}
-              className="relative overflow-hidden rounded-[24px] border border-white/10 cursor-pointer group"
-              style={{
-                background:
-                  'linear-gradient(135deg, #141917 0%, #0F1513 100%)',
-                boxShadow:
-                  '0 20px 48px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)',
-              }}
+              className="cursor-pointer group"
             >
+              <div
+                className="relative overflow-hidden rounded-[24px] border border-white/10"
+                style={{
+                  background:
+                    'linear-gradient(135deg, #141917 0%, #0F1513 100%)',
+                  boxShadow:
+                    '0 20px 48px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)',
+                }}
+              >
               {/* Ambient green glow */}
               <div className="pointer-events-none absolute -top-20 -right-20 w-72 h-72 rounded-full blur-3xl opacity-50 group-hover:opacity-80 transition-opacity"
                 style={{ background: 'rgba(43,168,74,0.22)' }}
@@ -462,7 +465,7 @@ export default function Dashboard() {
                 <motion.div
                   whileHover={{ scale: 1.04 }}
                   transition={{ duration: 0.6, ease: 'easeOut' }}
-                  className="relative w-full sm:w-[42%] h-48 sm:h-auto flex-shrink-0 overflow-hidden"
+                  className="relative w-full sm:w-[42%] h-48 sm:h-auto flex-shrink-0 overflow-hidden rounded-tl-[24px] rounded-tr-[24px] sm:rounded-tr-none sm:rounded-bl-[24px]"
                 >
                   <img
                     src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/afd97d702_P10905801.jpg"
@@ -500,6 +503,7 @@ export default function Dashboard() {
                     <ChevronRight className="w-4 h-4" strokeWidth={2.6} />
                   </motion.div>
                 </div>
+              </div>
               </div>
             </motion.div>
           </Link>

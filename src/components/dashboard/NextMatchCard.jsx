@@ -130,6 +130,8 @@ export default function NextMatchCard({ match, venue, participants = [] }) {
       <motion.div
         whileHover={{ y: -2 }}
         transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+      >
+      <div
         className="relative overflow-hidden rounded-[22px] border border-white/[0.07]"
         style={{
           background: 'linear-gradient(135deg, #151B18 0%, #111613 55%, #0C100E 100%)',
@@ -293,6 +295,7 @@ export default function NextMatchCard({ match, venue, participants = [] }) {
             </motion.button>
           </div>
         </div>
+      </div>
       </motion.div>
     </>
   );
