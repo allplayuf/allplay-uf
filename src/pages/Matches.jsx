@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useSEO } from "@/components/hooks/useSEO";
+import { getCurrentPosition } from "@/lib/geolocation";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
@@ -217,22 +218,17 @@ export default function MatchesPage() {
   }, []);
 
   const getUserLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          setUserLocation({ lat: 59.3293, lng: 18.0686 }); 
-        }
-      );
-    } else {
-      setUserLocation({ lat: 59.3293, lng: 18.0686 }); 
-    }
+    getCurrentPosition()
+      .then((position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      })
+      .catch((error) => {
+        console.error('Error getting location:', error);
+        setUserLocation({ lat: 59.3293, lng: 18.0686 });
+      });
   };
 
   const handleMatchCreated = async ({ match: matchData, venue: selectedVenue }) => {

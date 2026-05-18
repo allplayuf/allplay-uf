@@ -77,10 +77,13 @@ export default function CreateTeamForm({ user, onSubmit, onCancel }) {
     try {
       const croppedFile = new File([blob], 'team-logo.jpg', { type: 'image/jpeg' });
       const { file_url } = await UploadFile({ file: croppedFile });
-      setFormData((p) => ({ ...p, logo_url: file_url || previewUrl }));
+      if (file_url) {
+        setFormData((p) => ({ ...p, logo_url: file_url }));
+      }
+      // Don't save blob: URLs — they're temporary and won't persist across sessions.
     } catch (err) {
       console.error('Error uploading logo:', err);
-      setFormData((p) => ({ ...p, logo_url: previewUrl }));
+      feedback.error('Logotypen kunde inte laddas upp. Försök igen.');
     } finally {
       setIsUploading(false);
     }

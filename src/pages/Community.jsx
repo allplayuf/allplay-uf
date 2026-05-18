@@ -396,7 +396,7 @@ export default function CommunityPage() {
           <h2 className="text-2xl font-bold text-[#F4F7F5] mb-3">{t('community.login_title')}</h2>
           <p className="text-[#B6C2BC] mb-6">{t('community.login_desc')}</p>
           <Button
-            onClick={() => setShowAuthGate(true)}
+            onClick={() => { triggerHaptic('medium'); setShowAuthGate(true); }}
             className="w-full bg-[#2BA84A] hover:bg-[#248232] text-white h-12 rounded-xl font-semibold"
           >
             <UserPlus className="w-5 h-5 mr-2" />

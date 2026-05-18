@@ -166,10 +166,9 @@ export default function TeamDiscovery({ teams, currentUser, onJoinRequest }) {
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-[#2BA84A] to-[#248232] rounded-2xl flex items-center justify-center overflow-hidden">
                       {team.logo_url ? (
-                        <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <Shield className="w-6 h-6 sm:w-7 sm:h-7 text-[#EAF6EE]" />
-                      )}
+                        <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display='none'; e.target.nextSibling && (e.target.nextSibling.style.display='block'); }} />
+                      ) : null}
+                      <Shield className="w-6 h-6 sm:w-7 sm:h-7 text-[#EAF6EE]" style={{ display: team.logo_url ? 'none' : 'block' }} />
                     </div>
                     <div>
                       <h3 className="font-semibold text-[16px] leading-[24px] text-[#F4F7F5]">{team.name}</h3>

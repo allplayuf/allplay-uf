@@ -178,16 +178,28 @@ export function safeTransition(transition) {
 }
 
 // ── Haptic feedback ─────────────────────────────────────────
-export const triggerHaptic = (type = 'light') => {
-  if (typeof window === 'undefined' || !window.navigator?.vibrate) return;
-  const patterns = {
-    light: 10,
-    medium: 20,
-    heavy: 30,
-    success: [10, 50, 10],
-    error: [20, 100, 20],
-  };
-  window.navigator.vibrate(patterns[type] || patterns.light);
+// Uses native Capacitor Haptics on iOS (works in WKWebView).
+// Falls back to Web Vibration API on Android/PWA (not supported on iOS Safari).
+export const triggerHaptic = async (type = 'light') => {
+  try {
+    const { Capacitor } = await import('@capacitor/core');
+    if (Capacitor.isNativePlatform()) {
+      const { Haptics, ImpactStyle, NotificationType } = await import('@capacitor/haptics');
+      if (type === 'success') {
+        await Haptics.notification({ type: NotificationType.Success });
+      } else if (type === 'error') {
+        await Haptics.notification({ type: NotificationType.Error });
+      } else {
+        const styleMap = { light: ImpactStyle.Light, medium: ImpactStyle.Medium, heavy: ImpactStyle.Heavy };
+        await Haptics.impact({ style: styleMap[type] ?? ImpactStyle.Light });
+      }
+      return;
+    }
+  } catch (_) {}
+  if (typeof window !== 'undefined' && window.navigator?.vibrate) {
+    const patterns = { light: 10, medium: 20, heavy: 30, success: [10, 50, 10], error: [20, 100, 20] };
+    window.navigator.vibrate(patterns[type] ?? patterns.light);
+  }
 };
 
 export const playSound = (type = 'click') => {

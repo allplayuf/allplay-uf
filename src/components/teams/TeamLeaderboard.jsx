@@ -116,10 +116,9 @@ export default function TeamLeaderboard({ currentTeamId }) {
                       <div className="flex items-center">
                         <div className="w-8 h-8 bg-[#18221E] rounded-lg flex items-center justify-center mr-3 overflow-hidden border border-[#223029]">
                           {team.logo_url ? (
-                            <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <span className="text-xs font-bold text-[#F4F7F5]">{team.name[0]}</span>
-                          )}
+                            <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display='none'; e.target.nextSibling && (e.target.nextSibling.style.display='block'); }} />
+                          ) : null}
+                          <span className="text-xs font-bold text-[#F4F7F5]" style={{ display: team.logo_url ? 'none' : 'block' }}>{team.name?.[0]}</span>
                         </div>
                         <div>
                           <div className={`text-sm font-medium ${isCurrentTeam ? 'text-[#2BA84A]' : 'text-[#F4F7F5]'}`}>

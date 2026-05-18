@@ -374,9 +374,9 @@ function QuickTile({ to, onClick, icon: Icon, label, accent }) {
     </motion.div>
   );
 
-  if (to) return <Link to={to}>{body}</Link>;
+  if (to) return <Link to={to} onClick={() => triggerHaptic('light')}>{body}</Link>;
   return (
-    <button onClick={onClick} className="block w-full text-left">
+    <button onClick={() => { triggerHaptic('light'); onClick?.(); }} className="block w-full text-left">
       {body}
     </button>
   );

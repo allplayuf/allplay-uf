@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { getCurrentPosition } from "@/lib/geolocation";
+import { triggerHaptic } from "@/components/utils/motionTokens";
 import { useSEO } from "@/components/hooks/useSEO";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -264,35 +266,24 @@ export default function MapPage() {
   }, [applyFilters]);
 
   const getUserLocation = (recenter = false) => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          
-          if (!isNaN(lat) && !isNaN(lng) && 
-              lat >= -90 && lat <= 90 && 
-              lng >= -180 && lng <= 180) {
-            setUserLocation({ lat, lng });
-            if (recenter) {
-              setSelectedVenue(null);
-              setRecenterFlag(f => f + 1);
-            }
-          } else {
-            setUserLocation({ lat: 59.3293, lng: 18.0686 });
+    getCurrentPosition({ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 })
+      .then((position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+          setUserLocation({ lat, lng });
+          if (recenter) {
+            setSelectedVenue(null);
+            setRecenterFlag(f => f + 1);
           }
-        },
-        (error) => {
-          console.error('Geolocation error:', error);
+        } else {
           setUserLocation({ lat: 59.3293, lng: 18.0686 });
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
         }
-      );
-    }
+      })
+      .catch((error) => {
+        console.error('Geolocation error:', error);
+        setUserLocation({ lat: 59.3293, lng: 18.0686 });
+      });
   };
 
   const handleVenueClick = (venue) => {
@@ -338,7 +329,7 @@ export default function MapPage() {
             {/* Segmented view toggle — icon-only on mobile for space */}
             <div className="flex bg-[#18221E] rounded-xl p-0.5 ring-1 ring-[#223029] flex-shrink-0">
               <button
-                onClick={() => setViewMode("map")}
+                onClick={() => { triggerHaptic('light'); setViewMode("map"); }}
                 aria-label={t('map.view_map')}
                 className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
                   viewMode === "map"
@@ -349,7 +340,7 @@ export default function MapPage() {
                 <MapIcon className="w-4 h-4" />
               </button>
               <button
-                onClick={() => setViewMode("list")}
+                onClick={() => { triggerHaptic('light'); setViewMode("list"); }}
                 aria-label={t('map.view_list')}
                 className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
                   viewMode === "list"
@@ -362,7 +353,7 @@ export default function MapPage() {
             </div>
 
             <button
-              onClick={() => getUserLocation(true)}
+              onClick={() => { triggerHaptic('light'); getUserLocation(true); }}
               aria-label={t('map.center_location')}
               className="h-10 w-10 flex-shrink-0 flex items-center justify-center bg-[#2BA84A]/12 hover:bg-[#2BA84A]/20 text-[#86EFAC] rounded-xl ring-1 ring-[#2BA84A]/25 transition-all"
             >
@@ -460,7 +451,7 @@ export default function MapPage() {
                 {t('map.title')}
               </h1>
               <button 
-                onClick={() => getUserLocation(true)}
+                onClick={() => { triggerHaptic('light'); getUserLocation(true); }}
                 className="h-9 w-9 flex items-center justify-center bg-[#2BA84A]/12 border border-[#2BA84A]/25 hover:bg-[#2BA84A]/20 text-[#2BA84A] rounded-full transition-all shadow-[0_0_12px_rgba(43,168,74,0.15)]"
               >
                 <Navigation className="w-4 h-4" />

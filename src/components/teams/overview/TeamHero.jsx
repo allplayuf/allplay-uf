@@ -73,10 +73,9 @@ export default function TeamHero({
         <div className="flex items-start gap-3 sm:gap-4 mb-4">
           <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/15 backdrop-blur-md rounded-2xl flex items-center justify-center overflow-hidden ring-2 ring-white/30 flex-shrink-0">
             {team.logo_url ? (
-              <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
-            ) : (
-              <Shield className="w-8 h-8 sm:w-10 sm:h-10 text-white" strokeWidth={2.2} />
-            )}
+              <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display='none'; e.target.nextSibling && (e.target.nextSibling.style.display='flex'); }} />
+            ) : null}
+            <Shield className="w-8 h-8 sm:w-10 sm:h-10 text-white" strokeWidth={2.2} style={{ display: team.logo_url ? 'none' : 'block' }} />
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-[22px] sm:text-2xl font-black text-white truncate tracking-tight">

@@ -42,10 +42,9 @@ function ChallengeCard({ challenge, teamId, isCaptainOrVice, onAccept, onDecline
             <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden"
               style={{ background: `linear-gradient(135deg, ${otherTeam?.team_color || '#2BA84A'}33, ${otherTeam?.team_color || '#2BA84A'}11)` }}>
               {otherTeam?.logo_url ? (
-                <img src={otherTeam.logo_url} alt={otherTeam.name} className="w-full h-full object-cover" />
-              ) : (
-                <Shield className="w-5 h-5 text-white/60" />
-              )}
+                <img src={otherTeam.logo_url} alt={otherTeam.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display='none'; e.target.nextSibling && (e.target.nextSibling.style.display='block'); }} />
+              ) : null}
+              <Shield className="w-5 h-5 text-white/60" style={{ display: otherTeam?.logo_url ? 'none' : 'block' }} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs text-[#9EAAA4] mb-0.5">

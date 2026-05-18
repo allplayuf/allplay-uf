@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useSupabaseAuth } from './AuthProvider';
 import ConsentGate from '@/components/legal/ConsentGate';
 import { CONSENT_VERSION, CONSENT_DOC } from '@/components/legal/consentConstants';
+import { triggerHaptic } from '@/components/utils/motionTokens';
 
 /* ─── Logos ─── */
 function AppleLogo({ className }) {
@@ -305,13 +306,13 @@ export default function LoginModal({ isOpen, onClose, onSuccess, inline = false,
         {hasSocialButtons && (
           <div className={`grid gap-2.5 ${showAppleSignIn && showGoogleSignIn ? 'grid-cols-2' : 'grid-cols-1'}`}>
             {showAppleSignIn && (
-              <button type="button" onClick={handleAppleSignIn} disabled={anyLoading}
+              <button type="button" onClick={() => { triggerHaptic('medium'); handleAppleSignIn(); }} disabled={anyLoading}
                 className="flex items-center justify-center gap-2 h-12 rounded-xl bg-[#0A0A0A] hover:bg-[#111] text-white font-semibold text-[14px] transition-colors disabled:opacity-40 border border-[#2A2A2A]">
                 {appleLoading ? <Spinner /> : <><AppleLogo className="w-[17px] h-[17px] -mt-px" /><span>Apple</span></>}
               </button>
             )}
             {showGoogleSignIn && (
-              <button type="button" onClick={handleGoogleSignIn} disabled={anyLoading}
+              <button type="button" onClick={() => { triggerHaptic('medium'); handleGoogleSignIn(); }} disabled={anyLoading}
                 className="flex items-center justify-center gap-2 h-12 rounded-xl bg-white hover:bg-[#F8F8F8] text-[#1F1F1F] font-semibold text-[14px] transition-colors disabled:opacity-40 border border-[#E0E0E0]">
                 {googleLoading ? <Spinner color="border-t-[#4285F4] border-gray-200" /> : <><GoogleLogo size={17} /><span>Google</span></>}
               </button>
@@ -504,7 +505,7 @@ export default function LoginModal({ isOpen, onClose, onSuccess, inline = false,
                     {showAppleSignIn && (
                       <button
                         type="button"
-                        onClick={handleAppleSignIn}
+                        onClick={() => { triggerHaptic('medium'); handleAppleSignIn(); }}
                         disabled={anyLoading}
                         className="flex items-center justify-center gap-2 h-12 rounded-xl bg-[#0A0A0A] hover:bg-[#111] active:bg-[#1A1A1A] text-white font-semibold text-[14px] transition-colors disabled:opacity-40 disabled:cursor-not-allowed select-none border border-[#2A2A2A]"
                       >
@@ -516,7 +517,7 @@ export default function LoginModal({ isOpen, onClose, onSuccess, inline = false,
                     {showGoogleSignIn && (
                       <button
                         type="button"
-                        onClick={handleGoogleSignIn}
+                        onClick={() => { triggerHaptic('medium'); handleGoogleSignIn(); }}
                         disabled={anyLoading}
                         className="flex items-center justify-center gap-2 h-12 rounded-xl bg-white hover:bg-[#F8F8F8] active:bg-[#F0F0F0] text-[#1F1F1F] font-semibold text-[14px] transition-colors disabled:opacity-40 disabled:cursor-not-allowed select-none border border-[#E0E0E0]"
                       >

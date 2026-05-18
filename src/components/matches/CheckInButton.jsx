@@ -3,6 +3,7 @@ import { MapPin, Loader2, Check, AlertCircle, Clock, Navigation } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { checkInMatch } from "@/components/supabase/services/matchesService";
+import { getCurrentPosition } from "@/lib/geolocation";
 import { useSupabaseAuth } from "@/components/supabase/AuthProvider";
 import { triggerHaptic } from "@/components/utils/motionTokens";
 import { useT } from "@/i18n/LanguageProvider";
@@ -88,16 +89,10 @@ export default function CheckInButton({ match, isParticipant, onCheckInSuccess }
     setError(null);
 
     try {
-      if (!navigator.geolocation) {
-        throw new Error('Din enhet stödjer inte platsdelning.');
-      }
-
-      const position = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 12_000,
-          maximumAge: 0,
-        });
+      const position = await getCurrentPosition({
+        enableHighAccuracy: true,
+        timeout: 12_000,
+        maximumAge: 0,
       });
 
       await checkInMatch(match.id, position.coords.latitude, position.coords.longitude);
@@ -109,13 +104,18 @@ export default function CheckInButton({ match, isParticipant, onCheckInSuccess }
       triggerHaptic('error');
       console.error('Check-in error:', err);
 
-      if (err.code === 1) {
+      // err.code follows Web Geolocation API; Capacitor also surfaces 'location unavailable'
+      const msg = err.message || '';
+      const isPermissionDenied = err.code === 1 || /denied|permission|nekad/i.test(msg);
+      const isUnavailable = err.code === 2 || /unavailable|position|position unavailable/i.test(msg);
+      const isTimeout = err.code === 3 || /timeout/i.test(msg);
+      if (isPermissionDenied) {
         setError(t('checkin.error_permission'));
-      } else if (err.code === 2) {
+      } else if (isUnavailable) {
         setError(t('checkin.error_position'));
-      } else if (err.code === 3) {
+      } else if (isTimeout) {
         setError(t('checkin.error_timeout'));
-      } else if (err.status === 403 || /not.*within|500m|för långt|utanför/i.test(err.message || '')) {
+      } else if (err.status === 403 || /not.*within|500m|för långt|utanför/i.test(msg)) {
         setError(t('checkin.error_distance'));
       } else {
         setError(err.message || t('checkin.error_generic'));

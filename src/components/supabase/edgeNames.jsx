@@ -37,6 +37,9 @@ export const EDGE = {
   // Teams
   createTeam: 'create_team',
   deleteTeam: 'delete_team',
+
+  // File upload
+  uploadFile: 'upload_file',
   
   // Account
   deleteAccount: 'delete_account',

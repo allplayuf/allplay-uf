@@ -41,10 +41,9 @@ function TeamCard({ team, index }) {
               <div className="flex items-center gap-4">
                 <div className={`w-14 h-14 bg-gradient-to-br ${teamStyle.gradient} rounded-2xl flex items-center justify-center overflow-hidden shadow-lg flex-shrink-0`}>
                   {team.logo_url ? (
-                    <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <Shield className="w-7 h-7 text-[#FFFFFF]" />
-                  )}
+                    <img src={team.logo_url} alt={team.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display='none'; e.target.nextSibling && (e.target.nextSibling.style.display='block'); }} />
+                  ) : null}
+                  <Shield className="w-7 h-7 text-[#FFFFFF]" style={{ display: team.logo_url ? 'none' : 'block' }} />
                 </div>
                 <div className="min-w-0">
                   <h3 className="font-bold text-[18px] leading-[24px] text-[#F4F7F5] mb-0.5 truncate">{team.name || t('teams.unnamed')}</h3>

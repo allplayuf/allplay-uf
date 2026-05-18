@@ -98,10 +98,9 @@ export default function TeamManagement({ teams = [], isLoading, lastUpdated, onD
                       style={{ backgroundColor: team.teamColor || '#4169E1' }}
                     >
                       {team.logo_url ? (
-                        <img src={team.logo_url} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <Shield className="w-5 h-5 text-white" />
-                      )}
+                        <img src={team.logo_url} alt="" className="w-full h-full object-cover" onError={(e) => { e.target.style.display='none'; e.target.nextSibling && (e.target.nextSibling.style.display='block'); }} />
+                      ) : null}
+                      <Shield className="w-5 h-5 text-white" style={{ display: team.logo_url ? 'none' : 'block' }} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <span className="font-semibold text-[#F4F7F5] text-sm truncate block">{team.name}</span>
