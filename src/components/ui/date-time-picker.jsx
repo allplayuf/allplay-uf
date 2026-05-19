@@ -38,6 +38,7 @@ export function DatePicker({ value, onChange, minDate, maxDate, disabled = false
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button
+          type="button"
           variant="outline"
           disabled={disabled}
           className={`w-full h-11 sm:h-12 justify-start text-left font-normal bg-[#18221E] border border-[#223029] text-[#F4F7F5] hover:bg-[#223029] hover:text-[#F4F7F5] rounded-[14px] transition-all ${
@@ -53,7 +54,7 @@ export function DatePicker({ value, onChange, minDate, maxDate, disabled = false
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-auto p-0 bg-[#121715] border border-[#223029] rounded-[16px] shadow-xl"
+        className="w-auto p-0 bg-[#121715] border border-[#223029] rounded-[16px] shadow-xl z-[9999]"
         align="start"
       >
         <Calendar
@@ -115,6 +116,7 @@ export function TimePicker({
     >
       <PopoverTrigger asChild>
         <Button
+          type="button"
           variant="outline"
           disabled={disabled}
           className={`w-full h-11 sm:h-12 justify-start text-left font-normal rounded-[14px] border transition-all
@@ -137,7 +139,7 @@ export function TimePicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[200px] p-0 bg-[#121715] border border-[#223029] rounded-[16px] shadow-xl"
+        className="w-[200px] p-0 bg-[#121715] border border-[#223029] rounded-[16px] shadow-xl z-[9999]"
         align="start"
       >
         {hasAvailableSlots && (
