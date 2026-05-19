@@ -5,16 +5,31 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarIcon, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+// Parse a YYYY-MM-DD string as LOCAL midnight (avoids UTC-offset bugs in Sweden/UTC+2)
+function parseLocalDate(dateStr) {
+  if (!dateStr) return null;
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+// Format a Date object to YYYY-MM-DD without UTC conversion
+function toDateString(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
 
 export function DatePicker({ value, onChange, minDate, maxDate, disabled = false, placeholder = "Välj datum" }) {
   const [isOpen, setIsOpen] = useState(false);
-  
-  const selectedDate = value ? new Date(value) : undefined;
+
+  // Parse as local time so the calendar selection matches what the user sees
+  const selectedDate = value ? parseLocalDate(value) : undefined;
 
   const handleSelect = (date) => {
     if (date) {
-      onChange(format(date, 'yyyy-MM-dd'));
+      onChange(toDateString(date));
       setIsOpen(false);
     }
   };
@@ -25,26 +40,32 @@ export function DatePicker({ value, onChange, minDate, maxDate, disabled = false
         <Button
           variant="outline"
           disabled={disabled}
-          className={`w-full h-11 sm:h-12 justify-start text-left font-normal bg-[#18221E] border border-[#223029] text-[#F4F7F5] hover:bg-[#223029] hover:text-[#F4F7F5] rounded-[14px] ${
-            !value && "text-[#7B8A83]"
+          className={`w-full h-11 sm:h-12 justify-start text-left font-normal bg-[#18221E] border border-[#223029] text-[#F4F7F5] hover:bg-[#223029] hover:text-[#F4F7F5] rounded-[14px] transition-all ${
+            !value ? 'text-[#7B8A83]' : ''
           }`}
         >
-          <CalendarIcon className="mr-2 h-4 w-4 text-[#2BA84A]" />
+          <CalendarIcon className="mr-2 h-4 w-4 text-[#2BA84A] flex-shrink-0" />
           {value ? (
-            format(new Date(value), 'PPP', { locale: sv })
+            format(parseLocalDate(value), 'PPP', { locale: sv })
           ) : (
             <span>{placeholder}</span>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 bg-[#121715] border border-[#223029] rounded-[16px] calendar-white-text" align="start">
+      <PopoverContent
+        className="w-auto p-0 bg-[#121715] border border-[#223029] rounded-[16px] shadow-xl"
+        align="start"
+      >
         <Calendar
           mode="single"
           selected={selectedDate}
           onSelect={handleSelect}
           disabled={(date) => {
-            if (minDate && date < new Date(minDate)) return true;
-            if (maxDate && date > new Date(maxDate)) return true;
+            // Compare local dates — avoids UTC-midnight offset issues
+            const min = parseLocalDate(minDate);
+            const max = parseLocalDate(maxDate);
+            if (min && date < min) return true;
+            if (max && date > max) return true;
             return false;
           }}
           initialFocus
@@ -56,74 +77,113 @@ export function DatePicker({ value, onChange, minDate, maxDate, disabled = false
   );
 }
 
-export function TimePicker({ value, onChange, disabled = false, placeholder = "Välj tid", minTime = "07:00", maxTime = "23:00", bookedSlots = [] }) {
+export function TimePicker({
+  value,
+  onChange,
+  disabled = false,
+  placeholder = "Välj tid",
+  minTime = "07:00",
+  maxTime = "23:00",
+  bookedSlots = [],
+  availableSlots = [],
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
-  // Generate time options (every 15 minutes) between 07:00 and 23:00
+  // Build 15-minute intervals within allowed range
   const timeOptions = [];
   for (let hour = 7; hour <= 23; hour++) {
     for (let minute = 0; minute < 60; minute += 15) {
-      const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-      
-      // Check if time is within allowed range
-      if (minTime && timeString < minTime) continue;
-      if (maxTime && timeString > maxTime) continue;
-      
-      timeOptions.push(timeString);
+      const t = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+      if (t < minTime || t > maxTime) continue;
+      timeOptions.push(t);
     }
   }
 
-  // Check if a time falls within a booked slot
-  const isTimeBooked = (time) => {
-    return bookedSlots.some(s => s.start_time <= time && s.end_time > time);
-  };
+  const isTimeBooked = (t) => bookedSlots.some(s => s.start_time <= t && s.end_time > t);
+  const isTimeAvailable = (t) => availableSlots.some(s => s.start_time <= t && s.end_time > t);
+  const getBookedBy = (t) => bookedSlots.find(s => s.start_time <= t && s.end_time > t)?.booked_by || '';
 
-  // Get the booker name for a time
-  const getBookedBy = (time) => {
-    const slot = bookedSlots.find(s => s.start_time <= time && s.end_time > time);
-    return slot?.booked_by || '';
-  };
+  const hasAvailableSlots = availableSlots.length > 0;
+  const valueBooked = value && isTimeBooked(value);
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <Popover
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!disabled) setIsOpen(open);
+      }}
+    >
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           disabled={disabled}
-          className={`w-full h-11 sm:h-12 justify-start text-left font-normal bg-[#18221E] border border-[#223029] text-[#F4F7F5] hover:bg-[#223029] hover:text-[#F4F7F5] rounded-[14px] ${
-            !value && "text-[#7B8A83]"
-          } ${value && isTimeBooked(value) ? 'border-[#DC2626]/50 text-[#FCA5A5]' : ''}`}
+          className={`w-full h-11 sm:h-12 justify-start text-left font-normal rounded-[14px] border transition-all
+            ${valueBooked
+              ? 'bg-[#DC2626]/8 border-[#DC2626]/40 text-[#FCA5A5]'
+              : 'bg-[#18221E] border-[#223029] text-[#F4F7F5] hover:bg-[#223029] hover:border-[#2BA84A]/50'
+            }
+            disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#18221E] disabled:hover:border-[#223029]
+          `}
         >
-          <Clock className="mr-2 h-4 w-4 text-[#2BA84A]" />
-          {value || <span>{placeholder}</span>}
-          {value && isTimeBooked(value) && <span className="ml-1 text-[10px] text-[#FCA5A5]">⚠ Upptagen</span>}
+          <Clock className={`mr-2 h-4 w-4 flex-shrink-0 ${valueBooked ? 'text-[#DC2626]' : 'text-[#2BA84A]'}`} />
+          {value ? (
+            <span>{value}</span>
+          ) : (
+            <span className="text-[#7B8A83]">{disabled ? 'Välj datum först' : placeholder}</span>
+          )}
+          {valueBooked && (
+            <span className="ml-auto text-[10px] font-semibold text-[#FCA5A5]">⚠ Upptat</span>
+          )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[240px] p-0 bg-[#121715] border border-[#223029] rounded-[16px]" align="start">
-        <div className="max-h-[300px] overflow-y-auto p-1">
-          {timeOptions.map((time) => {
-            const booked = isTimeBooked(time);
-            const bookedBy = getBookedBy(time);
+      <PopoverContent
+        className="w-[200px] p-0 bg-[#121715] border border-[#223029] rounded-[16px] shadow-xl"
+        align="start"
+      >
+        {hasAvailableSlots && (
+          <div className="px-3 py-1.5 border-b border-[#223029]">
+            <span className="text-[9px] font-bold text-[#86EFAC] uppercase tracking-wider">
+              ● Grön = ledig tid
+            </span>
+          </div>
+        )}
+        <div className="max-h-[280px] overflow-y-auto p-1.5 space-y-0.5">
+          {timeOptions.map((t) => {
+            const booked = isTimeBooked(t);
+            const available = isTimeAvailable(t);
+            const selected = value === t;
+            const bookedBy = getBookedBy(t);
             return (
               <button
-                key={time}
+                key={t}
+                type="button"
                 onClick={() => {
                   if (!booked) {
-                    onChange(time);
+                    onChange(t);
                     setIsOpen(false);
                   }
                 }}
                 disabled={booked}
-                className={`w-full px-3 py-2 text-left text-sm rounded-lg transition-colors flex items-center justify-between ${
-                  booked
-                    ? 'text-[#FCA5A5]/50 bg-[#DC2626]/5 cursor-not-allowed line-through'
-                    : value === time
-                      ? 'bg-[#2BA84A]/20 text-[#2BA84A] font-semibold'
-                      : 'text-[#F4F7F5] hover:bg-[#18221E]'
-                }`}
+                className={`w-full px-3 py-2 text-left text-sm rounded-lg transition-colors flex items-center justify-between gap-2
+                  ${booked
+                    ? 'text-[#FCA5A5]/40 cursor-not-allowed'
+                    : selected
+                      ? 'bg-[#2BA84A] text-white font-semibold'
+                      : available
+                        ? 'text-[#86EFAC] bg-[#2BA84A]/10 hover:bg-[#2BA84A]/18 font-medium'
+                        : 'text-[#F4F7F5] hover:bg-[#18221E]'
+                  }
+                `}
               >
-                <span>{time}</span>
-                {booked && <span className="text-[9px] text-[#FCA5A5]/60 font-normal no-underline">{bookedBy || 'Upptagen'}</span>}
+                <span className={booked ? 'line-through opacity-50' : ''}>{t}</span>
+                {booked && (
+                  <span className="text-[9px] text-[#FCA5A5]/60 truncate max-w-[80px]">
+                    {bookedBy || 'Upptat'}
+                  </span>
+                )}
+                {!booked && available && !selected && (
+                  <span className="text-[9px] text-[#2BA84A]/60">●</span>
+                )}
               </button>
             );
           })}
@@ -133,141 +193,39 @@ export function TimePicker({ value, onChange, disabled = false, placeholder = "V
   );
 }
 
-export function DateTimePicker({ date, time, onDateChange, onTimeChange, minDate, maxDate, minTime = "07:00", maxTime = "23:00", disabled = false, bookedSlots = [] }) {
+export function DateTimePicker({
+  date,
+  time,
+  onDateChange,
+  onTimeChange,
+  minDate,
+  maxDate,
+  minTime = "07:00",
+  maxTime = "23:00",
+  disabled = false,
+  bookedSlots = [],
+  availableSlots = [],
+}) {
   return (
-    <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="space-y-2">
-          <DatePicker
-            value={date}
-            onChange={onDateChange}
-            minDate={minDate}
-            maxDate={maxDate}
-            disabled={disabled}
-            placeholder="Välj datum"
-          />
-        </div>
-        <div className="space-y-2">
-          <TimePicker
-            value={time}
-            onChange={onTimeChange}
-            minTime={minTime}
-            maxTime={maxTime}
-            disabled={disabled}
-            placeholder="Välj tid"
-            bookedSlots={bookedSlots}
-          />
-        </div>
-      </div>
-
-      {/* Calendar white text styling */}
-      <style jsx global>{`
-        .calendar-white-text .rdp {
-          --rdp-cell-size: 40px;
-          --rdp-accent-color: #2BA84A;
-          --rdp-background-color: rgba(43, 168, 74, 0.1);
-        }
-
-        .calendar-white-text .rdp-months {
-          display: flex;
-          justify-content: center;
-        }
-
-        .calendar-white-text .rdp-month {
-          margin: 1rem;
-        }
-
-        .calendar-white-text .rdp-caption {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          padding: 0.5rem 0;
-          margin-bottom: 0.5rem;
-        }
-
-        .calendar-white-text .rdp-caption_label {
-          font-size: 0.9rem;
-          font-weight: 600;
-          color: #F4F7F5;
-        }
-
-        .calendar-white-text .rdp-nav {
-          display: flex;
-          gap: 0.5rem;
-        }
-
-        .calendar-white-text .rdp-nav_button {
-          width: 32px;
-          height: 32px;
-          border-radius: 8px;
-          color: #F4F7F5;
-          background: transparent;
-          border: none;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .calendar-white-text .rdp-nav_button:hover {
-          background: rgba(43, 168, 74, 0.1);
-          color: #2BA84A;
-        }
-
-        .calendar-white-text .rdp-head_cell {
-          font-size: 0.75rem;
-          font-weight: 600;
-          text-align: center;
-          padding: 0.5rem 0;
-          color: #F4F7F5;
-          text-transform: uppercase;
-        }
-
-        .calendar-white-text .rdp-cell {
-          text-align: center;
-          padding: 0;
-        }
-
-        .calendar-white-text .rdp-day {
-          width: var(--rdp-cell-size);
-          height: var(--rdp-cell-size);
-          border-radius: 8px;
-          font-size: 0.875rem;
-          font-weight: 500;
-          color: #2BA84A;
-          background: transparent;
-          border: none;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .calendar-white-text .rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled) {
-          background: rgba(43, 168, 74, 0.15);
-          color: #2BA84A;
-        }
-
-        .calendar-white-text .rdp-day_selected {
-          background: #2BA84A !important;
-          color: #FFFFFF !important;
-          font-weight: 600;
-        }
-
-        .calendar-white-text .rdp-day_today:not(.rdp-day_selected) {
-          background: rgba(43, 168, 74, 0.2);
-          color: #2BA84A;
-          font-weight: 700;
-          ring: 2px solid #2BA84A;
-        }
-
-        .calendar-white-text .rdp-day_disabled {
-          color: #4B5563 !important;
-          cursor: not-allowed !important;
-          opacity: 0.3;
-        }
-
-        .calendar-white-text .rdp-day_outside {
-          color: #6B7280 !important;
-          opacity: 0.3;
-        }
-      `}</style>
-    </>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <DatePicker
+        value={date}
+        onChange={onDateChange}
+        minDate={minDate}
+        maxDate={maxDate}
+        disabled={disabled}
+        placeholder="Välj datum"
+      />
+      <TimePicker
+        value={time}
+        onChange={onTimeChange}
+        minTime={minTime}
+        maxTime={maxTime}
+        disabled={disabled || !date}
+        placeholder="Välj tid"
+        bookedSlots={bookedSlots}
+        availableSlots={availableSlots}
+      />
+    </div>
   );
 }

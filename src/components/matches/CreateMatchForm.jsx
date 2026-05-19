@@ -78,16 +78,33 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
   const hasSubPitches = parentSubPitches.length > 0;
   const isSubSelected = !!selectedVenue?.parent_venue_id;
 
-  // Fetch booked slots for the selected AllPlay venue + date
+  // Use parent's is_allplay flag when a sub-pitch is selected (sub-pitches inherit from parent)
+  const isAllplayVenue = !!(parentVenue?.is_allplay || selectedVenue?.is_allplay);
+  const availabilityVenueId = formData.venue_id;
+
+  // Fetch booked slots for the selected venue + date (AllPlay venues only)
   const { data: bookedSlots = [] } = useQuery({
-    queryKey: ['venue-booked-slots', formData.venue_id, formData.date],
+    queryKey: ['venue-booked-slots', availabilityVenueId, formData.date],
     queryFn: () => listVenueAvailability({
-      venue_id: formData.venue_id,
+      venue_id: availabilityVenueId,
       date: formData.date,
       slot_type: 'booked',
       limit: 50,
     }),
-    enabled: !!formData.venue_id && !!formData.date && !!selectedVenue?.is_allplay,
+    enabled: !!availabilityVenueId && !!formData.date && isAllplayVenue,
+    staleTime: 60000,
+  });
+
+  // Fetch available slots so the time picker can highlight open times
+  const { data: availableSlots = [] } = useQuery({
+    queryKey: ['venue-available-slots', availabilityVenueId, formData.date],
+    queryFn: () => listVenueAvailability({
+      venue_id: availabilityVenueId,
+      date: formData.date,
+      slot_type: 'available',
+      limit: 50,
+    }),
+    enabled: !!availabilityVenueId && !!formData.date && isAllplayVenue,
     staleTime: 60000,
   });
 
@@ -334,12 +351,12 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
               </div>
             )}
 
-            {/* Availability badge for AllPlay venues */}
+            {/* Availability badge for AllPlay venues (sub-pitches inherit parent's allplay flag) */}
             <VenueAvailabilityBadge
               venueId={formData.venue_id}
               date={formData.date}
               time={formData.time}
-              isAllplay={selectedVenue?.is_allplay}
+              isAllplay={isAllplayVenue}
             />
           </div>
 
@@ -415,7 +432,8 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
               onDateChange={(date) => setFormData(prev => ({ ...prev, date, time: '' }))}
               onTimeChange={(time) => setFormData(prev => ({ ...prev, time }))}
               minDate={today}
-              bookedSlots={selectedVenue?.is_allplay ? bookedSlots : []}
+              bookedSlots={isAllplayVenue ? bookedSlots : []}
+              availableSlots={isAllplayVenue ? availableSlots : []}
             />
           </div>
 
