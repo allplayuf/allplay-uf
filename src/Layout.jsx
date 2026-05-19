@@ -211,18 +211,17 @@ function LayoutInner({ children }) {
           closeButton
           toastOptions={{
             style: {
-              background: '#121715',
+              background: '#0F1A14',
               color: '#F4F7F5',
               border: '1px solid #223029',
               borderRadius: '14px',
-              boxShadow: '0 16px 40px rgba(0,0,0,0.55), 0 4px 12px rgba(0,0,0,0.3)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.3)',
               fontSize: '14px',
               fontWeight: 500,
             },
           }}
           containerStyle={{
-            top: '42%',
-            transform: 'translateY(-50%)',
+            top: 'max(16px, env(safe-area-inset-top, 16px))',
           }}
         />
         

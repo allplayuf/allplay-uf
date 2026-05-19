@@ -13,8 +13,8 @@ import ProfileStats from "./ProfileStats";
 import MatchHistory from "./MatchHistory";
 import AvatarImage from "@/components/ui/avatar-image";
 import { CACHE_STRATEGIES } from "@/components/providers/QueryProvider";
-import { base44 } from "@/api/base44Client";
 import { getUsersByIds } from "@/components/supabase/services";
+import { getMyParticipantMatchIds } from "@/components/supabase/services/participantsService";
 import { useT } from "@/i18n/LanguageProvider";
 
 /**
@@ -39,10 +39,7 @@ export default function OtherProfileView({
   // ── Fetch current user's matches to compute shared ones ──
   const { data: myMatchIds = [] } = useQuery({
     queryKey: ['myMatchIds', currentUser?.id],
-    queryFn: async () => {
-      const parts = await base44.entities.MatchParticipant.filter({ user_id: currentUser.id });
-      return parts.map(p => p.match_id);
-    },
+    queryFn: getMyParticipantMatchIds,
     enabled: !!currentUser?.id,
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
   });
@@ -73,17 +70,7 @@ export default function OtherProfileView({
             theirFriendIds.add(f.requester_id === targetUser.id ? f.addressee_id : f.requester_id);
           });
         }
-      } catch {
-        try {
-          const [sent, received] = await Promise.all([
-            base44.entities.Friendship.filter({ requester_id: targetUser.id, status: 'accepted' }).catch(() => []),
-            base44.entities.Friendship.filter({ addressee_id: targetUser.id, status: 'accepted' }).catch(() => []),
-          ]);
-          [...sent, ...received].forEach(f => {
-            theirFriendIds.add(f.requester_id === targetUser.id ? f.addressee_id : f.requester_id);
-          });
-        } catch { /* give up */ }
-      }
+      } catch { /* give up — mutual friends are non-critical */ }
 
       const myFriendIds = (friendships || [])
         .filter(f => f.status === 'accepted')

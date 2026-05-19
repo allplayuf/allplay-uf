@@ -28,6 +28,7 @@ import TeamHero from "../components/teams/overview/TeamHero";
 import TeamTabBar from "../components/teams/overview/TeamTabBar";
 import TeamMembersList from "../components/teams/overview/TeamMembersList";
 import TeamMatchesList from "../components/teams/TeamMatchesList";
+import TeamSettingsModal from "../components/teams/TeamSettingsModal";
 
 const ALL_TABS = [
   { id: 'stats',      label: 'Statistik',  icon: Trophy,       accent: '#34C257', showForCupTeam: true  },
@@ -45,6 +46,7 @@ export default function TeamOverviewPage() {
   const [activeTab, setActiveTab] = useState('stats');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showCreateTeamMatch, setShowCreateTeamMatch] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
 
   const { user: authUser } = useSupabaseAuth();
@@ -209,6 +211,7 @@ export default function TeamOverviewPage() {
           onJoin={handleJoin}
           onInvite={() => setShowInviteModal(true)}
           onCreateMatch={() => setShowCreateTeamMatch(true)}
+          onSettings={() => setShowSettingsModal(true)}
         />
 
         {/* Pending request hint */}
@@ -297,6 +300,17 @@ export default function TeamOverviewPage() {
       <AnimatePresence>
         {showInviteModal && (
           <InviteFriendsToTeamModal team={team} currentUser={user} onClose={handleInviteClose} />
+        )}
+      </AnimatePresence>
+
+      {/* Team Settings Modal — captain only */}
+      <AnimatePresence>
+        {showSettingsModal && isCaptain && (
+          <TeamSettingsModal
+            team={team}
+            onClose={() => setShowSettingsModal(false)}
+            onDeleted={() => navigate(`${createPageUrl("Community")}?tab=teams`)}
+          />
         )}
       </AnimatePresence>
     </div>

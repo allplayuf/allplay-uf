@@ -129,7 +129,8 @@ export default function CreateMatchForm({ venues, user, onSubmit, onCancel, pres
     }
 
     // Validate skill_bracket — not required for spontaneous matches
-    const validLevels = ['beginner', 'intermediate', 'advanced', 'pro'];
+    // 'open' is the UI sentinel for "any level" and maps to null on submit
+    const validLevels = ['open', 'beginner', 'intermediate', 'advanced', 'pro'];
     if (!formData.is_spontaneous) {
       if (!formData.skill_bracket || !validLevels.includes(formData.skill_bracket)) {
         feedback.error(t('create_match.pick_level'));

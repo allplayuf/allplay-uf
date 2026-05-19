@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Shield, Crown, Trophy, MapPin, Users, UserPlus, Swords } from "lucide-react";
+import { Shield, Crown, Trophy, MapPin, Users, UserPlus, Swords, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import RankBadge from "../RankBadge";
@@ -47,6 +47,7 @@ export default function TeamHero({
   onJoin,
   onInvite,
   onCreateMatch,
+  onSettings,
 }) {
   const teamColors = getTeamColorStyle(team.teamColor || team.team_color);
   const played = team.matches_played || 0;
@@ -167,6 +168,15 @@ export default function TeamHero({
                 >
                   <Swords className="w-4 h-4 mr-1.5" />
                   Öppen match
+                </Button>
+              )}
+              {isCaptain && (
+                <Button
+                  onClick={onSettings}
+                  className="h-10 w-10 flex-none bg-white/16 hover:bg-white/24 text-white rounded-xl ring-1 ring-white/30 p-0 flex items-center justify-center"
+                  aria-label="Lagsinställningar"
+                >
+                  <Settings className="w-4 h-4" />
                 </Button>
               )}
             </>

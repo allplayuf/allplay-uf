@@ -1,12 +1,11 @@
 /**
- * Subtle, premium toast helpers — wraps sonner with app-specific styling.
- * Use these for quick success/info/error feedback instead of full-screen modals.
- * Modals (via useCustomDialog) should only be used for confirmations or critical errors.
+ * Premium toast helpers — wraps sonner with app-specific styling and icons.
  */
+import React from "react";
 import { toast } from "sonner";
+import { CheckCircle2, XCircle, Info, Loader2 } from "lucide-react";
 import { triggerHaptic } from "@/components/utils/motionTokens";
 
-// Prevent the same toast from firing twice within 1.5 seconds
 const DEDUP_MS = 5000;
 const lastFired = new Map();
 function isDuplicate(key) {
@@ -16,15 +15,15 @@ function isDuplicate(key) {
   return false;
 }
 
-const baseStyle = {
-  background: "#121715",
+const base = {
+  background: "#0F1A14",
   color: "#F4F7F5",
-  border: "1px solid #223029",
   borderRadius: "14px",
-  padding: "12px 14px",
-  boxShadow: "0 16px 40px rgba(0, 0, 0, 0.48), 0 4px 12px rgba(0, 0, 0, 0.26)",
+  padding: "13px 16px",
+  boxShadow: "0 8px 32px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.3)",
   fontSize: "14px",
   fontWeight: 500,
+  maxWidth: "340px",
 };
 
 export const feedback = {
@@ -32,12 +31,15 @@ export const feedback = {
     if (isDuplicate(`success:${message}`)) return;
     triggerHaptic("success");
     return toast.success(message, {
-      duration: 2000,
+      duration: 2500,
       description: opts.description,
+      icon: React.createElement(CheckCircle2, {
+        style: { width: 18, height: 18, color: "#2BA84A", flexShrink: 0 }
+      }),
       style: {
-        ...baseStyle,
-        borderColor: "rgba(43, 168, 74, 0.4)",
-        boxShadow: "0 0 0 1px rgba(43, 168, 74, 0.2), 0 16px 40px rgba(0,0,0,0.55)",
+        ...base,
+        border: "1px solid rgba(43,168,74,0.35)",
+        borderLeft: "3px solid #2BA84A",
       },
       ...opts,
     });
@@ -47,12 +49,15 @@ export const feedback = {
     if (isDuplicate(`error:${message}`)) return;
     triggerHaptic("error");
     return toast.error(message, {
-      duration: 3000,
+      duration: 3500,
       description: opts.description,
+      icon: React.createElement(XCircle, {
+        style: { width: 18, height: 18, color: "#EF4444", flexShrink: 0 }
+      }),
       style: {
-        ...baseStyle,
-        borderColor: "rgba(220, 38, 38, 0.45)",
-        boxShadow: "0 0 0 1px rgba(220, 38, 38, 0.22), 0 16px 40px rgba(0,0,0,0.55)",
+        ...base,
+        border: "1px solid rgba(220,38,38,0.35)",
+        borderLeft: "3px solid #EF4444",
       },
       ...opts,
     });
@@ -62,11 +67,15 @@ export const feedback = {
     if (isDuplicate(`info:${message}`)) return;
     triggerHaptic("light");
     return toast(message, {
-      duration: 2000,
+      duration: 2500,
       description: opts.description,
+      icon: React.createElement(Info, {
+        style: { width: 18, height: 18, color: "#60A5FA", flexShrink: 0 }
+      }),
       style: {
-        ...baseStyle,
-        borderColor: "rgba(62, 100, 80, 0.5)",
+        ...base,
+        border: "1px solid rgba(96,165,250,0.25)",
+        borderLeft: "3px solid #60A5FA",
       },
       ...opts,
     });
@@ -74,12 +83,18 @@ export const feedback = {
 
   loading(message, opts = {}) {
     return toast.loading(message, {
-      style: baseStyle,
+      icon: React.createElement(Loader2, {
+        style: { width: 18, height: 18, color: "#9EAAA4", flexShrink: 0, animation: "spin 1s linear infinite" }
+      }),
+      style: {
+        ...base,
+        border: "1px solid #223029",
+        borderLeft: "3px solid #3E6450",
+      },
       ...opts,
     });
   },
 
-  /** Promise helper — shows loading, then success/error automatically */
   promise(promise, { loading, success, error } = {}) {
     return toast.promise(promise, {
       loading: loading || "Laddar...",
@@ -91,7 +106,10 @@ export const feedback = {
         triggerHaptic("error");
         return typeof error === "function" ? error(err) : error || err?.message || "Något gick fel";
       },
-      style: baseStyle,
+      style: {
+        ...base,
+        border: "1px solid #223029",
+      },
     });
   },
 

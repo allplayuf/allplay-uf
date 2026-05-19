@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from "react";
+import React, { useState, useEffect, Suspense, lazy, useMemo } from "react";
 import { useSEO } from "@/components/hooks/useSEO";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -47,7 +47,7 @@ import { LogIn } from "lucide-react";
 import {
   getMyProfile, updateProfile,
   getMyFriendships, sendFriendRequest, acceptFriendRequest,
-  declineFriendRequest, removeFriendship, getFriendshipStatus
+  declineFriendRequest
 } from "../components/supabase/services";
 import { getMyMatches, transformMatchData } from "../components/supabase/services/matchesQueries";
 import { supabaseClient } from "../components/supabase/client";
@@ -168,33 +168,28 @@ export default function ProfilePage() {
     enabled: !!user && !isGuest,
   });
 
-  // Fetch friend requests (only for own profile)
-  const { data: friendRequests = [] } = useQuery({
-    queryKey: QUERY_KEYS.friendRequests(user?.id),
-    queryFn: async () => {
-      return friendships.filter(
-        (f) => f.addressee_id === user.id && f.status === 'pending'
-      );
-    },
-    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
-    enabled: !!user && !targetUserId && !isGuest,
-  });
+  // Derive friend requests directly from friendships (no stale closure — just useMemo)
+  const friendRequests = useMemo(
+    () => (user?.id ? friendships.filter(f => f.addressee_id === user.id && f.status === 'pending') : []),
+    [friendships, user?.id]
+  );
 
-  // Fetch friends
+  // Self-contained friends query — calls getMyFriendships() itself so it never reads
+  // stale closure data when invalidated. Avoids the two-query race condition where
+  // `friends` re-ran before `friendships` finished refetching.
   const { data: friends = [] } = useQuery({
     queryKey: QUERY_KEYS.friends(user?.id),
     queryFn: async () => {
-      const acceptedFriendships = friendships.filter(
+      const all = await getMyFriendships();
+      const accepted = all.filter(
         (f) => (f.requester_id === user.id || f.addressee_id === user.id) && f.status === 'accepted'
       );
-      const friendIds = acceptedFriendships.map(f =>
-        f.requester_id === user.id ? f.addressee_id : f.requester_id
-      );
-      if (friendIds.length === 0) return [];
-      return await getUsersByIds(friendIds);
+      const ids = accepted.map(f => f.requester_id === user.id ? f.addressee_id : f.requester_id);
+      if (ids.length === 0) return [];
+      return getUsersByIds(ids);
     },
-    ...CACHE_STRATEGIES.SEMI_DYNAMIC,
-    enabled: !!user && !targetUserId && !isGuest && friendships.length > 0,
+    staleTime: 30_000,
+    enabled: !!user && !targetUserId && !isGuest,
   });
 
   // Fetch team invites (only for own profile) - still using Base44 for TeamMember entity

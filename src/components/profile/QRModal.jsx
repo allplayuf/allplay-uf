@@ -1,13 +1,22 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { X, Copy, Check, Scan } from 'lucide-react';
-// import { QRCodeSVG } from 'qrcode.react'; // Note: Assuming this is available or I'll fallback to a simple display
+import { useNavigate } from 'react-router-dom';
+import QRCode from 'qrcode';
 import QRScanner from './QRScanner';
-import { base44 } from "@/api/base44Client";
+import { createPageUrl } from '@/utils';
 
 export default function QRModal({ user, onClose }) {
   const [copied, setCopied] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    QRCode.toDataURL(user.id, { width: 200, margin: 2, color: { dark: '#000000', light: '#FFFFFF' } })
+      .then(setQrDataUrl)
+      .catch(console.error);
+  }, [user.id]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(user.id);
@@ -15,12 +24,12 @@ export default function QRModal({ user, onClose }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleScanResult = async (scannedId) => {
+  const handleScanResult = (scannedId) => {
     setShowScanner(false);
     const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!UUID_RE.test(scannedId)) return;
-    window.location.href = `/profile?userId=${scannedId}`;
     onClose();
+    navigate(`${createPageUrl('Profile')}?userId=${scannedId}`);
   };
 
   return (
@@ -51,13 +60,12 @@ export default function QRModal({ user, onClose }) {
               <p className="text-[#B6C2BC] text-sm">Dela din kod för att lägga till vänner</p>
             </div>
 
-            <div className="bg-white p-4 rounded-xl mx-auto w-fit">
-               {/* Simple QR Code generation using an image service if library missing, or just styling a placeholder if needed, but using API if possible */}
-               <img 
-                 src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${user.id}`} 
-                 alt="QR Code" 
-                 className="w-48 h-48"
-               />
+            <div className="bg-white p-4 rounded-xl mx-auto w-fit min-h-[208px] flex items-center justify-center">
+              {qrDataUrl ? (
+                <img src={qrDataUrl} alt="QR Code" className="w-48 h-48" />
+              ) : (
+                <div className="w-48 h-48 bg-white/10 animate-pulse rounded" />
+              )}
             </div>
 
             <div className="flex items-center gap-2 bg-[#18221E] p-3 rounded-xl border border-[#223029]">
