@@ -5,6 +5,7 @@ import {
   isPushSupported,
   resolveNotificationRoute,
 } from '@/lib/pushNotifications';
+import { requestGeolocationPermission } from '@/lib/geolocation';
 import { feedback } from '@/components/ui/feedback-toast';
 
 /**
@@ -43,7 +44,13 @@ export default function PushNotificationInit() {
             : undefined,
         });
       },
-    }).catch((err) => console.error('[PushInit] failed:', err));
+    })
+      .then(() => {
+        // Request location permission right after push — both dialogs appear
+        // on first login via native CLLocationManager so iOS shows "AllPlay".
+        requestGeolocationPermission().catch(() => {});
+      })
+      .catch((err) => console.error('[PushInit] failed:', err));
   }, [isAuthenticated, isLoading, user?.id]);
 
   return null;
