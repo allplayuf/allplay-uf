@@ -210,10 +210,11 @@ function LayoutInner({ children }) {
           theme="dark"
           visibleToasts={1}
           style={{
-            top: '50%',
+            top: 'calc(env(safe-area-inset-top) + 64px)',
             left: '50%',
             right: 'auto',
-            transform: 'translate(-50%, -50%)',
+            bottom: 'auto',
+            transform: 'translateX(-50%)',
           }}
         />
         

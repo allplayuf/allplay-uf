@@ -377,12 +377,13 @@ button:focus-visible {
    but Sonner's mobile @media rule forces transform:none via CSS.
    These !important rules beat that mobile override.              */
 [data-sonner-toaster] {
-  top: 50% !important;
+  /* Just below the GlassHeader: safe-area + 56px nav height + 8px gap */
+  top: calc(env(safe-area-inset-top) + 64px) !important;
   left: 50% !important;
   right: auto !important;
   bottom: auto !important;
-  transform: translate(-50%, -50%) !important;
-  width: min(calc(100vw - 2rem), 360px) !important;
+  transform: translateX(-50%) !important;
+  width: min(calc(100vw - 2.5rem), 360px) !important;
 }
 [data-sonner-toaster] [data-sonner-toast] {
   left: 0 !important;
