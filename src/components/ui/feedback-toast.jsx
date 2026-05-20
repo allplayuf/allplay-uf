@@ -16,14 +16,18 @@ function isDuplicate(key) {
 }
 
 const base = {
-  background: "#0F1A14",
+  background: "rgba(13,20,16,0.97)",
   color: "#F4F7F5",
-  borderRadius: "14px",
-  padding: "13px 16px",
-  boxShadow: "0 8px 32px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.3)",
-  fontSize: "14px",
-  fontWeight: 500,
-  maxWidth: "340px",
+  borderRadius: "18px",
+  padding: "14px 18px",
+  boxShadow: "0 24px 64px rgba(0,0,0,0.7), 0 4px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)",
+  fontSize: "15px",
+  fontWeight: 600,
+  maxWidth: "320px",
+  minWidth: "260px",
+  backdropFilter: "blur(20px)",
+  WebkitBackdropFilter: "blur(20px)",
+  letterSpacing: "-0.01em",
 };
 
 export const feedback = {
@@ -34,12 +38,11 @@ export const feedback = {
       duration: 2500,
       description: opts.description,
       icon: React.createElement(CheckCircle2, {
-        style: { width: 18, height: 18, color: "#2BA84A", flexShrink: 0 }
+        style: { width: 20, height: 20, color: "#2BA84A", flexShrink: 0 }
       }),
       style: {
         ...base,
-        border: "1px solid rgba(43,168,74,0.35)",
-        borderLeft: "3px solid #2BA84A",
+        border: "1px solid rgba(43,168,74,0.3)",
       },
       ...opts,
     });
@@ -52,12 +55,11 @@ export const feedback = {
       duration: 3500,
       description: opts.description,
       icon: React.createElement(XCircle, {
-        style: { width: 18, height: 18, color: "#EF4444", flexShrink: 0 }
+        style: { width: 20, height: 20, color: "#EF4444", flexShrink: 0 }
       }),
       style: {
         ...base,
-        border: "1px solid rgba(220,38,38,0.35)",
-        borderLeft: "3px solid #EF4444",
+        border: "1px solid rgba(220,38,38,0.3)",
       },
       ...opts,
     });
@@ -70,12 +72,11 @@ export const feedback = {
       duration: 2500,
       description: opts.description,
       icon: React.createElement(Info, {
-        style: { width: 18, height: 18, color: "#60A5FA", flexShrink: 0 }
+        style: { width: 20, height: 20, color: "#60A5FA", flexShrink: 0 }
       }),
       style: {
         ...base,
         border: "1px solid rgba(96,165,250,0.25)",
-        borderLeft: "3px solid #60A5FA",
       },
       ...opts,
     });
@@ -84,12 +85,11 @@ export const feedback = {
   loading(message, opts = {}) {
     return toast.loading(message, {
       icon: React.createElement(Loader2, {
-        style: { width: 18, height: 18, color: "#9EAAA4", flexShrink: 0, animation: "spin 1s linear infinite" }
+        style: { width: 20, height: 20, color: "#9EAAA4", flexShrink: 0, animation: "spin 1s linear infinite" }
       }),
       style: {
         ...base,
-        border: "1px solid #223029",
-        borderLeft: "3px solid #3E6450",
+        border: "1px solid rgba(62,100,80,0.4)",
       },
       ...opts,
     });
@@ -108,7 +108,7 @@ export const feedback = {
       },
       style: {
         ...base,
-        border: "1px solid #223029",
+        border: "1px solid rgba(62,100,80,0.4)",
       },
     });
   },
