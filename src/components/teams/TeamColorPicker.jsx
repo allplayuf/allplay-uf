@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Palette, Check } from "lucide-react";
 import { updateTeam } from "@/components/supabase/services";
-import { toast } from "sonner";
+import feedback from "@/components/ui/feedback-toast";
 
 const TEAM_COLORS = [
   { 
@@ -95,9 +95,9 @@ export default function TeamColorPicker({ team, onColorChange, isCaptain }) {
     try {
       await updateTeam(team.id, { teamColor: color.primary });
       onColorChange?.(color);
-      toast.success('Lagfärg uppdaterad');
+      feedback.success('Lagfärg uppdaterad');
     } catch (error) {
-      toast.error(error.message || 'Kunde inte uppdatera färg');
+      feedback.error(error.message || 'Kunde inte uppdatera färg');
     } finally {
       setIsSaving(false);
     }

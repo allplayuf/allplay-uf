@@ -1,5 +1,5 @@
 // 🎁 REWARD ENGINE - Central system for XP, badges, and celebrations
-import { toast } from 'sonner';
+import feedback from '@/components/ui/feedback-toast';
 import { triggerHaptic, playSound } from './motionTokens';
 
 class RewardEngine {
@@ -162,9 +162,9 @@ class RewardEngine {
     triggerHaptic('success');
     playSound('reward');
     
-    toast.success(`🏅 Badge upplåst: ${badge.name}!`, {
+    feedback.success(`🏅 Badge upplåst: ${badge.name}!`, {
       description: `+${badge.xp} XP`,
-      duration: 5000
+      duration: 5000,
     });
     
     this.triggerConfetti();

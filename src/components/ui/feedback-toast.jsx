@@ -16,18 +16,19 @@ function isDuplicate(key) {
 }
 
 const base = {
-  background: "rgba(13,20,16,0.97)",
+  background: "rgba(14,21,17,0.98)",
   color: "#F4F7F5",
-  borderRadius: "18px",
+  borderRadius: "16px",
   padding: "14px 18px",
-  boxShadow: "0 24px 64px rgba(0,0,0,0.7), 0 4px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)",
-  fontSize: "15px",
+  boxShadow: "0 32px 80px rgba(0,0,0,0.85), 0 8px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)",
+  fontSize: "14px",
   fontWeight: 600,
-  maxWidth: "320px",
+  maxWidth: "360px",
   minWidth: "260px",
-  backdropFilter: "blur(20px)",
-  WebkitBackdropFilter: "blur(20px)",
+  backdropFilter: "blur(24px)",
+  WebkitBackdropFilter: "blur(24px)",
   letterSpacing: "-0.01em",
+  lineHeight: "1.45",
 };
 
 export const feedback = {
@@ -42,7 +43,8 @@ export const feedback = {
       }),
       style: {
         ...base,
-        border: "1px solid rgba(43,168,74,0.3)",
+        border: "1px solid rgba(43,168,74,0.4)",
+        background: "rgba(14,22,17,0.99)",
       },
       ...opts,
     });
@@ -59,7 +61,8 @@ export const feedback = {
       }),
       style: {
         ...base,
-        border: "1px solid rgba(220,38,38,0.3)",
+        border: "1px solid rgba(239,68,68,0.4)",
+        background: "rgba(18,14,14,0.99)",
       },
       ...opts,
     });
@@ -76,7 +79,8 @@ export const feedback = {
       }),
       style: {
         ...base,
-        border: "1px solid rgba(96,165,250,0.25)",
+        border: "1px solid rgba(96,165,250,0.35)",
+        background: "rgba(14,17,22,0.99)",
       },
       ...opts,
     });
@@ -89,7 +93,7 @@ export const feedback = {
       }),
       style: {
         ...base,
-        border: "1px solid rgba(62,100,80,0.4)",
+        border: "1px solid rgba(62,100,80,0.45)",
       },
       ...opts,
     });
@@ -108,7 +112,7 @@ export const feedback = {
       },
       style: {
         ...base,
-        border: "1px solid rgba(62,100,80,0.4)",
+        border: "1px solid rgba(62,100,80,0.45)",
       },
     });
   },

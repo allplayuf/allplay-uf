@@ -269,24 +269,26 @@ export const CelebrationToast = ({
   return (
     <AnimatePresence>
       {isVisible && (
-        <motion.div
-          initial={{ opacity: 0, y: 50, scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 20, scale: 0.9 }}
-          transition={{ duration: 0.3, type: 'spring', stiffness: 200 }}
-          className="fixed bottom-20 sm:bottom-24 lg:bottom-8 left-1/2 -translate-x-1/2 z-[9999] w-[calc(100%-2rem)] max-w-[400px] sm:max-w-md"
-        >
-          <div className="bg-[#121715] border-2 border-[#2BA84A]/30 rounded-2xl p-4 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.4)] backdrop-blur-sm">
-            <button
-              onClick={handleClose}
-              className="absolute top-2 right-2 sm:top-3 sm:right-3 w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg hover:bg-[#18221E] transition-colors z-10"
-            >
-              <X className="w-4 h-4 text-[#B6C2BC]" />
-            </button>
-            
-            {renderContent()}
-          </div>
-        </motion.div>
+        <div className="fixed inset-0 flex items-center justify-center z-[9999] pointer-events-none px-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.88 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.88 }}
+            transition={{ duration: 0.25, type: 'spring', stiffness: 260, damping: 20 }}
+            className="w-full max-w-[380px] pointer-events-auto"
+          >
+            <div className="bg-[#0F1A14] border border-[#2BA84A]/40 rounded-2xl p-5 sm:p-6 shadow-[0_32px_80px_rgba(0,0,0,0.85),inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-xl">
+              <button
+                onClick={handleClose}
+                className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-lg bg-[#1A2620] hover:bg-[#243028] transition-colors z-10"
+              >
+                <X className="w-4 h-4 text-[#9EAAA4]" />
+              </button>
+
+              {renderContent()}
+            </div>
+          </motion.div>
+        </div>
       )}
     </AnimatePresence>
   );

@@ -21,7 +21,7 @@ import {
   Zap,
   Crown,
 } from 'lucide-react';
-import { toast } from 'sonner';
+import feedback from "@/components/ui/feedback-toast";
 import { motion } from 'framer-motion';
 import AvatarUpload from '@/components/profile/AvatarUpload';
 import {
@@ -151,18 +151,18 @@ export default function EditProfile() {
       if (result?.ok !== false) {
         setSaved(true);
         setInitialData({ ...formData });
-        toast.success(t('edit_profile.success'));
+        feedback.success(t('edit_profile.success'));
         queryClient.invalidateQueries({ queryKey: ['supabase-userProfile'] });
         setTimeout(() => navigate(-1), 650);
       } else {
         queryClient.setQueryData(['supabase-userProfile', authUser?.id], prevProfile);
         const msg = result?.error?.message || '';
         if (msg.includes('username')) setErrors({ username: t('edit_profile.error_username') });
-        else toast.error(msg || t('edit_profile.error_update'));
+        else feedback.error(msg || t('edit_profile.error_update'));
       }
     } catch {
       queryClient.setQueryData(['supabase-userProfile', authUser?.id], prevProfile);
-      toast.error(t('common.error'));
+      feedback.error(t('common.error'));
     } finally {
       setIsSubmitting(false);
     }
