@@ -209,6 +209,12 @@ function LayoutInner({ children }) {
           position="top-center"
           theme="dark"
           visibleToasts={1}
+          style={{
+            top: '50%',
+            left: '50%',
+            right: 'auto',
+            transform: 'translate(-50%, -50%)',
+          }}
         />
         
         {/* Desktop Sidebar */}
