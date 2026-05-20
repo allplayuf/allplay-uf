@@ -16,7 +16,7 @@ import { useT } from "@/i18n/LanguageProvider";
  * stacked on mobile. Uses robust date parsing so time always renders correctly
  * regardless of whether the match row has `date + time`, `starts_at`, or both.
  */
-export default function NextMatchCard({ match, venue, participants = [] }) {
+export default function NextMatchCard({ match, venue, participants = [], participantUsers: participantUsersProp }) {
   const { t } = useT();
   const [showShareModal, setShowShareModal] = useState(false);
   const [now, setNow] = useState(() => new Date());
@@ -61,12 +61,14 @@ export default function NextMatchCard({ match, venue, participants = [] }) {
   }, [startDate, now]);
 
   const participantIds = participants.slice(0, 5).map(p => p.user_id).filter(Boolean);
-  const { data: participantUsers = [] } = useQuery({
+  // Use prop if provided (pre-loaded by parent), otherwise fall back to query
+  const { data: participantUsersQueried = [] } = useQuery({
     queryKey: ['nextMatchParticipants', ...participantIds.sort()],
     queryFn: () => getUsersByIds(participantIds),
-    enabled: participantIds.length > 0,
+    enabled: participantIds.length > 0 && !participantUsersProp,
     staleTime: 60_000,
   });
+  const participantUsers = participantUsersProp ?? participantUsersQueried;
 
   // Empty state
   if (!match) {
@@ -139,8 +141,8 @@ export default function NextMatchCard({ match, venue, participants = [] }) {
         }}
       >
         {/* Ambient glow */}
-        <div className="pointer-events-none absolute -top-20 -right-16 w-56 h-56 rounded-full blur-3xl"
-          style={{ background: isUrgent ? 'rgba(244,116,59,0.22)' : 'rgba(43,168,74,0.18)' }} />
+        <div className="pointer-events-none absolute -top-20 -right-16 w-56 h-56 rounded-full blur-2xl"
+          style={{ background: isUrgent ? 'rgba(244,116,59,0.22)' : 'rgba(43,168,74,0.18)', willChange: 'transform', transform: 'translateZ(0)' }} />
 
         {/* Top hairline */}
         <div

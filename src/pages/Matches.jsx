@@ -47,27 +47,6 @@ const QUERY_KEYS = {
   completedMatches: ['supabase-completedMatches']
 };
 
-// Simple skeleton for initial loading
-const PageLoadingSkeleton = () => (
-  <div className="animate-pulse space-y-6">
-    <div className="h-8 bg-[#18221E] rounded-md w-3/4"></div>
-    <div className="h-6 bg-[#18221E] rounded-md w-1/2 mt-2"></div>
-    <div className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-[16px] p-4">
-      <div className="flex gap-2 mb-4">
-        <div className="flex-1 h-16 bg-[#18221E] rounded-[14px]"></div>
-        <div className="flex-1 h-16 bg-[#18221E] rounded-[14px]"></div>
-        <div className="flex-1 h-16 bg-[#18221E] rounded-[14px]"></div>
-      </div>
-      <div className="h-10 bg-[#18221E] rounded-[12px] w-full"></div>
-    </div>
-    <div className="space-y-4">
-      <div className="bg-[#121715] border border-[#223029] rounded-[20px] p-6 h-40"></div>
-      <div className="bg-[#121715] border border-[#223029] rounded-[20px] p-6 h-40"></div>
-      <div className="bg-[#121715] border border-[#223029] rounded-[20px] p-6 h-40"></div>
-    </div>
-  </div>
-);
-
 
 export default function MatchesPage() {
   useSEO({ title: 'Matcher – Hitta fotbollsmatcher', description: 'Bläddra bland öppna fotbollsmatcher i din stad. Gå med, skapa eller filtrera efter nivå och datum på AllPlay UF.', canonicalPath: '/matches' });
@@ -331,19 +310,6 @@ export default function MatchesPage() {
     fullest: t('matches.sort_fullest')
   };
 
-  // Only gate on venues (layout-critical). Matches stream in via infinite scroll.
-  const isLoading = isVenuesLoading;
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-          <PageLoadingSkeleton />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <PullToRefresh onRefresh={handleRefresh}>
     <div className="min-h-screen bg-[#0F1513] pb-24 lg:pb-8">
@@ -387,11 +353,7 @@ export default function MatchesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-5">
         
         {/* Tabs with Background */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-        >
+        <div>
           <Card className="bg-[#121715] border border-[#223029] shadow-[0_6px_18px_rgba(0,0,0,0.22)] rounded-2xl p-2 sm:p-3">
             {/* Premium segmented tabs — glidande pill, 3 lika breda */}
             <div
@@ -485,19 +447,25 @@ export default function MatchesPage() {
               </div>
             )}
           </Card>
-        </motion.div>
+        </div>
 
         {/* Tab Content */}
         <AnimatePresence mode="wait">
           {activeTab === 'browse' && (
             <motion.div
               key="browse"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
             >
-              {allMatches.length === 0 ? (
+              {isVenuesLoading || matchesLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="bg-[#121715] border border-[#223029] rounded-[20px] p-6 h-44 animate-pulse" />
+                  ))}
+                </div>
+              ) : allMatches.length === 0 ? (
                 <NoMatchesFound onCreateMatch={() => setShowCreateForm(true)} />
               ) : (
                 <InfiniteMatchList
@@ -505,7 +473,7 @@ export default function MatchesPage() {
                   fetchNextPage={fetchNextPage}
                   hasNextPage={hasNextPage}
                   isFetchingNextPage={isFetchingNextPage}
-                  isLoading={matchesLoading}
+                  isLoading={false}
                   venues={venues}
                   user={user}
                   participants={participantsByMatch}
@@ -522,17 +490,17 @@ export default function MatchesPage() {
           {activeTab === 'my-matches' && (
             <motion.div
               key="my-matches"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
             >
-              <MyMatches 
+              <MyMatches
                 matches={myMatches}
                 venues={venues}
                 user={user}
                 onRefresh={handleRefresh}
-                onDeleteMatch={handleDeleteMatch} 
+                onDeleteMatch={handleDeleteMatch}
                 participants={participantsByMatch}
               />
             </motion.div>
@@ -541,12 +509,12 @@ export default function MatchesPage() {
           {activeTab === 'completed' && (
             <motion.div
               key="completed"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
             >
-              <CompletedMatches 
+              <CompletedMatches
                 matches={completedMatchesData}
                 venues={venues}
                 user={user}
@@ -561,7 +529,7 @@ export default function MatchesPage() {
       <motion.button
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
-        transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.3 }}
+        transition={{ type: "spring", stiffness: 260, damping: 20 }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => { triggerHaptic('medium'); setShowCreateForm(true); }}

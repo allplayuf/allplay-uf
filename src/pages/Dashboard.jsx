@@ -34,8 +34,8 @@ import { isCupsEnabled } from "../lib/featureFlags";
 import NextMatchCard from "../components/dashboard/NextMatchCard";
 import InboxWidget from "../components/dashboard/InboxWidget";
 import DashboardHero from "../components/dashboard/DashboardHero";
-import { 
-  createMatch as supabaseCreateMatch, 
+import {
+  createMatch as supabaseCreateMatch,
   joinMatch as supabaseJoinMatch,
   getVenues,
   getMyProfile,
@@ -43,6 +43,7 @@ import {
   getMyParticipantMatchIds,
   getParticipantsForMatches,
   transformMatchData,
+  getUsersByIds,
 } from "../components/supabase/services";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { PullToRefresh } from "../components/ui/pull-to-refresh";
@@ -118,7 +119,21 @@ export default function Dashboard() {
         ? await getParticipantsForMatches(matchIds)
         : [];
 
-      return { matches, venues: venuesData, myMatchIds, participants };
+      // Pre-load user profiles for participants of first upcoming match
+      // so NextMatchCard can render avatars without a secondary network request
+      const myUpcoming = matches
+        .filter(m => m && m.status === 'upcoming')
+        .filter(m => myMatchIds.includes(m.id) || m.organizer_id === authUser?.id)
+        .sort((a, b) => new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`));
+      const firstMatchId = myUpcoming[0]?.id;
+      const firstMatchParticipantIds = firstMatchId
+        ? participants.filter(p => p.match_id === firstMatchId).slice(0, 5).map(p => p.user_id).filter(Boolean)
+        : [];
+      const firstMatchUsers = firstMatchParticipantIds.length > 0
+        ? await getUsersByIds(firstMatchParticipantIds)
+        : [];
+
+      return { matches, venues: venuesData, myMatchIds, participants, firstMatchUsers };
     },
     ...CACHE_STRATEGIES.SEMI_DYNAMIC,
     refetchOnMount: 'always', // Always fresh on tab switch
@@ -130,6 +145,7 @@ export default function Dashboard() {
   const venues = feedData?.venues ?? [];
   const myParticipantMatchIds = feedData?.myMatchIds ?? [];
   const allParticipants = feedData?.participants ?? [];
+  const firstMatchUsers = feedData?.firstMatchUsers ?? [];
   const matchesLoading = feedLoading;
   const venuesLoading = feedLoading;
 
@@ -419,14 +435,31 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Next Match Card — below the carousel, only when user has an upcoming match */}
-        {!isGuest && myUpcomingMatches.length > 0 && (
+        {/* Next Match Card — show skeleton while loading, then card when data is ready */}
+        {!isGuest && (feedLoading || myUpcomingMatches.length > 0) && (
           <motion.div variants={VARIANTS.item}>
-            <NextMatchCard
-              match={myUpcomingMatches[0]}
-              venue={myUpcomingMatches[0]?.venue || venues.find(v => v.id === myUpcomingMatches[0]?.venue_id)}
-              participants={allParticipants.filter(p => p.match_id === myUpcomingMatches[0].id)}
-            />
+            {feedLoading ? (
+              <div className="relative overflow-hidden rounded-[22px] border border-[#223029] bg-[#121715] p-5 animate-pulse">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="h-5 w-28 bg-[#18221E] rounded-full" />
+                  <div className="h-8 w-8 bg-[#18221E] rounded-xl" />
+                </div>
+                <div className="h-6 w-3/4 bg-[#18221E] rounded-md mb-1" />
+                <div className="h-4 w-1/2 bg-[#18221E] rounded-md mb-4" />
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  <div className="h-16 bg-[#18221E] rounded-xl" />
+                  <div className="h-16 bg-[#18221E] rounded-xl" />
+                </div>
+                <div className="h-11 bg-[#18221E] rounded-xl" />
+              </div>
+            ) : (
+              <NextMatchCard
+                match={myUpcomingMatches[0]}
+                venue={myUpcomingMatches[0]?.venue || venues.find(v => v.id === myUpcomingMatches[0]?.venue_id)}
+                participants={allParticipants.filter(p => p.match_id === myUpcomingMatches[0].id)}
+                participantUsers={firstMatchUsers}
+              />
+            )}
           </motion.div>
         )}
 

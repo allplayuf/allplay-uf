@@ -206,7 +206,7 @@ function LayoutInner({ children }) {
 
         <div className="h-screen flex w-full bg-[#0F1513] overflow-hidden">
         <Toaster
-          position="top-center"
+          position="bottom-center"
           theme="dark"
           closeButton
           toastOptions={{
@@ -218,10 +218,11 @@ function LayoutInner({ children }) {
               boxShadow: '0 8px 32px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.3)',
               fontSize: '14px',
               fontWeight: 500,
+              maxWidth: '340px',
             },
           }}
           containerStyle={{
-            top: 'max(16px, env(safe-area-inset-top, 16px))',
+            bottom: 'calc(5.5rem + env(safe-area-inset-bottom, 0px) + 8px)',
           }}
         />
         
