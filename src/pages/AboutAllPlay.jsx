@@ -35,8 +35,8 @@ function PolicyBlock() {
               <FileText className="w-5 h-5 text-[#9370DB]" strokeWidth={2} />
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-[#F4F7F5]">Användarpolicy</h2>
-              <p className="text-sm text-[#B6C2BC] mt-0.5">Användarvillkor & Integritetspolicy</p>
+              <h2 className="text-xl sm:text-2xl font-bold text-[#F4F7F5]">User Policy</h2>
+              <p className="text-sm text-[#B6C2BC] mt-0.5">Terms of Use & Privacy Policy</p>
             </div>
           </div>
           {open
@@ -83,25 +83,17 @@ function PolicyBlock() {
 }
 
 const STEPS = [
-  { num: '1', title: 'Hitta planer', text: 'Se fotbollsplaner nära dig via GPS i realtid.' },
-  { num: '2', title: 'Skapa en match', text: 'Välj format (5v5, 7v7 m.m.) och sätt ut datum och tid.' },
-  { num: '3', title: 'Gå med i en match', text: 'Se matcher som redan pågår nära dig och join med ett klick.' },
-  { num: '4', title: 'Nivåmatchning', text: 'Hamna med spelare på liknande nivå — roligare för alla.' },
-  { num: '5', title: 'Trygg miljö', text: 'Mobilverifiering och rapporteringsfunktion skyddar gemenskapen.' },
-];
-
-const TEAM = [
-  { name: 'Isak Landström',   role: 'CMO',  image: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/598d84457_P1090552.jpg' },
-  { name: 'Matija Cvitic',    role: 'CEO',  image: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/f63c59c55_P1090553.jpg' },
-  { name: 'Joong-seop Hong',  role: 'CTO',  image: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/9a7654026_P1090555.jpg' },
-  { name: 'Iris Waldenborg',  role: 'COO',  image: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/d19e7d62a_P1090565.jpg' },
-  { name: 'Simon Halef Schmidt', role: 'CFO', image: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/1be963c95_P1090576.jpg' },
+  { num: '1', title: 'Find pitches', text: 'See football pitches near you via real-time GPS.' },
+  { num: '2', title: 'Create a match', text: 'Choose a format (5v5, 7v7, etc.) and set a date and time.' },
+  { num: '3', title: 'Join a match', text: 'See matches already happening near you and join with one tap.' },
+  { num: '4', title: 'Skill matching', text: 'Play with players at a similar level — more fun for everyone.' },
+  { num: '5', title: 'Safe environment', text: 'Phone verification and a reporting feature protect the community.' },
 ];
 
 export default function AboutAllPlay() {
   useSEO({
-    title: 'Om AllPlay UF',
-    description: 'AllPlay UF är en ideell ungdomsförening som kopplar ihop fotbollsspelare i Sverige.',
+    title: 'About AllPlay UF',
+    description: 'AllPlay UF is a non-profit youth association connecting football players across Sweden.',
     canonicalPath: '/aboutallplay',
   });
 
@@ -117,7 +109,7 @@ export default function AboutAllPlay() {
             className="inline-flex items-center gap-2 text-[#B6C2BC] hover:text-[#F4F7F5] transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span className="font-medium">Tillbaka</span>
+            <span className="font-medium">Back</span>
           </motion.button>
         </Link>
 
@@ -131,16 +123,16 @@ export default function AboutAllPlay() {
         >
           <div className="relative h-72 sm:h-[420px] lg:h-[520px] overflow-hidden">
             <motion.img
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/afd97d702_P10905801.jpg"
-              alt="AllPlay Team"
-              className="w-full h-full object-cover"
+              src="/matija.jpg"
+              alt="Matija Cvitic — Founder of AllPlay"
+              className="w-full h-full object-cover object-top"
               initial={{ scale: 1.08 }}
               animate={{ scale: 1 }}
               transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0E0C] via-[#0A0E0C]/55 to-transparent" />
-            <div className="pointer-events-none absolute -top-24 -right-24 w-96 h-96 rounded-full blur-3xl opacity-70" style={{ background: 'rgba(43,168,74,0.28)' }} />
-            <div className="pointer-events-none absolute -bottom-20 -left-20 w-80 h-80 rounded-full blur-3xl opacity-70" style={{ background: 'rgba(244,116,59,0.20)' }} />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0E0C] via-[#0A0E0C]/40 to-transparent" />
+            <div className="pointer-events-none absolute -top-24 -right-24 w-96 h-96 rounded-full blur-3xl opacity-60" style={{ background: 'rgba(43,168,74,0.28)' }} />
+            <div className="pointer-events-none absolute -bottom-20 -left-20 w-80 h-80 rounded-full blur-3xl opacity-60" style={{ background: 'rgba(244,116,59,0.20)' }} />
 
             <motion.div
               initial={{ opacity: 0, y: -8 }}
@@ -150,7 +142,7 @@ export default function AboutAllPlay() {
             >
               <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-xl ring-1 ring-white/15 text-[11px] font-extrabold uppercase tracking-[0.16em] text-white/95">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#34C257] animate-pulse" />
-                Om AllPlay
+                About AllPlay
               </span>
             </motion.div>
           </div>
@@ -162,8 +154,8 @@ export default function AboutAllPlay() {
               transition={{ delay: 0.3, duration: 0.5 }}
               className="text-[42px] sm:text-[64px] lg:text-[76px] font-black text-white leading-[0.95] tracking-[-0.03em] mb-4 drop-shadow-[0_10px_30px_rgba(0,0,0,0.7)]"
             >
-              Fotboll,{' '}
-              <span className="text-[#34C257]">för alla.</span>
+              Football,{' '}
+              <span className="text-[#34C257]">for everyone.</span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 16 }}
@@ -171,7 +163,7 @@ export default function AboutAllPlay() {
               transition={{ delay: 0.45, duration: 0.5 }}
               className="text-[15px] sm:text-lg text-white/80 leading-relaxed max-w-2xl drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]"
             >
-              AllPlay gör spontanfotboll enkel, trygg och tillgänglig. Hitta planer, skapa matcher och gå med i spel i ditt närområde — på några sekunder.
+              AllPlay makes spontaneous football simple, safe, and accessible. Find pitches, create matches, and join games in your area — in seconds.
             </motion.p>
           </div>
         </motion.div>
@@ -179,9 +171,9 @@ export default function AboutAllPlay() {
         {/* ── WHAT IS ALLPLAY ───────────────────────────── */}
         <FadeIn delay={0.2}>
           <div className="bg-[#121715] border border-[#223029] rounded-2xl p-6 sm:p-8 shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#F4F7F5] mb-3">Vad är AllPlay?</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#F4F7F5] mb-3">What is AllPlay?</h2>
             <p className="text-base text-[#B6C2BC] leading-relaxed">
-              AllPlay är en digital plattform som kopplar ihop spelare, planer och stadsdelar genom GPS, nivåmatchning och social interaktion. Appen gör det möjligt att spela fotboll när som helst, var som helst, utan medlemskap eller krångliga anmälningar.
+              AllPlay is a digital platform that connects players, pitches, and neighbourhoods through GPS, skill-matching, and social interaction. The app lets you play football any time, anywhere — no membership or complicated sign-ups required.
             </p>
           </div>
         </FadeIn>
@@ -189,16 +181,16 @@ export default function AboutAllPlay() {
         {/* ── WHY ALLPLAY ───────────────────────────────── */}
         <FadeIn delay={0.3}>
           <div className="bg-gradient-to-br from-[#2BA84A]/10 to-[#248232]/5 border border-[#2BA84A]/30 rounded-2xl p-6 sm:p-8 shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#F4F7F5] mb-3">Varför vi startade AllPlay</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#F4F7F5] mb-3">Why we built AllPlay</h2>
             <p className="text-base text-[#B6C2BC] leading-relaxed">
-              Fotboll är världens mest inkluderande sport, men spontanfotbollen håller på att försvinna. Planerna står ofta tomma samtidigt som många unga vill spela mer men saknar lag, tider eller sociala kontakter. Kostnaderna för föreningsfotboll har ökat kraftigt, stillasittandet ökar och idrott håller på att bli en klassfråga.
+              Football is the world's most inclusive sport, but spontaneous football is disappearing. Pitches sit empty while young people want to play more but lack teams, times, or social connections. The cost of club football has risen sharply, sedentary lifestyles are increasing, and sport is becoming a class issue.
             </p>
             <div
               className="mt-5 px-5 py-4 rounded-xl"
               style={{ background: 'rgba(43,168,74,0.08)', borderLeft: '3px solid #2BA84A' }}
             >
               <p className="text-[#2BA84A] font-semibold text-sm sm:text-base italic leading-relaxed">
-                "AllPlay finns för att sänka trösklarna — så att alla kan spela, oavsett bakgrund, pengar eller nätverk."
+                "AllPlay exists to lower the barriers — so everyone can play, regardless of background, money, or connections."
               </p>
             </div>
           </div>
@@ -207,9 +199,8 @@ export default function AboutAllPlay() {
         {/* ── HOW IT WORKS ──────────────────────────────── */}
         <FadeIn delay={0.4}>
           <div className="bg-[#121715] border border-[#223029] rounded-2xl p-6 sm:p-8 shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#F4F7F5] mb-6">Så funkar AllPlay</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#F4F7F5] mb-6">How AllPlay works</h2>
             <div className="relative space-y-0">
-              {/* Vertical connector line */}
               <div
                 className="absolute left-[19px] top-8 bottom-8 w-px hidden sm:block"
                 style={{ background: 'linear-gradient(to bottom, #2BA84A44, #2BA84A11)' }}
@@ -242,72 +233,77 @@ export default function AboutAllPlay() {
           </div>
         </FadeIn>
 
-        {/* ── TEAM ──────────────────────────────────────── */}
+        {/* ── FOUNDER ───────────────────────────────────── */}
         <FadeIn delay={0.55}>
-          <div className="bg-gradient-to-br from-[#F4743B]/10 to-[#E5683A]/5 border border-[#F4743B]/30 rounded-2xl p-6 sm:p-8 shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
-            <div className="mb-6">
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#F4F7F5] mb-1">Teamet bakom AllPlay</h2>
-              <p className="text-sm text-[#B6C2BC]">Norra Real · Stockholm</p>
+          <div className="bg-[#121715] border border-[#223029] rounded-2xl overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
+            {/* Header */}
+            <div className="px-6 sm:px-8 pt-6 sm:pt-8 pb-0">
+              <span className="inline-block px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase bg-[#2BA84A]/15 text-[#2BA84A] mb-3">
+                Solo Founder
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-bold text-[#F4F7F5]">The person behind AllPlay</h2>
             </div>
 
-            {/* Grid: 2 cols, 5th centered below */}
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              {TEAM.slice(0, 4).map((m, i) => (
-                <motion.div
-                  key={m.name}
-                  initial={{ opacity: 0, scale: 0.92 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.65 + i * 0.07 }}
-                  className="flex flex-col items-center gap-3 p-4 bg-[#121715] rounded-2xl"
-                >
-                  <div className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-[#F4743B]/30 flex-shrink-0">
-                    <img src={m.image} alt={m.name} className="w-full h-full object-cover" />
+            {/* Founder card */}
+            <div className="p-6 sm:p-8">
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.65 }}
+                className="flex flex-col sm:flex-row gap-6 items-start"
+              >
+                {/* Photo */}
+                <div className="flex-shrink-0 mx-auto sm:mx-0">
+                  <div
+                    className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl overflow-hidden"
+                    style={{ boxShadow: '0 8px 32px rgba(43,168,74,0.20), 0 2px 8px rgba(0,0,0,0.5)' }}
+                  >
+                    <img
+                      src="/matija.jpg"
+                      alt="Matija Cvitic"
+                      className="w-full h-full object-cover object-top"
+                    />
                   </div>
-                  <div className="text-center">
-                    <p className="font-semibold text-[#F4F7F5] text-sm leading-tight">{m.name}</p>
-                    <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-[#F4743B]/15 text-[#F4743B]">
-                      {m.role}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 text-center sm:text-left">
+                  <h3 className="text-xl sm:text-2xl font-bold text-[#F4F7F5] leading-tight">Matija Cvitic</h3>
+                  <div className="flex items-center gap-2 mt-1.5 justify-center sm:justify-start">
+                    <span className="inline-block px-2.5 py-1 rounded-full text-xs font-bold tracking-wide bg-[#2BA84A]/15 text-[#2BA84A]">
+                      Founder & CEO
                     </span>
                   </div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* 5th member centered */}
-            <div className="flex justify-center">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.92 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.65 + 4 * 0.07 }}
-                className="flex flex-col items-center gap-3 p-4 bg-[#121715] rounded-2xl w-[calc(50%-6px)]"
-              >
-                <div className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-[#F4743B]/30 flex-shrink-0">
-                  <img src={TEAM[4].image} alt={TEAM[4].name} className="w-full h-full object-cover" />
-                </div>
-                <div className="text-center">
-                  <p className="font-semibold text-[#F4F7F5] text-sm leading-tight">{TEAM[4].name}</p>
-                  <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-[#F4743B]/15 text-[#F4743B]">
-                    {TEAM[4].role}
-                  </span>
+                  <p className="mt-4 text-[15px] text-[#B6C2BC] leading-relaxed">
+                    Matija built AllPlay from scratch to make spontaneous football accessible to everyone. Driven by a genuine love for the game and a belief that sport should have no barriers, he designs, develops, and runs the entire platform solo — from backend infrastructure to the last pixel of the UI.
+                  </p>
+                  <p className="mt-3 text-[15px] text-[#B6C2BC] leading-relaxed">
+                    Based in Stockholm, AllPlay started as a youth enterprise project at Norra Real and has grown into a real product used by players across Sweden.
+                  </p>
                 </div>
               </motion.div>
             </div>
 
-            <p className="mt-6 text-sm text-[#B6C2BC] leading-relaxed italic text-center">
-              Vi delar en enkel idé: fotbollen ska vara tillgänglig för alla, inte bara de som redan är inne i föreningslivet.
-            </p>
+            <div
+              className="mx-6 sm:mx-8 mb-6 sm:mb-8 px-5 py-4 rounded-xl"
+              style={{ background: 'rgba(43,168,74,0.06)', borderLeft: '3px solid #2BA84A' }}
+            >
+              <p className="text-[#2BA84A] font-semibold text-sm sm:text-base italic leading-relaxed">
+                "One person, one mission — make football easy for everyone."
+              </p>
+            </div>
           </div>
         </FadeIn>
 
         {/* ── VISION ────────────────────────────────────── */}
         <FadeIn delay={0.7}>
           <div className="bg-[#121715] border border-[#223029] rounded-2xl p-6 sm:p-8 shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#F4F7F5] mb-3">Vår vision</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#F4F7F5] mb-3">Our vision</h2>
             <p className="text-base text-[#B6C2BC] leading-relaxed">
-              Vår vision är att göra det lika enkelt att spela fotboll som att öppna en social media-app. AllPlay ska bli Nordens ledande plattform för spontanidrott — där fotboll, och på sikt fler sporter, samlar människor över stadsdels- och bakgrundsgränser.
+              The vision is to make playing football as easy as opening a social media app. AllPlay aims to become the Nordic platform for spontaneous sport — where football, and eventually more sports, bring people together across neighbourhoods and backgrounds.
             </p>
             <p className="text-base text-[#B6C2BC] leading-relaxed mt-3">
-              För kommuner vill vi vara ett modernt verktyg för folkhälsa, integration och tryggare kvällsmiljöer. För dig som spelare är AllPlay friheten att spela när du vill, med vem du vill.
+              For municipalities, AllPlay is a modern tool for public health, integration, and safer evenings. For you as a player, it's the freedom to play whenever you want, with whoever you want.
             </p>
           </div>
         </FadeIn>
@@ -318,8 +314,8 @@ export default function AboutAllPlay() {
         {/* ── SOCIAL LINKS ──────────────────────────────── */}
         <FadeIn delay={0.9}>
           <div className="bg-[#121715] border border-[#223029] rounded-2xl p-6 sm:p-8 shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#F4F7F5] mb-2">Häng med oss</h2>
-            <p className="text-sm text-[#7B8A83] mb-5">Följ AllPlay för uppdateringar, matcher och events.</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#F4F7F5] mb-2">Follow along</h2>
+            <p className="text-sm text-[#7B8A83] mb-5">Keep up with AllPlay for updates, matches, and events.</p>
 
             <div className="space-y-3">
               {/* Instagram */}
@@ -388,7 +384,7 @@ export default function AboutAllPlay() {
                     <p className="text-xs text-[#7B8A83]">AllPlay UF</p>
                   </div>
                 </div>
-                <ExternalLink className="w-4 h-4 text-[#7B8A83] group-hover:text-[#0A66C2] transition-colors" />
+                <ExternalLink className="w-4 h-4 text-[#7B8A83] group-hover:text-white transition-colors" />
               </a>
             </div>
           </div>

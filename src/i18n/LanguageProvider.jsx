@@ -1,7 +1,7 @@
 /**
  * Language provider — lightweight i18n.
  *
- * Two supported languages: `sv` (Swedish, default) and `en` (English).
+ * Two supported languages: `en` (English, default) and `sv` (Swedish).
  *
  *   const { t, lang, setLang } = useT();
  *   <h1>{t('nav.dashboard')}</h1>
@@ -19,7 +19,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { sv, en } from './strings';
 
 const STORAGE_KEY = 'allplay_lang';
-const DEFAULT_LANG = 'sv';
+const DEFAULT_LANG = 'en';
+const FALLBACK_LANG = 'sv';
 
 const DICTS = { sv, en };
 
@@ -28,6 +29,8 @@ const LanguageContext = createContext({
   setLang: () => {},
   t: (k) => k,
 });
+
+// Keep Swedish as the translation fallback even though English is the default.
 
 function readStoredLang() {
   try {
@@ -62,9 +65,9 @@ export function LanguageProvider({ children }) {
 
   const t = useCallback(
     (key, params) => {
-      const dict = DICTS[lang] || DICTS[DEFAULT_LANG];
+      const dict = DICTS[lang] || DICTS[FALLBACK_LANG];
       let val = dict[key];
-      if (val === undefined) val = DICTS[DEFAULT_LANG][key];
+      if (val === undefined) val = DICTS[FALLBACK_LANG][key];
       if (val === undefined) return key;
       if (typeof val === 'function') {
         try {
