@@ -498,12 +498,12 @@ export default function Dashboard() {
                 <motion.div
                   whileHover={{ scale: 1.04 }}
                   transition={{ duration: 0.6, ease: 'easeOut' }}
-                  className="relative w-full sm:w-[42%] h-48 sm:h-auto flex-shrink-0 overflow-hidden rounded-tl-[24px] rounded-tr-[24px] sm:rounded-tr-none sm:rounded-bl-[24px]"
+                  className="relative w-full sm:w-[42%] h-48 sm:h-auto sm:min-h-[220px] flex-shrink-0 overflow-hidden rounded-tl-[24px] rounded-tr-[24px] sm:rounded-tr-none sm:rounded-bl-[24px]"
                 >
                   <img
                     src="/matija.jpg"
                     alt="Matija Cvitic — Founder of AllPlay"
-                    className="w-full h-full object-cover object-top"
+                    className="absolute inset-0 w-full h-full object-cover object-top"
                   />
                   {/* Readability gradient */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#0F1513] opacity-70 hidden sm:block" />
