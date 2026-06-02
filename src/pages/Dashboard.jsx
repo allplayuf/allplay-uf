@@ -501,9 +501,9 @@ export default function Dashboard() {
                   className="relative w-full sm:w-[42%] h-48 sm:h-auto flex-shrink-0 overflow-hidden rounded-tl-[24px] rounded-tr-[24px] sm:rounded-tr-none sm:rounded-bl-[24px]"
                 >
                   <img
-                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68dbdc9e123473250628e807/afd97d702_P10905801.jpg"
-                    alt="AllPlay Team"
-                    className="w-full h-full object-cover"
+                    src="/matija.jpg"
+                    alt="Matija Cvitic — Founder of AllPlay"
+                    className="w-full h-full object-cover object-top"
                   />
                   {/* Readability gradient */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#0F1513] opacity-70 hidden sm:block" />

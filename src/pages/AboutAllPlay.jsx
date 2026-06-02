@@ -236,61 +236,45 @@ export default function AboutAllPlay() {
         {/* ── FOUNDER ───────────────────────────────────── */}
         <FadeIn delay={0.55}>
           <div className="bg-[#121715] border border-[#223029] rounded-2xl overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
-            {/* Header */}
-            <div className="px-6 sm:px-8 pt-6 sm:pt-8 pb-0">
-              <span className="inline-block px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase bg-[#2BA84A]/15 text-[#2BA84A] mb-3">
-                Solo Founder
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#F4F7F5]">The person behind AllPlay</h2>
+
+            {/* Full-width portrait */}
+            <div className="relative h-72 sm:h-96 overflow-hidden">
+              <img
+                src="/matija2.jpg"
+                alt="Matija Cvitic"
+                className="w-full h-full object-cover object-top"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#121715] via-[#121715]/20 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 px-6 sm:px-8 pb-5 flex items-end justify-between gap-3">
+                <div>
+                  <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase bg-[#2BA84A]/25 text-[#2BA84A] backdrop-blur-sm mb-2">
+                    Solo Founder
+                  </span>
+                  <h3 className="text-2xl sm:text-3xl font-black text-white leading-tight tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">Matija Cvitic</h3>
+                </div>
+                <span className="flex-shrink-0 inline-block px-3 py-1.5 rounded-full text-xs font-bold tracking-wide bg-white/10 backdrop-blur-md ring-1 ring-white/15 text-white/90">
+                  Founder & CEO
+                </span>
+              </div>
             </div>
 
-            {/* Founder card */}
-            <div className="p-6 sm:p-8">
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.65 }}
-                className="flex flex-col sm:flex-row gap-6 items-start"
-              >
-                {/* Photo */}
-                <div className="flex-shrink-0 mx-auto sm:mx-0">
-                  <div
-                    className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl overflow-hidden"
-                    style={{ boxShadow: '0 8px 32px rgba(43,168,74,0.20), 0 2px 8px rgba(0,0,0,0.5)' }}
-                  >
-                    <img
-                      src="/matija.jpg"
-                      alt="Matija Cvitic"
-                      className="w-full h-full object-cover object-top"
-                    />
-                  </div>
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 text-center sm:text-left">
-                  <h3 className="text-xl sm:text-2xl font-bold text-[#F4F7F5] leading-tight">Matija Cvitic</h3>
-                  <div className="flex items-center gap-2 mt-1.5 justify-center sm:justify-start">
-                    <span className="inline-block px-2.5 py-1 rounded-full text-xs font-bold tracking-wide bg-[#2BA84A]/15 text-[#2BA84A]">
-                      Founder & CEO
-                    </span>
-                  </div>
-                  <p className="mt-4 text-[15px] text-[#B6C2BC] leading-relaxed">
-                    Matija built AllPlay from scratch to make spontaneous football accessible to everyone. Driven by a genuine love for the game and a belief that sport should have no barriers, he designs, develops, and runs the entire platform solo — from backend infrastructure to the last pixel of the UI.
-                  </p>
-                  <p className="mt-3 text-[15px] text-[#B6C2BC] leading-relaxed">
-                    Based in Stockholm, AllPlay started as a youth enterprise project at Norra Real and has grown into a real product used by players across Sweden.
-                  </p>
-                </div>
-              </motion.div>
-            </div>
-
-            <div
-              className="mx-6 sm:mx-8 mb-6 sm:mb-8 px-5 py-4 rounded-xl"
-              style={{ background: 'rgba(43,168,74,0.06)', borderLeft: '3px solid #2BA84A' }}
-            >
-              <p className="text-[#2BA84A] font-semibold text-sm sm:text-base italic leading-relaxed">
-                "One person, one mission — make football easy for everyone."
+            {/* Bio */}
+            <div className="px-6 sm:px-8 pt-5 pb-6 sm:pb-8 space-y-3">
+              <p className="text-[15px] text-[#B6C2BC] leading-relaxed">
+                Matija is the sole creator behind AllPlay — building the entire product from scratch: infrastructure, backend, mobile experience, design, and community. Every screen you use was designed, coded, and shipped by him alone.
               </p>
+              <p className="text-[15px] text-[#B6C2BC] leading-relaxed">
+                What began as a youth enterprise project at Norra Real in Stockholm has grown into a live platform with real players across Sweden. His conviction is straightforward: spontaneous football is disappearing, and that's a problem worth solving.
+              </p>
+
+              <div
+                className="mt-2 px-5 py-4 rounded-xl"
+                style={{ background: 'rgba(43,168,74,0.07)', borderLeft: '3px solid #2BA84A' }}
+              >
+                <p className="text-[#2BA84A] font-semibold text-sm sm:text-base italic leading-relaxed">
+                  "One person, one mission — make football easy for everyone."
+                </p>
+              </div>
             </div>
           </div>
         </FadeIn>
