@@ -47,25 +47,30 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import AboutAllPlay from './pages/AboutAllPlay';
-import AccountSettings from './pages/AccountSettings';
-import Admin from './pages/Admin';
-import AdminCleanup from './pages/AdminCleanup';
-import Community from './pages/Community';
-import CreateCup from './pages/CreateCup';
-import CupDetail from './pages/CupDetail';
-import Cups from './pages/Cups';
-import Dashboard from './pages/Dashboard';
-import EditProfile from './pages/EditProfile';
-import Feedback from './pages/Feedback';
-import Home from './pages/Home';
-import LegalPolicy from './pages/LegalPolicy';
-import Map from './pages/Map';
-import MatchDetail from './pages/MatchDetail';
-import Matches from './pages/Matches';
-import Profile from './pages/Profile';
-import TeamOverview from './pages/TeamOverview';
-import TermsOfService from './pages/TermsOfService';
+// Pages are lazy-loaded so each route becomes its own chunk — static imports
+// here put leaflet, recharts, cups, admin etc. into the main bundle (~2.4 MB).
+// Layout.jsx renders children inside <Suspense>, which handles the fallback.
+import { lazy } from 'react';
+
+const AboutAllPlay = lazy(() => import('./pages/AboutAllPlay'));
+const AccountSettings = lazy(() => import('./pages/AccountSettings'));
+const Admin = lazy(() => import('./pages/Admin'));
+const AdminCleanup = lazy(() => import('./pages/AdminCleanup'));
+const Community = lazy(() => import('./pages/Community'));
+const CreateCup = lazy(() => import('./pages/CreateCup'));
+const CupDetail = lazy(() => import('./pages/CupDetail'));
+const Cups = lazy(() => import('./pages/Cups'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const EditProfile = lazy(() => import('./pages/EditProfile'));
+const Feedback = lazy(() => import('./pages/Feedback'));
+const Home = lazy(() => import('./pages/Home'));
+const LegalPolicy = lazy(() => import('./pages/LegalPolicy'));
+const Map = lazy(() => import('./pages/Map'));
+const MatchDetail = lazy(() => import('./pages/MatchDetail'));
+const Matches = lazy(() => import('./pages/Matches'));
+const Profile = lazy(() => import('./pages/Profile'));
+const TeamOverview = lazy(() => import('./pages/TeamOverview'));
+const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 import __Layout from './Layout.jsx';
 
 

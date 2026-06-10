@@ -504,6 +504,8 @@ export default function Dashboard() {
                     src="/matija.jpg"
                     alt="Matija Cvitic — Founder of AllPlay"
                     className="absolute inset-0 w-full h-full object-cover object-top"
+                    loading="lazy"
+                    decoding="async"
                   />
                   {/* Readability gradient */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#0F1513] opacity-70 hidden sm:block" />

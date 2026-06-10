@@ -34,3 +34,5 @@ dist-ssr
 *.sw?
 
 .env
+# Raw photo sources (HEIC) must never ship in builds or the repo
+*.heic

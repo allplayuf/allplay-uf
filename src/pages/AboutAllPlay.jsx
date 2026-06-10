@@ -243,6 +243,8 @@ export default function AboutAllPlay() {
                 src="/matija2.jpg"
                 alt="Matija Cvitic"
                 className="w-full h-full object-cover object-top"
+                loading="lazy"
+                decoding="async"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#121715] via-[#121715]/20 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 px-6 sm:px-8 pb-5 flex items-end justify-between gap-3">
