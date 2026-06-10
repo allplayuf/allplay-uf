@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Shield, Users, Flag, MapPin, Trophy, AlertTriangle, RefreshCw } from "lucide-react";
+import { Shield, Users, Flag, MapPin, Trophy, AlertTriangle, RefreshCw, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,6 +17,7 @@ import { PageLoadingSkeleton } from "../components/ui/loading-skeleton";
 import { getReports, handleReport } from "../components/supabase/services/reportsService";
 
 import ModerationQueue from "../components/admin/ModerationQueue";
+import AdminAnalytics from "../components/admin/AdminAnalytics";
 import UserManagement from "../components/admin/UserManagement";
 import VenueManagement from "../components/admin/VenueManagement";
 import MatchManagement from "../components/admin/MatchManagement";
@@ -171,6 +172,7 @@ export default function AdminPage() {
   ]), [users.length, matches.length, teams.length, venues.length, pendingReports, usersLoading, matchesLoading, teamsLoading, venuesLoading, reportsLoading]);
 
   const tabs = useMemo(() => ([
+    { value: 'analytics', label: 'Analys', icon: BarChart3, color: '#28A34A' },
     { value: 'users', label: 'Användare', icon: Users, color: '#2BA84A' },
     { value: 'matches', label: 'Matcher', icon: Trophy, color: '#F4743B' },
     { value: 'teams', label: 'Lag', icon: Shield, color: '#4169E1' },
@@ -289,6 +291,7 @@ export default function AdminPage() {
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
           >
+            {activeTab === 'analytics' && <AdminAnalytics />}
             {activeTab === 'users' && (
               <UserManagement
                 users={users}

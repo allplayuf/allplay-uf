@@ -9,6 +9,7 @@
 
 import { callEdgeFunction } from '../callEdgeFunction';
 import { EDGE } from '../edgeNames';
+import { track } from '@/lib/analytics';
 
 /**
  * Report a user
@@ -22,13 +23,15 @@ export async function reportUser(reportData) {
     throw new Error('Användar-ID och kategori krävs för att rapportera');
   }
   
-  return callEdgeFunction(EDGE.submitReport, {
+  const result = await callEdgeFunction(EDGE.submitReport, {
     reported_item_type: 'user',
     reported_user_id,
     category,
     description: details || null,
     match_id: match_id || null
   });
+  track('report_submitted', { type: 'user', category });
+  return result;
 }
 
 /**
@@ -66,7 +69,7 @@ export async function reportMatch(reportData) {
     throw new Error('Kategori krävs för att rapportera');
   }
   
-  return callEdgeFunction(EDGE.submitReport, {
+  const result = await callEdgeFunction(EDGE.submitReport, {
     reported_item_type: 'match',
     reported_item_id: match_id,
     match_id,
@@ -74,4 +77,6 @@ export async function reportMatch(reportData) {
     category,
     description: details || null
   });
+  track('report_submitted', { type: 'match', category });
+  return result;
 }

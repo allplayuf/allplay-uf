@@ -11,6 +11,7 @@
 
 import { callEdgeFunction } from '../callEdgeFunction';
 import { sessionStore } from '../client';
+import { track } from '@/lib/analytics';
 
 const FN = 'friendships_action';
 
@@ -55,7 +56,9 @@ export async function sendFriendRequest(targetUserId) {
     throw new Error('Du kan inte lägga till dig själv som vän.');
   }
 
-  return await callEdgeFunction(FN, { action: 'send', target_id: targetUserId });
+  const result = await callEdgeFunction(FN, { action: 'send', target_id: targetUserId });
+  track('friend_request_sent', { result: result?.action || 'created' });
+  return result;
 }
 
 /**
@@ -63,6 +66,7 @@ export async function sendFriendRequest(targetUserId) {
  */
 export async function acceptFriendRequest(friendshipId) {
   const res = await callEdgeFunction(FN, { action: 'accept', friendship_id: friendshipId });
+  track('friend_request_accepted');
   return res?.friendship;
 }
 
@@ -70,7 +74,9 @@ export async function acceptFriendRequest(friendshipId) {
  * Decline/delete a friend request or remove an existing friendship.
  */
 export async function declineFriendRequest(friendshipId) {
-  return await callEdgeFunction(FN, { action: 'decline', friendship_id: friendshipId });
+  const result = await callEdgeFunction(FN, { action: 'decline', friendship_id: friendshipId });
+  track('friend_request_declined');
+  return result;
 }
 
 export async function removeFriendship(friendshipId) {

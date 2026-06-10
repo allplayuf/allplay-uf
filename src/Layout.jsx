@@ -24,6 +24,7 @@ import PushNotificationInit from "@/components/push/PushNotificationInit";
 import GlassHeader from "@/components/layout/GlassHeader";
 import GlassBottomNav from "@/components/layout/GlassBottomNav";
 import { LanguageProvider, useT } from "@/i18n/LanguageProvider";
+import { initAnalytics, trackPageview } from "@/lib/analytics";
 
 // Guest banner wrapper that uses Supabase auth state
 // Must be rendered INSIDE SupabaseAuthProvider (it's in LayoutInner)
@@ -36,6 +37,9 @@ function GuestBannerWrapper() {
 
 // Initialize Supabase on app load
 initSupabase().catch(console.error);
+
+// Initialize PostHog analytics on app load (no-op without VITE_POSTHOG_API_KEY)
+initAnalytics();
 
 // Prevent iOS from stealing audio focus from background music (Spotify, Apple Music, etc.)
 // By creating a silent AudioContext with "ambient" mixing, iOS won't pause other apps' audio.
@@ -135,6 +139,11 @@ function LayoutInner({ children }) {
     'Community': createPageUrl('Community'),
     'Profile': createPageUrl('Profile')
   });
+
+  // Manual SPA pageviews (posthog capture_pageview is off)
+  useEffect(() => {
+    trackPageview(location.pathname);
+  }, [location.pathname]);
 
   // Update tab paths when location changes
   useEffect(() => {

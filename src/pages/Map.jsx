@@ -19,6 +19,8 @@ import {
   transformMatchData
 } from "../components/supabase/services";
 
+import { track } from "@/lib/analytics";
+
 import MapView from "../components/map/MapView";
 import VenueCard from "../components/map/VenueCard";
 import VenueDetailModal from "../components/map/VenueDetailModal";
@@ -287,19 +289,23 @@ export default function MapPage() {
   };
 
   const handleVenueClick = (venue) => {
+    track('map_venue_selected', { venue_id: venue?.id, venue_name: venue?.name, city: venue?.city });
     setSelectedVenue(venue);
   };
 
   const handleShowDetails = (venue) => {
+    track('map_venue_details_opened', { venue_id: venue?.id, venue_name: venue?.name });
     setSelectedVenueForModal(venue);
     setShowVenueModal(true);
   };
 
   const handleCreateMatchForVenue = (venue) => {
+    track('map_create_match_clicked', { venue_id: venue?.id, venue_name: venue?.name });
     navigate(`${createPageUrl("Matches")}?create=true&venue=${venue.id}`);
   };
 
   const handleMatchClick = (matchId) => {
+    track('map_match_opened', { match_id: matchId });
     navigate(`${createPageUrl("MatchDetail")}?id=${matchId}`);
   };
 

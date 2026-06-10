@@ -6,6 +6,7 @@ import { useSupabaseAuth } from '@/components/supabase/AuthProvider';
 import { base44 } from '@/api/base44Client';
 import { triggerHaptic } from '@/components/utils/motionTokens';
 import { useT } from '@/i18n/LanguageProvider';
+import { track } from '@/lib/analytics';
 
 export const ONBOARDING_STORAGE_KEY = 'allplay_onboarding_completed_v3';
 export const ONBOARDING_EVENT = 'allplay:show-onboarding';
@@ -883,9 +884,18 @@ export function OnboardingModal() {
       localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
       return;
     }
-    const t = setTimeout(() => setOpen(true), 450);
+    const t = setTimeout(() => {
+      setOpen(true);
+      track('onboarding_started');
+    }, 450);
     return () => clearTimeout(t);
   }, []);
+
+  // Funnel: one event per slide actually seen
+  useEffect(() => {
+    if (!open) return;
+    track('onboarding_slide_viewed', { slide: SLIDES[slide]?.id, index: slide });
+  }, [open, slide]);
 
   // Replay from Settings
   useEffect(() => {
@@ -924,6 +934,7 @@ export function OnboardingModal() {
   const complete = useCallback(async () => {
     isReplayRef.current = false;
     localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
+    track('onboarding_completed');
     try {
       const isAuth = await base44.auth.isAuthenticated();
       if (isAuth) {

@@ -23,6 +23,7 @@ import { Capacitor } from '@capacitor/core';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/components/supabase/config';
 import { sessionStore, waitForAuth } from '@/components/supabase/client';
+import { track } from '@/lib/analytics';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const isUuid = (v) => typeof v === 'string' && UUID_RE.test(v);
@@ -160,6 +161,7 @@ export async function initPushNotifications(userId, options = {}) {
     if (receive === 'prompt' || receive === 'prompt-with-rationale') {
       const requested = await PushNotifications.requestPermissions();
       receive = requested.receive;
+      track('push_permission_answered', { result: receive });
     }
     if (receive !== 'granted') return { ok: false, reason: receive };
 

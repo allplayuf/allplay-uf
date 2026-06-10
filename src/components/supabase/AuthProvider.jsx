@@ -14,6 +14,7 @@ import { primeUsers } from './services/userCache';
 import { checkIsAdmin, clearAdminCache } from './services/adminService';
 import { initPushNotifications } from '@/lib/pushNotifications';
 import { generateCodeVerifier, generateCodeChallenge, generateRawNonce, hashNonce } from '@/lib/pkce';
+import { identifyUser, resetAnalytics, track } from '@/lib/analytics';
 import { SUPABASE_URL } from './config';
 
 let pushInitializedFor = null;
@@ -56,7 +57,12 @@ export function SupabaseAuthProvider({ children }) {
         setAuthState(sessionStore.authState);
         setUser(sessionStore.user);
         setRoles(sessionStore.roles);
-        
+
+        // Tie analytics events to the restored session
+        if (sessionStore.authState === AUTH_STATES.AUTHENTICATED && sessionStore.user?.id) {
+          identifyUser(sessionStore.user);
+        }
+
       } catch (e) {
         // Init failed - guest mode is valid state, not an error
         if (isMounted) {
@@ -80,6 +86,7 @@ export function SupabaseAuthProvider({ children }) {
       
       // Prime cache with current user
       if (state.authState === AUTH_STATES.AUTHENTICATED && state.user?.id) {
+        identifyUser(state.user);
         primeUsers([state.user]);
         if (pushInitializedFor !== state.user.id) {
           pushInitializedFor = state.user.id;
@@ -106,11 +113,14 @@ export function SupabaseAuthProvider({ children }) {
 
     // User is now authenticated AND synced to Base44
     // They have immediate full access
+    track('signed_in', { method: 'email' });
     return { success: true, data: result.data };
   }, []);
 
   // Logout function
   const logout = useCallback(() => {
+    track('signed_out');
+    resetAnalytics();
     clearAdminCache();
     supabaseClient.logout();
     setError(null);
@@ -151,12 +161,14 @@ export function SupabaseAuthProvider({ children }) {
           setError(authResult.error.message);
           return { success: false, error: authResult.error };
         }
+        track('signed_in', { method: 'apple' });
         return { success: true };
       } else {
         // Web: PKCE redirect
         const verifier = generateCodeVerifier();
         const challenge = await generateCodeChallenge(verifier);
         localStorage.setItem('allplay_pkce_verifier', verifier);
+        localStorage.setItem('allplay_oauth_provider', 'apple');
         const callbackUrl = `${window.location.origin}/auth/callback`;
         window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=apple&redirect_to=${encodeURIComponent(callbackUrl)}&code_challenge=${challenge}&code_challenge_method=s256`;
         return { success: true, redirecting: true };
@@ -179,6 +191,7 @@ export function SupabaseAuthProvider({ children }) {
       const verifier = generateCodeVerifier();
       const challenge = await generateCodeChallenge(verifier);
       localStorage.setItem('allplay_pkce_verifier', verifier);
+      localStorage.setItem('allplay_oauth_provider', 'google');
       const callbackUrl = `${window.location.origin}/auth/callback`;
       window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(callbackUrl)}&code_challenge=${challenge}&code_challenge_method=s256`;
       return { success: true, redirecting: true };

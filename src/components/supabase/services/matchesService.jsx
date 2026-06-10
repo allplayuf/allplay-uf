@@ -13,6 +13,7 @@
 import { callEdgeFunction, callPublicEdgeFunction } from '../callEdgeFunction';
 import { getAuthHeaders, SUPABASE_URL } from '../config';
 import { EDGE } from '../edgeNames';
+import { track } from '@/lib/analytics';
 
 // Dev mode check for console logging
 const IS_DEV = typeof window !== 'undefined' && 
@@ -101,7 +102,17 @@ export async function createMatch(payload) {
     is_spontaneous: matchData.is_spontaneous || false
   };
 
-  return callEdgeFunction(EDGE.createMatch, backendPayload);
+  const result = await callEdgeFunction(EDGE.createMatch, backendPayload);
+  track('match_created', {
+    match_id: result?.match?.id || result?.id || null,
+    venue_id: venueUuid,
+    format: backendPayload.format,
+    level,
+    is_public: backendPayload.is_public,
+    is_spontaneous: backendPayload.is_spontaneous,
+    max_players: backendPayload.max_players,
+  });
+  return result;
 }
 
 // Export for use in other components
@@ -113,7 +124,9 @@ export { VALID_LEVELS, LEVEL_MAP, normalizeLevel };
  * @param {string} matchId - Match UUID
  */
 export async function joinMatch(matchId) {
-  return callEdgeFunction(EDGE.joinMatch, { match_id: matchId });
+  const result = await callEdgeFunction(EDGE.joinMatch, { match_id: matchId });
+  track('match_joined', { match_id: matchId });
+  return result;
 }
 
 /**
@@ -125,6 +138,7 @@ export async function leaveMatch(matchId) {
   console.log('[matchesService] leaveMatch called with matchId:', matchId);
   const result = await callEdgeFunction(EDGE.leaveMatch, { match_id: matchId });
   console.log('[matchesService] leaveMatch result:', result);
+  track('match_left', { match_id: matchId });
   return result;
 }
 
@@ -136,11 +150,13 @@ export async function leaveMatch(matchId) {
  * @param {number} userLng - User longitude
  */
 export async function checkInMatch(matchId, userLat, userLng) {
-  return callEdgeFunction(EDGE.checkInMatch, {
+  const result = await callEdgeFunction(EDGE.checkInMatch, {
     match_id: matchId,
     user_lat: userLat,
     user_lng: userLng
   });
+  track('match_checked_in', { match_id: matchId });
+  return result;
 }
 
 /**
@@ -283,8 +299,10 @@ export async function finishMatch(matchId, { home_score, away_score, notes } = {
   if (home_score !== undefined && home_score !== null) payload.home_score = home_score;
   if (away_score !== undefined && away_score !== null) payload.away_score = away_score;
   if (notes) payload.notes = notes;
-  
-  return callEdgeFunction(EDGE.finishMatch, payload);
+
+  const result = await callEdgeFunction(EDGE.finishMatch, payload);
+  track('match_finished', { match_id: matchId, has_score: payload.home_score !== undefined });
+  return result;
 }
 
 /**
@@ -297,7 +315,9 @@ export async function deleteMatch(matchId) {
   if (!matchId) {
     throw new Error('matchId is required');
   }
-  return callEdgeFunction(EDGE.deleteMatch, { match_id: matchId });
+  const result = await callEdgeFunction(EDGE.deleteMatch, { match_id: matchId });
+  track('match_deleted', { match_id: matchId });
+  return result;
 }
 
 /**

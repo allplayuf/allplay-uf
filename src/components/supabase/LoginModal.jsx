@@ -9,6 +9,7 @@ import { useSupabaseAuth } from './AuthProvider';
 import ConsentGate from '@/components/legal/ConsentGate';
 import { CONSENT_VERSION, CONSENT_DOC } from '@/components/legal/consentConstants';
 import { triggerHaptic } from '@/components/utils/motionTokens';
+import { track } from '@/lib/analytics';
 
 /* ─── Logos ─── */
 function AppleLogo({ className }) {
@@ -217,6 +218,7 @@ export default function LoginModal({ isOpen, onClose, onSuccess, inline = false,
         try { localStorage.setItem('allplay_pending_consent', JSON.stringify({ version: CONSENT_VERSION, doc: CONSENT_DOC, accepted_at: new Date().toISOString() })); } catch { /* ignore */ }
         try { if (fullName) localStorage.setItem('allplay_pending_fullname', fullName); } catch { /* ignore */ }
 
+        track('signed_up', { method: 'email', email_confirmation_required: true });
         setSuccessMessage('Konto skapat! Vi har skickat ett verifieringsmail till ' + email + '. Klicka på länken i mailet och logga sedan in. Kolla även skräpposten.');
         setMode('login');
         setPassword('');
@@ -238,6 +240,7 @@ export default function LoginModal({ isOpen, onClose, onSuccess, inline = false,
           setConsentError('Kunde inte spara samtycke. Försök igen.');
           return;
         }
+        track('signed_up', { method: 'email', email_confirmation_required: false });
         onSuccess?.(); onClose();
         return;
       }

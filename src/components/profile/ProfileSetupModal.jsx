@@ -6,6 +6,7 @@ import { useSupabaseAuth } from '@/components/supabase';
 import { getMyProfile, updateProfile } from '@/components/supabase/services';
 import { UploadFile } from '@/components/supabase/integrations';
 import { CACHE_STRATEGIES } from '@/components/providers/QueryProvider';
+import { track } from '@/lib/analytics';
 
 const USERNAME_REGEX = /^[a-z0-9._]{3,30}$/;
 
@@ -349,6 +350,11 @@ export function ProfileSetupModal() {
         ...(formData.skill_level                && { skill_level:  formData.skill_level }),
       });
       queryClient.invalidateQueries({ queryKey: ['supabase-userProfile', user?.id] });
+      track('profile_setup_completed', {
+        has_avatar: !!formData.avatar_url,
+        has_city: !!formData.city.trim(),
+        skill_level: formData.skill_level || null,
+      });
       setDone(true);
     } catch (err) {
       const msg = (err?.message || '').toLowerCase();

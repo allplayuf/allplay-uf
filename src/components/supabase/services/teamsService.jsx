@@ -10,6 +10,7 @@ import { callEdgeFunction } from '../callEdgeFunction';
 import { getAuthHeaders, SUPABASE_URL } from '../config';
 import { sessionStore, waitForAuth } from '../client';
 import { EDGE } from '../edgeNames';
+import { track } from '@/lib/analytics';
 
 // Alias for backward compat inside this file
 const supabaseHeaders = () => getAuthHeaders();
@@ -246,6 +247,7 @@ export async function createTeam(data) {
     throw new Error(result.error);
   }
 
+  track('team_created', { team_id: result?.team?.id || result?.id || null, city: payload.city, is_public: payload.is_public });
   return result;
 }
 
@@ -313,7 +315,9 @@ export async function inviteToTeam(teamId, userId) {
 export async function requestJoinTeam(teamId) {
   const userId = sessionStore.user?.id;
   if (!userId) throw new Error('Du måste vara inloggad');
-  return inviteToTeam(teamId, userId);
+  const result = await inviteToTeam(teamId, userId);
+  if (result?.ok) track('team_join_requested', { team_id: teamId });
+  return result;
 }
 
 function getMaxPlayers(format) {
@@ -383,6 +387,7 @@ export async function sendTeamChallenge({ challengerTeamId, challengedTeamId, fo
     throw new Error(`Kunde inte skicka utmaning: ${res.status} ${text}`);
   }
   const data = await res.json();
+  track('team_challenge_sent', { challenger_team_id: challengerTeamId, challenged_team_id: challengedTeamId, format: format || '5v5' });
   return data?.[0] || null;
 }
 
@@ -447,6 +452,7 @@ export async function acceptTeamChallenge(challenge) {
     body: JSON.stringify({ status: 'accepted', match_id: match.id, updated_at: new Date().toISOString() }),
   });
 
+  track('team_challenge_accepted', { challenge_id: challenge.id, match_id: match.id });
   return { match };
 }
 

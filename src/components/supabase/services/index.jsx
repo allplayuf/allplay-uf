@@ -118,6 +118,11 @@ export {
   getCachedAdminStatus
 } from './adminService';
 
+// Analytics (admin only)
+export {
+  getAdminAnalytics
+} from './analyticsService';
+
 // Venue Availability
 export {
   listVenueAvailability,

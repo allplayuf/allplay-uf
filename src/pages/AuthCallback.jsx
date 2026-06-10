@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabaseClient, sessionStore, AUTH_STATES } from '@/components/supabase/client';
+import { track } from '@/lib/analytics';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -40,6 +41,11 @@ export default function AuthCallback() {
     // Navigate as soon as session becomes AUTHENTICATED (set by exchange below)
     const unsubscribe = sessionStore.subscribe((state) => {
       if (isMounted && state.authState === AUTH_STATES.AUTHENTICATED) {
+        const provider = localStorage.getItem('allplay_oauth_provider');
+        if (provider) {
+          track('signed_in', { method: provider });
+          localStorage.removeItem('allplay_oauth_provider');
+        }
         goToDashboard();
       }
     });

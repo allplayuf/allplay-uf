@@ -30,12 +30,17 @@ import { getVenues, getUsersByIds, getMyProfile, getMyTeams, joinTeamMatchAsTeam
 import { sendFriendRequest, getMyFriendships } from "../components/supabase/services/friendshipsService";
 import { useSupabaseAuth } from "../components/supabase/AuthProvider";
 import { useT } from "../i18n/LanguageProvider";
+import { track } from "@/lib/analytics";
 
 export default function MatchDetailPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const matchId = new URLSearchParams(location.search).get("id");
   const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    if (matchId) track('match_detail_viewed', { match_id: matchId });
+  }, [matchId]);
 
   const [showEndModal, setShowEndModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
