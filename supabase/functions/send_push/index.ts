@@ -1,4 +1,11 @@
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+// Manual / programmatic push endpoint. Accepts a single user_id or a
+// user_ids array and delivers via the shared sendPushNotification helper
+// (Expo Push API for ExponentPushToken[...], direct APNs for raw tokens).
+//
+// Auth: service-role key OR any authenticated user JWT.
+
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendPushNotification } from '../_shared/push.ts';
 
 const ALLOWED_ORIGINS = [
   'https://allplayuf.se',
@@ -21,50 +28,6 @@ function corsHeaders(origin: string | null): Record<string, string> {
   };
 }
 
-// ── APNs JWT — generated per-call (valid 1h, but we keep it simple) ──────────
-
-function base64url(buf: ArrayBuffer): string {
-  return btoa(String.fromCharCode(...new Uint8Array(buf)))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-}
-
-function encodeJson(obj: unknown): string {
-  return base64url(new TextEncoder().encode(JSON.stringify(obj)).buffer as ArrayBuffer);
-}
-
-async function buildApnsJwt(keyId: string, teamId: string, p8Pem: string): Promise<string> {
-  // Strip PEM header/footer and whitespace, decode to DER
-  const b64 = p8Pem
-    .replace(/-----BEGIN PRIVATE KEY-----/, '')
-    .replace(/-----END PRIVATE KEY-----/, '')
-    .replace(/\s+/g, '');
-  const der = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-
-  const key = await crypto.subtle.importKey(
-    'pkcs8',
-    der.buffer as ArrayBuffer,
-    { name: 'ECDSA', namedCurve: 'P-256' },
-    false,
-    ['sign'],
-  );
-
-  const header = encodeJson({ alg: 'ES256', kid: keyId });
-  const payload = encodeJson({ iss: teamId, iat: Math.floor(Date.now() / 1000) });
-  const signingInput = `${header}.${payload}`;
-
-  const sig = await crypto.subtle.sign(
-    { name: 'ECDSA', hash: 'SHA-256' },
-    key,
-    new TextEncoder().encode(signingInput),
-  );
-
-  return `${signingInput}.${base64url(sig)}`;
-}
-
-// ── Handler ───────────────────────────────────────────────────────────────────
-
 Deno.serve(async (req) => {
   const origin = req.headers.get('origin');
   const cors = corsHeaders(origin);
@@ -83,13 +46,7 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
     const isServiceRole = authHeader === `Bearer ${serviceRoleKey}`;
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      serviceRoleKey,
-    );
-
     if (!isServiceRole) {
-      // Verify JWT is a valid user token
       const anonClient = createClient(
         Deno.env.get('SUPABASE_URL')!,
         Deno.env.get('SUPABASE_ANON_KEY')!,
@@ -102,81 +59,34 @@ Deno.serve(async (req) => {
     }
 
     // ── Parse body ──
-    const { user_id, title, body: msgBody, data } = await req.json();
-    if (!user_id || !title || !msgBody) {
-      return Response.json({ error: 'user_id, title, body required' }, { status: 400, headers: cors });
+    const { user_id, user_ids, title, title_en, body: msgBody, body_en, data } = await req.json();
+    const ids: string[] = Array.isArray(user_ids) ? user_ids : (user_id ? [user_id] : []);
+
+    if (ids.length === 0 || !title || !msgBody) {
+      return Response.json(
+        { error: 'user_id (or user_ids), title, body required' },
+        { status: 400, headers: cors },
+      );
     }
 
-    // ── Look up device token ──
-    const { data: devices, error: dbErr } = await supabase
-      .from('user_devices')
-      .select('id, expo_push_token')
-      .eq('user_id', user_id)
-      .eq('platform', 'ios')
-      .limit(1);
+    const result = await sendPushNotification(
+      ids,
+      { sv: title, en: title_en ?? title },
+      { sv: msgBody, en: body_en ?? msgBody },
+      data ?? {},
+    );
 
-    if (dbErr) throw dbErr;
-    if (!devices || devices.length === 0) {
+    if (result.error) {
+      return Response.json({ sent: false, error: result.error }, { status: 500, headers: cors });
+    }
+    if (result.total === 0) {
       return Response.json({ sent: false, reason: 'no_device_token' }, { headers: cors });
     }
 
-    const { id: deviceRowId, expo_push_token: deviceToken } = devices[0];
-
-    // ── APNs config ──
-    const keyId    = Deno.env.get('APNS_KEY_ID')!;
-    const teamId   = Deno.env.get('APNS_TEAM_ID')!;
-    const bundleId = Deno.env.get('APNS_BUNDLE_ID')!;
-    const p8Pem    = Deno.env.get('APNS_PRIVATE_KEY')!;
-
-    if (!keyId || !teamId || !bundleId || !p8Pem) {
-      return Response.json({ error: 'APNs env vars not configured' }, { status: 500, headers: cors });
-    }
-
-    const jwt = await buildApnsJwt(keyId, teamId, p8Pem);
-
-    const apnsPayload = {
-      aps: { alert: { title, body: msgBody }, sound: 'default', badge: 1 },
-      ...(data ?? {}),
-    };
-
-    const apnsRes = await fetch(
-      `https://api.push.apple.com/3/device/${deviceToken}`,
-      {
-        method: 'POST',
-        headers: {
-          'authorization': `bearer ${jwt}`,
-          'apns-topic': bundleId,
-          'apns-push-type': 'alert',
-          'apns-priority': '10',
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify(apnsPayload),
-      },
+    return Response.json(
+      { sent: result.sent > 0, delivered: result.sent, total: result.total, cleaned: result.cleaned },
+      { headers: cors },
     );
-
-    // 410 = token permanently invalid — clean up
-    if (apnsRes.status === 410) {
-      await supabase.from('user_devices').delete().eq('id', deviceRowId);
-      return Response.json({ sent: false, reason: 'token_expired_deleted' }, { headers: cors });
-    }
-
-    // 400 with BadDeviceToken — also clean up
-    if (apnsRes.status === 400) {
-      const apnsBody = await apnsRes.json().catch(() => ({}));
-      if (apnsBody?.reason === 'BadDeviceToken') {
-        await supabase.from('user_devices').delete().eq('id', deviceRowId);
-        return Response.json({ sent: false, reason: 'bad_device_token_deleted' }, { headers: cors });
-      }
-      return Response.json({ sent: false, error: apnsBody }, { status: 400, headers: cors });
-    }
-
-    if (apnsRes.status !== 200) {
-      const errBody = await apnsRes.text().catch(() => '');
-      return Response.json({ sent: false, error: errBody, apns_status: apnsRes.status }, { headers: cors });
-    }
-
-    return Response.json({ sent: true }, { headers: cors });
-
   } catch (err) {
     console.error('[send_push] error:', err);
     return Response.json({ error: String(err) }, { status: 500, headers: cors });

@@ -1,9 +1,19 @@
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+// Scheduled worker (pg_cron, every minute):
+//   1. Drains notification_queue (rows enqueued by DB triggers: friend
+//      requests, team invites, soft-cancelled matches, player_left, ...)
+//   2. Sends MATCH_STARTING_SOON reminders 120 min and 30 min before
+//      starts_at to all joined players (flags: reminder_120_sent /
+//      reminder_sent on matches).
+//
+// Delivery goes through the shared sendPushNotification helper (Expo Push
+// API for ExponentPushToken[...], direct APNs for raw device tokens).
+
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendPushNotification } from '../_shared/push.ts';
 
 Deno.serve(async (_req) => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
   const serviceKey  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  const anonKey     = Deno.env.get('SUPABASE_ANON_KEY')!;
 
   const supabase = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
   const stats = { processed: 0, skipped: 0, errors: 0, reminders: 0 };
@@ -17,71 +27,84 @@ Deno.serve(async (_req) => {
     .limit(50);
 
   for (const job of queue ?? []) {
+    // DB triggers enqueue Swedish title/body and may put English variants in
+    // data.title_en / data.body_en — lift those out for per-device locale.
+    const { title_en, body_en, ...jobData } = (job.data ?? {}) as Record<string, unknown>;
+    const result = await sendPushNotification(
+      [job.user_id],
+      { sv: job.title, en: (title_en as string) ?? job.title },
+      { sv: job.body, en: (body_en as string) ?? job.body },
+      jobData,
+      supabase,
+    );
+
     let jobError: string | null = null;
-    try {
-      const res = await fetch(`${supabaseUrl}/functions/v1/send_push`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${serviceKey}`,
-          'apikey': anonKey,
-        },
-        body: JSON.stringify({
-          user_id: job.user_id,
-          title:   job.title,
-          body:    job.body,
-          data:    job.data,
-        }),
-      });
-      const result = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        jobError = JSON.stringify(result);
-        stats.errors++;
-      } else if (result.sent === false && result.reason === 'no_device_token') {
-        stats.skipped++;
-      } else {
-        stats.processed++;
-      }
-    } catch (e) {
-      jobError = String(e);
+    if (result.error) {
+      jobError = result.error;
       stats.errors++;
+    } else if (result.total === 0) {
+      stats.skipped++; // user has no registered device
+    } else {
+      stats.processed++;
     }
+
     await supabase
       .from('notification_queue')
       .update({ processed_at: new Date().toISOString(), error: jobError })
       .eq('id', job.id);
   }
 
-  // ── 2. 30-minute match reminders ────────────────────────────────────────────
-  const now   = new Date();
-  const win25 = new Date(now.getTime() + 25 * 60_000).toISOString();
-  const win35 = new Date(now.getTime() + 35 * 60_000).toISOString();
+  // ── 2. MATCH_STARTING_SOON — 120 min and 30 min before starts_at ───────────
+  const REMINDERS = [
+    { minutes: 120, flag: 'reminder_120_sent' },
+    { minutes: 30,  flag: 'reminder_sent' },
+  ] as const;
 
-  const { data: upcoming } = await supabase
-    .from('matches')
-    .select('id, title')
-    .eq('status', 'upcoming')
-    .eq('reminder_sent', false)
-    .gte('starts_at', win25)
-    .lte('starts_at', win35);
+  const now = Date.now();
 
-  for (const match of upcoming ?? []) {
-    const { data: players } = await supabase
-      .from('match_players')
-      .select('user_id')
-      .eq('match_id', match.id)
-      .in('status', ['joined', 'checked_in']);
+  for (const { minutes, flag } of REMINDERS) {
+    // ±5 min window around the target so a once-a-minute cron can't miss it
+    const winLo = new Date(now + (minutes - 5) * 60_000).toISOString();
+    const winHi = new Date(now + (minutes + 5) * 60_000).toISOString();
 
-    const rows = (players ?? []).map((p) => ({
-      user_id: p.user_id,
-      title:   '⚽ Match om 30 min!',
-      body:    (match.title ?? 'Din match') + ' börjar snart — ta dig dit!',
-      data:    { match_id: match.id },
-    }));
+    const { data: upcoming } = await supabase
+      .from('matches')
+      .select('id, title, venue:venues(name)')
+      .eq('status', 'upcoming')
+      .eq(flag, false)
+      .gte('starts_at', winLo)
+      .lte('starts_at', winHi);
 
-    if (rows.length > 0) await supabase.from('notification_queue').insert(rows);
-    await supabase.from('matches').update({ reminder_sent: true }).eq('id', match.id);
-    stats.reminders += rows.length;
+    for (const match of upcoming ?? []) {
+      // Flag first so a crash mid-send can't double-notify on the next run
+      await supabase.from('matches').update({ [flag]: true }).eq('id', match.id);
+
+      const { data: players } = await supabase
+        .from('match_players')
+        .select('user_id')
+        .eq('match_id', match.id)
+        .in('status', ['joined', 'checked_in']);
+
+      const userIds = (players ?? []).map((p) => p.user_id);
+      if (userIds.length === 0) continue;
+
+      const venueName = (match as any).venue?.name ?? match.title ?? 'din match';
+      const venueNameEn = (match as any).venue?.name ?? match.title ?? 'your match';
+      const result = await sendPushNotification(
+        userIds,
+        {
+          sv: `🕐 Match om ${minutes} minuter`,
+          en: `🕐 Match in ${minutes} minutes`,
+        },
+        {
+          sv: `Din match på ${venueName} börjar om ${minutes} minuter`,
+          en: `Your match at ${venueNameEn} starts in ${minutes} minutes`,
+        },
+        { type: 'MATCH_STARTING_SOON', match_id: match.id, minutes },
+        supabase,
+      );
+      stats.reminders += result.sent;
+    }
   }
 
   return Response.json(stats);

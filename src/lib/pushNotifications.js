@@ -62,6 +62,22 @@ export function resolveNotificationRoute(data = {}) {
   return null;
 }
 
+/**
+ * Locale the server should use for this device's push notifications:
+ * the in-app language choice wins; otherwise the phone/browser language.
+ * Server-side the default is Swedish — only 'en*' switches to English.
+ */
+function getPushLocale() {
+  try {
+    const stored = localStorage.getItem('allplay_lang');
+    if (stored === 'sv' || stored === 'en') return stored;
+  } catch {
+    /* localStorage blocked — fall through to device language */
+  }
+  const nav = (navigator.language || '').toLowerCase();
+  return nav.startsWith('sv') ? 'sv' : 'en';
+}
+
 async function upsertDeviceToken(userId, token) {
   await waitForAuth();
   const res = await fetch(`${SUPABASE_URL}/rest/v1/user_devices`, {
@@ -74,8 +90,12 @@ async function upsertDeviceToken(userId, token) {
     },
     body: JSON.stringify({
       user_id: userId,
-      device_token: token,
+      // Column name is historical — it holds whatever token the device
+      // registered with (raw APNs token on Capacitor iOS, or an
+      // ExponentPushToken). The edge helper handles both formats.
+      expo_push_token: token,
       platform: Capacitor.getPlatform(),
+      locale: getPushLocale(),
       updated_at: new Date().toISOString(),
     }),
   });
