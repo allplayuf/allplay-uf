@@ -11,9 +11,12 @@ import { waitForAuth } from '../client';
 
 /**
  * Columns guaranteed to exist in the public.users view.
- * After the SQL migration more columns may exist, but these always work.
+ * NOTE: no email — the view no longer exposes it (privacy hardening).
  */
-const SAFE_SELECT = 'id,full_name,username,email,avatar_url,elo_rating';
+const SAFE_SELECT = 'id,full_name,username,avatar_url,elo_rating';
+
+/** Full column list of the public.users view (post privacy migration). */
+const FULL_SELECT = 'id,full_name,username,avatar_url,bio,city,skill_level,birth_year,elo_rating,matches_played,mvp_count,is_admin,display_name,rank_tier,rank_division';
 
 // Use shared header builder
 const buildHeaders = () => getAuthHeaders();
@@ -58,8 +61,9 @@ export async function searchPlayers({ search = '', limit = 50, offset = 0 } = {}
   await waitForAuth();
   const headers = await buildHeaders();
 
-  // Try extended select first (after SQL migration), fall back to safe select
-  let url = `${SUPABASE_URL}/rest/v1/users?select=*&order=full_name.asc`;
+  // Explicit columns — select=* would fail on any column the client role
+  // lacks privileges for, and the view shape is known.
+  let url = `${SUPABASE_URL}/rest/v1/users?select=${FULL_SELECT}&order=full_name.asc`;
 
   // Search filter using Supabase `or` with ilike on safe columns
   if (search && search.trim()) {
@@ -75,10 +79,10 @@ export async function searchPlayers({ search = '', limit = 50, offset = 0 } = {}
 
   let res = await fetch(url, { method: 'GET', headers });
 
-  // If select=* fails (unlikely but safe), retry with minimal columns
+  // If the full select fails (e.g. view schema drift), retry with minimal columns
   if (res.status === 400) {
-    console.warn('[playersService] select=* failed, retrying with safe columns');
-    const safeUrl = url.replace('select=*', `select=${SAFE_SELECT}`);
+    console.warn('[playersService] full select failed, retrying with safe columns');
+    const safeUrl = url.replace(`select=${FULL_SELECT}`, `select=${SAFE_SELECT}`);
     res = await fetch(safeUrl, { method: 'GET', headers });
   }
 

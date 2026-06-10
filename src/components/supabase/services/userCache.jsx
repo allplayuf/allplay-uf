@@ -14,7 +14,8 @@ import { waitForAuth } from '../client';
 const userCache = new Map();
 const pendingRequests = new Map();
 const MAX_CACHE_SIZE = 1000;
-const USER_COLUMNS = 'id,full_name,username,email,avatar_url,bio,city,skill_level,elo_rating,matches_played,mvp_count,is_admin';
+// NOTE: no email — profiles.email is column-restricted; users view doesn't expose it
+const USER_COLUMNS = 'id,full_name,username,avatar_url,bio,city,skill_level,elo_rating,matches_played,mvp_count,is_admin';
 
 export function getCachedUser(userId) {
   if (!userId) return null;

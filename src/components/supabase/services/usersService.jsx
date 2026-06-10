@@ -12,7 +12,9 @@ import { callEdgeFunction } from '../callEdgeFunction';
 import { EDGE } from '../edgeNames';
 import { primeUsers } from './userCache';
 
-const USER_COLUMNS = 'id,full_name,username,email,avatar_url,bio,city,skill_level,birth_year,elo_rating,matches_played,mvp_count,is_admin';
+// NOTE: no email — profiles.email is column-restricted in Postgres and the
+// users view no longer exposes it. Own email comes from the auth session.
+const USER_COLUMNS = 'id,full_name,username,avatar_url,bio,city,skill_level,birth_year,elo_rating,matches_played,mvp_count,is_admin';
 
 /**
  * Fetch users via REST (fallback when Edge fails)
